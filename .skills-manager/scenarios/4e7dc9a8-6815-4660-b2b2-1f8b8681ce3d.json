@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenario_id": "4e7dc9a8-6815-4660-b2b2-1f8b8681ce3d",
+  "name": "Specialists",
+  "description": "Task and stack-specific specialist skills",
+  "icon": null,
+  "sort_order": 999
+}

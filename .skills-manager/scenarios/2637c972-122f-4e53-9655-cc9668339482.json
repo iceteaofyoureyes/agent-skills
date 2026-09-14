@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenario_id": "2637c972-122f-4e53-9655-cc9668339482",
+  "name": "Delivery",
+  "description": "CI/CD and production release",
+  "icon": null,
+  "sort_order": 999
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenario_id": "3f0b139d-2d69-4511-bc26-ac523c4763e3",
+  "name": "Product",
+  "description": "Product discovery, decisions and UX contracts",
+  "icon": null,
+  "sort_order": 999
+}
