@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "ed3159cd-4186-4562-9497-3cfa66a26647",
+  "path": "web-accessibility",
+  "path_key": "web-accessibility",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "magnus919/agent-skills/web-accessibility",
+    "subpath": "web-accessibility",
+    "branch": null
+  }
+}

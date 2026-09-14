@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "7b86e6d8-4180-45b7-ac00-97b82653fa8c",
+  "path": "product-discovery",
+  "path_key": "product-discovery",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "magnus919/agent-skills/product-discovery",
+    "subpath": "product-discovery",
+    "branch": null
+  }
+}

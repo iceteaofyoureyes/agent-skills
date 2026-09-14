@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "ee4da8db-e636-41bc-bd7a-701c487aef34",
+  "path": "product-methodology",
+  "path_key": "product-methodology",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "magnus919/agent-skills/product-methodology",
+    "subpath": "product-methodology",
+    "branch": null
+  }
+}

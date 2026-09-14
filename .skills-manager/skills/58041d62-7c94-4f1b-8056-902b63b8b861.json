@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "58041d62-7c94-4f1b-8056-902b63b8b861",
+  "path": "api-and-interface-design",
+  "path_key": "api-and-interface-design",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/api-and-interface-design",
+    "subpath": "skills\\api-and-interface-design",
+    "branch": null
+  }
+}

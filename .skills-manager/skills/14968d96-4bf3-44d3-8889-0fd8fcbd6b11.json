@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "skill_id": "14968d96-4bf3-44d3-8889-0fd8fcbd6b11",
+  "path": "performance-optimization",
+  "path_key": "performance-optimization",
+  "enabled": true,
+  "tags": [],
+  "source": {
+    "type": "skillssh",
+    "ref": "addyosmani/agent-skills/performance-optimization",
+    "subpath": "skills\\performance-optimization",
+    "branch": null
+  }
+}
