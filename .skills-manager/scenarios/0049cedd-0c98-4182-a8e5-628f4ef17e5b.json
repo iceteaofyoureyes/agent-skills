@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "scenario_id": "0049cedd-0c98-4182-a8e5-628f4ef17e5b",
+  "name": "Core",
+  "description": "Essential skills shared across coding agents",
+  "icon": null,
+  "sort_order": 999
+}
