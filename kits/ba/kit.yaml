@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "ba",
+  "name": "BA Kit",
+  "version": "1.0.0-rc.1",
+  "workflow": {"skill": "ba-workflow"},
+  "core": ["verification-before-completion", "codebase-discovery"],
+  "skills": {
+    "required": [
+      "requirements-gap-auditor",
+      "requirements-interrogator",
+      "requirements-quality-check",
+      "business-rule-extractor",
+      "srs-function-document",
+      "document-docx",
+      "drawio-skill"
+    ],
+    "optional": [
+      "product-design-and-ux",
+      "frontend-design",
+      "impeccable",
+      "playwright",
+      "web-accessibility"
+    ]
+  },
+  "outputs": ["workflow-state.json", "engineering-handoff.yml"]
+}

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "classification": "shared-capabilities",
+  "skills": [
+    {"id": "verification-before-completion", "reason": "Evidence gate useful to every role kit"},
+    {"id": "codebase-discovery", "reason": "Brownfield evidence capability proven in BA and intended for future Dev/Test workflows"}
+  ]
+}

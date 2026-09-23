@@ -1,0 +1,20 @@
+schema_version: 1
+kit: ba
+automated:
+  - command: python -m unittest tooling.tests.test_ba_kit -v
+    proves: manifest resolution, state/handoff contracts, idempotent install, safe uninstall
+  - command: python tooling/lib/ba_kit.py doctor ba --target <temporary-skills-directory>
+    proves: required skills and contracts resolve without Skills Manager
+  - command: python tooling/lib/ba_kit.py install ba --agent generic --target <temporary-skills-directory>
+    proves: generic directory installation
+manual:
+  - case: fresh Codex project install without Skills Manager
+    expected: doctor READY; project A receives BA skills; project B is unchanged
+  - case: existing Codex project with unrelated skills and configuration
+    expected: unrelated state is byte-for-byte preserved; repeated install is idempotent
+  - case: uninstall BA Kit
+    expected: only unchanged BA-managed skill directories are removed; modified/shared/unrelated files are preserved and reported
+  - case: CR-001 clean-session semantic workflow
+    expected: continuation never approves; unknowns remain open; no technical ownership/design is invented
+  - case: explicit final BA approval and engineering handoff
+    expected: handoff contains immutable revision/source hashes and no implementation ownership fields

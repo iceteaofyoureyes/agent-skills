@@ -1,0 +1,25 @@
+schema_version: 1
+feature:
+  id: <feature-id>
+  title: <feature-title>
+ba_baseline:
+  status: <APPROVED_FOR_ENGINEERING-only-after-explicit-BA-approval>
+  revision: <immutable-revision>
+authoritative_sources:
+  business_rules:
+    path: <relative-path>
+    sha256: <64-character-sha256>
+  srs:
+    path: <relative-path>
+    sha256: <64-character-sha256>
+  decisions:
+    path: <relative-path>
+    sha256: <64-character-sha256>
+open_items:
+  blocking: []
+  non_blocking: []
+policy:
+  downstream_may_change_business_semantics: false
+  downstream_may_make_technical_design_decisions: true
+next_stage:
+  capability: engineering-impact-analysis
