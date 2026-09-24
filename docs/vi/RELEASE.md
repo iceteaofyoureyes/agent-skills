@@ -1,20 +1,98 @@
 # Trạng thái phát hành
 
-BA Kit 1.0.0-rc.1 là package release candidate, chưa phải bản phát hành công khai hay bản functional release đã được chấp nhận. Dev Kit và Test Kit đang Planned, chưa triển khai.
+BA Kit **1.0.0-rc.1** là release candidate. Chưa được coi là functional release đã accepted.
 
-## Trạng thái kỹ thuật/package
+Dev Kit và Test Kit vẫn ở phase sau; chưa phải capability của BA Kit RC1.
 
-Các kiểm tra package và installer đã đạt với Codex project install, cài lặp idempotent, Doctor READY, gỡ cài đặt an toàn và cô lập dự án. Generic PowerShell/Bash và cấu trúc cài Claude Code cũng đã được kiểm tra. Runtime Claude chưa được chạy. Các kiểm tra này xác nhận cấu trúc và hành vi cài đặt, không chứng minh workflow BA hoạt động trên runtime.
+## Package / installer
+
+Đã có evidence PASS cho các kiểm tra package tương ứng:
+
+- Codex project install;
+- idempotent reinstall;
+- Doctor READY;
+- safe uninstall;
+- project isolation;
+- generic PowerShell/Bash structural path;
+- Claude Code structural install.
+
+Các kiểm tra này chứng minh package/install behavior, không tự chứng minh runtime BA semantics.
 
 ## Runtime functional acceptance
 
-Fresh-session CR-001 acceptance cho package đang **BLOCKED** vì isolated Codex provider/runtime không trả lời. Đây là chặn do môi trường, không phải functional PASS. Không xem benchmark trước đây hay ví dụ tài liệu là acceptance của package này. Khi runtime cô lập có thể trả lời, chạy các case trong [kits/ba/acceptance.yaml](../../kits/ba/acceptance.yaml) và ghi chính xác runtime cùng kết quả.
+Runtime preflight trên isolated route đã **PASS** với:
 
-## Trạng thái quyền phân phối
+~~~text
+provider = codex-lb
+model = gpt-6-luna
+~~~
 
-Trạng thái license của payload BA Kit là **BA_KIT_LICENSE_READY**. Mọi skill required, core và optional được installer phân phối đã có provenance đã xác minh cùng license hoặc ghi công cần thiết. Trạng thái này không có nghĩa runtime functional acceptance đã đạt.
+Project-local skill discovery cũng PASS.
 
-Trạng thái công bố toàn repository là **REPO_PUBLICATION_BLOCKED**. Các import ngoài BA vẫn cần kiểm toán nội dung và license theo revision; metadata .skills-manager đang được track cũng cần quyết định về ownership/license hoặc phạm vi công bố. Không mô tả repository là sẵn sàng phát hành công khai trước khi giải quyết các blocker này.
+Full fresh-session CR-001 acceptance đầu tiên đã chạy và kết luận:
+
+~~~text
+BA_KIT_RC1_CHANGES_REQUIRED
+~~~
+
+Các finding chính:
+
+- current-system discovery trong run đó bị chặn bởi HTTP 403 từ codex-auto-review;
+- gap analysis/Business Rules/SRS chưa đạt semantic golden;
+- SRS bỏ sót một số confirmed behaviors;
+- SRS thêm một số unsupported UI/entry-flow assumptions;
+- một validator behavior được report là regression nhưng cần reproduce trên current HEAD trước khi sửa;
+- exact tested repository SHA không được ghi trong report.
+
+Vì vậy run này là **evidence tìm ra lỗi**, không phải final acceptance của current HEAD.
+
+Chiến lược remediation hiện tại:
+
+~~~text
+Tier 1 deterministic tests
+→ Tier 2 focused runtime probes
+→ one final Tier 3 full fresh-session E2E
+~~~
+
+Không chạy lại full 1h+ cho mỗi thay đổi nhỏ.
+
+## SRS/DOCX/Draw.io capability status
+
+- canonical functional SRS capability: implemented, targeted semantic remediation đang diễn ra;
+- DOCX capability: required skill có sẵn;
+- Word template support: có qua document-docx, nhưng **không có bundled default SRS_TEMPLATE.docx**;
+- Draw.io capability: required skill có sẵn;
+- optional prototype/UI capabilities: chỉ có khi optional skills tương ứng được cài.
+
+## Redistribution readiness
+
+BA Kit installer payload:
+
+~~~text
+BA_KIT_LICENSE_READY
+~~~
+
+Required/core/optional skills trong BA payload đã có provenance/license status cần thiết cho redistribution.
+
+Whole repository:
+
+~~~text
+REPO_PUBLICATION_BLOCKED
+~~~
+
+Một số non-BA imports và tracked Skills Manager metadata vẫn cần audit/scope decision.
+
+## Khi nào mới gọi RC1 PASS?
+
+Chỉ sau khi:
+
+1. targeted deterministic/runtime remediation PASS;
+2. final full fresh-session CR-001 E2E chạy trên exact recorded HEAD;
+3. semantic comparison PASS;
+4. final independent review PASS;
+5. Human chấp nhận release candidate.
+
+Không dùng example docs, offline metadata coverage hoặc package install PASS thay cho runtime acceptance.
 
 ---
 

@@ -1,19 +1,118 @@
 # Tổng quan kiến trúc
 
-Các skill nguyên tử được lưu canonical ở thư mục gốc. **kits/ba/kit.yaml** là nguồn duy nhất mô tả thành phần BA Kit. **ba-workflow/** điều phối yêu cầu và giữ ranh giới trạng thái/phê duyệt; các skill nguyên tử thực hiện quy trình khám phá, phân tích, SRS, sơ đồ và tài liệu chi tiết.
+## Mục tiêu
 
-## Phân chia trách nhiệm
+BA Kit tổ chức các atomic skills thành một workflow cho BA mà vẫn giữ Human làm business authority.
 
-| Giai đoạn | Câu hỏi | Trạng thái |
+~~~text
+BA Kit = WHAT
+Engineering Impact = WHERE / WHO OWNS
+Dev Kit + repo-local Spec Kit = HOW
+Test Kit + TEA = HOW DO WE PROVE IT
+~~~
+
+## Layer
+
+~~~text
+User intent
+    ↓
+ba-workflow
+    ↓
+state / authority / gate / route
+    ↓
+atomic capabilities
+    ├── discovery
+    ├── requirement review
+    ├── Business Rules
+    ├── SRS
+    ├── DOCX
+    ├── Draw.io
+    └── optional UX/UI/prototype
+~~~
+
+Atomic skills được lưu canonical ở repository root. **kits/ba/kit.yaml** là nguồn duy nhất cho BA Kit composition.
+
+## Semantic, visual và delivery authority
+
+BA workflow tách ba lớp để tránh artifact presentation ghi đè business truth:
+
+~~~text
+SEMANTIC
+Confirmed BA Decisions
++ Approved Business Rules
++ Canonical SRS
+
+VISUAL
+Approved Figma / screenshot / diagram / prototype
+(chỉ visual/interaction meaning được xác nhận)
+
+DELIVERY
+Selected Word template
+
+AS-IS
+CURRENT_SYSTEM evidence
+~~~
+
+DOCX, Draw.io và prototype là derived artifacts; semantic change phải quay về semantic authority trước.
+
+## Project modes
+
+- brownfield;
+- greenfield;
+- document-only;
+- visual-assisted.
+
+Workflow không bắt mọi request chạy full pipeline; nó bắt đầu từ earliest safe checkpoint.
+
+## Responsibility flow
+
+| Stage | Question | Status |
 |---|---|---|
-| BA Kit | **WHAT** — hệ thống cần làm gì? | Ứng viên RC1; runtime functional acceptance đang bị chặn. |
-| Engineering Impact (phân tích tác động kỹ thuật) | Công việc thuộc **WHERE** và **WHO** sở hữu? | Planned; chưa triển khai. |
-| Dev Kit + Spec Kit | **HOW** — thiết kế và xây dựng thế nào? | Planned; chưa triển khai. |
-| Test Kit + TEA (khả năng kiểm thử hạ nguồn) | **HOW DO WE PROVE IT** — chứng minh hoạt động ra sao? | Planned; chưa triển khai. |
+| BA Kit | **WHAT**? | RC1 candidate; remediation |
+| Engineering Impact | **WHERE / WHO OWNS**? | Planned |
+| Dev Kit + Spec Kit | **HOW**? | Planned |
+| Test Kit + TEA | **HOW DO WE PROVE IT**? | Planned |
 
-Luồng dự kiến: Requirement → BA Kit → Approved BA Baseline → Engineering Impact → Dev Kit + Spec Kit → Test Kit + TEA. Lộ trình chi tiết sau BA gồm Engineering Handoff (bàn giao BA cho kỹ thuật) → Engineering Impact → Tech Lead Gate → Spec Kit → lập kế hoạch/triển khai → Test Kit/TEA. Hiện chỉ BA Kit được đóng gói thành Kit; các giai đoạn tương lai phải giữ nguyên ngữ nghĩa BA đã duyệt và giải quyết quyết định kỹ thuật ở hạ nguồn.
+~~~text
+Requirement
+→ BA Kit
+→ Approved BA Baseline
+→ Engineering Impact
+→ Dev Kit + repo-local Spec Kit
+→ Test Kit + TEA
+→ Human Final Acceptance
+~~~
 
-Installer chỉ đọc dependency từ manifest. Codex và Claude Code dùng thư mục Agent Skills native; generic cần chỉ rõ thư mục. Metadata Skills Manager độc lập và không bắt buộc. Xem [Cài đặt](INSTALLATION.md), [Hợp đồng Kit](KIT_CONTRACT.md) và [Nguồn gốc](PROVENANCE.md).
+## Required vs optional
+
+BA Kit required capabilities bao gồm discovery, requirement review, Business Rules, SRS, DOCX và Draw.io. UX/UI/prototype/browser/accessibility capabilities là optional.
+
+Xem [Khả năng BA Kit](BA_KIT_CAPABILITIES.md).
+
+## Installer architecture
+
+Installer đọc dependency từ **kits/ba/kit.yaml**.
+
+- Codex/Claude Code: cài vào Agent Skills directory tương ứng;
+- generic: explicit target directory;
+- Skills Manager: optional, không phải runtime dependency.
+
+## Handoff boundary
+
+Engineering Handoff chỉ xuất hiện sau explicit BA approval và không chứa:
+
+- repository/module owner;
+- FE/BE/service owner;
+- API/event shape;
+- DB schema;
+- architecture choice;
+- locking/transaction strategy.
+
+Đó là input cho Engineering Impact.
+
+## Nguồn nền tảng
+
+Claim level và reference standards/frameworks nằm ở [FOUNDATIONS.md](FOUNDATIONS.md). Exact upstream revision/license nằm ở [PROVENANCE.md](PROVENANCE.md).
 
 ---
 

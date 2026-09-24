@@ -1,14 +1,36 @@
 # BA Kit Quick Start
 
-Tiếng Việt: [Hướng dẫn nhanh](../vi/BA_KIT_QUICKSTART.md)
+BA Kit supports this BA flow:
 
-BA Kit is an AI-assisted Business Analysis workflow. It helps a BA discover current-system behavior, find requirement gaps, record Human decisions, prepare Business Rules and an SRS, and create an Engineering Handoff after approval. It assists the BA; it does not replace BA ownership, customer communication, or Human approval.
+~~~text
+Review input
+→ discover current system when needed
+→ find gaps
+→ Human answers
+→ Business Rules
+→ SRS
+→ Draw.io / prototype / DOCX when needed
+→ Human approval
+→ Engineering Handoff
+~~~
 
-BA Kit owns **WHAT** the system needs to do. It does not design APIs or databases, choose implementation owners, or write production code. See [Architecture](ARCHITECTURE.md) and [Workflow and Human Gates](BA_KIT_WORKFLOW.md).
+The BA still owns business decisions and stakeholder communication. The agent primarily **discovers, reviews, asks, structures, documents, visualizes, and validates**.
 
-## Install for one project
+## What can BA Kit do?
 
-Clone the repository, then run the scripts from the project where you want BA Kit available. The project scope uses the current directory; replace these example paths with your actual checkout and project paths.
+- requirement/gap/edge-case review;
+- brownfield discovery from the current project;
+- screenshot/Figma export/PDF/HTML-prototype review;
+- Business Rule extraction;
+- canonical functional SRS create/update;
+- DOCX create/edit using a project-provided Word template;
+- Draw.io business flow/state/swimlane create/edit;
+- optional local UI prototype and visual/accessibility review;
+- Human Gates and Engineering Handoff.
+
+See [BA Kit capabilities](BA_KIT_CAPABILITIES.md).
+
+## Install in a project
 
 ~~~powershell
 git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
@@ -24,36 +46,119 @@ cd /path/to/your-project
 ~/src/agent-skills/tooling/doctor.sh ba --agent codex --scope project
 ~~~
 
-Project scope places skills in that project's **.agents/skills** directory. It is useful for isolating BA Kit from other projects. [Installation](INSTALLATION.md) covers Codex user scope, Claude Code, generic directories, and uninstall.
+Doctor: **READY** = required capabilities/contracts are present; **DEGRADED** = optional capability missing; **FAIL** = required capability/contract problem.
 
-Doctor reports:
-
-- **READY**: required and optional skills and package contracts pass.
-- **DEGRADED**: required skills and contracts pass, but optional skills are unavailable.
-- **FAIL**: a required skill is missing/invalid or a contract check fails.
-
-## Start a BA review
-
-Open the target project in your agent and write naturally:
+## Step 1 — Review the requirement
 
 ~~~text
-Review requirement này giúp tôi.
+Review this requirement.
+For brownfield work, discover the current system first.
+Find missing/unclear cases and ask me; do not write the SRS yet.
 ~~~
 
-For brownfield work, you can be explicit:
+For list/CRUD work, expect checks around fields, search/filter, sorting, pagination/page size, actions, state/lifecycle, permissions, validation, empty/loading/error, and edge cases.
+
+## Step 2 — Human clarification
 
 ~~~text
-Hãy rà soát requirement này trên hệ thống hiện tại và chỉ ra các điểm còn thiếu hoặc chưa rõ.
+Default sort is createdAt DESC.
+Default page size is 20.
+Cancel applies only in Draft and only Supervisor may use it.
 ~~~
 
-You do not need to know skill names or invoke them. BA Kit routes the request, discovers the current system when it matters, separates evidence from decisions, and asks about material unknowns.
+Answers resolve questions; they do not approve artifacts.
 
-## What to expect
+## Step 3 — Business Rules and SRS
 
-Depending on the request and Human decisions, BA work may produce a gap review, open questions, a decision record, approved Business Rules, a canonical SRS, or diagrams and document exports. The project-local **workflow-state.json** tracks the work. An Engineering Handoff is produced only after explicit Human approval of the BA baseline and resolution of blocking items.
+~~~text
+Build the confirmed Business Rules and keep UNKNOWN separate.
+~~~
 
-**Tiếp tục** resumes the workflow. It never means approval. See the [Workflow](BA_KIT_WORKFLOW.md), [Usage Guide](BA_KIT_USAGE_GUIDE.md), [CR-001 example](../../kits/ba/examples/CR-001/en/README.md), and [FAQ](BA_KIT_FAQ.md).
+Then:
 
-## Current status
+~~~text
+Create the canonical functional SRS from the confirmed baseline.
+Preserve traceability and do not choose technical design.
+~~~
 
-BA Kit is an RC1 candidate. Packaged runtime acceptance is blocked by an isolated provider/runtime that returned no response. BA Kit license redistribution is ready; publication of the whole repository remains blocked by non-BA imports and tracked Skills Manager metadata that still need review. See [Release Status](RELEASE.md) and [Provenance](PROVENANCE.md).
+## Step 4 — Derived artifacts when needed
+
+### DOCX using a template
+
+~~~text
+Export the SRS to DOCX.
+Template: docs/templates/COMPANY_SRS_TEMPLATE.docx.
+Preserve layout/styles; do not invent missing data.
+~~~
+
+RC1 **does not bundle a default SRS_TEMPLATE.docx**. See [SRS and DOCX](SRS_DOCX_GUIDE.md).
+
+### Draw.io
+
+~~~text
+Create an editable Draw.io business flow from approved Business Rules/SRS
+and export a PNG preview. Do not add new rules.
+~~~
+
+See [Draw.io, visual input, and prototypes](DIAGRAMS_PROTOTYPES.md).
+
+### Prototype — optional
+
+~~~text
+Create a local prototype from confirmed SRS and visual references for my review.
+This is a visual proposal, not production code.
+~~~
+
+## Step 5 — Review and approve
+
+~~~text
+Review SRS revision SRS-42. Do not edit it.
+~~~
+
+or:
+
+~~~text
+Request changes for SRS-42: ...
+~~~
+
+When truly accepted:
+
+~~~text
+I approve BR-42 and SRS-42 as the BA baseline for Engineering.
+~~~
+
+**Continue is not approval.**
+
+## Step 6 — Engineering Handoff
+
+~~~text
+Create the Engineering Handoff.
+~~~
+
+Only valid after explicit approval and no blocking items.
+
+## Visual input
+
+For screenshot/Figma/PDF/HTML:
+
+~~~text
+Review this visual together with the requirement.
+Separate observed visual, mismatch, missing decision, and proposal.
+Do not infer hidden business rules from the image.
+~~~
+
+A Figma link is only directly usable when the runtime has a connector/access; otherwise export screenshot/PDF/local artifacts.
+
+## Example
+
+[CR-001 Appointment Scheduling](../../kits/ba/examples/CR-001/README.md) demonstrates input → gap review → Human decisions → Business Rules → SRS → diagram/DOCX delivery examples → engineering handoff.
+
+## Current RC1 status
+
+Package/install/Doctor and redistribution licensing have passed their respective checks. Runtime preflight now passes, but the first full CR-001 acceptance returned **BA_KIT_RC1_CHANGES_REQUIRED** and targeted remediation is in progress. RC1 is therefore **not functionally accepted**.
+
+See [Release status](RELEASE.md).
+
+---
+
+Tiếng Việt: [Hướng dẫn nhanh](../vi/BA_KIT_QUICKSTART.md)

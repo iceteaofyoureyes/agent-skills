@@ -1,87 +1,233 @@
-# Hướng dẫn sử dụng BA Kit
+# Hướng dẫn sử dụng BA Kit theo tình huống
 
-Dùng ngôn ngữ tự nhiên trong dự án đã cài BA Kit. Bạn không cần gọi tên skill. Prompt bên dưới minh họa ý định; câu chữ và ID artifact không cố định.
+BA Kit được dùng bằng **ý định tự nhiên**. Không cần nhớ tên từng skill. Workflow tự route capability dựa trên operation, project mode, artifact và Human Gate.
 
-## Bắt đầu rà soát
+## Quy tắc trước khi dùng
+
+BA Kit phân biệt:
+
+~~~text
+CREATE   tạo artifact mới
+EDIT     cập nhật artifact
+REVIEW   chỉ review, không mutate
+CONTINUE tiếp tục workflow, không approve
+~~~
+
+Với mọi mode, Human vẫn là business authority.
+
+## Tình huống 1 — Review đầu bài trước khi viết tài liệu
 
 ~~~text
 Review requirement này giúp tôi.
+Tìm ambiguity, missing rule, edge case và các điểm BA cần hỏi lại.
+Chưa viết SRS.
 ~~~
 
-Với dự án brownfield:
+Expected: gap list, evidence classification, blocking/non-blocking questions; không mutate artifact.
+
+## Tình huống 2 — Review brownfield dựa trên project hiện tại
 
 ~~~text
-Review requirement này. Trước khi kết luận hãy discover current system và chỉ ra các điểm còn thiếu hoặc chưa rõ.
+Review CR-123 trên codebase hiện tại.
+Discover current system trước.
+Tách rõ CURRENT_SYSTEM, INFERRED và UNKNOWN.
+Sau đó hỏi tôi các decision còn thiếu.
 ~~~
 
-Khi cần, workflow xem xét hệ thống hiện tại, gắn nhãn bằng chứng và nêu câu hỏi còn mở. Yêu cầu review chỉ đọc, không sửa artifact.
+Agent kiểm tra source trong phạm vi runtime có quyền đọc. Current behavior không tự thành target requirement.
 
-## Tiếp tục nhưng không phê duyệt
+## Tình huống 3 — Review một màn CRUD/list còn thiếu rule
+
+~~~text
+Review chức năng danh sách công văn này.
+Kiểm tra giúp tôi còn thiếu:
+- search/filter;
+- sort/default sort;
+- pagination và page size;
+- fields hiển thị;
+- row actions;
+- state;
+- permission;
+- empty/loading/error;
+- validation và destructive action.
+Chỉ hỏi những điểm chưa có evidence.
+~~~
+
+## Tình huống 4 — Input là screenshot/Figma/PDF/HTML prototype
+
+Nếu Figma connector không có, export artifact thành file agent đọc được.
+
+~~~text
+Review screenshot này cùng CR-208.
+Liệt kê UI element quan sát được, đối chiếu requirement và hỏi gap.
+Không suy ra permission/validation/business rule chỉ từ hình.
+~~~
+
+Sau khi BA trả lời:
+
+~~~text
+Update phần UI Behavior trong canonical SRS từ các quyết định vừa confirmed.
+~~~
+
+## Tình huống 5 — Trả lời clarification và tổng hợp Business Rules
+
+~~~text
+Sort mặc định theo createdAt giảm dần.
+Page size mặc định 20, cho phép 20/50/100.
+Chỉ role Supervisor có action Cancel.
+~~~
+
+Sau đó:
+
+~~~text
+Tổng hợp Business Rules đã CONFIRMED.
+Giữ các mục chưa trả lời là UNKNOWN.
+Report rule nào còn blocking.
+~~~
+
+**ANSWER không đồng nghĩa APPROVE.**
+
+## Tình huống 6 — Tạo canonical SRS
+
+~~~text
+Tạo canonical functional SRS từ decisions và Business Rules đã confirmed.
+Giữ traceability.
+Không tự quyết định API/DB/architecture.
+Để UNKNOWN hiển thị rõ.
+~~~
+
+## Tình huống 7 — Update SRS hiện có
+
+~~~text
+Update SRS CR-123 theo các quyết định mới trong decisions.md.
+Chỉ thay phần sort/pagination.
+Giữ nguyên các rule approved khác.
+Report semantic diff sau khi sửa.
+~~~
+
+## Tình huống 8 — Xuất SRS DOCX theo template công ty
+
+~~~text
+Tạo DOCX từ docs/srs/CR-123.md.
+Dùng docs/templates/COMPANY_SRS_TEMPLATE.docx.
+Giữ style/layout của template.
+Section nào chưa có dữ liệu confirmed thì để UNKNOWN hoặc report; không tự invent.
+~~~
+
+BA Kit RC1 **không bundle template SRS Word mặc định**.
+
+## Tình huống 9 — Review/edit existing DOCX
+
+Review-only:
+
+~~~text
+Review Existing-SRS.docx so với requirement và Business Rules hiện tại.
+Chỉ report mismatch/missing/format issue.
+Không sửa file.
+~~~
+
+Nếu đã có canonical Markdown, semantic change phải cập nhật Markdown trước rồi mới đồng bộ DOCX.
+
+## Tình huống 10 — Tạo Draw.io flowchart/state/swimlane
+
+~~~text
+Từ Business Rules đã approved, tạo business flowchart .drawio.
+Output editable + PNG preview.
+Gắn BR reference khi hữu ích.
+Không thêm transition/rule chưa confirmed.
+~~~
+
+## Tình huống 11 — Review/update Draw.io có sẵn
+
+~~~text
+Review process.drawio so với canonical SRS.
+Chỉ report mismatch, chưa sửa.
+~~~
+
+Sau approval:
+
+~~~text
+Update process.drawio theo BR-022 vừa approved.
+Giữ layout/style khác.
+~~~
+
+## Tình huống 12 — Tạo prototype UI — optional
+
+~~~text
+Từ SRS đã confirmed và screenshot tham chiếu, tạo local prototype.
+Bao gồm desktop/mobile và các state đã được xác định.
+Đây là visual proposal; không thay đổi Business Rules.
+~~~
+
+## Tình huống 13 — Review artifact mà không thay đổi workflow
+
+~~~text
+Review SRS hiện tại về completeness và consistency.
+REVIEW only. Không edit file và không advance workflow.
+~~~
+
+## Tình huống 14 — Request changes sau review
+
+~~~text
+Request changes cho SRS revision SRS-42:
+- FR-12 chưa nêu behavior khi empty;
+- BR-08 trace sai;
+- chưa chốt page size.
+Không approve.
+~~~
+
+## Tình huống 15 — Approve BA baseline
+
+~~~text
+Tôi phê duyệt Business Rules revision BR-42
+và SRS revision SRS-42
+làm BA baseline cho Engineering.
+~~~
+
+Approval phải explicit. **“Tiếp tục” không phải approval.**
+
+## Tình huống 16 — Tạo Engineering Handoff
+
+~~~text
+Tạo Engineering Handoff từ baseline vừa approved.
+~~~
+
+Expected: immutable revision, source path + SHA-256, open items, downstream policy, next stage; không có technical ownership/design.
+
+## Tình huống 17 — Continue session
 
 ~~~text
 Tiếp tục.
 ~~~
 
-Lệnh này tiếp tục từ giai đoạn đã lưu và thực hiện hành động hợp lệ kế tiếp. Nó không trả lời câu hỏi đang mở và không phê duyệt artifact.
+Workflow đọc **workflow-state.json**, xác định next valid action và tiếp tục. Nó không trả lời câu hỏi thay Human, tự approve hoặc bỏ qua blocking gate.
 
-## Hỏi về mục còn mở
-
-~~~text
-Còn gap nào blocking?
-~~~
-
-Workflow cần nêu rõ khoảng trống blocking và giữ lại các mục chưa giải quyết nhưng không blocking.
-
-## Trả lời câu hỏi
-
-Trả lời trực tiếp câu hỏi được nêu tên, ví dụ:
+## Một flow làm việc đầy đủ
 
 ~~~text
-Rule conflict chỉ áp dụng cho Appointment ở trạng thái Scheduled của cùng Veterinarian; hai khoảng thời gian chạm nhau thì được phép.
+BA input
+→ REVIEW
+→ brownfield/visual discovery khi cần
+→ gap/questions
+→ Human ANSWER
+→ Business Rules
+→ canonical SRS
+→ Draw.io / prototype draft khi cần
+→ DOCX delivery theo template khi cần
+→ Human REQUEST_CHANGES / APPROVE
+→ Engineering Handoff
 ~~~
 
-Đây là câu trả lời minh họa cho CR-001. Chỉ dùng nếu đó thực sự là quyết định của BA có thẩm quyền. Câu trả lời chỉ giải quyết câu hỏi đó, không phê duyệt các artifact khác.
+Derived artifacts nên được regenerate/update từ canonical sources sau khi semantic baseline đổi.
 
-## Tổng hợp quy tắc đã xác nhận
+## Xem thêm
 
-~~~text
-Tổng hợp lại các Business Rules đã confirmed, giữ riêng các mục UNKNOWN.
-~~~
-
-Kiểm tra quy tắc có trích nguồn và phân biệt quyết định đã xác nhận với bằng chứng từ hệ thống hiện tại.
-
-## Tạo SRS
-
-~~~text
-Viết SRS từ baseline đã xác nhận.
-~~~
-
-SRS phải dựa trên quyết định đã xác nhận và Business Rules được duyệt, giữ traceability và nêu rõ mục còn chưa giải quyết.
-
-## Phê duyệt baseline rõ ràng
-
-Sau khi xem các artifact và revision được nêu tên, có thể phê duyệt rõ như sau:
-
-~~~text
-Tôi phê duyệt Business Rules revision BR-<revision> và SRS revision SRS-<revision> làm BA baseline cho Engineering.
-~~~
-
-Thay revision ví dụ bằng revision bất biến thực tế. Chỉ gửi câu này khi bạn thực sự muốn phê duyệt đúng các artifact đó. Workflow không suy diễn phê duyệt từ **“Tiếp tục”**, việc trả lời đủ câu hỏi hay kết quả validation thành công.
-
-## Tạo Engineering Handoff
-
-Sau khi phê duyệt rõ ràng và giải quyết mọi mục blocking:
-
-~~~text
-Tạo Engineering Handoff.
-~~~
-
-Handoff ghi BA baseline đã duyệt, đường dẫn/hash SHA-256 của nguồn, mục còn mở, chính sách hạ nguồn và bước kế tiếp. Handoff không chỉ định repository, module, frontend/backend owner, API/DB, locking hoặc transaction. Xem [hợp đồng handoff](../../ba-workflow/references/engineering-handoff.md) và [provenance](PROVENANCE.md).
-
-## Ví dụ và hợp đồng
-
-[Ví dụ CR-001](../../kits/ba/examples/CR-001/README.md) minh họa một luồng từ input chưa đầy đủ tới handoff. Đây không phải transcript golden: câu chữ và ID mẫu không bắt buộc trừ khi hợp đồng thật yêu cầu. Hãy theo hợp đồng artifact và giữ provenance thay vì cố khớp văn mẫu.
+- [Khả năng BA Kit](BA_KIT_CAPABILITIES.md)
+- [Workflow và Human Gates](BA_KIT_WORKFLOW.md)
+- [SRS và DOCX](SRS_DOCX_GUIDE.md)
+- [Draw.io, visual input và prototype](DIAGRAMS_PROTOTYPES.md)
+- [Ví dụ CR-001](../../kits/ba/examples/CR-001/README.md)
 
 ---
 
-English: [Usage Guide](../en/BA_KIT_USAGE_GUIDE.md)
+English: [Usage guide](../en/BA_KIT_USAGE_GUIDE.md)

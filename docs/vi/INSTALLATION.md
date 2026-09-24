@@ -1,6 +1,6 @@
 # Cài đặt
 
-Clone repository của Kit, sau đó chạy installer khi shell đang ở dự án bạn muốn dùng BA Kit. Project scope dùng thư mục làm việc hiện tại để cài riêng cho dự án. Sau khi cài, chạy **Doctor** (lệnh kiểm tra trạng thái cài đặt).
+Clone repository, sau đó chạy installer khi shell đang ở project muốn dùng BA Kit. Project scope phù hợp nhất khi mỗi project cần bộ skill riêng.
 
 ~~~powershell
 git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
@@ -16,21 +16,17 @@ cd /path/to/your-project
 ~/src/agent-skills/tooling/doctor.sh ba --agent codex --scope project
 ~~~
 
-Thay đường dẫn ví dụ của repository và dự án bằng đường dẫn thực tế.
+## Target được hỗ trợ
 
-## Các target được hỗ trợ
-
-Dùng wrapper PowerShell hoặc shell tương ứng trong **tooling/**. Các tham số dưới đây dùng giống nhau cho **install**, **doctor** và **uninstall**.
-
-| Target | Tham số |
+| Target | Arguments |
 |---|---|
 | Codex project | **ba --agent codex --scope project** |
 | Codex user | **ba --agent codex --scope user** |
 | Claude Code project | **ba --agent claude-code --scope project** |
 | Claude Code user | **ba --agent claude-code --scope user** |
-| Thư mục generic | **ba --agent generic --target PATH** |
+| Generic directory | **ba --agent generic --target PATH** |
 
-Ví dụ từ thư mục dự án trên PowerShell:
+PowerShell:
 
 ~~~powershell
 & 'C:\tools\agent-skills\tooling\install.ps1' ba --agent codex --scope user
@@ -38,7 +34,7 @@ Ví dụ từ thư mục dự án trên PowerShell:
 & 'C:\tools\agent-skills\tooling\install.ps1' ba --agent generic --target C:\path\to\agent\skills
 ~~~
 
-Ví dụ từ thư mục dự án trên Bash:
+Bash:
 
 ~~~bash
 ~/src/agent-skills/tooling/install.sh ba --agent codex --scope user
@@ -46,42 +42,145 @@ Ví dụ từ thư mục dự án trên Bash:
 ~/src/agent-skills/tooling/install.sh ba --agent generic --target /path/to/agent/skills
 ~~~
 
-Để chạy Doctor hoặc gỡ cài đặt, gọi wrapper **doctor.ps1** / **doctor.sh** hoặc **uninstall.ps1** / **uninstall.sh** tương ứng với cùng tham số kit và target. Ví dụ:
+Gỡ cài đặt hoặc Doctor dùng cùng kit/target arguments với **uninstall.ps1/.sh** và **doctor.ps1/.sh**.
 
-~~~powershell
-& 'C:\tools\agent-skills\tooling\doctor.ps1' ba --agent claude-code --scope project
-& 'C:\tools\agent-skills\tooling\uninstall.ps1' ba --agent generic --target C:\path\to\agent\skills
-~~~
+## Vị trí cài
 
-~~~bash
-~/src/agent-skills/tooling/doctor.sh ba --agent claude-code --scope project
-~/src/agent-skills/tooling/uninstall.sh ba --agent generic --target /path/to/agent/skills
-~~~
+- Codex project: **.agents/skills**
+- Claude Code project: **.claude/skills**
+- user scope: agent-native skills directory trong home
+- generic: bắt buộc chỉ rõ **--target**
 
-Skill Codex project được cài tại **.agents/skills**; Claude Code project dùng **.claude/skills**. User scope cài vào thư mục tương ứng trong home folder. Project scope phù hợp khi chỉ muốn dùng BA Kit cho một dự án. Generic bắt buộc có **--target**. Tham số này cũng có thể ghi đè đường dẫn agent native để kiểm tra cô lập.
+Installer giữ nguyên skill cùng tên đã tồn tại; không merge/overwrite. Reinstall idempotent. Uninstall chỉ xóa skill do BA Kit quản lý nếu nội dung chưa bị sửa.
 
-Các kiểm tra cấu trúc đã đạt gồm Codex project install, cài lặp idempotent, Doctor, gỡ cài đặt an toàn và cô lập dự án. Generic PowerShell/Bash và cấu trúc cài đặt Claude Code cũng đã được kiểm tra; runtime Claude chưa được chạy. Xem [Trạng thái phát hành](RELEASE.md).
+## Doctor kiểm tra gì?
 
-## Trạng thái Doctor
+Doctor kiểm tra:
 
-Doctor kiểm tra skill bắt buộc/tùy chọn đã cài, manifest của kit, hợp đồng workflow-state/source-authority và hợp đồng handoff.
+- manifest/composition;
+- required/optional skill directories;
+- Agent Skills frontmatter;
+- workflow-state/source-authority contracts;
+- engineering-handoff contract.
 
-| Trạng thái | Ý nghĩa |
+| Status | Ý nghĩa |
 |---|---|
-| **READY** | Skill bắt buộc, hợp đồng và các skill tùy chọn đều đạt/có sẵn. |
-| **DEGRADED** | Skill bắt buộc và hợp đồng đạt, nhưng thiếu một hoặc nhiều skill tùy chọn. |
-| **FAIL** | Thiếu hoặc sai skill bắt buộc, hoặc hợp đồng bắt buộc không đạt. |
+| **READY** | Required skills/contracts đạt và optional skills có sẵn |
+| **DEGRADED** | Required skills/contracts đạt nhưng thiếu optional skill |
+| **FAIL** | Required skill/contract lỗi |
 
-**FAIL** trả mã thoát 1. **READY** và **DEGRADED** trả mã thoát 0. Doctor không chạy một phiên BA và không chứng minh runtime acceptance.
+FAIL exit 1; READY/DEGRADED exit 0.
 
-## Yêu cầu và an toàn
+### Quan trọng: READY không đồng nghĩa mọi tool runtime đã cài
 
-- Cần Python 3.8 trở lên. PowerShell tìm **python** trên PATH. Bash dùng **python3** hoặc executable được chỉ định trong biến môi trường **PYTHON**.
-- Không cần package Python, Skills Manager, agent profile hay thay đổi cấu hình agent toàn cục.
-- Thành phần được lấy từ [kit.yaml](../../kits/ba/kit.yaml). Installer giữ nguyên skill cùng tên đã có; không merge hay ghi đè.
-- Cài lặp lại an toàn. Gỡ cài đặt chỉ xóa skill BA Kit không bị sửa; skill đã sửa hoặc dùng chung được giữ lại.
+Doctor hiện **không phải dependency manager cho external tooling** và không chứng minh runtime acceptance.
 
-Xem [Hướng dẫn nhanh](BA_KIT_QUICKSTART.md) để bắt đầu.
+Ví dụ một installation có thể READY nhưng vẫn thiếu tool để export Word/PNG/browser.
+
+## Runtime prerequisite theo capability
+
+### Core BA workflow
+
+Cần:
+
+- Python 3.8+ cho installer/validators;
+- agent runtime có quyền đọc project/artifact cần review.
+
+Installer không yêu cầu Skills Manager, agent profile hay global config change.
+
+### DOCX / Word template
+
+**document-docx** chọn tool theo task.
+
+Các action thường có thể cần:
+
+- **python-docx** cho structural create/edit;
+- **docxtpl** cho Word-authored template có placeholder;
+- LibreOffice hoặc Microsoft Word cho render/PDF/fidelity check tùy workflow.
+
+BA Kit installer **không tự pip-install** các package này.
+
+Trước khi hứa một DOCX feature, agent phải kiểm tra tool/library version theo document-docx skill.
+
+Xem [SRS và DOCX](SRS_DOCX_GUIDE.md).
+
+### Draw.io
+
+Core .drawio authoring/validation có nhiều path chỉ cần Python.
+
+Để native export PNG/SVG/PDF cần **draw.io/diagrams.net desktop CLI** khả dụng.
+
+Graphviz là optional cho một số auto-layout workflow.
+
+Nếu binary export không có, agent có thể vẫn tạo/edit source .drawio theo capability phù hợp nhưng phải báo limitation thay vì claim export đã thực hiện.
+
+Xem [Draw.io, visual input và prototype](DIAGRAMS_PROTOTYPES.md).
+
+### Prototype / browser check — optional
+
+Optional browser workflow có thể cần:
+
+- Node.js/npm/npx;
+- Playwright CLI/browser runtime;
+- project frontend dependencies.
+
+Các dependency này không được BA Kit installer tự cài.
+
+### Figma
+
+BA Kit **không bundle Figma connector**.
+
+Direct Figma access cần connector/integration ngoài Kit + Human authorization. Nếu không có, dùng screenshot/PDF/image/HTML/local export.
+
+## Kiểm tra sau cài
+
+Sau Doctor READY/DEGRADED, nên test đúng capability mình định dùng.
+
+### Core BA
+
+~~~text
+Mở agent trong project và yêu cầu:
+Review requirement này. REVIEW only.
+~~~
+
+### DOCX
+
+Trước khi tạo template output, kiểm tra Python/package/tool theo document-docx workflow.
+
+### Draw.io
+
+Nếu cần export:
+
+~~~text
+drawio --version
+~~~
+
+hoặc dùng doctor/probe riêng của drawio-skill khi phù hợp.
+
+### Prototype
+
+Kiểm tra project frontend + npx/Playwright trước khi yêu cầu render.
+
+## Các kiểm tra package đã có
+
+Đã có structural evidence cho:
+
+- Codex project install;
+- idempotent reinstall;
+- Doctor;
+- safe uninstall;
+- project isolation;
+- generic PowerShell/Bash;
+- Claude Code structural install.
+
+Đây là package evidence, không phải full runtime BA acceptance. Xem [Release status](RELEASE.md).
+
+## Xem thêm
+
+- [Quick Start](BA_KIT_QUICKSTART.md)
+- [Capabilities](BA_KIT_CAPABILITIES.md)
+- [SRS/DOCX](SRS_DOCX_GUIDE.md)
+- [Draw.io/Visual/Prototype](DIAGRAMS_PROTOTYPES.md)
 
 ---
 
