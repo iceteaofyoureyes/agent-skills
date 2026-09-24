@@ -56,4 +56,4 @@ Depending on the request and Human decisions, BA work may produce a gap review, 
 
 ## Current status
 
-BA Kit is an RC1 candidate. Packaged runtime acceptance is blocked by an isolated provider/runtime that returned no response; public distribution is blocked by unresolved licensing and provenance. See [Release Status](RELEASE.md) and [Provenance](PROVENANCE.md).
+BA Kit is an RC1 candidate. Packaged runtime acceptance is blocked by an isolated provider/runtime that returned no response. BA Kit license redistribution is ready; publication of the whole repository remains blocked by non-BA imports and tracked Skills Manager metadata that still need review. See [Release Status](RELEASE.md) and [Provenance](PROVENANCE.md).

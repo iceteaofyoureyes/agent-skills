@@ -42,7 +42,7 @@ Test Kit và TEA dự kiến dùng BA baseline đã duyệt cùng bằng chứng
 
 ### BA Kit đã public hoặc được runtime chấp nhận chưa?
 
-Chưa. Đây là ứng viên RC1. Runtime acceptance cho package bị chặn bởi isolated provider/runtime; phân phối công khai bị chặn bởi provenance và giấy phép chưa được giải quyết. Xem [Trạng thái phát hành](RELEASE.md) và [Nguồn gốc](PROVENANCE.md).
+Chưa. Đây vẫn là ứng viên RC1 và runtime acceptance cho package bị chặn bởi isolated provider/runtime. License phân phối của BA Kit đã sẵn sàng; công bố toàn repository vẫn bị chặn bởi các import ngoài BA và metadata Skills Manager đang được track nhưng chưa được kiểm toán. Xem [Trạng thái phát hành](RELEASE.md) và [Nguồn gốc](PROVENANCE.md).
 
 ---
 

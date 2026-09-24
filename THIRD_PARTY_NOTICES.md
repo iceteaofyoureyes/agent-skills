@@ -105,4 +105,4 @@ This index records third-party components and license locations. Third-party ski
 - Local changes: none
 - License location: webapp-testing/LICENSE.txt
 
-srs-function-document is excluded because its origin and license remain unknown. Other non-BA skill imports need commit-bound provenance and notice checks before whole-repository redistribution.
+srs-function-document is now a project-owned behavioral reimplementation under MIT; the previous unknown-origin implementation was replaced and its origin was not recovered. See docs/en/PROVENANCE.md. Other non-BA skill imports and the tracked .skills-manager metadata still need provenance/license decisions before whole-repository redistribution.

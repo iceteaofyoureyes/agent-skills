@@ -54,7 +54,7 @@ Tùy yêu cầu và quyết định của Human, công việc có thể tạo r�
 
 ## Trạng thái hiện tại
 
-BA Kit là ứng viên RC1. Runtime acceptance cho package đang bị chặn vì isolated provider/runtime không trả lời; phát hành công khai bị chặn bởi vấn đề giấy phép và provenance chưa được giải quyết. Xem [Trạng thái phát hành](RELEASE.md) và [Nguồn gốc](PROVENANCE.md).
+BA Kit là ứng viên RC1. Runtime acceptance cho package đang bị chặn vì isolated provider/runtime không trả lời. License phân phối của BA Kit đã sẵn sàng; công bố toàn repository vẫn bị chặn bởi các import ngoài BA và metadata Skills Manager đang được track nhưng chưa được kiểm toán. Xem [Trạng thái phát hành](RELEASE.md) và [Nguồn gốc](PROVENANCE.md).
 
 ---
 

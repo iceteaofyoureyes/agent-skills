@@ -10,7 +10,7 @@ Repository này cung cấp các skill có thể tái sử dụng và các Kit th
 | **Dev Kit** | Planned; chưa triển khai | Công việc kỹ thuật ở giai đoạn sau Engineering Impact. |
 | **Test Kit** | Planned; chưa triển khai | Kiểm chứng ở giai đoạn sau với TEA. |
 
-BA Kit chưa được chấp nhận hay phát hành công khai. Runtime acceptance bị chặn bởi isolated provider/runtime; phân phối công khai bị chặn bởi vấn đề giấy phép/provenance. Xem [Trạng thái phát hành](docs/vi/RELEASE.md) và [Nguồn gốc](docs/vi/PROVENANCE.md).
+BA Kit chưa được chấp nhận hay phát hành công khai. Runtime acceptance bị chặn bởi isolated provider/runtime. License phân phối của payload BA Kit đã sẵn sàng; công bố toàn repository vẫn bị chặn bởi các skill ngoài BA và metadata Skills Manager chưa được kiểm toán. Xem [Trạng thái phát hành](docs/vi/RELEASE.md) và [Nguồn gốc](docs/vi/PROVENANCE.md).
 
 ## Cài BA Kit
 

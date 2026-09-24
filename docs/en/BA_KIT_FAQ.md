@@ -44,4 +44,4 @@ The planned Test Kit and TEA will use the approved BA baseline together with dow
 
 ### Is BA Kit publicly released or runtime-accepted?
 
-No. It is an RC1 candidate. Packaged runtime acceptance is blocked by an isolated provider/runtime, and public distribution is blocked by unresolved provenance and licensing. See [Release Status](RELEASE.md) and [Provenance](PROVENANCE.md).
+No. It remains an RC1 candidate, and packaged runtime acceptance is blocked by an isolated provider/runtime. BA Kit license redistribution is ready; publication of the whole repository remains blocked by non-BA imports and tracked Skills Manager metadata that still need review. See [Release Status](RELEASE.md) and [Provenance](PROVENANCE.md).
