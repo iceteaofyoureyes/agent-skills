@@ -218,6 +218,30 @@ next_stage:
         with_design_field = sample.replace("next_stage:", "architecture: event-driven\nnext_stage:")
         self.assertTrue(any("forbidden technical field: architecture" in error for error in ba_kit.validate_handoff_text(with_design_field)))  # Case D
 
+    def test_acceptance_feedback_loop_requires_tier_three_for_rc1_pass(self):
+        acceptance = (ROOT / "kits/ba/acceptance.yaml").read_text(encoding="utf-8")
+        for marker in (
+            "tier_1_deterministic:",
+            "tier_2_focused_runtime:",
+            "tier_3_fresh_session_e2e:",
+            "tier_3_required_for_rc1_pass: true",
+            "tier_1_or_tier_2_can_mark_rc1_pass: false",
+        ):
+            self.assertIn(marker, acceptance)
+
+    def test_local_discovery_fixture_contains_only_as_is_visit_facts(self):
+        source = (ROOT / "tooling/fixtures/ba_local_discovery/src/visit.py").read_text(encoding="utf-8")
+        self.assertIn("class Visit", source)
+        self.assertIn("pet_id", source)
+        self.assertIn("description", source)
+        self.assertNotIn("Appointment", source)
+
+    def test_local_discovery_probe_reads_project_source_without_remote_review(self):
+        contract = json.loads((ROOT / "ba-workflow/evals/cr001-semantic-contract.json").read_text(encoding="utf-8"))
+        prompt = contract["runtime_probes"]["discovery"].lower()
+        self.assertIn("do not invoke automatic or remote review services", prompt)
+        self.assertIn("read src/visit.py directly using local read-only filesystem access", prompt)
+
     def test_install_is_idempotent_and_uninstall_preserves_unrelated_and_edited_skills(self):
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "skills"
