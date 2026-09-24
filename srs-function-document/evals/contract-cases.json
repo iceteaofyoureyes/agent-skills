@@ -1,0 +1,120 @@
+{
+  "skill": "srs-function-document",
+  "evaluation_mode": "review_generated_artifacts_against_each_case_after_generation",
+  "cases": [
+    {
+      "id": "unknown-maximum-preserved",
+      "input": "Approved rule: Duration must be greater than 0. Maximum appointment duration = UNKNOWN.",
+      "pass_if": [
+        "The lower bound is stated as confirmed.",
+        "The maximum remains explicitly UNKNOWN or unresolved.",
+        "No numeric maximum or default is introduced."
+      ],
+      "fail_if": [
+        "A maximum duration is selected or implied.",
+        "UNKNOWN is omitted or rewritten as a confirmed value."
+      ]
+    },
+    {
+      "id": "current-system-not-promoted",
+      "input": "CURRENT_SYSTEM evidence: Visit.description currently has a 255-character limit. No BA decision confirms that limit for the new Appointment Reason field.",
+      "pass_if": [
+        "The observation is labeled CURRENT_SYSTEM and remains as-is evidence.",
+        "The SRS does not make 255 characters a target Appointment requirement.",
+        "The target limit remains open or UNKNOWN."
+      ],
+      "fail_if": [
+        "The current Visit behavior is copied into a target requirement without confirmation."
+      ]
+    },
+    {
+      "id": "confirmed-rule-traceability",
+      "input": "Approved BR-053: Only an appointment that does not conflict with a Scheduled appointment for the same Veterinarian may be saved.",
+      "pass_if": [
+        "The functional requirement states the approved business outcome.",
+        "The requirement traces to BR-053.",
+        "Acceptance behavior is consistent with the same rule."
+      ],
+      "fail_if": [
+        "The rule is omitted, weakened, or contradicted.",
+        "A new identifier is invented when workflow conventions do not require one."
+      ]
+    },
+    {
+      "id": "no-technical-architecture-invention",
+      "input": "Confirmed business outcome: concurrent booking must save only a non-conflicting appointment. No implementation method has been decided.",
+      "pass_if": [
+        "The SRS states only the business outcome.",
+        "Any needed mechanism is labeled an Engineering decision."
+      ],
+      "fail_if": [
+        "The SRS selects pessimistic or optimistic locking, a database constraint, Redis lock, or transaction isolation strategy."
+      ]
+    },
+    {
+      "id": "human-gate-separate",
+      "input": "Generate the SRS from the approved BA baseline.",
+      "pass_if": [
+        "The result is presented for Human review.",
+        "Workflow approval remains unchanged."
+      ],
+      "fail_if": [
+        "Generation sets or implies APPROVED_FOR_ENGINEERING.",
+        "The skill records approval or creates an Engineering Handoff."
+      ]
+    },
+    {
+      "id": "unrelated-update-preserves-confirmed-rule",
+      "input": "Current canonical SRS contains confirmed BR-031: a valid new appointment is created as Scheduled. Update an unrelated list pagination requirement.",
+      "pass_if": [
+        "The BR-031 behavior and its traceability remain in the updated SRS.",
+        "Only the authorized pagination semantics change.",
+        "The update summary identifies the unchanged confirmed rule."
+      ],
+      "fail_if": [
+        "The confirmed BR-031 behavior disappears, changes, or loses its traceability."
+      ]
+    },
+    {
+      "id": "cr001-semantic-regression",
+      "input": "Create a functional SRS from the approved CR-001 BA baseline.",
+      "artifact_evaluation": {
+        "fixture": "../../ba-workflow/evals/cr001-semantic-contract.json",
+        "case_id": "cr001-semantic-regression"
+      },
+      "covers": [
+        "clinic-staff-actor",
+        "appointment-distinct-from-visit",
+        "appointment-required-fields",
+        "future-start-asia-ho-chi-minh",
+        "duration-greater-than-zero",
+        "maximum-duration-unknown",
+        "description-required-1-255",
+        "same-veterinarian-scheduled-conflict",
+        "half-open-interval",
+        "touching-intervals-allowed",
+        "reschedule-excludes-itself",
+        "appointment-states",
+        "create-starts-scheduled",
+        "only-scheduled-mutable-actionable",
+        "cancel-releases-slot",
+        "complete-exactly-one-new-visit",
+        "existing-visit-not-reused",
+        "no-hard-delete",
+        "management-list-fields-and-actions",
+        "list-filter-sort-pagination",
+        "no-pet-overlap-rule",
+        "concurrent-business-outcome-only"
+      ],
+      "pass_if": [
+        "Every listed confirmed semantic is preserved with traceability where the baseline provides IDs.",
+        "Unknown values remain unresolved.",
+        "No implementation strategy or approval status is introduced."
+      ],
+      "fail_if": [
+        "Any listed business outcome is lost or contradicted.",
+        "Technical architecture is invented."
+      ]
+    }
+  ]
+}

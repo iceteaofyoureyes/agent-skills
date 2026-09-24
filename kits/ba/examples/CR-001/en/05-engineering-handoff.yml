@@ -1,0 +1,27 @@
+# Documentation-only example; this is not a real project approval.
+# Hashes below are SHA-256 of the adjacent example source files.
+schema_version: 1
+feature:
+  id: CR-001
+  title: Appointment Scheduling
+ba_baseline:
+  status: APPROVED_FOR_ENGINEERING
+  revision: example-only-CR-001-r1
+authoritative_sources:
+  business_rules:
+    path: 03-approved-business-rules.md
+    sha256: a555515196abb04eb13ea3989dc2d2c9192310d9303b953ab54a631f161b89a3
+  srs:
+    path: 04-srs-excerpt.md
+    sha256: a9b963c3d561639b9d31db28ae90aa495cdf33976d922dd58262eed95b618450
+  decisions:
+    path: 02-gap-review.md
+    sha256: 83b82d4b4410e57c8318a26fc1ef27f12e65f0ec9ae60e3db9eaa4d2d89f5599
+open_items:
+  blocking: []
+  non_blocking: ["Maximum appointment duration remains UNKNOWN; do not invent a maximum", "Appointment list filter, sort, and pagination behavior remain UNKNOWN"]
+policy:
+  downstream_may_change_business_semantics: false
+  downstream_may_make_technical_design_decisions: true
+next_stage:
+  capability: engineering-impact-analysis
