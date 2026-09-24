@@ -1,6 +1,6 @@
 {
   "skill": "srs-function-document",
-  "evaluation_mode": "review_generated_srs_against_each_case",
+  "evaluation_mode": "review_generated_artifacts_against_each_case_after_generation",
   "cases": [
     {
       "id": "unknown-maximum-preserved",
@@ -78,23 +78,30 @@
     {
       "id": "cr001-semantic-regression",
       "input": "Create a functional SRS from the approved CR-001 BA baseline.",
+      "artifact_evaluation": {
+        "fixture": "../../ba-workflow/evals/cr001-semantic-contract.json",
+        "case_id": "cr001-semantic-regression"
+      },
       "covers": [
         "clinic-staff-actor",
-        "appointment-is-not-visit",
-        "pet-veterinarian-start-duration-reason",
+        "appointment-distinct-from-visit",
+        "appointment-required-fields",
         "future-start-asia-ho-chi-minh",
         "duration-greater-than-zero",
         "maximum-duration-unknown",
+        "description-required-1-255",
         "same-veterinarian-scheduled-conflict",
-        "half-open-start-end-interval",
+        "half-open-interval",
         "touching-intervals-allowed",
         "reschedule-excludes-itself",
-        "scheduled-cancelled-completed-states",
+        "appointment-states",
         "create-starts-scheduled",
         "only-scheduled-mutable-actionable",
         "cancel-releases-slot",
-        "complete-creates-exactly-one-visit",
+        "complete-exactly-one-new-visit",
+        "existing-visit-not-reused",
         "no-hard-delete",
+        "management-list-fields-and-actions",
         "list-filter-sort-pagination",
         "no-pet-overlap-rule",
         "concurrent-business-outcome-only"

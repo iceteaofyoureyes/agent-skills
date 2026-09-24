@@ -30,6 +30,12 @@ Keep these labels distinct:
 
 Never promote INFERRED or PROPOSED content to CONFIRMED. Do not silently resolve ambiguity, add rules, or treat a missing value as permission to choose one.
 
+## Check completeness and unsupported behavior
+
+- Before finalizing, map every CONFIRMED input semantic to an explicit SRS statement, preserving its meaning and traceability. If a source conflict or blocker prevents inclusion, report it instead of silently omitting the semantic.
+- Do not introduce navigation, entry points, screens, user flows, actors, permissions, or operational contexts that are not supplied by CONFIRMED semantics.
+- Preserve constraint modality and values exactly. Do not weaken or strengthen required/optional status, conditions, bounds, units, or defaults.
+
 ## Write functional, traceable requirements
 
 Include only sections needed for the feature. They may cover the feature and scope, actors, preconditions, functional requirements, approved business rules, validation, states and lifecycle, error and edge behavior, list/filter/sort/pagination behavior, open items, and traceability.

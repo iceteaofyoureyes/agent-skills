@@ -40,6 +40,8 @@ Extract explicit and implicit business rules from interviews, documents, process
 - Rules are atomic and testable.
 - Source and confidence are captured.
 - Inferred rules are clearly marked.
+- Preserve constraint modality and values exactly, including required, optional, nullable, conditions, bounds, units, and defaults.
+- If sources conflict, retain the conflict with its source authority; do not weaken or strengthen a rule to make the sources appear consistent.
 
 ## Handoff targets
 - as-is-process-investigator

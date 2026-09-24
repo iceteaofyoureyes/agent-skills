@@ -45,28 +45,149 @@ class SrsFunctionDocumentTests(unittest.TestCase):
         self.assertTrue(any("BR-031 behavior and its traceability remain" in item for item in case["pass_if"]))
 
     def test_cr001_regression_case_covers_all_required_semantics(self):
-        expected = {
-            "clinic-staff-actor",
-            "appointment-is-not-visit",
-            "pet-veterinarian-start-duration-reason",
-            "future-start-asia-ho-chi-minh",
-            "duration-greater-than-zero",
-            "maximum-duration-unknown",
-            "same-veterinarian-scheduled-conflict",
-            "half-open-start-end-interval",
-            "touching-intervals-allowed",
-            "reschedule-excludes-itself",
-            "scheduled-cancelled-completed-states",
-            "create-starts-scheduled",
-            "only-scheduled-mutable-actionable",
-            "cancel-releases-slot",
-            "complete-creates-exactly-one-visit",
-            "no-hard-delete",
-            "list-filter-sort-pagination",
-            "no-pet-overlap-rule",
-            "concurrent-business-outcome-only",
-        }
-        self.assertEqual(set(BY_ID["cr001-semantic-regression"]["covers"]), expected)
+        semantic_contract = json.loads(
+            (ROOT / "ba-workflow/evals/cr001-semantic-contract.json").read_text(encoding="utf-8")
+        )
+        full_case = semantic_contract["cases"]["cr001-semantic-regression"]
+        self.assertEqual(set(BY_ID["cr001-semantic-regression"]["covers"]), set(full_case["check_ids"]))
+        self.assertEqual(
+            set(full_case["forbidden_ids"]),
+            {
+                "pet-context-entry-flow",
+                "standalone-appointment-management-flow",
+                "unsupported-screen-navigation",
+                "api-shape",
+                "database-schema",
+                "locking-strategy",
+                "transaction-strategy",
+                "service-ownership",
+            },
+        )
+        self.assertEqual(
+            BY_ID["cr001-semantic-regression"]["artifact_evaluation"]["fixture"],
+            "../../ba-workflow/evals/cr001-semantic-contract.json",
+        )
+
+    def test_srs_contract_requires_semantic_preservation_and_blocks_invention(self):
+        self.assertIn("every CONFIRMED input semantic", SKILL)
+        self.assertIn("navigation, entry points, screens, user flows", SKILL)
+        self.assertIn("required, optional, nullable", (ROOT / "business-rule-extractor" / "SKILL.md").read_text(encoding="utf-8"))
+
+    def test_cr001_fixture_drives_actual_artifact_evaluation(self):
+        from tooling.lib import ba_semantic_evaluator
+
+        business_rules = """BR-P1 Clinic Staff manages appointments.
+BR-P2 Reason/Description is required and has length 1-255 characters.
+BR-P3 Duration must be greater than 0; maximum Duration remains UNKNOWN.
+BR-P4 States are Scheduled, Cancelled, Completed. Create starts Scheduled; only Scheduled can be edited, rescheduled, cancelled, or completed.
+BR-P5 Cancellation releases the slot; there is no hard delete.
+BR-P6 Completing a Scheduled appointment creates exactly one new Visit; an existing Visit is not reused.
+"""
+        srs = """When checking for scheduling conflicts while rescheduling an Appointment, exclude that Appointment from the conflict check.
+Completing a Scheduled appointment creates exactly one new Visit.
+An existing Visit shall not be linked or reused.
+The maximum Duration remains UNKNOWN.
+"""
+        report = ba_semantic_evaluator.evaluate_artifacts(
+            business_rules, srs, "srs-preservation-probe"
+        )
+        statuses = {(item["semantic_id"], item["artifact"]): item["status"] for item in report["results"]}
+        self.assertEqual(statuses[("reschedule-excludes-itself", "srs")], "MATCH")
+        self.assertEqual(statuses[("complete-exactly-one-new-visit", "srs")], "MATCH")
+        self.assertEqual(statuses[("existing-visit-not-reused", "srs")], "MATCH")
+        self.assertEqual(statuses[("maximum-duration-unknown", "srs")], "UNKNOWN_PRESERVED")
+
+        missing = ba_semantic_evaluator.evaluate_artifacts(
+            business_rules, "Only the maximum Duration remains UNKNOWN.", "srs-preservation-probe"
+        )
+        missing_statuses = {(item["semantic_id"], item["artifact"]): item["status"] for item in missing["results"]}
+        self.assertEqual(missing_statuses[("reschedule-excludes-itself", "srs")], "MISSING_REQUIRED_BEHAVIOR")
+
+        invented = ba_semantic_evaluator.evaluate_artifacts(
+            business_rules,
+            "Staff can create an appointment from the Pet profile.",
+            "srs-invention-guard-probe",
+        )
+        self.assertIn("UNSUPPORTED_INVENTION", {item["status"] for item in invented["results"]})
+
+        screen = ba_semantic_evaluator.evaluate_artifacts(
+            business_rules,
+            "## Thiết kế giao diện\n| Appointment Form | Enter Pet and time |",
+            "srs-invention-guard-probe",
+        )
+        screen_statuses = {item["semantic_id"]: item["status"] for item in screen["results"]}
+        self.assertEqual(screen_statuses["unsupported-screen-navigation"], "UNSUPPORTED_INVENTION")
+
+        unresolved = ba_semantic_evaluator.evaluate_artifacts(
+            business_rules,
+            "Calendar view is out of scope. Database schema and API shape remain UNKNOWN.",
+            "srs-invention-guard-probe",
+        )
+        self.assertTrue(unresolved["passed"])
+
+    def test_business_rule_probe_rejects_optional_omitted_or_changed_description_bounds(self):
+        from tooling.lib import ba_semantic_evaluator
+
+        rules = """BR-P1 Clinic Staff manages appointments.
+BR-P2 Reason/Description is required and has length 1-255 characters.
+BR-P3 Duration must be greater than 0; maximum Duration remains UNKNOWN.
+BR-P4 States are Scheduled, Cancelled, Completed. Create starts Scheduled; only Scheduled can be edited, rescheduled, cancelled, or completed.
+BR-P5 Cancellation releases the slot; there is no hard delete.
+BR-P6 Completing a Scheduled appointment creates exactly one new Visit; an existing Visit is not reused.
+"""
+        report = ba_semantic_evaluator.evaluate_artifacts(rules, "", "business-rule-completeness-probe")
+        statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
+        self.assertEqual(statuses["description-required-1-255"], "MATCH")
+        self.assertEqual(statuses["only-supplied-business-rules"], "MATCH")
+        self.assertEqual(statuses["existing-visit-not-reused"], "MATCH")
+
+        negative_delete = rules.replace("there is no hard delete", "an Appointment is not hard-deleted")
+        report = ba_semantic_evaluator.evaluate_artifacts(negative_delete, "", "business-rule-completeness-probe")
+        statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
+        self.assertEqual(statuses["no-hard-delete"], "MATCH")
+
+        cannot_hard_delete = rules.replace("there is no hard delete", "an Appointment cannot be hard deleted")
+        report = ba_semantic_evaluator.evaluate_artifacts(cannot_hard_delete, "", "business-rule-completeness-probe")
+        statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
+        self.assertEqual(statuses["no-hard-delete"], "MATCH")
+
+        optional = rules.replace("is required and has length 1-255", "is optional and has length 1-255")
+        report = ba_semantic_evaluator.evaluate_artifacts(optional, "", "business-rule-completeness-probe")
+        statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
+        self.assertEqual(statuses["description-required-1-255"], "CONTRADICTION")
+
+        wrong_bounds = rules.replace("1-255", "1-200")
+        report = ba_semantic_evaluator.evaluate_artifacts(wrong_bounds, "", "business-rule-completeness-probe")
+        statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
+        self.assertEqual(statuses["description-required-1-255"], "CONTRADICTION")
+
+        omitted = rules.replace("BR-P2 Reason/Description is required and has length 1-255 characters.\n", "")
+        report = ba_semantic_evaluator.evaluate_artifacts(omitted, "", "business-rule-completeness-probe")
+        statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
+        self.assertEqual(statuses["description-required-1-255"], "MISSING_REQUIRED_BEHAVIOR")
+
+        extra_rule = rules + "BR-P7 Unconfirmed business rule.\n"
+        report = ba_semantic_evaluator.evaluate_artifacts(extra_rule, "", "business-rule-completeness-probe")
+        statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
+        self.assertEqual(statuses["only-supplied-business-rules"], "UNSUPPORTED_INVENTION")
+
+    def test_gap_review_fixture_checks_material_questions_in_generated_review(self):
+        from tooling.lib import ba_semantic_evaluator
+
+        gap_review = """Should rescheduling exclude the same Appointment from its conflict check?
+When completing an Appointment, should the system create exactly one new Visit or reuse an existing Visit?
+Which fields and actions belong in the appointment list, and which filters, sort order, and pagination are required?
+"""
+        complete = ba_semantic_evaluator.evaluate_artifacts("", "", "cr001-gap-review", gap_review=gap_review)
+        self.assertTrue(complete["passed"])
+
+        incomplete = ba_semantic_evaluator.evaluate_artifacts(
+            "", "", "cr001-gap-review", gap_review="What states are needed?"
+        )
+        statuses = {item["semantic_id"]: item["status"] for item in incomplete["results"]}
+        self.assertEqual(statuses["gap-reschedule-self-exclusion"], "MISSING_REQUIRED_BEHAVIOR")
+        self.assertEqual(statuses["gap-visit-lifecycle"], "MISSING_REQUIRED_BEHAVIOR")
+        self.assertEqual(statuses["gap-list-fields-actions"], "MISSING_REQUIRED_BEHAVIOR")
 
 
 if __name__ == "__main__":
