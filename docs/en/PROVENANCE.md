@@ -12,7 +12,7 @@
 
 | Component; role; local path | Origin and upstream source | License and copyright | Local changes; license / notice files | Evidence | Redistribution |
 |---|---|---|---|---|---|
-| ba-workflow; workflow; ba-workflow/ | PROJECT_OWNED; authored in this repository in commits 524f7f8, 982b1b6, and 31dd253; no upstream source | MIT approved by the Human; root LICENSE and standalone workflow license have not yet been added | Project-authored workflow, references, templates, and validators. No license file is present yet. | Target Git history and kit manifest; installer copies this directory as a skill. | BLOCKED_LICENSE |
+| ba-workflow; workflow; ba-workflow/ | PROJECT_OWNED; authored in this repository in commits 524f7f8, 982b1b6, and 31dd253; no upstream source | MIT; Copyright (c) 2026 iceteaofyoureyes | Project-authored workflow, references, templates, and validators. Root LICENSE and standalone ba-workflow/LICENSE are present. | Target Git history and kit manifest; installer copies this directory as a skill, including its license. | READY |
 | verification-before-completion; core; verification-before-completion/ | EXACT_UPSTREAM; obra/superpowers, skills/verification-before-completion; content commit 3be5aad3dd2400ef23b15680969f4bcd3b6d7b8b; current upstream HEAD 5bf4e78011075bcfc0dc295f0724994cd123ee71 | MIT; Copyright (c) 2025 Jesse Vincent | Content unchanged after line-ending normalization. Upstream LICENSE is present. | .skills-manager records repository and path; local content matches the upstream blob. | READY_WITH_ATTRIBUTION |
 | codebase-discovery; core; codebase-discovery/ | EXACT_UPSTREAM; DiUS/agent-toolkit, skills/codebase-discovery; d43b664e2860f7a5dd5b8ae892c44fdfc5ae9dfc | MIT; Copyright (c) 2026 DiUS | All 31 files match. Bryan Signey attribution remains in SKILL.md. Upstream LICENSE is present. | Benchmark first adds the tree at 709916a0; local files match the candidate tree and content revision. | READY_WITH_ATTRIBUTION |
 | requirements-gap-auditor; required; requirements-gap-auditor/ | EXACT_UPSTREAM; 45ck/business-analysis-skills, .agents/skills/requirements-gap-auditor/SKILL.md; 1fe1950bc4759e732b036c562b0cff99675e1695 | MIT; upstream LICENSE says Copyright (c) 2026 and names no holder | Agent Skills description frontmatter only; normalized body is identical. Per-skill LICENSE is present. | Benchmark first adds the skill at 709916a0; normalized local body matches the upstream file. | READY_WITH_ATTRIBUTION |
@@ -35,7 +35,7 @@
 
 ## Other repository content
 
-The project-owned scope selected by the Human is ba-workflow/, kits/, tooling/, docs/, core/, repository-owned READMEs, and project-owned examples. Target Git history records this material in commits 524f7f8, 982b1b6, and 31dd253. MIT is approved, but the root LICENSE and the standalone ba-workflow/LICENSE have not yet been added; these project-owned copies remain BLOCKED_LICENSE in this audit snapshot. The root license will not change any third-party license.
+The project-owned scope selected by the Human is ba-workflow/, kits/, tooling/, docs/, core/, repository-owned READMEs, and project-owned examples. Target Git history records this material in commits 524f7f8, 982b1b6, and 31dd253. The root LICENSE applies MIT to that project-owned content; ba-workflow/LICENSE travels with the separately installed workflow skill. These project-owned files are READY for redistribution. The root license does not change any third-party license.
 
 The webapp-testing/ skill is outside BA Kit. Its six-file tree, including LICENSE.txt, matches anthropics/skills at 34040c9c568585f6929bedeaad110ad08f079624; the Apache-2.0 file names Copyright 2026 Anthropic, PBC.
 
@@ -53,7 +53,6 @@ The tracked .skills-manager/ tree was introduced and updated in auto-backup comm
 ## Current blockers
 
 - srs-function-document is BLOCKED_UNKNOWN_ORIGIN. The Human has authorized a project-owned behavioral reimplementation from the BA Kit contract; it has not yet replaced the existing implementation in this audit snapshot.
-- Project-owned BA Kit content is BLOCKED_LICENSE until the approved MIT license files are added.
 - Non-BA imported skills listed above block whole-repository publication.
 
 No third-party skill is relicensed by the project MIT license.

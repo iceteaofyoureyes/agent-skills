@@ -1,6 +1,6 @@
 # Third-party notices
 
-This index records third-party components and license locations. Third-party skill license files travel inside the copied skill directories. When present, the root LICENSE applies only to project-owned content; third-party components keep their original licenses and notices. See [docs/en/PROVENANCE.md](docs/en/PROVENANCE.md) for evidence.
+This index records third-party components and license locations. Third-party skill license files travel inside the copied skill directories. The root LICENSE applies only to project-owned content; third-party components keep their original licenses and notices. See [docs/en/PROVENANCE.md](docs/en/PROVENANCE.md) for evidence.
 
 ## BA Kit core and required skills
 

@@ -12,7 +12,7 @@
 
 | Thành phần; vai trò; đường dẫn local | Nguồn và đường dẫn upstream | License và copyright | Thay đổi local; tệp license / notice | Bằng chứng | Phân phối |
 |---|---|---|---|---|---|
-| ba-workflow; workflow; ba-workflow/ | PROJECT_OWNED; được tạo trong repository này qua các commit 524f7f8, 982b1b6 và 31dd253; không có upstream | Human đã duyệt MIT; chưa thêm LICENSE gốc và license độc lập cho workflow | Workflow, reference, template và validator do dự án viết. Hiện chưa có tệp license. | Lịch sử Git của target và manifest; installer sao chép thư mục này như một skill. | BLOCKED_LICENSE |
+| ba-workflow; workflow; ba-workflow/ | PROJECT_OWNED; được tạo trong repository này qua các commit 524f7f8, 982b1b6 và 31dd253; không có upstream | MIT; Copyright (c) 2026 iceteaofyoureyes | Workflow, reference, template và validator do dự án viết. Đã có LICENSE gốc và ba-workflow/LICENSE riêng. | Lịch sử Git của target và manifest; installer sao chép thư mục này như một skill, gồm cả license. | READY |
 | verification-before-completion; core; verification-before-completion/ | EXACT_UPSTREAM; obra/superpowers, skills/verification-before-completion; commit nội dung 3be5aad3dd2400ef23b15680969f4bcd3b6d7b8b; HEAD upstream hiện tại 5bf4e78011075bcfc0dc295f0724994cd123ee71 | MIT; Copyright (c) 2025 Jesse Vincent | Nội dung không đổi sau khi chuẩn hóa line ending. Có LICENSE upstream. | .skills-manager ghi repository và path; nội dung local khớp blob upstream. | READY_WITH_ATTRIBUTION |
 | codebase-discovery; core; codebase-discovery/ | EXACT_UPSTREAM; DiUS/agent-toolkit, skills/codebase-discovery; d43b664e2860f7a5dd5b8ae892c44fdfc5ae9dfc | MIT; Copyright (c) 2026 DiUS | Khớp cả 31 tệp. Ghi công Bryan Signey vẫn còn trong SKILL.md. Có LICENSE upstream. | Benchmark thêm cây tệp tại 709916a0; các tệp local khớp cây và commit nội dung ứng viên. | READY_WITH_ATTRIBUTION |
 | requirements-gap-auditor; required; requirements-gap-auditor/ | EXACT_UPSTREAM; 45ck/business-analysis-skills, .agents/skills/requirements-gap-auditor/SKILL.md; 1fe1950bc4759e732b036c562b0cff99675e1695 | MIT; LICENSE upstream ghi Copyright (c) 2026 nhưng không nêu chủ sở hữu | Chỉ thêm description frontmatter cho Agent Skills; phần thân sau chuẩn hóa giống hệt. Có LICENSE trong thư mục skill. | Benchmark thêm skill lần đầu tại 709916a0; phần thân local đã chuẩn hóa khớp tệp upstream. | READY_WITH_ATTRIBUTION |
@@ -35,7 +35,7 @@
 
 ## Nội dung repository khác
 
-Phạm vi nội dung project-owned do Human chọn gồm ba-workflow/, kits/, tooling/, docs/, core/, README do repository sở hữu và ví dụ do dự án viết. Lịch sử target ghi nhận các nội dung này tại commit 524f7f8, 982b1b6 và 31dd253. Human đã duyệt MIT, nhưng chưa thêm LICENSE gốc và ba-workflow/LICENSE độc lập; trong snapshot kiểm toán này các bản sao project-owned vẫn ở trạng thái BLOCKED_LICENSE. License gốc sẽ không thay đổi license của thành phần bên thứ ba.
+Phạm vi nội dung project-owned do Human chọn gồm ba-workflow/, kits/, tooling/, docs/, core/, README do repository sở hữu và ví dụ do dự án viết. Lịch sử target ghi nhận các nội dung này tại commit 524f7f8, 982b1b6 và 31dd253. LICENSE gốc áp dụng MIT cho nội dung do dự án sở hữu; ba-workflow/LICENSE đi cùng bản workflow được cài riêng. Các tệp project-owned này đã READY để phân phối. License gốc không thay đổi license của thành phần bên thứ ba.
 
 Skill webapp-testing/ nằm ngoài BA Kit. Cây sáu tệp, gồm LICENSE.txt, khớp anthropics/skills tại 34040c9c568585f6929bedeaad110ad08f079624; tệp Apache-2.0 ghi Copyright 2026 Anthropic, PBC.
 
@@ -53,7 +53,6 @@ Thư mục .skills-manager/ đang được Git track và đã được tạo/c�
 ## Blocker hiện tại
 
 - srs-function-document đang BLOCKED_UNKNOWN_ORIGIN. Human đã cho phép viết lại hành vi thành implementation project-owned dựa trên contract BA Kit; implementation cũ chưa được thay trong snapshot kiểm toán này.
-- Nội dung BA Kit do dự án sở hữu đang BLOCKED_LICENSE cho đến khi thêm các tệp MIT đã duyệt.
 - Các skill ngoài BA được liệt kê ở trên chặn việc phát hành toàn repository.
 
 License MIT của dự án không cấp lại license cho bất kỳ skill bên thứ ba nào.
