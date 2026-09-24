@@ -1,47 +1,112 @@
 # BA Kit FAQ
 
-Tiếng Việt: [Câu hỏi thường gặp](../vi/BA_KIT_FAQ.md)
+### What can BA Kit actually do?
+
+BA Kit reviews requirements, discovers current-system behavior when needed, finds gaps, supports clarification, builds Business Rules, creates/updates SRS, creates/edits DOCX, creates/edits Draw.io business diagrams, supports visual inputs and optional prototypes, then produces an Engineering Handoff after Human approval.
+
+See [BA Kit capabilities](BA_KIT_CAPABILITIES.md).
 
 ### Do I need Skills Manager?
 
-No. BA Kit installs and runs through the repository's scripts. Skills Manager is optional.
+No. Repository installer/Doctor workflows are independent. Skills Manager is optional.
 
 ### Do I need to know individual skill names?
 
-No. Ask for the BA outcome in ordinary language; the workflow routes the request internally.
+No. Ask for the outcome; ba-workflow routes the required capability.
+
+### Does BA Kit replace BA customer communication?
+
+No. The BA owns elicitation, business decisions, customer/stakeholder communication, and approval.
 
 ### Does BA Kit write production code?
 
-No. BA Kit prepares Business Analysis artifacts. It does not implement production changes or decide technical ownership/design.
+No. Optional prototyping may create local UI code for review, but that is a prototype/visual proposal, not production implementation.
 
-### Can BA Kit approve requirements automatically?
+### Can BA Kit inspect the current project?
 
-No. It can record Human answers and validate artifacts, but only the Human can approve a named artifact or gate.
+Yes. Brownfield mode uses codebase-discovery when current behavior matters. Findings are CURRENT_SYSTEM evidence and do not automatically become target requirements.
 
-### Does “Tiếp tục” mean approval?
+### Can BA Kit read Figma?
 
-No. It resumes the saved workflow at the next valid action. It does not answer an open question or approve an artifact.
+BA Kit does not bundle a Figma connector. If the runtime has a Figma integration and the Human grants access, it can be used. Otherwise export screenshot/image/PDF/HTML/local artifacts.
 
-### Can it work on brownfield projects?
+### Can a screenshot automatically create SRS rules?
 
-Yes. For brownfield requests, the workflow can discover current code, behavior, data, APIs, and UI. It records those findings as **CURRENT_SYSTEM** evidence.
+No. The agent may record observable UI, find mismatches/gaps, and ask the BA. Permissions, validation, hidden flows, and business side effects need Human confirmation.
 
-### What if current code conflicts with the SRS?
+### Which SRS template does BA Kit use?
 
-Record the discrepancy. Confirmed BA decisions, approved Business Rules, and the canonical SRS govern business meaning; current code is evidence of existing behavior. The workflow should not silently rewrite either side to hide the conflict.
+The canonical SRS follows a functional SRS contract and is managed in Markdown; there is not one rigid Markdown form for every feature.
+
+The RC1 production repository **does not bundle a default SRS_TEMPLATE.docx**.
+
+### Can it create SRS using our company Word template?
+
+Yes. Provide the .docx and identify it as the delivery template. document-docx supports template rendering and structural editing.
+
+The template controls layout/sections; it may not override confirmed semantics.
+
+See [SRS and DOCX](SRS_DOCX_GUIDE.md).
+
+### What if no Word template exists?
+
+BA Kit can generate a generic DOCX from the canonical SRS for review, but it should not be described as an official company-template document.
+
+### What if the project only has an old SRS.docx?
+
+Use document-only mode to review/edit it. Once canonical Markdown exists, semantic changes must update the canonical source before synchronizing DOCX.
+
+### What Draw.io diagrams can BA Kit create?
+
+Within BA scope: process flowcharts, swimlanes, user/task flows, state/lifecycle diagrams, decision trees, business context/interaction maps, review/edit of existing .drawio, and image/whiteboard reconstruction.
+
+drawio-skill supports broader technical diagrams, but BA Kit must not use it to invent target architecture/API/DB design.
+
+### Can Draw.io export PNG/PDF?
+
+Yes when the environment has draw.io CLI tooling. Editable .drawio is the source; PNG/SVG/PDF are derivative outputs.
+
+### Can a diagram become the business source of truth?
+
+No. Diagrams reflect approved BR/SRS. A newly discovered rule goes back to PROPOSED/UNKNOWN and Human clarification.
+
+### Can BA Kit create a prototype?
+
+Yes as an optional capability when UX/UI skills are installed. A prototype is a visual proposal requiring Human visual review and does not silently change Business Rules.
 
 ### Are the examples mandatory templates?
 
-No. They are illustrative. Sample prose and IDs are not fixed; follow actual artifact contracts and preserve required source references.
+No. CR-001 illustrates artifact flow and Human Gates. Wording/IDs are not golden output.
 
-### What happens after Engineering Handoff?
+### Does Continue mean approval?
 
-The intended next stage is Engineering Impact, followed by Dev Kit and Spec Kit work. Those capabilities are planned and are not implemented in this release candidate.
+No.
 
-### How will Test use BA outputs later?
+~~~text
+CONTINUE != APPROVE
+ANSWER != APPROVE
+~~~
 
-The planned Test Kit and TEA will use the approved BA baseline together with downstream engineering evidence to define and prove expected behavior. They are not available in BA Kit RC1.
+### Can BA Kit approve requirements/SRS automatically?
 
-### Is BA Kit publicly released or runtime-accepted?
+No. Agent validation is evidence only. Approval must be an explicit Human decision for a named artifact/revision.
 
-No. It remains an RC1 candidate, and packaged runtime acceptance is blocked by an isolated provider/runtime. BA Kit license redistribution is ready; publication of the whole repository remains blocked by non-BA imports and tracked Skills Manager metadata that still need review. See [Release Status](RELEASE.md) and [Provenance](PROVENANCE.md).
+### What if current code conflicts with the SRS?
+
+Record the discrepancy. CURRENT_SYSTEM is as-is evidence; Confirmed Decisions + Approved BR + Canonical SRS govern target business meaning. Do not silently change either side to hide the conflict.
+
+### What follows Engineering Handoff?
+
+Engineering Impact resolves WHERE / WHO OWNS. Dev Kit + repo-local Spec Kit then handles HOW.
+
+### Has RC1 passed runtime acceptance?
+
+No. Runtime preflight and project-local skill discovery passed, but the first full CR-001 acceptance returned **BA_KIT_RC1_CHANGES_REQUIRED**. Some semantic outputs need remediation and current-system discovery in that run was blocked by an auto-review HTTP 403. The exact tested SHA was not reported, so it cannot be treated as final acceptance for the current HEAD.
+
+### Is BA Kit licensing ready?
+
+The BA Kit payload is **BA_KIT_LICENSE_READY**. Whole-repository publication remains **REPO_PUBLICATION_BLOCKED** because some non-BA imports/metadata are not fully audited.
+
+---
+
+Tiếng Việt: [Câu hỏi thường gặp](../vi/BA_KIT_FAQ.md)

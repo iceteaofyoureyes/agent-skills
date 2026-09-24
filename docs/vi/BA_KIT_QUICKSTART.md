@@ -1,12 +1,36 @@
 # Hướng dẫn nhanh BA Kit
 
-**BA Kit** (Bộ công cụ Phân tích nghiệp vụ có AI hỗ trợ) giúp BA khám phá hệ thống hiện tại, tìm khoảng trống yêu cầu, ghi nhận quyết định của Human, chuẩn bị **Business Rules** (Quy tắc nghiệp vụ) và **SRS** (Tài liệu yêu cầu phần mềm), rồi tạo **Engineering Handoff** (bàn giao cho kỹ thuật) sau khi được phê duyệt. BA Kit hỗ trợ BA; không thay thế quyền sở hữu nghiệp vụ, trao đổi với khách hàng hay phê duyệt của Human.
+BA Kit hỗ trợ BA theo flow:
 
-BA Kit chịu trách nhiệm **WHAT** — hệ thống cần làm gì. Kit không thiết kế API hay cơ sở dữ liệu, không chỉ định người sở hữu triển khai và không viết mã production. Xem [Tổng quan kiến trúc](ARCHITECTURE.md) và [Quy trình và Human Gate](BA_KIT_WORKFLOW.md).
+~~~text
+Review input
+→ discover current system khi cần
+→ tìm gap
+→ Human trả lời
+→ Business Rules
+→ SRS
+→ Draw.io / prototype / DOCX khi cần
+→ Human approval
+→ Engineering Handoff
+~~~
 
-## Cài cho một dự án
+BA vẫn sở hữu quyết định nghiệp vụ và trao đổi stakeholder. Agent chủ yếu **discover, review, hỏi, cấu trúc, document, visualize và validate**.
 
-Clone repository, sau đó chạy script từ thư mục dự án nơi bạn muốn dùng BA Kit. Project scope cài vào thư mục hiện tại. Thay các đường dẫn ví dụ bằng đường dẫn trên máy bạn.
+## BA Kit làm được gì?
+
+- review requirement/gap/edge case;
+- brownfield discovery từ project hiện tại;
+- review screenshot/Figma export/PDF/HTML prototype;
+- tổng hợp Business Rules;
+- tạo/update canonical functional SRS;
+- tạo/edit DOCX, bao gồm Word template do project cung cấp;
+- tạo/edit Draw.io business flow/state/swimlane;
+- optional local UI prototype + visual/accessibility review;
+- Human Gate và Engineering Handoff.
+
+Xem [Khả năng BA Kit](BA_KIT_CAPABILITIES.md).
+
+## Cài cho project
 
 ~~~powershell
 git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
@@ -22,39 +46,118 @@ cd /path/to/your-project
 ~/src/agent-skills/tooling/doctor.sh ba --agent codex --scope project
 ~~~
 
-Project scope đặt skill trong thư mục **.agents/skills** của dự án đó, giúp BA Kit chỉ có hiệu lực ở dự án cần dùng. [Cài đặt](INSTALLATION.md) có thêm lệnh cho Codex user scope, Claude Code, generic target và gỡ cài đặt.
+Doctor: **READY** = required capabilities/contracts đạt; **DEGRADED** = thiếu optional capability; **FAIL** = required capability/contract lỗi.
 
-**Doctor** (lệnh kiểm tra cài đặt) báo:
-
-- **READY**: các skill bắt buộc, tùy chọn và hợp đồng đều đạt.
-- **DEGRADED**: skill bắt buộc và hợp đồng đạt, nhưng thiếu một hoặc nhiều skill tùy chọn.
-- **FAIL**: thiếu skill bắt buộc, skill không hợp lệ hoặc kiểm tra hợp đồng thất bại.
-
-## Bắt đầu rà soát
-
-Mở dự án đích trong agent rồi yêu cầu tự nhiên:
+## Bước 1 — Review requirement
 
 ~~~text
 Review requirement này giúp tôi.
+Nếu là brownfield, discover current system trước.
+Tìm case thiếu/chưa rõ và hỏi tôi; chưa viết SRS.
 ~~~
 
-Với dự án brownfield, có thể nói rõ:
+Với màn list/CRUD, kỳ vọng agent kiểm tra fields, search/filter, sort, pagination/page size, actions, state/lifecycle, permissions, validation, empty/loading/error và edge cases.
+
+## Bước 2 — Human trả lời
 
 ~~~text
-Hãy rà soát requirement này trên hệ thống hiện tại và chỉ ra các điểm còn thiếu hoặc chưa rõ.
+Sort mặc định createdAt DESC.
+Page size mặc định 20.
+Cancel chỉ áp dụng trạng thái Draft và chỉ Supervisor được dùng.
 ~~~
 
-Bạn không cần biết tên từng skill hay gọi chúng trực tiếp. BA Kit tự định tuyến yêu cầu, khám phá hệ thống hiện tại khi cần, phân biệt bằng chứng với quyết định và hỏi về các điểm chưa rõ có ảnh hưởng trọng yếu.
+Câu trả lời chỉ resolve câu hỏi; không approve artifact.
 
-## Kết quả mong đợi
+## Bước 3 — Business Rules và SRS
 
-Tùy yêu cầu và quyết định của Human, công việc có thể tạo rà soát khoảng trống, câu hỏi còn mở, bản ghi quyết định, Business Rules đã duyệt, SRS chuẩn, sơ đồ hoặc tài liệu xuất. Tệp **workflow-state.json** trong dự án theo dõi tiến độ. Chỉ tạo Engineering Handoff sau khi Human phê duyệt rõ ràng BA baseline và không còn mục blocking.
+~~~text
+Tổng hợp Business Rules đã confirmed, giữ UNKNOWN riêng.
+~~~
 
-**“Tiếp tục” không phải phê duyệt.** Xem [Quy trình](BA_KIT_WORKFLOW.md), [Hướng dẫn sử dụng](BA_KIT_USAGE_GUIDE.md), [ví dụ CR-001](../../kits/ba/examples/CR-001/README.md) và [FAQ](BA_KIT_FAQ.md).
+Sau khi review BR:
 
-## Trạng thái hiện tại
+~~~text
+Tạo canonical functional SRS từ baseline đã confirmed.
+Giữ traceability và không quyết định technical design.
+~~~
 
-BA Kit là ứng viên RC1. Runtime acceptance cho package đang bị chặn vì isolated provider/runtime không trả lời. License phân phối của BA Kit đã sẵn sàng; công bố toàn repository vẫn bị chặn bởi các import ngoài BA và metadata Skills Manager đang được track nhưng chưa được kiểm toán. Xem [Trạng thái phát hành](RELEASE.md) và [Nguồn gốc](PROVENANCE.md).
+## Bước 4 — Derived artifact khi cần
+
+### DOCX theo template
+
+~~~text
+Xuất SRS thành DOCX.
+Template: docs/templates/COMPANY_SRS_TEMPLATE.docx.
+Giữ style/layout; không invent dữ liệu thiếu.
+~~~
+
+RC1 hiện **không bundle SRS_TEMPLATE.docx mặc định**. Xem [SRS và DOCX](SRS_DOCX_GUIDE.md).
+
+### Draw.io
+
+~~~text
+Từ Business Rules/SRS đã approved, tạo business flowchart .drawio
+và PNG preview. Không thêm rule mới.
+~~~
+
+Xem [Draw.io, visual input và prototype](DIAGRAMS_PROTOTYPES.md).
+
+### Prototype — optional
+
+~~~text
+Từ SRS đã confirmed và visual reference, tạo local prototype để tôi review.
+Đây là visual proposal, không phải production code.
+~~~
+
+## Bước 5 — Review và approve
+
+~~~text
+Review SRS revision SRS-42. Không sửa file.
+~~~
+
+hoặc:
+
+~~~text
+Request changes cho SRS-42: ...
+~~~
+
+Khi thực sự chấp nhận:
+
+~~~text
+Tôi phê duyệt BR-42 và SRS-42 làm BA baseline cho Engineering.
+~~~
+
+**“Tiếp tục” không phải phê duyệt.**
+
+## Bước 6 — Engineering Handoff
+
+~~~text
+Tạo Engineering Handoff.
+~~~
+
+Chỉ hợp lệ sau explicit approval và không còn blocking item.
+
+## Visual input
+
+Nếu có screenshot/Figma/PDF/HTML:
+
+~~~text
+Review visual này cùng requirement.
+Tách observed visual, mismatch, missing decision và proposal.
+Không suy ra business rule ẩn từ hình.
+~~~
+
+Figma link chỉ dùng trực tiếp khi runtime có connector/quyền; nếu không hãy export screenshot/PDF/local artifact.
+
+## Ví dụ
+
+[CR-001 Appointment Scheduling](../../kits/ba/examples/CR-001/README.md) minh họa input → gap review → Human decisions → Business Rules → SRS → diagram/DOCX delivery examples → engineering handoff.
+
+## Trạng thái RC1 hiện tại
+
+Package/install/Doctor và redistribution licensing đã qua các kiểm tra tương ứng. Runtime preflight đã PASS, nhưng full CR-001 acceptance đầu tiên trả **BA_KIT_RC1_CHANGES_REQUIRED**; targeted remediation đang được thực hiện. Vì vậy RC1 **chưa functional-accepted**.
+
+Xem [Release status](RELEASE.md).
 
 ---
 

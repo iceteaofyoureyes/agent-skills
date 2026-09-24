@@ -255,9 +255,11 @@ Current BA Kit RC1 evidence:
 - BA Kit payload provenance/license: READY;
 - offline BA/SRS contract tests: PASS;
 - CR-001 documentation examples: illustrative/contract-valid, not runtime proof;
-- packaged fresh-session CR-001 runtime acceptance: **not PASS** at this snapshot because the isolated provider/runtime remains blocked.
+- runtime preflight and project-local skill discovery: PASS;
+- first full fresh-session CR-001 run: **BA_KIT_RC1_CHANGES_REQUIRED**;
+- the exact tested SHA was not reported, so the current HEAD has no final runtime acceptance yet.
 
-See [Release status](RELEASE.md) so package/test evidence is not overstated as functional acceptance.
+See [Release status](RELEASE.md) so package/test evidence or a failed/stale run is not overstated as functional acceptance.
 
 ## 10. Primary references
 

@@ -1,22 +1,63 @@
 # BA Kit 1.0.0-rc.1
 
-**BA Kit** (Bộ công cụ Phân tích nghiệp vụ) hỗ trợ làm rõ yêu cầu, phân loại bằng chứng, đặt câu hỏi, chuẩn bị **Business Rules** và **SRS**, rồi tạo **Engineering Handoff** sau khi Human phê duyệt rõ ràng. BA Kit sở hữu phần **WHAT** — hệ thống cần làm gì — chứ không quyết định thiết kế kỹ thuật hay ownership triển khai.
+**BA Kit** hỗ trợ BA làm phần **WHAT**: review đầu bài, discover current system, tìm gap, làm rõ requirement, tổng hợp Business Rules, tạo/update SRS, tạo Draw.io/DOCX/optional prototype và tạo Engineering Handoff sau Human approval.
 
-Đây là ứng viên RC1, chưa phải bản được chấp nhận hay phát hành công khai. Runtime functional acceptance cho package bị chặn bởi isolated provider/runtime. Xem [Trạng thái phát hành](../../docs/vi/RELEASE.md) và [Nguồn gốc](../../docs/vi/PROVENANCE.md).
+BA Kit không thay BA trao đổi khách hàng và không quyết định target architecture/API/DB/ownership.
+
+## Capability
+
+Required:
+
+- requirement interrogation/gap/quality review;
+- codebase discovery;
+- Business Rules;
+- functional SRS;
+- DOCX;
+- Draw.io;
+- workflow state / Human Gate / handoff.
+
+Optional:
+
+- product-design-and-ux;
+- frontend-design;
+- impeccable;
+- playwright;
+- web-accessibility.
+
+Xem [Khả năng BA Kit](../../docs/vi/BA_KIT_CAPABILITIES.md).
 
 ## Bắt đầu
 
-- [Hướng dẫn nhanh](../../docs/vi/BA_KIT_QUICKSTART.md)
-- [Quy trình và Human Gate](../../docs/vi/BA_KIT_WORKFLOW.md)
-- [Hướng dẫn sử dụng](../../docs/vi/BA_KIT_USAGE_GUIDE.md)
-- [Ví dụ CR-001](examples/CR-001/README.md)
-- [FAQ](../../docs/vi/BA_KIT_FAQ.md)
-- [Cài đặt](../../docs/vi/INSTALLATION.md)
+- [Quick Start](../../docs/vi/BA_KIT_QUICKSTART.md)
+- [Usage Guide](../../docs/vi/BA_KIT_USAGE_GUIDE.md)
+- [Workflow/Human Gates](../../docs/vi/BA_KIT_WORKFLOW.md)
+- [SRS/DOCX](../../docs/vi/SRS_DOCX_GUIDE.md)
+- [Draw.io/Visual/Prototype](../../docs/vi/DIAGRAMS_PROTOTYPES.md)
+- [CR-001 example](examples/CR-001/README.md)
+- [Installation](../../docs/vi/INSTALLATION.md)
 
-Nguồn duy nhất mô tả thành phần là [kit.yaml](kit.yaml). Package có một workflow entry skill **ba-workflow** cùng các skill canonical ở thư mục gốc. Skills Manager là tùy chọn.
+## Template policy
 
-## Bằng chứng acceptance
+RC1 không bundle SRS_TEMPLATE.docx. Canonical SRS là functional Markdown artifact; Word template là delivery source do project/Human cung cấp.
 
-Xem [acceptance.yaml](acceptance.yaml) và [các probe CR-001](../../ba-workflow/evals/cr001-acceptance.md). Ví dụ tài liệu không phải bằng chứng runtime acceptance cho package. Không đưa các đầu ra CR-001 đã duyệt vào phiên fresh-session acceptance.
+## Composition
+
+[kits/ba/kit.yaml](kit.yaml) là canonical composition. Atomic skills nằm ở root repository; Skills Manager là optional adapter.
+
+## Acceptance
+
+[kits/ba/acceptance.yaml](acceptance.yaml) mô tả release acceptance. First full runtime CR-001 run đã trả **BA_KIT_RC1_CHANGES_REQUIRED**; targeted remediation đang diễn ra.
+
+Ví dụ CR-001 là documentation fixture, không phải runtime golden output được feed cho generator.
+
+## Status
+
+~~~text
+BA_KIT_LICENSE_READY
+BA_KIT_RC1_CHANGES_REQUIRED
+REPO_PUBLICATION_BLOCKED
+~~~
+
+Xem [Release status](../../docs/vi/RELEASE.md).
 
 English: [BA Kit documentation](../../docs/en/README.md)

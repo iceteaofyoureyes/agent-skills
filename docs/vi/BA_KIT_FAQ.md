@@ -1,48 +1,111 @@
 # Câu hỏi thường gặp về BA Kit
 
+### BA Kit thực sự làm được những gì?
+
+BA Kit review requirement, discover current system khi cần, tìm gap, hỗ trợ clarification, tổng hợp Business Rules, tạo/update SRS, tạo/edit DOCX, tạo/edit Draw.io business diagrams, hỗ trợ visual input và optional prototype, rồi tạo Engineering Handoff sau Human approval.
+
+Xem [Khả năng BA Kit](BA_KIT_CAPABILITIES.md).
+
 ### Có cần Skills Manager không?
 
-Không. BA Kit cài và chạy qua script của repository. Skills Manager là tùy chọn.
+Không. Installer/Doctor của repository hoạt động độc lập. Skills Manager là tùy chọn.
 
 ### Có cần biết tên từng skill không?
 
-Không. Hãy yêu cầu kết quả BA bằng ngôn ngữ tự nhiên; workflow tự định tuyến nội bộ.
+Không. Hãy nói outcome cần làm; ba-workflow tự route capability.
 
-### BA Kit có viết mã production không?
+### BA Kit có thay BA trao đổi khách hàng không?
 
-Không. BA Kit chuẩn bị artifact Phân tích nghiệp vụ. Kit không triển khai thay đổi production và không quyết định thiết kế kỹ thuật hay ownership.
+Không. BA vẫn sở hữu elicitation, business decision, customer/stakeholder communication và approval.
 
-### BA Kit có thể tự động phê duyệt yêu cầu không?
+### BA Kit có viết production code không?
 
-Không. Kit có thể ghi nhận câu trả lời của Human và validation artifact, nhưng chỉ Human mới phê duyệt được artifact hoặc gate được nêu tên.
+Không. Optional prototype có thể tạo local UI code để review, nhưng đó là prototype/visual proposal, không phải production implementation.
 
-### “Tiếp tục” có nghĩa là phê duyệt không?
+### BA Kit có review current project không?
 
-Không. Lệnh này tiếp tục workflow đã lưu tới hành động hợp lệ kế tiếp. Nó không trả lời câu hỏi đang mở hay phê duyệt artifact.
+Có. Brownfield mode dùng codebase-discovery khi current behavior liên quan. Kết quả là CURRENT_SYSTEM evidence; không tự trở thành target requirement.
 
-### BA Kit có dùng cho dự án brownfield không?
+### BA Kit có đọc Figma không?
 
-Có. Với yêu cầu brownfield, workflow có thể khám phá code, hành vi, dữ liệu, API và UI hiện tại rồi ghi nhận là bằng chứng **CURRENT_SYSTEM**.
+BA Kit không bundle Figma connector. Nếu runtime có Figma integration và Human cấp quyền, có thể dùng trực tiếp. Nếu không, export screenshot/image/PDF/HTML/local artifact để review.
 
-### Nếu code hiện tại mâu thuẫn với SRS thì sao?
+### Từ screenshot agent có được tự ghi rule vào SRS không?
 
-Ghi nhận chênh lệch. Quyết định BA đã xác nhận, Business Rules đã duyệt và SRS canonical cùng quản lý ý nghĩa nghiệp vụ; code hiện tại là bằng chứng về hành vi đang có. Workflow không âm thầm sửa một phía để che mâu thuẫn.
+Không. Agent có thể ghi điều **quan sát được**, tìm mismatch/gap và hỏi BA. Permission, validation, hidden flow và business side effect cần Human confirmation.
+
+### BA Kit dùng SRS template nào?
+
+Canonical SRS hiện theo functional SRS contract và được quản lý ở Markdown; không có một Markdown form cố định cho mọi feature.
+
+RC1 production repo **không bundle SRS_TEMPLATE.docx mặc định**.
+
+### Có tạo SRS theo template Word công ty được không?
+
+Có. Cung cấp file .docx và nói rõ nó là delivery template. document-docx hỗ trợ template rendering/structural editing.
+
+Template điều khiển layout/section; nó không được override confirmed semantics.
+
+Xem [SRS và DOCX](SRS_DOCX_GUIDE.md).
+
+### Nếu không có Word template thì sao?
+
+Có thể tạo generic DOCX từ canonical SRS để review, nhưng không gọi đó là “theo template công ty”.
+
+### Nếu project chỉ có SRS.docx cũ thì sao?
+
+Có thể dùng document-only mode để review/edit. Khi canonical Markdown đã tồn tại, semantic change phải cập nhật canonical source trước rồi đồng bộ DOCX.
+
+### BA Kit vẽ Draw.io được những gì?
+
+Trong BA scope: process flowchart, swimlane, user/task flow, state/lifecycle, decision tree, business context/interaction map, review/edit existing .drawio và dựng lại diagram từ image/whiteboard.
+
+drawio-skill còn có nhiều technical capability, nhưng BA Kit không dùng nó để tự thiết kế target architecture/API/DB.
+
+### Draw.io xuất được PNG/PDF không?
+
+Có khi môi trường có draw.io CLI. Editable .drawio là source; PNG/SVG/PDF là derivative output.
+
+### Diagram có thể trở thành source of truth không?
+
+Không cho business semantics. Diagram phản ánh approved BR/SRS. Nếu diagram làm lộ một rule mới, đưa rule đó về PROPOSED/UNKNOWN và hỏi Human.
+
+### BA Kit có tạo prototype không?
+
+Có ở mức optional capability khi các UX/UI skills được cài. Prototype là visual proposal, cần Human visual review và không tự thay đổi Business Rules.
 
 ### Các ví dụ có phải template bắt buộc không?
 
-Không. Chúng chỉ để minh họa. Câu chữ và ID mẫu không cố định; hãy tuân theo hợp đồng artifact thật và giữ tham chiếu nguồn bắt buộc.
+Không. Ví dụ CR-001 minh họa artifact chain và Human Gate. Câu chữ/ID không phải output golden. Hãy theo contract và authority của feature thật.
 
-### Sau Engineering Handoff sẽ thế nào?
+### “Tiếp tục” có nghĩa là phê duyệt không?
 
-Giai đoạn dự kiến kế tiếp là Engineering Impact, sau đó là Dev Kit và Spec Kit. Các khả năng này đang Planned, chưa được triển khai trong RC1.
+Không.
 
-### Test sẽ dùng đầu ra BA thế nào trong tương lai?
+~~~text
+CONTINUE != APPROVE
+ANSWER != APPROVE
+~~~
 
-Test Kit và TEA dự kiến dùng BA baseline đã duyệt cùng bằng chứng kỹ thuật hạ nguồn để xác định và chứng minh hành vi mong đợi. Chúng chưa có trong BA Kit RC1.
+### BA Kit có thể tự approve requirement/SRS không?
 
-### BA Kit đã public hoặc được runtime chấp nhận chưa?
+Không. Agent validation chỉ là evidence. Approval phải đến từ Human và gắn với artifact/revision cụ thể.
 
-Chưa. Đây vẫn là ứng viên RC1 và runtime acceptance cho package bị chặn bởi isolated provider/runtime. License phân phối của BA Kit đã sẵn sàng; công bố toàn repository vẫn bị chặn bởi các import ngoài BA và metadata Skills Manager đang được track nhưng chưa được kiểm toán. Xem [Trạng thái phát hành](RELEASE.md) và [Nguồn gốc](PROVENANCE.md).
+### Nếu code hiện tại mâu thuẫn SRS thì sao?
+
+Ghi discrepancy. CURRENT_SYSTEM là as-is evidence; Confirmed Decisions + Approved BR + Canonical SRS quản lý target business meaning. Không silently sửa một bên để khớp bên kia.
+
+### Sau Engineering Handoff là gì?
+
+Engineering Impact — xác định WHERE / WHO OWNS. Sau đó mới tới Dev Kit + repo-local Spec Kit cho HOW.
+
+### Runtime RC1 hiện PASS chưa?
+
+Chưa. Runtime preflight và project-local skill discovery đã PASS, nhưng full CR-001 acceptance đầu tiên trả **BA_KIT_RC1_CHANGES_REQUIRED**. Một số semantic output cần remediation và current-system discovery trong run đó bị chặn bởi một auto-review HTTP 403. Exact tested SHA cũng không được report, nên run đó không thể dùng làm final acceptance cho current HEAD.
+
+### License BA Kit đã ổn chưa?
+
+Payload BA Kit là **BA_KIT_LICENSE_READY**. Whole repository vẫn **REPO_PUBLICATION_BLOCKED** bởi một số non-BA imports/metadata chưa audit đầy đủ.
 
 ---
 

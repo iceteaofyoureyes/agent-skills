@@ -255,9 +255,11 @@ Trạng thái BA Kit RC1 hiện tại:
 - provenance/license của BA Kit payload: READY;
 - offline BA/SRS contract tests: PASS;
 - CR-001 documentation examples: illustrative/contract-valid, không phải runtime proof;
-- packaged fresh-session CR-001 runtime acceptance: **chưa PASS** tại snapshot này vì provider/runtime isolated đang bị block.
+- runtime preflight và project-local skill discovery: PASS;
+- full fresh-session CR-001 run đầu tiên: **BA_KIT_RC1_CHANGES_REQUIRED**;
+- exact tested SHA của run đó không được report, vì vậy current HEAD chưa có final runtime acceptance.
 
-Xem [Trạng thái phát hành](RELEASE.md) để tránh biến test/package evidence thành claim functional acceptance.
+Xem [Trạng thái phát hành](RELEASE.md) để tránh biến test/package evidence hoặc một failed/stale run thành claim functional acceptance.
 
 ## 10. Nguồn tham khảo chính
 

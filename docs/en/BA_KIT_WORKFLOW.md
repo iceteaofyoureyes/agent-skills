@@ -1,75 +1,183 @@
 # BA Kit Workflow and Human Gates
 
-Tiếng Việt: [Quy trình và Human Gate](../vi/BA_KIT_WORKFLOW.md)
+BA Kit is not a rigid pipeline that forces every request through every stage. It starts at the **earliest safe checkpoint** for the work:
 
-The workflow below is a typical brownfield path. Greenfield and document-only requests start at the earliest relevant stage.
+- **brownfield** — requirement/change against an existing system;
+- **greenfield** — no current system is relevant;
+- **document-only** — review/edit an existing SRS/DOCX/diagram;
+- **visual-assisted** — screenshot/Figma/PDF/prototype is visual evidence.
+
+## Core semantic flow
 
 ~~~mermaid
 flowchart TD
-    A[Requirement] --> B[Current-System Discovery]
-    B --> C[Requirement Gap Review]
-    C --> D[Human Clarification]
-    D --> E[Business Rules]
-    E --> F[SRS]
-    F --> G[Human Approval]
-    G --> H[Engineering Handoff]
-    H -. Planned .-> I[Engineering Impact]
-    I -. Planned .-> J[Dev Kit + Spec Kit]
-    J -. Planned .-> K[Test Kit + TEA]
+    A[BA Input / Requirement / CR] --> B{Current system matters?}
+    B -- Yes --> C[Current-System Discovery]
+    B -- No --> D[Requirement Review / Gap Analysis]
+    C --> D
+    D --> E[Human Clarification]
+    E --> F[Business Rules]
+    F --> G[Canonical SRS]
+    G --> H[Human BA Baseline Gate]
+    H --> I[Engineering Handoff]
+    I -. Planned .-> J[Engineering Impact]
+    J -. Planned .-> K[Dev Kit + repo-local Spec Kit]
+    K -. Planned .-> L[Test Kit + TEA]
 ~~~
 
-## Stages
+This core flow manages **business semantics**. Draw.io, prototypes, and DOCX are derived/visual/delivery lanes and do not replace semantic authority.
 
-| Stage | What happens |
+## Derived artifact lanes
+
+~~~mermaid
+flowchart LR
+    A[Confirmed Decisions + Approved BR + Canonical SRS]
+    A --> B[Draw.io Business Diagrams]
+    A --> C[DOCX Delivery]
+    A --> D[Optional UX / Prototype]
+    V[Approved visual source] --> D
+    T[Selected Word template] --> C
+    B --> E[Human visual/document review]
+    C --> E
+    D --> E
+~~~
+
+When the semantic baseline changes, affected derived artifacts must be reviewed/updated.
+
+## Project modes
+
+| Mode | Use | Discovery |
+|---|---|---|
+| Brownfield | Feature/CR on an existing system | Inspect source/current behavior before concluding target behavior |
+| Greenfield | No relevant current system | Start from requirement/gap clarification |
+| Document-only | Review/edit existing artifact | Code discovery is optional unless current behavior matters |
+| Visual-assisted | Image/Figma/PDF/HTML/prototype exists | Visuals are evidence; hidden behavior still requires Human confirmation |
+
+## Operation modes
+
+| Operation | Rule |
 |---|---|
-| Requirement | Identify the feature, requested outcome, and available source material. |
-| Current-System Discovery | For brownfield work, inspect relevant code, behavior, data, APIs, or UI. Record findings as **CURRENT_SYSTEM**; current behavior is evidence, not a new requirement. |
-| Requirement Gap Review | Identify ambiguity, omissions, conflicts, and material questions. Keep unknowns open. |
-| Human Clarification | The authorized BA/stakeholder answers named questions. Record the source of each answer. |
-| Business Rules | Derive traceable rules from confirmed answers while preserving **UNKNOWN**, **INFERRED**, and **PROPOSED** items. |
-| SRS | Prepare the canonical requirement specification from the confirmed decisions and approved Business Rules. Keep unresolved items visible. |
-| Human Approval | The Human approves, rejects, or requests changes to a named artifact or gate. Validation is evidence, not approval. |
-| Engineering Handoff | After explicit approval and with no blocking open items, package the approved baseline, source paths and hashes, remaining open items, downstream policy, and next stage. |
+| REVIEW | Read-only; do not mutate artifact or advance stage |
+| CREATE | Create requested artifact when authority is sufficient |
+| EDIT | Change only selected scope; preserve unaffected approved semantics |
+| CONTINUE | Read workflow state and perform next valid action; never approval |
+
+## Stages and outputs
+
+| Stage | Agent | Human | Typical output |
+|---|---|---|---|
+| Input | Resolve feature/artifact/mode | Provide requirement/source | Input refs |
+| Current-System Discovery | Inspect relevant current behavior | Clarify discovery scope if needed | CURRENT_SYSTEM findings |
+| Gap Analysis | Find missing/ambiguous/contradictory cases | Review questions | Gap list |
+| Clarification | Record answers/evidence | Make business decisions | Confirmed decisions |
+| Business Rules | Structure traceable rules | Review/request changes | Business Rules |
+| SRS | Create/update functional SRS | Review/request changes | Canonical SRS |
+| Draw.io/DOCX/Prototype | Create derived artifacts | Visual/document review | .drawio, DOCX, prototype |
+| Approval | Never self-approve | APPROVE/REJECT/REQUEST_CHANGES | Gate decision |
+| Handoff | Validate baseline/hashes | Confirm approved baseline | engineering-handoff.yml |
+
+## Gap areas BA Kit should consider
+
+Not every feature needs every item, but CRUD/list/workflow work commonly requires checks around:
+
+- actors/roles/permissions;
+- fields and required/optional status;
+- validation/boundaries;
+- state/lifecycle;
+- search/filter;
+- sort/default sort;
+- pagination/page size;
+- list columns;
+- row/bulk actions;
+- empty/loading/error;
+- destructive actions/confirmation;
+- concurrency business outcomes;
+- timezone/date semantics;
+- audit/history when required;
+- integration outcomes at business level.
+
+Ask only where authority is missing.
 
 ## Evidence labels
 
 | Label | Meaning |
 |---|---|
-| **CONFIRMED** | Directly stated or decided by the authorized Human. |
-| **CURRENT_SYSTEM** | Verified behavior of the existing system. |
-| **INFERRED** | A conclusion drawn from evidence but not directly confirmed. |
-| **PROPOSED** | A suggested behavior awaiting confirmation. |
-| **UNKNOWN** | Missing, conflicting, or unchecked evidence. |
+| CONFIRMED | Authorized Human decision defining target behavior |
+| CURRENT_SYSTEM | Verified existing behavior |
+| INFERRED | Evidence-based deduction not yet confirmed |
+| PROPOSED | Suggested behavior awaiting a decision |
+| UNKNOWN | Missing/conflicting evidence |
 
-Do not turn current behavior, a screenshot, a prototype, or an inference into a requirement without BA confirmation.
+Screenshots, current code, prototypes, and template text do not become CONFIRMED automatically.
 
 ## Human Gates
 
-Ask the Human when missing information could change a business rule, actor or permission, required data, validation, lifecycle, conflict outcome, destructive behavior, semantic source, or target artifact.
+Gate types:
 
-- **Continue** resumes from recorded workflow state. **Tiếp tục** is not approval.
-- **Answer** resolves only the named question. Answers do not approve an SRS or other artifact.
-- **Approve**, **Reject**, and **Request Changes** apply to the named artifact or gate.
-- Clearing blocking questions can satisfy the question-resolution gate. Approval of an artifact still requires explicit approval of that artifact.
-- Create Engineering Handoff only after explicit BA approval and when no blocking items remain.
+- **ANSWER** — resolve the named question;
+- **CONTINUE** — proceed to the next valid action;
+- **APPROVE** — approve the named artifact/revision;
+- **REQUEST_CHANGES** — request changes to a named artifact/gate;
+- **REJECT** — reject a named artifact/gate.
 
-## Source authority
+Invariant:
 
-Business meaning is governed jointly by:
+~~~text
+CONTINUE != APPROVE
+ANSWER != APPROVE
+validation PASS != APPROVE
+artifact generated != APPROVE
+~~~
 
-1. confirmed BA decisions;
-2. approved Business Rules;
-3. the canonical SRS.
+## Relationship between SRS, diagram, prototype, and DOCX
 
-These sources must agree. A newer decision does not silently update older derived artifacts. Verified current-system behavior is recorded separately and does not override approved business semantics. Visual or delivery artifacts, including screenshots, prototypes, diagrams, and generated DOCX files, do not silently change those semantics.
+~~~text
+Confirmed Decisions
++ Approved Business Rules
++ Canonical SRS
+        │
+        ├──> Draw.io business diagrams
+        ├──> DOCX delivery using selected template
+        └──> Optional prototype / visual contract
+~~~
 
-## Boundary after BA
+If a diagram/prototype reveals a new business question:
 
-| Work | Responsibility | Status |
-|---|---|---|
-| BA Kit | **WHAT** the system needs to do | RC1 candidate |
-| Engineering Impact | **WHERE** the work belongs and **WHO** owns it | Planned; not implemented |
-| Dev Kit + Spec Kit | **HOW** to design and build it | Planned; not implemented |
-| Test Kit + TEA | **HOW DO WE PROVE IT** works | Planned; not implemented |
+~~~text
+visual finding
+→ PROPOSED / UNKNOWN
+→ Human clarification
+→ update BR/SRS
+→ regenerate/update derived artifact
+~~~
 
-BA Kit does not assign repositories or modules, API design, database or event schemas, locking, transaction strategy, service boundaries, or implementation owners. Those decisions belong downstream. See [Architecture](ARCHITECTURE.md), [Usage Guide](BA_KIT_USAGE_GUIDE.md), and the [CR-001 example](../../kits/ba/examples/CR-001/en/README.md).
+Do not change a derived artifact alone and treat it as a new business rule.
+
+## Visual Gate
+
+Prototype/Figma-derived outputs may need a separate Human visual review.
+
+Visual approval confirms the stated presentation/interaction scope; it does **not automatically approve the BA baseline** unless the Human explicitly names the approval target/revision.
+
+## Engineering Handoff Gate
+
+Create the handoff only when:
+
+- the exact Business Rules/SRS revisions were explicitly approved;
+- no blocking item remains;
+- source paths/hashes are valid;
+- no technical ownership/design fields are present.
+
+The next stage is **Engineering Impact**, which resolves WHERE/WHO OWNS.
+
+## See also
+
+- [BA Kit capabilities](BA_KIT_CAPABILITIES.md)
+- [Usage guide](BA_KIT_USAGE_GUIDE.md)
+- [SRS and DOCX](SRS_DOCX_GUIDE.md)
+- [Draw.io, visual input, and prototypes](DIAGRAMS_PROTOTYPES.md)
+- [Kit contract](KIT_CONTRACT.md)
+
+---
+
+Tiếng Việt: [Quy trình và Human Gate](../vi/BA_KIT_WORKFLOW.md)
