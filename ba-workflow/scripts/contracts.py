@@ -131,7 +131,7 @@ def validate_handoff_text(text, allow_placeholders=False):
         errors.append("open_items.blocking must be empty before engineering handoff")
     non_blocking = get("open_items.non_blocking")
     inline_list = non_blocking is not None and non_blocking.startswith("[") and non_blocking.endswith("]")
-    if non_blocking is None or (not inline_list and not sequences.get(("open_items", "non_blocking"))):
+    if not inline_list and not sequences.get(("open_items", "non_blocking")):
         errors.append("open_items.non_blocking must be a YAML list")
     for path in (
         "authoritative_sources.business_rules.sha256",
