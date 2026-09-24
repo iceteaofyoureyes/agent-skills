@@ -13,7 +13,11 @@ Các skill nguyên tử được lưu canonical ở thư mục gốc. **kits/ba/
 
 Luồng dự kiến: Requirement → BA Kit → Approved BA Baseline → Engineering Impact → Dev Kit + Spec Kit → Test Kit + TEA. Lộ trình chi tiết sau BA gồm Engineering Handoff (bàn giao BA cho kỹ thuật) → Engineering Impact → Tech Lead Gate → Spec Kit → lập kế hoạch/triển khai → Test Kit/TEA. Hiện chỉ BA Kit được đóng gói thành Kit; các giai đoạn tương lai phải giữ nguyên ngữ nghĩa BA đã duyệt và giải quyết quyết định kỹ thuật ở hạ nguồn.
 
-Installer chỉ đọc dependency từ manifest. Codex và Claude Code dùng thư mục Agent Skills native; generic cần chỉ rõ thư mục. Metadata Skills Manager độc lập và không bắt buộc. Xem [Cài đặt](INSTALLATION.md), [Hợp đồng Kit](KIT_CONTRACT.md) và [Nguồn gốc](PROVENANCE.md).
+Installer chỉ đọc dependency từ manifest. Codex và Claude Code dùng thư mục Agent Skills native; generic cần chỉ rõ thư mục. Metadata Skills Manager độc lập và không bắt buộc.
+
+Nguồn chuẩn/framework đứng sau các lựa chọn này và **mức claim chính xác** (ADOPTED, ALIGNED, DESIGN INFLUENCE, PLANNED INTEGRATION) được ghi riêng trong [Nền tảng thiết kế](FOUNDATIONS.md). Exact source revision/license của skill tái sử dụng nằm trong [Nguồn gốc](PROVENANCE.md).
+
+Xem thêm [Cài đặt](INSTALLATION.md) và [Hợp đồng Kit](KIT_CONTRACT.md).
 
 ---
 

@@ -12,6 +12,12 @@ Repository này cung cấp các skill có thể tái sử dụng và các Kit th
 
 BA Kit chưa được chấp nhận hay phát hành công khai. Runtime acceptance bị chặn bởi isolated provider/runtime. License phân phối của payload BA Kit đã sẵn sàng; công bố toàn repository vẫn bị chặn bởi các skill ngoài BA và metadata Skills Manager chưa được kiểm toán. Xem [Trạng thái phát hành](docs/vi/RELEASE.md) và [Nguồn gốc](docs/vi/PROVENANCE.md).
 
+## Nền tảng thiết kế
+
+Repository không tự nhận toàn bộ workflow là một “standard” mới. Atomic skill packaging **adopt Agent Skills format**; requirements/SRS discipline chỉ **aligned với các principle được chọn** từ ISO/IEC/IEEE 29148 và IIBA BABOK; GitHub Spec Kit và BMad/TEA được ghi rõ là downstream integration hoặc design influence theo đúng trạng thái thực tế.
+
+Xem [Nền tảng thiết kế, chuẩn tham chiếu và design lineage](docs/vi/FOUNDATIONS.md) để biết mapping cụ thể, mức claim và nguồn chính thức. Tài liệu này tách riêng khỏi [PROVENANCE](docs/vi/PROVENANCE.md), nơi ghi exact upstream revision/license cho code và skill được tái sử dụng.
+
 ## Cài BA Kit
 
 Từ thư mục dự án nơi bạn muốn dùng Kit, gọi script trong bản clone của repository. Chạy **Doctor** (lệnh kiểm tra cài đặt) sau khi cài. Thay đường dẫn ví dụ bằng vị trí thực tế:
@@ -40,6 +46,7 @@ Xem [Cài đặt](docs/vi/INSTALLATION.md) để biết Codex user scope, Claude
 
 - [Hướng dẫn sử dụng](docs/vi/BA_KIT_USAGE_GUIDE.md)
 - [Tổng quan kiến trúc](docs/vi/ARCHITECTURE.md)
+- [Nền tảng thiết kế & chuẩn tham chiếu](docs/vi/FOUNDATIONS.md)
 - [Hợp đồng Kit](docs/vi/KIT_CONTRACT.md)
 - [Nguồn gốc và giấy phép](docs/vi/PROVENANCE.md)
 - [Trạng thái phát hành](docs/vi/RELEASE.md)

@@ -14,6 +14,7 @@ Tiếng Việt là ngôn ngữ chính của tài liệu người dùng. Các tra
 ## Tài liệu tham khảo
 
 - [Tổng quan kiến trúc](ARCHITECTURE.md)
+- [Nền tảng thiết kế, chuẩn tham chiếu và design lineage](FOUNDATIONS.md)
 - [Hợp đồng của Kit](KIT_CONTRACT.md)
 - [Trạng thái phát hành](RELEASE.md)
 - [Nguồn gốc và giấy phép](PROVENANCE.md)

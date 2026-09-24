@@ -19,4 +19,8 @@ The intended downstream flow is BA Handoff → Engineering Impact → Tech Lead 
 Requirement → BA Kit → Approved BA Baseline → Engineering Impact → Dev Kit + Spec Kit → Test Kit + TEA
 ~~~
 
-The installer reads dependencies only from `kits/ba/kit.yaml`. Codex and Claude Code use their native Agent Skills directories; generic installs require an explicit directory. Skills Manager metadata is independent and optional. See [Installation](INSTALLATION.md), [Kit contract](KIT_CONTRACT.md), and [Provenance](PROVENANCE.md).
+The installer reads dependencies only from `kits/ba/kit.yaml`. Codex and Claude Code use their native Agent Skills directories; generic installs require an explicit directory. Skills Manager metadata is independent and optional.
+
+The external standards/frameworks behind these choices and the **precise claim level** (ADOPTED, ALIGNED, DESIGN INFLUENCE, PLANNED INTEGRATION) are documented in [Design foundations](FOUNDATIONS.md). Exact source revisions/licenses for reused skills remain in [Provenance](PROVENANCE.md).
+
+See also [Installation](INSTALLATION.md) and [Kit contract](KIT_CONTRACT.md).

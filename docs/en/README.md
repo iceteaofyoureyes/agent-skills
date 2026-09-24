@@ -14,6 +14,7 @@ Vietnamese is the primary language for user-facing documentation. This complete 
 ## Reference
 
 - [Architecture](ARCHITECTURE.md)
+- [Design foundations, standards, and lineage](FOUNDATIONS.md)
 - [Kit contract](KIT_CONTRACT.md)
 - [Release status](RELEASE.md)
 - [Provenance and licensing](PROVENANCE.md)
