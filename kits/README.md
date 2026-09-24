@@ -1,8 +1,11 @@
 # Kits
 
-Role kits compose the canonical atomic skills at repository root.
+A Kit combines a role workflow with reusable skills that remain canonical at the repository root.
 
-- [BA Kit](ba/README.md) is implemented in this release candidate.
-- Dev Kit and Test Kit are future boundaries only; no workflows or manifests for them are included.
+| Kit | Status | Guide |
+|---|---|---|
+| BA Kit | RC1 candidate; runtime functional acceptance blocked | [BA Kit](ba/README.md) |
+| Dev Kit | Planned; not implemented | — |
+| Test Kit | Planned; not implemented | — |
 
-Shared capabilities remain at repository root and are included through each role kit's `kit.yaml` manifest.
+Start with the [BA Kit Quick Start](../docs/BA_KIT_QUICKSTART.md), then see [Workflow and Human Gates](../docs/BA_KIT_WORKFLOW.md), the [CR-001 example](ba/examples/CR-001/README.md), and [Installation](../docs/INSTALLATION.md). Shared capabilities remain at repository root and are composed through `kits/ba/kit.yaml`.

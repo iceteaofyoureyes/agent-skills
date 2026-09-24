@@ -1,11 +1,20 @@
 # BA Kit 1.0.0-rc.1
 
-BA Kit owns business requirements, evidence classification, questions, Business Rules, SRS, diagrams and the approved engineering handoff. It does not make technical design or implementation-ownership decisions.
+BA Kit is an AI-assisted Business Analysis workflow for clarifying requirements, separating evidence from decisions, preparing Business Rules and an SRS, and producing an Engineering Handoff after explicit Human approval. BA owns **WHAT** the system needs to do; BA Kit does not assign implementation ownership or make technical design decisions.
 
-Install with Codex, Claude Code, or an explicit generic skills directory using the commands in [`../../docs/INSTALLATION.md`](../../docs/INSTALLATION.md). Skills Manager is optional.
+This is an RC1 candidate, not an accepted or public release. Packaged runtime functional acceptance is blocked by the isolated provider/runtime. See [Release Status](../../docs/RELEASE.md) and [Provenance](../../docs/PROVENANCE.md).
 
-The single composition source is [`kit.yaml`](kit.yaml), valid JSON syntax within YAML 1.2. Do not add a second dependency list to installers. The package contains one `ba-workflow` orchestrator plus its root-level atomic skills.
+## Start here
 
-## Acceptance
+- [Quick Start](../../docs/BA_KIT_QUICKSTART.md)
+- [Workflow and Human Gates](../../docs/BA_KIT_WORKFLOW.md)
+- [Usage Guide](../../docs/BA_KIT_USAGE_GUIDE.md)
+- [CR-001 example](examples/CR-001/README.md)
+- [FAQ](../../docs/BA_KIT_FAQ.md)
+- [Installation](../../docs/INSTALLATION.md)
 
-See [`acceptance.yaml`](acceptance.yaml), [`examples/README.md`](examples/README.md), and [`../../ba-workflow/evals/cr001-acceptance.md`](../../ba-workflow/evals/cr001-acceptance.md). `READY_FOR_ACCEPTANCE` is not a 1.0.0-rc.1 PASS; a reviewer must run fresh-session CR-001 acceptance.
+The single composition source is [`kit.yaml`](kit.yaml). The package contains one `ba-workflow` entry skill plus canonical root-level skills. Skills Manager is optional.
+
+## Acceptance evidence
+
+See [`acceptance.yaml`](acceptance.yaml) and [`../../ba-workflow/evals/cr001-acceptance.md`](../../ba-workflow/evals/cr001-acceptance.md). A documentation example is not packaged runtime acceptance evidence. Do not use the approved CR-001 example outputs as inputs to a fresh-session acceptance run.

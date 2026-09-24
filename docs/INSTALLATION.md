@@ -1,51 +1,84 @@
 # Installation
 
-From a project checkout:
+Clone the Kit repository, then run its installer while your shell is in the project where you will use BA Kit. Project scope uses the current working directory, so a project-local install stays with that project.
 
-```powershell
-git clone https://github.com/iceteaofyoureyes/agent-skills.git
-cd agent-skills
-.\tooling\install.ps1 ba --agent codex --scope project
-.\tooling\doctor.ps1 ba --agent codex --scope project
-```
+~~~powershell
+git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+Set-Location C:\path\to\your-project
+& 'C:\tools\agent-skills\tooling\install.ps1' ba --agent codex --scope project
+& 'C:\tools\agent-skills\tooling\doctor.ps1' ba --agent codex --scope project
+~~~
 
-```bash
-git clone https://github.com/iceteaofyoureyes/agent-skills.git
-cd agent-skills
-./tooling/install.sh ba --agent codex --scope project
-./tooling/doctor.sh ba --agent codex --scope project
-```
+~~~bash
+git clone https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+cd /path/to/your-project
+~/src/agent-skills/tooling/install.sh ba --agent codex --scope project
+~/src/agent-skills/tooling/doctor.sh ba --agent codex --scope project
+~~~
 
-Project install copies skills to the current workspace's native skill directory. Codex uses `.agents/skills`; Claude Code uses `.claude/skills`. User installs use Codex's `~/.agents/skills` and Claude Code's `~/.claude/skills`. These locations follow the [OpenAI skill guide](https://learn.chatgpt.com/docs/build-skills) and [Claude Code skills guide](https://code.claude.com/docs/en/skills).
+Replace the example checkout and project paths with the paths on your machine.
 
-For a generic Agent-Skills-compatible agent, pass an explicit destination:
+## Supported targets
 
-```powershell
-.\tooling\install.ps1 ba --agent generic --target C:\path\to\agent\skills
-```
+Use the corresponding PowerShell or shell wrapper under **tooling/**. These arguments work with **install**, **doctor**, and **uninstall**; keep the same arguments for all three operations.
 
-```bash
-./tooling/install.sh ba --agent generic --target /path/to/agent/skills
-```
+| Target | Arguments |
+|---|---|
+| Codex project | **ba --agent codex --scope project** |
+| Codex user | **ba --agent codex --scope user** |
+| Claude Code project | **ba --agent claude-code --scope project** |
+| Claude Code user | **ba --agent claude-code --scope user** |
+| Generic directory | **ba --agent generic --target PATH** |
 
-Use `--scope user` for a user-level install or `--scope project` for an isolated project install. Generic mode requires `--target`. `--target` also overrides a native agent path for isolated testing. Python 3.8+ is required; no Python packages, Skills Manager, Codex profile or global agent configuration changes are required.
+Examples from a target project in PowerShell:
 
-Install reads all dependencies from `kits/ba/kit.yaml`, copies only missing skill directories, and never overwrites an existing skill. Repeating the command leaves unchanged BA-managed skills untouched. If a same-name folder already exists, it is preserved and reported; the kit does not merge two skills with the same name.
+~~~powershell
+& 'C:\tools\agent-skills\tooling\install.ps1' ba --agent codex --scope user
+& 'C:\tools\agent-skills\tooling\install.ps1' ba --agent claude-code --scope project
+& 'C:\tools\agent-skills\tooling\install.ps1' ba --agent generic --target C:\path\to\agent\skills
+~~~
 
-Uninstall:
+Examples from a target project in Bash:
 
-```powershell
-.\tooling\uninstall.ps1 ba --agent codex --scope project
-```
+~~~bash
+~/src/agent-skills/tooling/install.sh ba --agent codex --scope user
+~/src/agent-skills/tooling/install.sh ba --agent claude-code --scope project
+~/src/agent-skills/tooling/install.sh ba --agent generic --target /path/to/agent/skills
+~~~
 
-```bash
-./tooling/uninstall.sh ba --agent codex --scope project
-```
+To run Doctor or uninstall, use the matching **doctor.ps1** / **doctor.sh** or **uninstall.ps1** / **uninstall.sh** wrapper with the same kit and target arguments. For example:
 
-Uninstall removes only unchanged BA-managed skill directories listed in `.ba-kit-install.json`. Modified folders and skills referenced by another `.*-kit-install.json` are preserved and reported. It never edits agent configuration or authentication. Run Doctor after installation:
+~~~powershell
+& 'C:\tools\agent-skills\tooling\doctor.ps1' ba --agent claude-code --scope project
+& 'C:\tools\agent-skills\tooling\uninstall.ps1' ba --agent generic --target C:\path\to\agent\skills
+~~~
 
-```powershell
-.\tooling\doctor.ps1 ba --agent codex --scope project
-```
+~~~bash
+~/src/agent-skills/tooling/doctor.sh ba --agent claude-code --scope project
+~/src/agent-skills/tooling/uninstall.sh ba --agent generic --target /path/to/agent/skills
+~~~
 
-Skills Manager remains optional. This environment had no Skills Manager CLI, so existing `.skills-manager/` metadata was left untouched; canonical BA Kit install and Doctor do not read it.
+Codex project skills go under **.agents/skills**; Claude Code project skills go under **.claude/skills**. User scope installs under the matching directory in your home folder. Project scope is useful when you want BA Kit available only for one project. Generic mode requires **--target**. That option can also override a native target for isolated checks.
+
+Codex project installation, repeat installation, Doctor, safe uninstall, and project isolation have been structurally checked. Generic PowerShell/Bash installation and Claude Code structural installation have also been checked; Claude runtime acceptance was not run. See [Release Status](RELEASE.md).
+
+## Doctor status
+
+Doctor checks the installed required and optional skills, the kit manifest, and the workflow-state and handoff contracts.
+
+| Status | Meaning |
+|---|---|
+| **READY** | Required skills and contracts pass, and optional skills are present. |
+| **DEGRADED** | Required skills and contracts pass, but one or more optional skills are unavailable. |
+| **FAIL** | A required skill is missing or invalid, or a required contract fails. |
+
+**FAIL** returns exit code 1. **READY** and **DEGRADED** return exit code 0. Doctor does not run a BA session or prove runtime acceptance.
+
+## Requirements and safety
+
+- Python 3.8 or newer is required. PowerShell looks for **python** on PATH. Bash uses **python3**, or the executable named by the **PYTHON** environment variable.
+- No Python packages, Skills Manager, agent profile, or global agent configuration are required.
+- Composition comes from [kit.yaml](../kits/ba/kit.yaml). Install preserves existing same-name skills and reports conflicts; it does not merge or overwrite them.
+- Repeating install is safe. Uninstall removes unchanged BA-managed skills and preserves modified or shared skills.
+
+See the [Quick Start](BA_KIT_QUICKSTART.md) to begin a BA session.
