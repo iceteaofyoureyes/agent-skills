@@ -175,6 +175,49 @@ next_stage:
             (root / "srs.md").write_text("changed after approval", encoding="utf-8")
             self.assertTrue(any("SHA-256 mismatch" in error for error in ba_kit.validate_handoff_file(handoff)))
 
+    def test_handoff_block_lists_require_no_blocking_items_and_reject_design_fields(self):
+        sample = """schema_version: 1
+feature:
+  id: CR-001
+  title: Appointment Scheduling
+ba_baseline:
+  status: APPROVED_FOR_ENGINEERING
+  revision: ba-rev-7
+authoritative_sources:
+  business_rules:
+    path: docs/business-rules.md
+    sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  srs:
+    path: docs/srs.md
+    sha256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+  decisions:
+    path: docs/ba-decisions.md
+    sha256: cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+open_items:
+  blocking: []
+  non_blocking: []
+policy:
+  downstream_may_change_business_semantics: false
+  downstream_may_make_technical_design_decisions: true
+next_stage:
+  capability: engineering-impact-analysis
+"""
+        self.assertEqual(ba_kit.validate_handoff_text(sample), [])  # Case A
+        block_non_blocking = sample.replace(
+            "  non_blocking: []",
+            "  non_blocking:\n    - maximum duration remains UNKNOWN",
+        )
+        self.assertEqual(ba_kit.validate_handoff_text(block_non_blocking), [])  # Case B
+
+        block_blocking = sample.replace(
+            "  blocking: []",
+            "  blocking:\n    - unresolved blocking issue",
+        )
+        self.assertTrue(any("open_items.blocking" in error for error in ba_kit.validate_handoff_text(block_blocking)))  # Case C
+
+        with_design_field = sample.replace("next_stage:", "architecture: event-driven\nnext_stage:")
+        self.assertTrue(any("forbidden technical field: architecture" in error for error in ba_kit.validate_handoff_text(with_design_field)))  # Case D
+
     def test_install_is_idempotent_and_uninstall_preserves_unrelated_and_edited_skills(self):
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "skills"
