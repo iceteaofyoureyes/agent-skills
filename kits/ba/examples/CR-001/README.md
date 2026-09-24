@@ -1,21 +1,21 @@
 # CR-001: Appointment Scheduling
 
-**Documentation-only example.** The initial requirement is intentionally incomplete. Later files show illustrative review outputs and scenario decisions; they are not byte-for-byte expected responses or runtime-generated artifacts.
+**Ví dụ chỉ dành cho tài liệu.** Input ban đầu được cố ý để thiếu thông tin. Các tệp sau minh họa đầu ra rà soát và quyết định tình huống; chúng không phải câu trả lời runtime cố định hay bản golden.
 
-> Do not feed approved outputs from this folder into fresh-session acceptance. Give the fresh-session agent only the allowed initial input and ask it to discover gaps itself.
+> Không đưa các đầu ra đã duyệt trong thư mục này vào fresh-session acceptance. Với phiên acceptance mới, chỉ cung cấp input ban đầu cùng các đầu vào được phép; để agent tự tìm gap.
 
-| File | Example status | Purpose |
+| Tệp | Phân loại ví dụ | Mục đích |
 |---|---|---|
-| [01-input-requirement.md](01-input-requirement.md) | INPUT | Deliberately incomplete starting requirement. |
-| [02-gap-review.md](02-gap-review.md) | ILLUSTRATIVE OUTPUT | Questions and a separate illustrative Human decision record. |
-| [03-approved-business-rules.md](03-approved-business-rules.md) | ILLUSTRATIVE OUTPUT | Traceable example Business Rules; unresolved values stay UNKNOWN. |
-| [04-srs-excerpt.md](04-srs-excerpt.md) | ILLUSTRATIVE OUTPUT | Example functional requirements and technical-scope boundary. |
-| [05-engineering-handoff.yml](05-engineering-handoff.yml) | CONTRACT-VALID EXAMPLE (illustrative) | Uses the current handoff schema. Its hashes bind to the adjacent example source files. |
+| [01-input-requirement.md](vi/01-input-requirement.md) | INPUT | Yêu cầu bắt đầu, cố ý chưa đầy đủ. |
+| [02-gap-review.md](vi/02-gap-review.md) | ILLUSTRATIVE OUTPUT | Các câu hỏi và phần quyết định Human minh họa riêng. |
+| [03-approved-business-rules.md](vi/03-approved-business-rules.md) | ILLUSTRATIVE OUTPUT | Business Rules ví dụ có truy vết; giá trị chưa xác nhận vẫn UNKNOWN. |
+| [04-srs-excerpt.md](vi/04-srs-excerpt.md) | ILLUSTRATIVE OUTPUT | Yêu cầu chức năng minh họa và ranh giới kỹ thuật. |
+| [05-engineering-handoff.yml](vi/05-engineering-handoff.yml) | CONTRACT-VALID EXAMPLE (minh họa) | Dùng đúng schema hiện tại; hash gắn với các nguồn ví dụ cùng thư mục. |
 
-The decisions shown after the gap review are provided as scenario material for this example. They are not implied by the initial requirement. Sample rule/requirement IDs and prose are illustrative; follow the actual contracts, source authority, and Human Gate.
+Quyết định sau gap review được đưa riêng làm ngữ liệu cho ví dụ; không suy ra chúng từ input ban đầu. ID Business Rules/requirement và câu chữ chỉ để minh họa. Hãy theo contract thật, source authority và Human Gate.
 
-The handoff's hashes are actual SHA-256 values for the example files beside it. If you copy the handoff shape for a project, replace every source path, revision, and hash with that project's approved artifacts. The sample handoff does not prove that a real CR-001 runtime acceptance passed.
+Hash trong handoff là SHA-256 thực của các tệp nguồn đi kèm. Nếu dùng lại cấu trúc này cho dự án, thay đường dẫn, revision và hash bằng artifact đã được duyệt của dự án đó. Ví dụ handoff không chứng minh CR-001 runtime acceptance đã đạt.
 
-The contract-valid handoff also illustrates a Human classifying the unresolved duration maximum and list options as non-blocking for this handoff. Those values remain UNKNOWN, and downstream must not decide them. A real BA must make that classification; if either item blocks the work, do not issue the handoff.
+Bản hợp đồng hợp lệ giả định BA đã phân loại thời lượng tối đa chưa rõ và chi tiết danh sách là không blocking cho handoff ví dụ này. Các giá trị vẫn UNKNOWN; hạ nguồn không được tự quyết định. BA của dự án thật phải phân loại; nếu mục nào blocking thì không tạo handoff.
 
-See the [BA Kit workflow](../../../../docs/BA_KIT_WORKFLOW.md), [usage guide](../../../../docs/BA_KIT_USAGE_GUIDE.md), and [release status](../../../../docs/RELEASE.md).
+English: [CR-001 example](en/README.md)

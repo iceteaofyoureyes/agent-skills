@@ -1,5 +1,7 @@
 # BA Kit FAQ
 
+Tiếng Việt: [Câu hỏi thường gặp](../vi/BA_KIT_FAQ.md)
+
 ### Do I need Skills Manager?
 
 No. BA Kit installs and runs through the repository's scripts. Skills Manager is optional.

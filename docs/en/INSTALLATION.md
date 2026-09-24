@@ -1,5 +1,7 @@
 # Installation
 
+Tiếng Việt: [Cài đặt](../vi/INSTALLATION.md)
+
 Clone the Kit repository, then run its installer while your shell is in the project where you will use BA Kit. Project scope uses the current working directory, so a project-local install stays with that project.
 
 ~~~powershell
@@ -64,7 +66,7 @@ Codex project installation, repeat installation, Doctor, safe uninstall, and pro
 
 ## Doctor status
 
-Doctor checks the installed required and optional skills, the kit manifest, and the workflow-state and handoff contracts.
+Doctor checks the installed required and optional skills, the kit manifest, the workflow-state and source-authority contracts, and the handoff contract.
 
 | Status | Meaning |
 |---|---|
@@ -78,7 +80,7 @@ Doctor checks the installed required and optional skills, the kit manifest, and 
 
 - Python 3.8 or newer is required. PowerShell looks for **python** on PATH. Bash uses **python3**, or the executable named by the **PYTHON** environment variable.
 - No Python packages, Skills Manager, agent profile, or global agent configuration are required.
-- Composition comes from [kit.yaml](../kits/ba/kit.yaml). Install preserves existing same-name skills and reports conflicts; it does not merge or overwrite them.
+- Composition comes from [kit.yaml](../../kits/ba/kit.yaml). Install preserves existing same-name skills and reports conflicts; it does not merge or overwrite them.
 - Repeating install is safe. Uninstall removes unchanged BA-managed skills and preserves modified or shared skills.
 
 See the [Quick Start](BA_KIT_QUICKSTART.md) to begin a BA session.

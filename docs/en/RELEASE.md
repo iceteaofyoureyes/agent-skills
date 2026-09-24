@@ -1,5 +1,7 @@
 # Release status
 
+Tiếng Việt: [Trạng thái phát hành](../vi/RELEASE.md)
+
 BA Kit `1.0.0-rc.1` is a release-candidate package, not a public release or an accepted functional release. Dev Kit and Test Kit are planned and are not implemented.
 
 ## Technical and package status
@@ -8,7 +10,7 @@ The package and installer checks have passed for Codex project installation, ide
 
 ## Runtime functional acceptance
 
-Packaged fresh-session CR-001 acceptance is **BLOCKED** because the isolated Codex provider/runtime returned no response. This is an environment block, not a functional PASS. Do not treat prior benchmark runs or the documentation example as acceptance of this package. Once the isolated runtime can respond, run the fresh-session cases in [`kits/ba/acceptance.yaml`](../kits/ba/acceptance.yaml) and record the exact runtime and result.
+Packaged fresh-session CR-001 acceptance is **BLOCKED** because the isolated Codex provider/runtime returned no response. This is an environment block, not a functional PASS. Do not treat prior benchmark runs or the documentation example as acceptance of this package. Once the isolated runtime can respond, run the fresh-session cases in [`kits/ba/acceptance.yaml`](../../kits/ba/acceptance.yaml) and record the exact runtime and result.
 
 ## Public distribution
 

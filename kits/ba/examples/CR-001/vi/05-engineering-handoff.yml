@@ -1,0 +1,27 @@
+# Ví dụ chỉ dành cho tài liệu; đây không phải phê duyệt cho dự án thật.
+# Hash dưới đây là SHA-256 của các tệp nguồn ví dụ cùng thư mục.
+schema_version: 1
+feature:
+  id: CR-001
+  title: Appointment Scheduling
+ba_baseline:
+  status: APPROVED_FOR_ENGINEERING
+  revision: example-only-CR-001-vi-r1
+authoritative_sources:
+  business_rules:
+    path: 03-approved-business-rules.md
+    sha256: 665127107a9cd764bb3d5d6c610b0de1cebd2f2e3b74d038b1aa8ce454104032
+  srs:
+    path: 04-srs-excerpt.md
+    sha256: f8a3aa2ed7d8c2aae57f49b919afcf40c26c905493628429da94b9440d33fc32
+  decisions:
+    path: 02-gap-review.md
+    sha256: ccce69b493b63436afa78b78f8abd0b61fcb8ef4713d5f67867b51a42fa56f91
+open_items:
+  blocking: []
+  non_blocking: ["Thời lượng tối đa vẫn UNKNOWN; không tự đặt giới hạn", "Bộ lọc, sắp xếp và phân trang danh sách vẫn UNKNOWN"]
+policy:
+  downstream_may_change_business_semantics: false
+  downstream_may_make_technical_design_decisions: true
+next_stage:
+  capability: engineering-impact-analysis

@@ -1,5 +1,7 @@
 # BA Kit Workflow and Human Gates
 
+Tiếng Việt: [Quy trình và Human Gate](../vi/BA_KIT_WORKFLOW.md)
+
 The workflow below is a typical brownfield path. Greenfield and document-only requests start at the earliest relevant stage.
 
 ~~~mermaid
@@ -70,4 +72,4 @@ These sources must agree. A newer decision does not silently update older derive
 | Dev Kit + Spec Kit | **HOW** to design and build it | Planned; not implemented |
 | Test Kit + TEA | **HOW DO WE PROVE IT** works | Planned; not implemented |
 
-BA Kit does not assign repositories or modules, API design, database or event schemas, locking, transaction strategy, service boundaries, or implementation owners. Those decisions belong downstream. See [Architecture](ARCHITECTURE.md), [Usage Guide](BA_KIT_USAGE_GUIDE.md), and the [CR-001 example](../kits/ba/examples/CR-001/README.md).
+BA Kit does not assign repositories or modules, API design, database or event schemas, locking, transaction strategy, service boundaries, or implementation owners. Those decisions belong downstream. See [Architecture](ARCHITECTURE.md), [Usage Guide](BA_KIT_USAGE_GUIDE.md), and the [CR-001 example](../../kits/ba/examples/CR-001/en/README.md).

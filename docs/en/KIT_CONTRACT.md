@@ -1,5 +1,7 @@
 # Kit contract
 
+Tiếng Việt: [Hợp đồng Kit](../vi/KIT_CONTRACT.md)
+
 - A kit is a manifest plus a workflow entry skill and references to canonical root-level atomic skills.
 - Workflow, core, required and optional dependencies are defined once in `kits/<id>/kit.yaml`.
 - `ba-workflow` routes work and enforces state/approval boundaries. It does not repeat the detailed procedures owned by atomic skills.

@@ -1,5 +1,7 @@
 # BA Kit Quick Start
 
+Tiếng Việt: [Hướng dẫn nhanh](../vi/BA_KIT_QUICKSTART.md)
+
 BA Kit is an AI-assisted Business Analysis workflow. It helps a BA discover current-system behavior, find requirement gaps, record Human decisions, prepare Business Rules and an SRS, and create an Engineering Handoff after approval. It assists the BA; it does not replace BA ownership, customer communication, or Human approval.
 
 BA Kit owns **WHAT** the system needs to do. It does not design APIs or databases, choose implementation owners, or write production code. See [Architecture](ARCHITECTURE.md) and [Workflow and Human Gates](BA_KIT_WORKFLOW.md).
@@ -50,7 +52,7 @@ You do not need to know skill names or invoke them. BA Kit routes the request, d
 
 Depending on the request and Human decisions, BA work may produce a gap review, open questions, a decision record, approved Business Rules, a canonical SRS, or diagrams and document exports. The project-local **workflow-state.json** tracks the work. An Engineering Handoff is produced only after explicit Human approval of the BA baseline and resolution of blocking items.
 
-**Tiếp tục** resumes the workflow. It never means approval. See the [Workflow](BA_KIT_WORKFLOW.md), [Usage Guide](BA_KIT_USAGE_GUIDE.md), [CR-001 example](../kits/ba/examples/CR-001/README.md), and [FAQ](BA_KIT_FAQ.md).
+**Tiếp tục** resumes the workflow. It never means approval. See the [Workflow](BA_KIT_WORKFLOW.md), [Usage Guide](BA_KIT_USAGE_GUIDE.md), [CR-001 example](../../kits/ba/examples/CR-001/en/README.md), and [FAQ](BA_KIT_FAQ.md).
 
 ## Current status
 

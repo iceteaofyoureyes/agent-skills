@@ -1,5 +1,7 @@
 # BA Kit Usage Guide
 
+Tiếng Việt: [Hướng dẫn sử dụng](../vi/BA_KIT_USAGE_GUIDE.md)
+
 Use ordinary language in the project where BA Kit is installed. You do not need to invoke a skill by name. Prompts below illustrate intent; wording and artifact IDs are not fixed.
 
 ## Start a review
@@ -76,8 +78,8 @@ After explicit approval and resolution of all blocking items:
 Tạo Engineering Handoff.
 ~~~
 
-The handoff records the approved BA baseline, source paths and SHA-256 hashes, open items, downstream policy, and next stage. It must not assign a repository, module, frontend/backend owner, API or DB design, locking, or transaction strategy. See the [handoff contract](../ba-workflow/references/engineering-handoff.md) and [provenance record](PROVENANCE.md).
+The handoff records the approved BA baseline, source paths and SHA-256 hashes, open items, downstream policy, and next stage. It must not assign a repository, module, frontend/backend owner, API or DB design, locking, or transaction strategy. See the [handoff contract](../../ba-workflow/references/engineering-handoff.md) and [provenance record](PROVENANCE.md).
 
 ## Examples and contracts
 
-The [CR-001 example](../kits/ba/examples/CR-001/README.md) shows one illustrative path from incomplete input to handoff. It is not a golden transcript: exact wording and sample IDs are not mandatory unless a real contract requires them. Follow the artifact contract and preserve provenance rather than matching sample prose.
+The [CR-001 example](../../kits/ba/examples/CR-001/en/README.md) shows one illustrative path from incomplete input to handoff. It is not a golden transcript: exact wording and sample IDs are not mandatory unless a real contract requires them. Follow the artifact contract and preserve provenance rather than matching sample prose.

@@ -1,5 +1,7 @@
 # Architecture
 
+Tiếng Việt: [Tổng quan kiến trúc](../vi/ARCHITECTURE.md)
+
 Atomic skills are canonical at the repository root. `kits/ba/kit.yaml` is the single source for BA Kit composition. `ba-workflow/` routes work and enforces state and approval boundaries; atomic skills provide the detailed discovery, analysis, SRS, diagram, and document procedures.
 
 ## Responsibility flow
