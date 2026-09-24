@@ -8,6 +8,8 @@ FORBIDDEN_HANDOFF_KEYS = {
     "frontend_owner", "backend_owner", "service_owner", "module_owner",
     "implementation_owner", "api_owner", "database_design", "db_design",
     "api_design", "event_schema", "locking_strategy", "transaction_strategy",
+    "architecture", "architecture_choice", "architecture_decision",
+    "service_architecture",
 }
 
 
@@ -94,6 +96,10 @@ def validate_handoff_text(text, allow_placeholders=False):
         "open_items.non_blocking", "policy.downstream_may_change_business_semantics",
         "policy.downstream_may_make_technical_design_decisions", "next_stage.capability",
     )
+    allowed_keys = set()
+    for path in required:
+        parts = tuple(path.split("."))
+        allowed_keys.update(parts[:index] for index in range(1, len(parts) + 1))
     for path in required:
         if tuple(path.split(".")) not in fields:
             errors.append(f"missing required field: {path}")
@@ -144,6 +150,8 @@ def validate_handoff_text(text, allow_placeholders=False):
     for path in keys:
         if path[-1].lower() in FORBIDDEN_HANDOFF_KEYS:
             errors.append(f"handoff contains forbidden technical field: {'.'.join(path)}")
+        elif path not in allowed_keys:
+            errors.append(f"unsupported handoff field: {'.'.join(path)}")
     return errors
 
 

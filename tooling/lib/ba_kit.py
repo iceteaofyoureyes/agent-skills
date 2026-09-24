@@ -269,16 +269,6 @@ def doctor(source_root, target_dir):
         detail = "" if ok else f"unavailable: {target_dir / skill / 'SKILL.md'}"
         checks.append((skill, ok, "optional", detail))
 
-    core_path = source_root / "core/manifest.yaml"
-    try:
-        core_manifest = json.loads(core_path.read_text(encoding="utf-8"))
-        core_ids = [item["id"] for item in core_manifest["skills"]]
-        core_ok = type(core_manifest.get("schema_version")) is int and core_manifest["schema_version"] == 1 and len(core_ids) == len(set(core_ids)) and set(core_ids) == set(manifest["core"])
-        core_detail = "" if core_ok else "core manifest must uniquely classify every kit core skill"
-    except (OSError, json.JSONDecodeError, KeyError, TypeError) as error:
-        core_ok, core_detail = False, str(error)
-    checks.append(("core manifest", core_ok, "contract", core_detail))
-
     state_path = source_root / "ba-workflow/templates/workflow-state.json"
     try:
         state_errors = validate_state_data(json.loads(state_path.read_text(encoding="utf-8")))

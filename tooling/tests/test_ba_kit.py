@@ -145,6 +145,9 @@ next_stage:
         self.assertTrue(any("forbidden technical field" in error for error in ba_kit.validate_handoff_text(
             sample.replace("next_stage:", "frontend_owner: someone\nnext_stage:")
         )))
+        self.assertTrue(any("forbidden technical field" in error for error in ba_kit.validate_handoff_text(
+            sample.replace("next_stage:", "architecture: event-driven\nnext_stage:")
+        )))
 
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
