@@ -8,8 +8,9 @@ This file covers third-party content physically included in this plugin assembly
 - Commit: c004a74784a08295d52749b04cda634125b9a581
 - License: MIT
 - Copyright: Copyright (c) 2025 Addy Osmani
-- Included: nine selected SKILL.md files and five shared references.
-- Local modifications to included upstream files: none.
+- Included: ten selected SKILL.md files and five shared references.
+- Nine selected skills and all five shared references are exact upstream blobs.
+- planning-and-task-breakdown is MODIFIED_UPSTREAM with exactly two policy-line edits: mandatory Human plan checkpoints were changed to conditional Human/Tech Lead gates controlled by Dev Kit risk policy. Planning mechanics, templates, sizing, dependency mapping and verification structure are otherwise unchanged.
 - License: licenses/ADDY_AGENT_SKILLS_LICENSE.txt
 
 ## Superpowers review-package utility

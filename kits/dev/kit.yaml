@@ -2,7 +2,7 @@
   "schema_version": 2,
   "id": "dev",
   "name": "Dev Kit",
-  "version": "0.1.0-dev.1",
+  "version": "0.1.0-dev.2",
   "status": "ASSEMBLED_NOT_RUNTIME_ACCEPTED",
   "packaging": {
     "type": "agent-plugin",
@@ -22,6 +22,7 @@
   },
   "plugin_skills": {
     "core": [
+      "planning-and-task-breakdown",
       "incremental-implementation",
       "test-driven-development",
       "code-review-and-quality"
@@ -41,10 +42,19 @@
   "runtime_dependencies": {
     "spec_kit": {
       "version": "v1.0.11",
+      "role": "workflow_state_and_bundle_engine",
       "required_for": [
         "normal",
         "high-risk"
-      ]
+      ],
+      "excluded_commands": [
+        "speckit.specify",
+        "speckit.plan",
+        "speckit.tasks",
+        "speckit.analyze",
+        "speckit.converge"
+      ],
+      "reason": "Those commands require Spec Kit spec.md semantics and would create a second WHAT representation beside the Approved BA Baseline."
     },
     "codebase_memory_mcp": {
       "version": "v0.11.0",
@@ -59,6 +69,8 @@
   },
   "outputs": [
     "impact-manifest.yml",
+    "dev-plan.md",
+    "dev-tasks.md",
     "dev-handoff.yml"
   ],
   "release_claim": "No READY/RC claim until provenance, Doctor, benchmark, fresh-session acceptance and docs gates pass."
