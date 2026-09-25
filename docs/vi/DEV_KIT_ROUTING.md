@@ -57,12 +57,6 @@ production endpoint/job/queue/external I/O where telemetry matters
 uncertain blast radius
   → codebase-memory-mcp
   → verify important findings against source
-
-complex/high-risk plan
-  → speckit analyze
-
-long/multi-session/drift-risk implementation
-  → speckit converge
 ```
 
 ## Human gates
