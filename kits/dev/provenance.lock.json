@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "DESIGN_FROZEN_CANDIDATE",
+  "status": "ASSEMBLED_EXACT_UPSTREAM_PAYLOAD",
   "snapshot_date": "2026-09-25",
   "packaging": {
     "target": "OpenAI Agent Plugin (repo/local development first)",
@@ -59,7 +59,7 @@
       "license": "MIT",
       "copyright": "Copyright (c) 2025 Addy Osmani",
       "license_blob": "d67778ada6b9cda6227e9130da182c13e73c8b2e",
-      "distributed_by_dev_kit": "PENDING_VENDOR_COMMIT",
+      "distributed_by_dev_kit": "VENDORED_EXACT",
       "selected_skills": {
         "incremental-implementation": "9c4f49bc841adb3c0f98baaa9eabd435a5b64ef9",
         "test-driven-development": "8898bcbba4c4f6acca473ece95e82105bd9cfea0",
@@ -105,7 +105,7 @@
       "source_blob": "fa7625f053dc852200ddd497662508ff1ae40bb1",
       "license": "MIT",
       "license_blob": "abf0390320aa14406af7a520b9b0739fdda9bf08",
-      "distributed_by_dev_kit": "PENDING_VENDOR_COMMIT",
+      "distributed_by_dev_kit": "VENDORED_EXACT",
       "adaptation_policy": "Prefer exact script with explicit OUTFILE; do not import full Superpowers SDD."
     },
     "superpowers-scoped-rereview": {
@@ -139,5 +139,10 @@
       "license": "MIT",
       "policy": "Reuse canonical repo skill. Dev use is readiness-only; it must not mutate approved business semantics."
     }
+  },
+  "assembly_evidence": {
+    "commit": "920f91d4dba3bccb0e1a1f5bfbc64dc0e8380ba5",
+    "exact_third_party_blob_checks": 17,
+    "result": "PASS"
   }
 }
