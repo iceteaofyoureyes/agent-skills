@@ -2,6 +2,12 @@
   "schema_version": 1,
   "status": "DESIGN_FROZEN_CANDIDATE",
   "snapshot_date": "2026-09-25",
+  "packaging": {
+    "target": "OpenAI Agent Plugin (repo/local development first)",
+    "layout": "kits/dev/plugin/{plugin.json,skills/,references/}",
+    "reason": "Preserve Addy upstream relative references without modifying SKILL.md.",
+    "global_install_policy": "Do not write unrelated user/global skills during Dev Kit install/benchmark."
+  },
   "policy": {
     "selection_priority": [
       "EXACT_UPSTREAM",
@@ -22,9 +28,9 @@
       "license",
       "dependency_closure",
       "redistribution_status",
-      "hash_or_blob_evidence"
+      "blob_or_hash_evidence"
     ],
-    "note": "This lock records selected candidates. It does not claim runtime acceptance."
+    "note": "This lock records selected candidates and exact audited inputs. It does not claim runtime acceptance."
   },
   "components": {
     "github-spec-kit": {
@@ -34,6 +40,7 @@
       "release": "v1.0.11",
       "commit": "8147943512404afb9d99c6252cb9bf84369fd0b0",
       "license": "MIT",
+      "license_blob": "28a50fa22639e32febe14e4ffc7a732b0ba8c90a",
       "distributed_by_dev_kit": false,
       "usage": [
         "workflow/bundle primitives",
@@ -50,24 +57,31 @@
       "release": "0.6.10",
       "commit": "c004a74784a08295d52749b04cda634125b9a581",
       "license": "MIT",
-      "distributed_by_dev_kit": "PENDING_AUDIT",
-      "selected_skills": [
-        "incremental-implementation",
-        "test-driven-development",
-        "debugging-and-error-recovery",
-        "code-review-and-quality",
-        "security-and-hardening",
-        "api-and-interface-design",
-        "source-driven-development",
-        "performance-optimization",
-        "observability-and-instrumentation"
-      ],
-      "shared_references_required": [
-        "references/definition-of-done.md",
-        "references/testing-patterns.md",
-        "references/security-checklist.md",
-        "references/performance-checklist.md",
-        "references/observability-checklist.md"
+      "copyright": "Copyright (c) 2025 Addy Osmani",
+      "license_blob": "d67778ada6b9cda6227e9130da182c13e73c8b2e",
+      "distributed_by_dev_kit": "PENDING_VENDOR_COMMIT",
+      "selected_skills": {
+        "incremental-implementation": "9c4f49bc841adb3c0f98baaa9eabd435a5b64ef9",
+        "test-driven-development": "8898bcbba4c4f6acca473ece95e82105bd9cfea0",
+        "debugging-and-error-recovery": "356da20365a7cd6825b4ffad14be39280c92cdfc",
+        "code-review-and-quality": "7dfa56362fa65fff450ee5aa02393b85b9c26d85",
+        "security-and-hardening": "c168e65e0d8e2ce1ec48bdaf0c1a76c0a4aa9d30",
+        "api-and-interface-design": "820d6d981f90b7802e0ea8b75bb966a3d78b8d0f",
+        "source-driven-development": "2704f0e130bc4659951aa552373914b2d63d18c9",
+        "performance-optimization": "cbc7e950a6f376d25ac88cf310d5a48555db2ec1",
+        "observability-and-instrumentation": "84d9cb373467fe0e15236e190833ecc90f840c38"
+      },
+      "shared_references": {
+        "references/definition-of-done.md": "35e39f9e15f6dd0ff4725a6e5cbce7f2aa69064a",
+        "references/testing-patterns.md": "bc96e271ad241ca567f06d21c6ecc001455b80f1",
+        "references/security-checklist.md": "b7df3eb04178e4a24bfa405431bf8dee6a89a8c4",
+        "references/performance-checklist.md": "ba9744fe60dbe4f04f3f907029638d923158d7a2",
+        "references/observability-checklist.md": "ad40d7aa3fca5d2091fa45be234c14aee22c3588"
+      },
+      "non_bundled_soft_references": [
+        "git-workflow-and-versioning",
+        "browser-testing-with-devtools",
+        "shipping-and-launch"
       ]
     },
     "superpowers-verification": {
@@ -79,7 +93,7 @@
       "upstream_current_release_for_reference": "v6.4.1",
       "upstream_current_commit_for_reference": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
       "license": "MIT",
-      "policy": "Reuse current canonical local copy in V1; any upgrade requires BA+Dev cross-kit regression."
+      "policy": "Reuse current canonical local copy in V1; upgrade requires BA+Dev cross-kit regression."
     },
     "superpowers-review-package": {
       "role": "review_diff_packaging_utility",
@@ -88,8 +102,10 @@
       "release": "v6.4.1",
       "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
       "source_path": "skills/subagent-driven-development/scripts/review-package",
+      "source_blob": "fa7625f053dc852200ddd497662508ff1ae40bb1",
       "license": "MIT",
-      "distributed_by_dev_kit": "PENDING_AUDIT",
+      "license_blob": "abf0390320aa14406af7a520b9b0739fdda9bf08",
+      "distributed_by_dev_kit": "PENDING_VENDOR_COMMIT",
       "adaptation_policy": "Prefer exact script with explicit OUTFILE; do not import full Superpowers SDD."
     },
     "superpowers-scoped-rereview": {
@@ -101,7 +117,7 @@
       "source_path": "skills/subagent-driven-development/re-review-prompt.md",
       "license": "MIT",
       "distributed_by_dev_kit": false,
-      "policy": "Project-owned re-review contract; no direct copy unless later provenance decision says otherwise."
+      "policy": "Project-owned re-review contract; do not copy the full upstream prompt by default."
     },
     "codebase-memory-mcp": {
       "role": "conditional_code_intelligence",
@@ -110,8 +126,9 @@
       "release": "v0.11.0",
       "commit": "8972ea69c6ad94b1ef1d4ffbf0a92d78d2db1798",
       "license": "MIT",
+      "license_blob": "0b95352746a97a8cf2d1f3ba568bc7bb5e514d1f",
       "distributed_by_dev_kit": false,
-      "invocation": "Only when blast radius / caller / dependency evidence is uncertain; important findings must be verified against source."
+      "invocation": "Only when blast radius/caller/dependency evidence is uncertain; verify important findings against source."
     },
     "requirements-gap-auditor": {
       "role": "spec_readiness_capability",
@@ -120,7 +137,7 @@
       "source_path": ".agents/skills/requirements-gap-auditor/SKILL.md",
       "commit": "1fe1950bc4759e732b036c562b0cff99675e1695",
       "license": "MIT",
-      "policy": "Reuse canonical repo skill. Dev usage is readiness-only and must not mutate approved business semantics."
+      "policy": "Reuse canonical repo skill. Dev use is readiness-only; it must not mutate approved business semantics."
     }
   }
 }
