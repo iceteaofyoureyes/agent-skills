@@ -112,15 +112,15 @@ srs-function-document is now a project-owned behavioral reimplementation under M
 
 The Dev Kit assembly under `kits/dev/plugin/` carries its own `THIRD_PARTY_NOTICES.md` and license copies. The entries below summarize the content physically distributed by that plugin payload.
 
-### Addy Agent Skills — selected exact snapshot
+### Addy Agent Skills — selected snapshot
 
 - Source: https://github.com/addyosmani/agent-skills
 - Release: 0.6.10
 - Revision: c004a74784a08295d52749b04cda634125b9a581
 - License: MIT
 - Copyright: Copyright (c) 2025 Addy Osmani
-- Included: incremental-implementation, test-driven-development, debugging-and-error-recovery, code-review-and-quality, security-and-hardening, api-and-interface-design, source-driven-development, performance-optimization, observability-and-instrumentation, plus five pinned shared references.
-- Local changes to those upstream files: none; post-assembly Git blob verification PASS for all selected skill/reference/license files.
+- Included: planning-and-task-breakdown, incremental-implementation, test-driven-development, debugging-and-error-recovery, code-review-and-quality, security-and-hardening, api-and-interface-design, source-driven-development, performance-optimization, observability-and-instrumentation, plus five pinned shared references.
+- Local changes: nine engineering skills and five references remain exact upstream; planning-and-task-breakdown has exactly two Human-gate policy lines modified for Dev Kit risk-based approval. Upstream blob `296249b64334bcfd1aeaefd27b9e3e5494e38ec0`; local blob `670508158bb832d58266deebc833ea9859e2bc2d`.
 - License location: kits/dev/plugin/licenses/ADDY_AGENT_SKILLS_LICENSE.txt
 - Detailed blobs: kits/dev/provenance.lock.json and docs/vi/DEV_KIT_PROVENANCE.md
 
@@ -135,4 +135,4 @@ The Dev Kit assembly under `kits/dev/plugin/` carries its own `THIRD_PARTY_NOTIC
 - Local changes: none; exact blob fa7625f053dc852200ddd497662508ff1ae40bb1.
 - License location: kits/dev/plugin/licenses/SUPERPOWERS_LICENSE.txt
 
-GitHub Spec Kit and codebase-memory-mcp are Dev Kit runtime dependencies and are not redistributed in this plugin payload. The canonical requirements-gap-auditor and verification-before-completion remain shared repository skills rather than files duplicated into the Dev Kit plugin.
+GitHub Spec Kit and codebase-memory-mcp are Dev Kit runtime dependencies and are not redistributed in this plugin payload. Spec Kit V1 is used for workflow/state/bundle infrastructure, not its core feature-spec planning commands. The canonical requirements-gap-auditor and verification-before-completion remain shared repository skills rather than files duplicated into the Dev Kit plugin.
