@@ -1,4 +1,4 @@
-# Provenance và quyền phân phối của BA Kit RC1
+# Provenance và quyền phân phối của Agent Skills Kits
 
 ## Cơ sở kiểm toán
 
@@ -6,7 +6,7 @@
 - Benchmark được kiểm tra ở chế độ chỉ đọc tại nhánh benchmark/agent-skills-v1-vi, commit b7d8d63c80c8fb2156b5267804f4081e60b51f76. Tệp chưa được track từ trước benchmark/input/templates/SRS_TEMPLATE.docx được giữ nguyên.
 - Lịch sử Git của cả hai repository được kiểm tra trước khi đối chiếu các ứng viên công khai. Khi phù hợp, nội dung được so sánh theo commit, cây tệp, hash, diff đã chuẩn hóa và đoạn văn bản đặc trưng.
 - Manifest của BA Kit là kits/ba/kit.yaml. tooling/lib/ba_kit.py cài ba-workflow, hai skill core, toàn bộ skill required và các skill optional hiện có bằng cách sao chép thư mục skill. THIRD_PARTY_NOTICES.md là danh mục thông báo cấp repository.
-- Phân loại: EXACT_UPSTREAM, MODIFIED_UPSTREAM, PROJECT_OWNED, UNKNOWN. Trạng thái phân phối: READY, READY_WITH_ATTRIBUTION, BLOCKED_UNKNOWN_ORIGIN, BLOCKED_LICENSE, NOT_DISTRIBUTED.
+- Phân loại: EXACT_UPSTREAM, MODIFIED_UPSTREAM, PROJECT_OWNED, RUNTIME_DEPENDENCY, DESIGN_INFLUENCE, UNKNOWN. Trạng thái phân phối: READY, READY_WITH_ATTRIBUTION, BLOCKED_UNKNOWN_ORIGIN, BLOCKED_LICENSE, NOT_DISTRIBUTED.
 
 ## BA Kit: required và core
 
@@ -33,6 +33,21 @@
 | playwright; optional; playwright/ | EXACT_UPSTREAM; openai/skills, skills/.curated/playwright; 49f948faa9258a0c61caceaf225e179651397431 | Apache-2.0; Copyright (c) Microsoft Corporation | Cây chín tệp khớp; LICENSE.txt chỉ khác line ending. Giữ NOTICE.txt upstream, ghi công microsoft/playwright-cli và skills/playwright-cli/SKILL.md; notice không nêu revision của dependency này. | .skills-manager ghi path nguồn OpenAI; SKILL.md local và các tệp còn lại khớp cây nguồn. | READY_WITH_ATTRIBUTION |
 | web-accessibility; optional; web-accessibility/ | EXACT_UPSTREAM; magnus919/agent-skills, web-accessibility; f7819d0f2048d1b71e0c261c660476965aa26602 | MIT; Copyright (c) 2026 Magnus Hedemark | Khớp cả 17 tệp. Có LICENSE trong thư mục skill. | .skills-manager ghi repository và path nguồn; từng tệp local đều khớp. | READY_WITH_ATTRIBUTION |
 
+## Dev Kit V1: plugin payload đã audit
+
+Dev Kit V1 foundation được assemble theo kit-scoped Agent Plugin tại `kits/dev/plugin/`. Đây mới là trạng thái **ASSEMBLED_NOT_RUNTIME_ACCEPTED**, không phải READY/RC.
+
+| Thành phần | Nguồn | License | Local state / evidence | Phân phối |
+|---|---|---|---|---|
+| 9 Addy engineering skills + 5 shared references | addyosmani/agent-skills 0.6.10, commit c004a74784a08295d52749b04cda634125b9a581 | MIT; Copyright (c) 2025 Addy Osmani | Giữ nguyên upstream bytes trong `kits/dev/plugin/skills/` và `references/`; 15 selected content blobs + license được kiểm tra exact sau assembly. | READY_WITH_ATTRIBUTION for this plugin payload |
+| Superpowers `review-package` | obra/superpowers v6.4.1, commit 5bf4e78011075bcfc0dc295f0724994cd123ee71 | MIT; Copyright (c) 2025 Jesse Vincent | Exact blob fa7625f053dc852200ddd497662508ff1ae40bb1; executable mode preserved; license copied. | READY_WITH_ATTRIBUTION for this plugin payload |
+| GitHub Spec Kit | github/spec-kit v1.0.11, commit 8147943512404afb9d99c6252cb9bf84369fd0b0 | MIT | Runtime dependency; không vendor. | NOT_DISTRIBUTED |
+| codebase-memory-mcp | DeusData/codebase-memory-mcp v0.11.0, commit 8972ea69c6ad94b1ef1d4ffbf0a92d78d2db1798 | MIT | Conditional runtime dependency; không vendor. | NOT_DISTRIBUTED |
+| requirements-gap-auditor | existing canonical skill; 45ck/business-analysis-skills 1fe1950bc4759e732b036c562b0cff99675e1695 | MIT | Reuse shared canonical skill; không duplicate vào plugin. | READY_WITH_ATTRIBUTION via existing repo provenance |
+| verification-before-completion | existing canonical skill; obra/superpowers provenance commit 3be5aad3dd2400ef23b15680969f4bcd3b6d7b8b | MIT | Reuse shared canonical behavior; không duplicate/upgrade trong plugin V1. | READY_WITH_ATTRIBUTION via existing repo provenance |
+
+Exact file/blob ledger và dependency-closure rationale nằm ở [DEV_KIT_PROVENANCE.md](DEV_KIT_PROVENANCE.md) và `kits/dev/provenance.lock.json`.
+
 ## Nội dung repository khác
 
 Phạm vi nội dung project-owned do Human chọn gồm ba-workflow/, kits/, tooling/, docs/, core/, README do repository sở hữu và ví dụ do dự án viết. Lịch sử target ghi nhận các nội dung này tại commit 524f7f8, 982b1b6 và 31dd253. LICENSE gốc áp dụng MIT cho nội dung do dự án sở hữu; ba-workflow/LICENSE đi cùng bản workflow được cài riêng. Các tệp project-owned này đã READY để phân phối. License gốc không thay đổi license của thành phần bên thứ ba.
@@ -41,7 +56,7 @@ Skill webapp-testing/ nằm ngoài BA Kit. Cây sáu tệp, gồm LICENSE.txt, k
 
 Phát hành toàn repository vẫn bị chặn vì các skill ngoài BA chưa được kiểm tra nội dung theo commit và chưa xác nhận gói license:
 
-- addyosmani/agent-skills: api-and-interface-design, ci-cd-and-automation, code-review-and-quality, constraint-driven-development, documentation-and-adrs, observability-and-instrumentation, performance-optimization, security-and-hardening, shipping-and-launch và test-driven-development.
+- Selected Addy files physically included in `kits/dev/plugin/` are now audited separately and no longer block that payload. Other historical/non-Dev Addy imports such as ci-cd-and-automation, constraint-driven-development, documentation-and-adrs and shipping-and-launch remain outside the Dev Kit audited payload wherever they are still tracked.
 - vercel-labs/agent-skills: web-design-guidelines và vercel-react-best-practices. web-design-guidelines khớp upstream hiện tại tại commit 063bee94c3f4df8453406c830b0a7df0f2860278; README upstream công bố MIT nhưng skill local chưa có LICENSE.
 - magnus919/agent-skills: product-discovery và product-methodology.
 - obra/superpowers: systematic-debugging.
@@ -53,6 +68,6 @@ Thư mục .skills-manager/ đang được Git track và đã được tạo/c�
 ## Blocker hiện tại
 
 - Payload hiện tại của BA Kit không còn blocker về origin hoặc license. Implementation cũ của srs-function-document có origin chưa biết và đã được thay; không khôi phục được origin cũ.
-- Các skill ngoài BA được liệt kê ở trên chặn việc phát hành toàn repository.
+- Dev Kit plugin payload listed above has provenance/license evidence for the files it physically distributes, but whole-repository release can still be blocked by unrelated historical skills and tracked .skills-manager metadata listed above.
 
 License MIT của dự án không cấp lại license cho bất kỳ skill bên thứ ba nào.
