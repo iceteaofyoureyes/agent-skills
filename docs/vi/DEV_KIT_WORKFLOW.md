@@ -46,14 +46,14 @@ Understand
 → Complete
 ```
 
-Không ép Spec Kit plan/tasks, independent review hoặc specialist skills nếu không có risk signal.
+Không ép formal plan/tasks, independent review hoặc specialist skills nếu không có risk signal.
 
 ### NORMAL
 
 ```text
 Spec Readiness
 → Planning Preflight
-→ Spec Kit plan/tasks
+→ Technical plan/tasks
 → Incremental Implementation + focused verification
 → ONE consolidated review
 → ONE blocking-fix wave
@@ -75,11 +75,9 @@ Triggers điển hình:
 ```text
 Spec Readiness
 → Deep Engineering Impact
-→ plan/tasks
-→ analyze when warranted
+→ technical plan/tasks
 → Human/Tech Lead gate where policy requires
 → incremental implementation + relevant specialists
-→ converge when drift risk warrants
 → ONE consolidated review
 → ONE blocking-fix wave
 → optional ONE scoped re-review
