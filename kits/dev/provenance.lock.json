@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "ASSEMBLED_EXACT_UPSTREAM_PAYLOAD",
+  "status": "ASSEMBLED_WITH_ONE_MINIMAL_UPSTREAM_ADAPTATION",
   "snapshot_date": "2026-09-25",
   "packaging": {
     "target": "OpenAI Agent Plugin (repo/local development first)",
@@ -34,7 +34,7 @@
   },
   "components": {
     "github-spec-kit": {
-      "role": "workflow_engine_and_repo_local_planning",
+      "role": "workflow_state_and_bundle_engine",
       "classification": "RUNTIME_DEPENDENCY",
       "repo": "github/spec-kit",
       "release": "v1.0.11",
@@ -43,12 +43,18 @@
       "license_blob": "28a50fa22639e32febe14e4ffc7a732b0ba8c90a",
       "distributed_by_dev_kit": false,
       "usage": [
-        "workflow/bundle primitives",
-        "plan",
-        "tasks",
-        "analyze conditional",
-        "converge conditional"
-      ]
+        "workflow engine",
+        "persisted run state/resume",
+        "bundle/distribution primitives"
+      ],
+      "excluded_commands": [
+        "speckit.specify",
+        "speckit.plan",
+        "speckit.tasks",
+        "speckit.analyze",
+        "speckit.converge"
+      ],
+      "exclusion_reason": "Core planning/convergence commands depend on Spec Kit spec.md semantics; Dev Kit preserves Approved BA Baseline as the only WHAT authority."
     },
     "addy-agent-skills": {
       "role": "engineering_behavior_capabilities",
@@ -138,11 +144,32 @@
       "commit": "1fe1950bc4759e732b036c562b0cff99675e1695",
       "license": "MIT",
       "policy": "Reuse canonical repo skill. Dev use is readiness-only; it must not mutate approved business semantics."
+    },
+    "addy-planning-and-task-breakdown": {
+      "role": "technical_planning_and_task_breakdown",
+      "classification": "MODIFIED_UPSTREAM",
+      "repo": "addyosmani/agent-skills",
+      "release": "0.6.10",
+      "commit": "c004a74784a08295d52749b04cda634125b9a581",
+      "source_path": "skills/planning-and-task-breakdown/SKILL.md",
+      "source_blob": "296249b64334bcfd1aeaefd27b9e3e5494e38ec0",
+      "local_blob": "670508158bb832d58266deebc833ea9859e2bc2d",
+      "license": "MIT",
+      "distributed_by_dev_kit": "VENDORED_MODIFIED",
+      "local_changes": [
+        "Replace unconditional Human checkpoint with a Dev Kit risk-policy conditional Human/Tech Lead gate.",
+        "Replace unconditional final Human plan approval with risk-based approval; normal-risk work has no mandatory approval gate."
+      ],
+      "unchanged_scope": "Planning mechanics, dependency graph, vertical slicing, task sizing, plan/task templates, acceptance criteria and verification structure remain upstream.",
+      "shared_references": [
+        "references/definition-of-done.md"
+      ]
     }
   },
   "assembly_evidence": {
     "commit": "920f91d4dba3bccb0e1a1f5bfbc64dc0e8380ba5",
     "exact_third_party_blob_checks": 17,
-    "result": "PASS"
+    "result": "PASS",
+    "planning_patch_commit": "4521f7ffc5ecd0b2ade3d73835cb7ecfb715f37f"
   }
 }
