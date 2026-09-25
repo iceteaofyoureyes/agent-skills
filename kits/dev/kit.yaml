@@ -1,0 +1,65 @@
+{
+  "schema_version": 2,
+  "id": "dev",
+  "name": "Dev Kit",
+  "version": "0.1.0-dev.1",
+  "status": "ASSEMBLED_NOT_RUNTIME_ACCEPTED",
+  "packaging": {
+    "type": "agent-plugin",
+    "path": "kits/dev/plugin"
+  },
+  "authority": {
+    "business_what": "Approved BA Baseline",
+    "engineering_impact": "Dev Kit",
+    "implementation_how": "Dev Kit planning",
+    "final_acceptance": "Test Kit / Human"
+  },
+  "shared_skills": {
+    "required": [
+      "requirements-gap-auditor",
+      "verification-before-completion"
+    ]
+  },
+  "plugin_skills": {
+    "core": [
+      "incremental-implementation",
+      "test-driven-development",
+      "code-review-and-quality"
+    ],
+    "conditional": [
+      "debugging-and-error-recovery",
+      "security-and-hardening",
+      "api-and-interface-design",
+      "source-driven-development",
+      "performance-optimization",
+      "observability-and-instrumentation"
+    ]
+  },
+  "utilities": [
+    "scripts/review-package"
+  ],
+  "runtime_dependencies": {
+    "spec_kit": {
+      "version": "v1.0.11",
+      "required_for": [
+        "normal",
+        "high-risk"
+      ]
+    },
+    "codebase_memory_mcp": {
+      "version": "v0.11.0",
+      "required": false,
+      "trigger": "uncertain blast radius"
+    }
+  },
+  "review_budget": {
+    "max_full_reviews": 1,
+    "max_blocking_fix_waves": 1,
+    "max_scoped_rereviews": 1
+  },
+  "outputs": [
+    "impact-manifest.yml",
+    "dev-handoff.yml"
+  ],
+  "release_claim": "No READY/RC claim until provenance, Doctor, benchmark, fresh-session acceptance and docs gates pass."
+}

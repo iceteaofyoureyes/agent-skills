@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-skills-dev-kit",
+  "version": "0.1.0-dev.1",
+  "description": "Curated engineering skills for Agent Skills Dev Kit. Assembly build; not runtime accepted.",
+  "author": {
+    "name": "iceteaofyoureyes",
+    "url": "https://github.com/iceteaofyoureyes"
+  },
+  "repository": "https://github.com/iceteaofyoureyes/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "software-engineering",
+    "dev-kit",
+    "codex",
+    "agent-skills"
+  ]
+}
