@@ -1,7 +1,7 @@
 # Dev Kit V1 — Provenance Audit
 
 > Snapshot: 2026-09-25  
-> Status: **READY_FOR_VENDORING_AUDITED_INPUTS** for the selected Addy snapshot and Superpowers review-package candidate. This is not runtime acceptance and not a redistribution claim until the vendored payload + notices are committed and revalidated.
+> Status: **ASSEMBLED_WITH_ONE_MINIMAL_UPSTREAM_ADAPTATION**. Selected payload is vendored with license evidence, but Dev Kit is still not runtime-accepted or RC.
 
 ## 1. Audit policy
 
@@ -35,13 +35,11 @@ Every vendored component must record repo, source path, release/tag, exact commi
 
 Selected usage:
 
-- workflow/bundle primitives;
-- `plan`;
-- `tasks`;
-- conditional `analyze`;
-- conditional `converge`.
+- workflow execution;
+- persisted run state / resume;
+- bundle and distribution primitives.
 
-Spec Kit does not own the BA business baseline in this framework.
+Dev Kit V1 deliberately does **not** call core `speckit.specify`, `speckit.plan`, `speckit.tasks`, `speckit.analyze` or `speckit.converge`. Those commands depend on Spec Kit's feature `spec.md` semantics. Generating a second feature spec from the Approved BA Baseline would create another WHAT representation and is outside the V1 authority model.
 
 ## 3. Addy Agent Skills
 
@@ -52,6 +50,25 @@ Spec Kit does not own the BA business baseline in this framework.
 - Copyright: Copyright (c) 2025 Addy Osmani
 - License blob: `d67778ada6b9cda6227e9130da182c13e73c8b2e`
 - Classification: **EXACT_UPSTREAM** candidate.
+
+### Technical planner — minimal adaptation
+
+`planning-and-task-breakdown` was selected after comparing the pinned Addy planner with Superpowers `writing-plans` and Matt Pocock `to-tickets`.
+
+- Upstream source: `skills/planning-and-task-breakdown/SKILL.md`
+- Upstream blob: `296249b64334bcfd1aeaefd27b9e3e5494e38ec0`
+- Local blob: `670508158bb832d58266deebc833ea9859e2bc2d`
+- Classification: **MODIFIED_UPSTREAM**
+- Shared reference: `references/definition-of-done.md` (already in the selected closure)
+
+Exactly two policy lines changed:
+
+1. an unconditional “Review with human before proceeding” checkpoint became conditional on the Dev Kit risk policy;
+2. unconditional final Human plan approval became a Human/Tech Lead gate only when risk policy requires it.
+
+Planning mechanics, dependency mapping, vertical slicing, sizing, plan/task templates, acceptance criteria and verification instructions are otherwise unchanged.
+
+Reason: the upstream planner is the closest fit for an already-approved external spec, but its mandatory Human checkpoints conflict with the Dev Kit bounded-autonomy contract for normal-risk work.
 
 ### Selected skill blobs
 
@@ -186,7 +203,9 @@ Current status:
 
 ```text
 DESIGN / INPUT AUDIT: PASS
-VENDORED PAYLOAD: NOT YET ASSEMBLED
-REDISTRIBUTION: NOT YET CLAIMED
+VENDORED PAYLOAD: ASSEMBLED
+ADDY EXACT FILE CHECKS: PASS
+PLANNING MINIMAL PATCH: RECORDED
+REDISTRIBUTION EVIDENCE FOR PLUGIN PAYLOAD: READY_WITH_ATTRIBUTION
 RUNTIME ACCEPTANCE: NOT RUN
 ```
