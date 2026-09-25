@@ -41,7 +41,7 @@ Planning Preflight
   └─ test strategy
         │
         ▼
-Spec Kit plan/tasks
+Risk-gated technical plan/tasks
         │
         ▼
 Incremental Implementation
@@ -59,12 +59,12 @@ ONE Blocking Fix Wave
 Dev Handoff / READY_FOR_TEST
 ```
 
-Conditional capabilities không tạo mandatory stages. Security, API, source-grounding, performance, observability, debugging, CBM, Spec Kit analyze/converge chỉ được activate khi trigger/risk phù hợp.
+Conditional capabilities không tạo mandatory stages. Security, API, source-grounding, performance, observability, debugging và CBM chỉ được activate khi trigger/risk phù hợp.
 
 ## Community reuse
 
-- **GitHub Spec Kit**: workflow/planning primitives; runtime dependency, không phải BA source of truth.
-- **Addy Agent Skills**: atomic engineering behavior.
+- **GitHub Spec Kit**: workflow/state/bundle engine; runtime dependency. V1 không dùng core `specify/plan/tasks/analyze/converge` vì các command đó dựa trên Spec Kit `spec.md`, có nguy cơ tạo WHAT song song với Approved BA Baseline.
+- **Addy Agent Skills**: technical planning + atomic engineering behavior. `planning-and-task-breakdown` được minimal-adapt đúng 2 dòng Human-gate để tuân risk policy của Dev Kit.
 - **Superpowers verification-before-completion**: final evidence-before-claim gate.
 - **Superpowers review-package**: candidate utility để đóng gói BASE..HEAD cho reviewer.
 - **codebase-memory-mcp**: conditional structural evidence, không phải source of truth.
