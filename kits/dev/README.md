@@ -10,7 +10,7 @@ Dev Kit chịu trách nhiệm phần **WHERE / WHO OWNS + HOW** sau khi nhận *
 Approved BA Baseline
   → Spec Readiness
   → Planning Preflight + lightweight Engineering Impact
-  → Technical Plan / Tasks
+  → Technical Plan / Tasks (risk-gated Addy planner)
   → Incremental Implementation
   → ONE consolidated review
   → ONE blocking-fix wave
@@ -40,3 +40,7 @@ Nguyên tắc chính:
 - [Composition/provenance lock](provenance.lock.json)
 
 Không vendor hoặc upgrade upstream component nếu chưa cập nhật provenance, license/notice và dependency closure trong cùng change.
+
+## Spec Kit V1 boundary
+
+Spec Kit is reused as workflow/state/bundle infrastructure. Dev Kit V1 deliberately does not call core `speckit.specify/plan/tasks/analyze/converge`; those commands assume Spec Kit's own `spec.md` semantics. The Approved BA Baseline remains the only WHAT authority.
