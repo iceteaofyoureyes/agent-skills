@@ -6,8 +6,9 @@ BA Kit tổ chức các atomic skills thành một workflow cho BA mà vẫn gi�
 
 ~~~text
 BA Kit = WHAT
-Engineering Impact = WHERE / WHO OWNS
-Dev Kit + repo-local Spec Kit = HOW
+Dev Kit = WHERE / WHO OWNS + HOW
+  ├── Engineering Impact = WHERE / WHO OWNS
+  └── repo-local Spec Kit + engineering capabilities = HOW
 Test Kit + TEA = HOW DO WE PROVE IT
 ~~~
 
@@ -30,7 +31,7 @@ atomic capabilities
     └── optional UX/UI/prototype
 ~~~
 
-Atomic skills được lưu canonical ở repository root. **kits/ba/kit.yaml** là nguồn duy nhất cho BA Kit composition.
+BA Kit hiện dùng atomic skills canonical ở repository root. Dev Kit V1 đang thiết kế package theo kit-scoped Agent Plugin để giữ nguyên upstream skill layout/resources khi cần. Mỗi Kit vẫn phải có một composition manifest duy nhất làm source of truth; không được để global/user skills ngầm trở thành dependency.
 
 ## Semantic, visual và delivery authority
 
@@ -69,16 +70,18 @@ Workflow không bắt mọi request chạy full pipeline; nó bắt đầu từ 
 | Stage | Question | Status |
 |---|---|---|
 | BA Kit | **WHAT**? | RC1 candidate; remediation |
-| Engineering Impact | **WHERE / WHO OWNS**? | Planned |
-| Dev Kit + Spec Kit | **HOW**? | Planned |
+| Dev Kit / Engineering Impact | **WHERE / WHO OWNS**? | V1 foundation in development |
+| Dev Kit / Spec Kit + engineering capabilities | **HOW**? | V1 foundation in development |
 | Test Kit + TEA | **HOW DO WE PROVE IT**? | Planned |
 
 ~~~text
 Requirement
 → BA Kit
 → Approved BA Baseline
-→ Engineering Impact
-→ Dev Kit + repo-local Spec Kit
+→ Dev Kit
+   → Spec Readiness
+   → Engineering Impact
+   → repo-local Spec Kit / implementation / review / verification
 → Test Kit + TEA
 → Human Final Acceptance
 ~~~
@@ -108,7 +111,7 @@ Engineering Handoff chỉ xuất hiện sau explicit BA approval và không ch�
 - architecture choice;
 - locking/transaction strategy.
 
-Đó là input cho Engineering Impact.
+Đó là input cho Dev Kit. Engineering Impact là capability/stage ngữ nghĩa bên trong Dev Kit, chịu trách nhiệm WHERE / WHO OWNS trước khi technical planning quyết định HOW.
 
 ## Nguồn nền tảng
 
