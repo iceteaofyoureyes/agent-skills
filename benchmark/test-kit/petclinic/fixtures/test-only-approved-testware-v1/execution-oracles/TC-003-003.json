@@ -1,0 +1,8 @@
+{
+  "fixture_type": "TEST_ONLY_EXECUTION_ORACLE_RESOLUTION",
+  "not_for_production": true,
+  "case_id": "TC-003",
+  "dependency_need": "cách gửi hai yêu cầu đồng thời, cách thiết lập khoảng chồng lấn, và cách quan sát tập Appointment được lưu.",
+  "fixture_id": "TEST_ONLY-FIXTURE-TC-003-003",
+  "resolution": "TEST_ONLY fixture setup mapping: use TEST_ONLY-FIXTURE-TC-003-003 for this execution dependency; no business expected behavior is defined."
+}

@@ -1,0 +1,12 @@
+{
+  "status": "CANNOT_NORMALIZE",
+  "findings": [
+    {
+      "code": "CANNOT_NORMALIZE",
+      "message": "BA UNKNOWN clause was not located in a scenario: BR-005",
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "line": 1,
+      "field": "open_questions"
+    }
+  ]
+}

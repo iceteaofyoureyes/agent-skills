@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "artifact_id": "TEST_ONLY:CR-001-testcases-resolved",
+  "artifact_revision": "1",
+  "artifact_sha256": "ee6a575416c83f0bdfb7e207e09e31469df9e57d3301c6fa58057f0499e90dab",
+  "findings": []
+}

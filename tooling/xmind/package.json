@@ -1,0 +1,9 @@
+{
+  "name": "test-kit-v1-xmind-projection",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pinned runtime dependency for the optional Test Kit V1 XMind projection",
+  "dependencies": {
+    "xmind": "2.2.33"
+  }
+}

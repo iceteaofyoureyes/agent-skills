@@ -1,0 +1,9 @@
+{
+  "status": "NORMALIZED",
+  "record_count": 15,
+  "artifact_id": "CR-001-test-design",
+  "artifact_revision": "1",
+  "artifact_sha256": "a31b08f660136d5b0602557d48be89a21f151a09b6cef74e48ddbbe738d315ad",
+  "raw_evidence_path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+  "raw_evidence_sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c"
+}

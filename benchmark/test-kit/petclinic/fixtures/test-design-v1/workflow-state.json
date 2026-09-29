@@ -1,0 +1,62 @@
+{
+  "state": "APPROVED_DESIGN",
+  "artifact_id": "CR-001-test-design",
+  "artifact_revision": "1",
+  "artifact_sha256": "7b27d01ed8c9f77b030a1befb942362e80d407a23024d3546051928b6ec8f987",
+  "review_status": "APPROVED",
+  "validation_status": "PASS",
+  "semantic_payload_encoding": "UTF-8 compact JSON; frozen field order; review_status excluded",
+  "history": [
+    {
+      "state": "DRAFT_DESIGN",
+      "review_status": "DRAFT"
+    },
+    {
+      "event": "SUBMIT_FOR_DESIGN_REVIEW",
+      "state": "DESIGN_REVIEW",
+      "review_status": "IN_REVIEW",
+      "artifact_sha256": "7b27d01ed8c9f77b030a1befb942362e80d407a23024d3546051928b6ec8f987"
+    },
+    {
+      "event": "HUMAN_APPROVE",
+      "state": "APPROVED_DESIGN",
+      "artifact_sha256": "7b27d01ed8c9f77b030a1befb942362e80d407a23024d3546051928b6ec8f987",
+      "receipt_sha256": "29e9cefc25edf85d7890c35cbe016e47e28d63c14c2ed40b2d910b18d116a0be"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "business_rules",
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\03-approved-business-rules.md",
+      "revision": "example-only-CR-001-vi-r1",
+      "sha256": "665127107a9cd764bb3d5d6c610b0de1cebd2f2e3b74d038b1aa8ce454104032"
+    },
+    {
+      "name": "srs",
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\04-srs-excerpt.md",
+      "revision": "example-only-CR-001-vi-r1",
+      "sha256": "f8a3aa2ed7d8c2aae57f49b919afcf40c26c905493628429da94b9440d33fc32"
+    },
+    {
+      "name": "decisions",
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\02-gap-review.md",
+      "revision": "example-only-CR-001-vi-r1",
+      "sha256": "ccce69b493b63436afa78b78f8abd0b61fcb8ef4713d5f67867b51a42fa56f91"
+    },
+    {
+      "name": "handoff",
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\05-engineering-handoff.yml",
+      "revision": "example-only-CR-001-vi-r1",
+      "sha256": "54c93b5118afa47be3d374a2c42ebdc6c378936bdfb6f4f228dd539624f7f990"
+    }
+  ],
+  "design_gate_receipt_mode": "TEST_ONLY",
+  "design_gate_receipt_evidence": {
+    "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\design-gate\\revisions\\1\\receipt.json",
+    "sha256": "29e9cefc25edf85d7890c35cbe016e47e28d63c14c2ed40b2d910b18d116a0be"
+  },
+  "design_gate_test_only_fixture": {
+    "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\design-test-only-receipt.json",
+    "sha256": "5f381045a42d690420996e8dfb582c4106818730022d31a6062007a5335040ef"
+  }
+}

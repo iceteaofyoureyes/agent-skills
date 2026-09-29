@@ -1,0 +1,93 @@
+{
+  "repository": "bmad-code-org/bmad-method-test-architecture-enterprise",
+  "commit": "1f53e9095061ab66f3c35abd9b98baf0f50cf8fe",
+  "capability": "bmad-testarch-test-design",
+  "installed_skill_path": "D:\\AI\\petclinic\\.agents\\skills\\bmad-testarch-test-design",
+  "installed_skill_sha256": "ca933c020623c796a95ce9701039c2d5658fc3cc60f7768e2fdf556b1d0d506b",
+  "model": "gpt-6-luna",
+  "normalizer_profile": "tea-native-runtime-v1",
+  "ba_revision": "example-only-CR-001-vi-r1",
+  "invocation_command": [
+    "node",
+    "C:\\nvm4w\\nodejs\\node_modules\\@openai\\codex\\bin\\codex.js",
+    "--no-daemon",
+    "--approve-for-me",
+    "exec",
+    "--json",
+    "--ephemeral",
+    "--skip-git-repo-check",
+    "--sandbox",
+    "workspace-write",
+    "--model",
+    "gpt-6-luna",
+    "-C",
+    "D:\\AI\\petclinic",
+    "--add-dir",
+    "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled",
+    "-o",
+    "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\raw-output\\test-design-epic-1.md",
+    "-"
+  ],
+  "started_at": "2026-09-25T08:05:49.164193+00:00",
+  "status": "ARTIFACT_COMPLETE",
+  "inputs": [
+    {
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\05-engineering-handoff.yml",
+      "sha256": "54c93b5118afa47be3d374a2c42ebdc6c378936bdfb6f4f228dd539624f7f990"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\03-approved-business-rules.md",
+      "sha256": "665127107a9cd764bb3d5d6c610b0de1cebd2f2e3b74d038b1aa8ce454104032"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\04-srs-excerpt.md",
+      "sha256": "f8a3aa2ed7d8c2aae57f49b919afcf40c26c905493628429da94b9440d33fc32"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\02-gap-review.md",
+      "sha256": "ccce69b493b63436afa78b78f8abd0b61fcb8ef4713d5f67867b51a42fa56f91"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\inputs\\adapter\\epic-1.md",
+      "sha256": "1a6390624d44d9ce68f7310f7d55e78b1770762d61861cf7ea2a260db98632e9"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\inputs\\adapter\\business-rules.md",
+      "sha256": "3c51a6a46d9382e2749c2478fc362ffa253da64896f3f9eabd508832103005b1"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\inputs\\adapter\\open-decisions.md",
+      "sha256": "b06c1fce213648c98bd857b082ce1d0e5b470b3eca699946615d7875f7e5a12f"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\raw-output\\invocation-prompt.md",
+      "sha256": "93d7ef9d9477e88b0d229c1a8342285cfea55c346d0ad0671cdedd4abedabf6b"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\tea-test-design\\input-manifest.md",
+      "sha256": "5e1251f285dee59508e6621273ca8952669de9d6e1f4d82a986ff5a4bdab055c"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\inputs\\adapter\\current-system-supplemental.md",
+      "sha256": "65bc0bc594c4ac41d5d800f18f6f7b9cd64f4b3acc8b5fbdb00f9ca9c8476bce"
+    }
+  ],
+  "raw_output_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\raw-output\\test-design-epic-1.md",
+  "completed_artifact_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+  "stdout_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\raw-output\\invocation.jsonl",
+  "stderr_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\raw-output\\stderr.txt",
+  "finished_at": "2026-09-25T08:29:26.566024+00:00",
+  "exit_code": 0,
+  "artifact_sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+  "final_output_sha256": "d013b384785d6d44f40761235474a57e16f66ed234083d0c277bb111dd8cb064",
+  "workflow_status": "completed",
+  "closeout_caveat": "TEA wrote a completed artifact, then replaced the output target during closeout; the immutable completed copy is preserved at completed_artifact_path.",
+  "completion_basis": "completed-native-artifact-and-frozen-profile",
+  "normalization_status": "NORMALIZED",
+  "canonical_artifact_id": "CR-001-test-design",
+  "canonical_artifact_revision": "1",
+  "canonical_artifact_sha256": "a31b08f660136d5b0602557d48be89a21f151a09b6cef74e48ddbbe738d315ad",
+  "validator_status": "PASS",
+  "workflow_state": "DESIGN_REVIEW",
+  "review_status": "IN_REVIEW"
+}

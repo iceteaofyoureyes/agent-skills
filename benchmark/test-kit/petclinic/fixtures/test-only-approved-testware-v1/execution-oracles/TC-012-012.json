@@ -1,0 +1,8 @@
+{
+  "fixture_type": "TEST_ONLY_EXECUTION_ORACLE_RESOLUTION",
+  "not_for_production": true,
+  "case_id": "TC-012",
+  "dependency_need": "đường dẫn truy cập và chọn A, thao tác hủy, ánh xạ slot của A, cách quan sát bản ghi còn tồn tại/trạng thái, và cách kiểm tra Appointment mới được đặt vào slot đã giải phóng.",
+  "fixture_id": "TEST_ONLY-FIXTURE-TC-012-012",
+  "resolution": "TEST_ONLY fixture setup mapping: use TEST_ONLY-FIXTURE-TC-012-012 for this execution dependency; no business expected behavior is defined."
+}

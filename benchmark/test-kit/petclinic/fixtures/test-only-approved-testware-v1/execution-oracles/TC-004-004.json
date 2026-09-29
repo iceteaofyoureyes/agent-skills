@@ -1,0 +1,8 @@
+{
+  "fixture_type": "TEST_ONLY_EXECUTION_ORACLE_RESOLUTION",
+  "not_for_production": true,
+  "case_id": "TC-004",
+  "dependency_need": "đường dẫn truy cập Appointment, thao tác hoàn tất, và cách quan sát trạng thái Appointment cùng số lượng và liên kết nhận diện Visit mới.",
+  "fixture_id": "TEST_ONLY-FIXTURE-TC-004-004",
+  "resolution": "TEST_ONLY fixture setup mapping: use TEST_ONLY-FIXTURE-TC-004-004 for this execution dependency; no business expected behavior is defined."
+}

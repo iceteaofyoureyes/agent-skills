@@ -1,0 +1,345 @@
+{
+  "state": "STOP_V1",
+  "artifact_id": "TEST_ONLY:CR-001-testcases-resolved",
+  "artifact_revision": "1",
+  "artifact_sha256": "ee6a575416c83f0bdfb7e207e09e31469df9e57d3301c6fa58057f0499e90dab",
+  "review_status": "APPROVED",
+  "validation_status": "PASS",
+  "execution_contract_refs": [
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-001:001",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "fa4f1e77d14c11f904e3190a99d3128bd90c68a63710a3776fd9b1ed803fdf29",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-002:002",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "4c53d1692b5511be7797670863eede2b5bcb6d8ec0bc67a71a9835de05407620",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-003:003",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "5382fc0b07a7be4f4f5b48a34051708f4e70e968cfa47fc5943907a8da208f7e",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-004:004",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "824bd8d8ec54c5d75f1277adc2072ff60c397539a9e0fbcf5aac8db23196e9c4",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-005:005",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "27c5c4b6460141e7655bea7d8d0557d2329ed582d9d58ce77ab844c0335e0406",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-006:006",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "37af9d870ad0f26b4658238cb17e60515092158016881db23f31b87608b854bc",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-007:007",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "afea199818553cbbdabe3c259a24d1cc4f7b670e080870cf3283bd86e68cf088",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-008:008",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "4e0c8cee246a0736f2cdfee87fdd5b9416c8efa92a50be72cfd9231888a6e137",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-009:009",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "5277d4e52f9a288203ce98eb250506599bed00540aa5979aaa25fb7ed3bae203",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-010:010",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "0745b9ee8dfa6c257633d4823c8b50405c0c1241ad156a95f0d9aac82dc1e204",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-011:011",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "00750f34e17d1f350b12dbab2efdebe9359fbabbc3f8ca5fdf6e79a02587e24e",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-012:012",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "9d858dc5f9ce018682ca66e75d0339d0c8b147ddd0462fb93f238a31770989fc",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-013:013",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "1a9defddaeebc438c5d29d6081be235fce78687562caec5d414b1432505bf7a1",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-014:014",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "544ee5e2fec7963a22518d8e1f594b853127ca986d91aea5fdb31bafc2ec1d18",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-015:015",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "a4e7a7994e9691a91835d3a0dfb5d5a5c589236988a626d0ab48de456511cd07",
+      "approved": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-016:016",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "410625a61362c643f8903572736b982d54bfa51f59b6a68f439303d50f2847e2",
+      "approved": true
+    }
+  ],
+  "execution_oracle_refs": [
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-001:001",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "fa4f1e77d14c11f904e3190a99d3128bd90c68a63710a3776fd9b1ed803fdf29",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-001-001.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-001-001.json",
+        "sha256": "fae2ee17860f3add3fef4abd4d1e0681258c7fa08d36b3bb4c5735f6149f68ca"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-002:002",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "4c53d1692b5511be7797670863eede2b5bcb6d8ec0bc67a71a9835de05407620",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-002-002.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-002-002.json",
+        "sha256": "c5fa82804e1ebad7895b5d81d9ab7f95c9f4cd7a71bb697f6ae329706d9044bd"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-003:003",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "5382fc0b07a7be4f4f5b48a34051708f4e70e968cfa47fc5943907a8da208f7e",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-003-003.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-003-003.json",
+        "sha256": "3eee46c052076c0af8e7b7541600a9b73f70e05f62899ba9c76a9e0f493c51c1"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-004:004",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "824bd8d8ec54c5d75f1277adc2072ff60c397539a9e0fbcf5aac8db23196e9c4",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-004-004.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-004-004.json",
+        "sha256": "75e8ba911b10faee527c2c24bff006bd2d9df2caae2d7eee44b499c61363f248"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-005:005",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "27c5c4b6460141e7655bea7d8d0557d2329ed582d9d58ce77ab844c0335e0406",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-005-005.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-005-005.json",
+        "sha256": "4450f0c6d75f0d46a6efead7b77c1f2bd85a4f09002a0f52c55539f639dddbb5"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-006:006",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "37af9d870ad0f26b4658238cb17e60515092158016881db23f31b87608b854bc",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-006-006.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-006-006.json",
+        "sha256": "28686bafc8dfe66a613a32ad4b5bfac3b0924cb2ed251808d902f7a48585702c"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-007:007",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "afea199818553cbbdabe3c259a24d1cc4f7b670e080870cf3283bd86e68cf088",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-007-007.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-007-007.json",
+        "sha256": "2d5d5ce8bfd8dcd45913fca8ea5ac90304443ac6993fab1ed513f40fd944c0a6"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-008:008",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "4e0c8cee246a0736f2cdfee87fdd5b9416c8efa92a50be72cfd9231888a6e137",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-008-008.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-008-008.json",
+        "sha256": "c6b9e0532414826642329e509ea5c37f0351591e80bbb6f11efb72e094633a4c"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-009:009",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "5277d4e52f9a288203ce98eb250506599bed00540aa5979aaa25fb7ed3bae203",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-009-009.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-009-009.json",
+        "sha256": "a355cadbf8cfc1083fe25e6da1137165ed10337a40c22430a656dd2592cb3c21"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-010:010",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "0745b9ee8dfa6c257633d4823c8b50405c0c1241ad156a95f0d9aac82dc1e204",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-010-010.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-010-010.json",
+        "sha256": "19a7dda89f18a7e7beb7405ac32c299020e5bfbde1ca44383d18554a69b193eb"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-011:011",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "00750f34e17d1f350b12dbab2efdebe9359fbabbc3f8ca5fdf6e79a02587e24e",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-011-011.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-011-011.json",
+        "sha256": "7b257cfd5c58c66875552a930d6fcbd7bf6288e74fef4ddba45dae3efa791ab3"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-012:012",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "9d858dc5f9ce018682ca66e75d0339d0c8b147ddd0462fb93f238a31770989fc",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-012-012.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-012-012.json",
+        "sha256": "e021f2e820be21533424715e6435df42fd7088b925992db8ea2f2c2c92947ff9"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-013:013",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "1a9defddaeebc438c5d29d6081be235fce78687562caec5d414b1432505bf7a1",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-013-013.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-013-013.json",
+        "sha256": "a265477202e19fbd2a0e7c7a223162eb8d7a4a81d03bdffd67d7ba4f090687ea"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-014:014",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "544ee5e2fec7963a22518d8e1f594b853127ca986d91aea5fdb31bafc2ec1d18",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-014-014.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-014-014.json",
+        "sha256": "d3a2c7340ea4dd98a15573f2a27494896c7ff76f4880d9152f0ee380c1aa5e54"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-015:015",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "a4e7a7994e9691a91835d3a0dfb5d5a5c589236988a626d0ab48de456511cd07",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-015-015.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-015-015.json",
+        "sha256": "7441e63a04efebb9f7d4a7ee5d6cf652cc14456c3b3f5af58e454631697592a4"
+      },
+      "test_only": true
+    },
+    {
+      "id": "TEST_ONLY:EXECUTION:TC-016:016",
+      "revision": "TEST_ONLY-fixture-v1",
+      "sha256": "410625a61362c643f8903572736b982d54bfa51f59b6a68f439303d50f2847e2",
+      "approved": true,
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracles\\TC-016-016.json",
+      "approval_evidence": {
+        "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\test-only-resolved-finalized\\execution-oracle-approvals\\TC-016-016.json",
+        "sha256": "302e65f3d7fac74e078956ef83b971c114dd36b4747a22ed08e9797dfd7a61e4"
+      },
+      "test_only": true
+    }
+  ],
+  "design_gate_receipt_mode": "TEST_ONLY",
+  "design_gate_receipt_evidence": {
+    "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\design-gate\\revisions\\1\\receipt.json",
+    "sha256": "29e9cefc25edf85d7890c35cbe016e47e28d63c14c2ed40b2d910b18d116a0be",
+    "mode": "TEST_ONLY",
+    "fixture": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\design-test-only-receipt.json",
+      "sha256": "5f381045a42d690420996e8dfb582c4106818730022d31a6062007a5335040ef",
+      "line": null,
+      "field": "TEST_ONLY_design_gate_receipt_fixture"
+    }
+  },
+  "input_refs": [
+    {
+      "id": "BA:business_rules",
+      "revision": "example-only-CR-001-vi-r1",
+      "sha256": "665127107a9cd764bb3d5d6c610b0de1cebd2f2e3b74d038b1aa8ce454104032"
+    },
+    {
+      "id": "BA:srs",
+      "revision": "example-only-CR-001-vi-r1",
+      "sha256": "f8a3aa2ed7d8c2aae57f49b919afcf40c26c905493628429da94b9440d33fc32"
+    },
+    {
+      "id": "BA:decisions",
+      "revision": "example-only-CR-001-vi-r1",
+      "sha256": "ccce69b493b63436afa78b78f8abd0b61fcb8ef4713d5f67867b51a42fa56f91"
+    },
+    {
+      "id": "BA:handoff",
+      "revision": "example-only-CR-001-vi-r1",
+      "sha256": "54c93b5118afa47be3d374a2c42ebdc6c378936bdfb6f4f228dd539624f7f990"
+    },
+    {
+      "id": "CR-001-test-design",
+      "revision": "1",
+      "sha256": "7b27d01ed8c9f77b030a1befb942362e80d407a23024d3546051928b6ec8f987"
+    }
+  ],
+  "history": [
+    "CASE_REVIEW",
+    "APPROVED_TESTWARE",
+    "STOP_V1"
+  ],
+  "test_only": true
+}

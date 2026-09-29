@@ -1,0 +1,41 @@
+{
+  "profile_id": "DEFAULT_TESTCASE_EXCEL_V1",
+  "version": "1.0.0",
+  "sheet": "Testcases",
+  "row_model": "ONE_TESTCASE_PER_ROW_WITH_MULTILINE_ORDERED_STEPS",
+  "folder_policy": "BLANK_WHEN_AMBIGUOUS_OR_UNMAPPED",
+  "status_mapping": {
+    "APPROVED": "Approved"
+  },
+  "headers": [
+    "Key",
+    "Name",
+    "Status",
+    "Precondition",
+    "Objective",
+    "Folder",
+    "Priority",
+    "Component",
+    "Labels",
+    "Owner",
+    "Estimated Time",
+    "Coverage (Issues)",
+    "Coverage (Pages)",
+    "Step",
+    "Test Data",
+    "Expected Result",
+    "Test Script (Plain Text)"
+  ],
+  "blank_when_unsupported": [
+    "Key",
+    "Component",
+    "Labels",
+    "Owner",
+    "Estimated Time",
+    "Coverage (Issues)",
+    "Coverage (Pages)",
+    "Test Script (Plain Text)"
+  ],
+  "traceability_location": "EXTERNAL_PROJECTION_MANIFEST",
+  "authority": "DERIVED_PROJECTION_NOT_SOURCE_OF_TRUTH"
+}

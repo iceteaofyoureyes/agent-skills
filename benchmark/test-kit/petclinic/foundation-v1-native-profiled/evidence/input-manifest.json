@@ -1,0 +1,56 @@
+{
+  "feature_id": "CR-001",
+  "ba_baseline_revision": "example-only-CR-001-vi-r1",
+  "ba_handoff_sha256": "54c93b5118afa47be3d374a2c42ebdc6c378936bdfb6f4f228dd539624f7f990",
+  "sources": [
+    {
+      "authority": "business_rules",
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\03-approved-business-rules.md",
+      "sha256": "665127107a9cd764bb3d5d6c610b0de1cebd2f2e3b74d038b1aa8ce454104032"
+    },
+    {
+      "authority": "srs",
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\04-srs-excerpt.md",
+      "sha256": "f8a3aa2ed7d8c2aae57f49b919afcf40c26c905493628429da94b9440d33fc32"
+    },
+    {
+      "authority": "decisions",
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\02-gap-review.md",
+      "sha256": "ccce69b493b63436afa78b78f8abd0b61fcb8ef4713d5f67867b51a42fa56f91"
+    }
+  ],
+  "fr_ids": [
+    "FR-001",
+    "FR-002",
+    "FR-003",
+    "FR-004",
+    "FR-005",
+    "FR-006"
+  ],
+  "br_ids": [
+    "BR-001",
+    "BR-002",
+    "BR-003",
+    "BR-004",
+    "BR-005",
+    "BR-006",
+    "BR-007",
+    "BR-008",
+    "BR-009",
+    "BR-010",
+    "BR-011",
+    "BR-012",
+    "BR-013",
+    "BR-014"
+  ],
+  "open_items": [
+    "Thời lượng tối đa vẫn UNKNOWN; không tự đặt giới hạn",
+    "Bộ lọc, sắp xếp và phân trang danh sách vẫn UNKNOWN"
+  ],
+  "supplemental_ref": {
+    "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\inputs\\adapter\\current-system-supplemental.md",
+    "sha256": "65bc0bc594c4ac41d5d800f18f6f7b9cd64f4b3acc8b5fbdb00f9ca9c8476bce",
+    "source_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\tea-test-design\\input-manifest.md",
+    "source_sha256": "5e1251f285dee59508e6621273ca8952669de9d6e1f4d82a986ff5a4bdab055c"
+  }
+}

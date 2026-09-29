@@ -1,0 +1,608 @@
+[
+  {
+    "test_case_id": "TC-001",
+    "name": "Từ chối hai Appointment Scheduled chồng lấn của cùng Veterinarian",
+    "objective": "Xác nhận Appointment Scheduled mới không được ghi nhận khi chồng lấn Appointment Scheduled hiện có của cùng Veterinarian, và Appointment hiện có vẫn giữ nguyên.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff và có một Appointment Scheduled hiện có. OPEN execution dependencies: đường dẫn truy cập chức năng quản lý Appointment, thao tác gửi yêu cầu tạo, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng lịch, và cách quan sát bản ghi cùng trạng thái.",
+    "test_data": "Pet P-1; Veterinarian V-1; Appointment Scheduled A; khoảng thời gian đích chồng lấn A; các thời điểm nằm trong tương lai.",
+    "steps": [
+      {
+        "action": "Chuẩn bị hoặc chọn Appointment Scheduled hiện có của Veterinarian V-1.",
+        "test_data": null,
+        "expected_result": "Appointment hiện có được xác định làm mốc đối chiếu."
+      },
+      {
+        "action": "Gửi yêu cầu tạo Appointment Scheduled của V-1 với khoảng thời gian chồng lấn Appointment hiện có.",
+        "test_data": null,
+        "expected_result": "Appointment xung đột thứ hai không được lưu."
+      },
+      {
+        "action": "Quan sát Appointment hiện có.",
+        "test_data": null,
+        "expected_result": "Appointment Scheduled hiện có vẫn giữ nguyên."
+      }
+    ],
+    "priority": "P0",
+    "requirement_refs": [
+      "FR-002",
+      "BR-006"
+    ],
+    "test_design_refs": [
+      "TC-001"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập chức năng quản lý Appointment, thao tác gửi yêu cầu tạo, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng lịch, và cách quan sát bản ghi cùng trạng thái.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-001:001"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-002",
+    "name": "Cho phép hai Appointment cùng Veterinarian chạm biên [start, end)",
+    "objective": "Xác nhận hai Appointment Scheduled cùng Veterinarian được chấp nhận khi thời điểm kết thúc của lịch trước bằng thời điểm bắt đầu của lịch sau.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff. OPEN execution dependencies: đường dẫn truy cập chức năng quản lý Appointment, thao tác thiết lập và gửi cả hai lịch, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng [start, end), và cách quan sát kết quả lưu.",
+    "test_data": "Pet P-1; Veterinarian V-1; Appointment A và B trong tương lai; end(A) = start(B).",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu tạo Appointment Scheduled A cho Veterinarian V-1.",
+        "test_data": null,
+        "expected_result": "Appointment A được chấp nhận."
+      },
+      {
+        "action": "Gửi yêu cầu tạo Appointment Scheduled B cho V-1 với thời điểm bắt đầu bằng thời điểm kết thúc của A.",
+        "test_data": null,
+        "expected_result": "Appointment B được chấp nhận; cả hai Appointment được chấp nhận."
+      }
+    ],
+    "priority": "P0",
+    "requirement_refs": [
+      "FR-002",
+      "BR-006"
+    ],
+    "test_design_refs": [
+      "TC-002"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập chức năng quản lý Appointment, thao tác thiết lập và gửi cả hai lịch, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng [start, end), và cách quan sát kết quả lưu.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-002:002"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-003",
+    "name": "Đặt đồng thời hai Appointment có khoảng chồng lấn của cùng Veterinarian",
+    "objective": "Xác nhận kết quả nghiệp vụ khi hai yêu cầu đặt Appointment Scheduled chồng lấn của cùng Veterinarian được gửi đồng thời, không giả định yêu cầu nào thắng.",
+    "preconditions": "Có quyền gửi các yêu cầu đặt Appointment trong vai trò Clinic Staff. OPEN execution dependencies: cách gửi hai yêu cầu đồng thời, cách thiết lập khoảng chồng lấn, và cách quan sát tập Appointment được lưu.",
+    "test_data": "Veterinarian V-1; yêu cầu A và B với khoảng thời gian chồng lấn trong tương lai; dữ liệu khác nhau để nhận diện hai yêu cầu.",
+    "steps": [
+      {
+        "action": "Gửi đồng thời hai yêu cầu tạo Appointment Scheduled có khoảng chồng lấn cho Veterinarian V-1.",
+        "test_data": null,
+        "expected_result": "Chỉ Appointment không xung đột được lưu; kết quả không xác định trước yêu cầu nào thắng."
+      },
+      {
+        "action": "Quan sát các Appointment đã lưu.",
+        "test_data": null,
+        "expected_result": "Không có hai Appointment Scheduled xung đột được lưu cho V-1."
+      }
+    ],
+    "priority": "P0",
+    "requirement_refs": [
+      "BR-006",
+      "BR-013"
+    ],
+    "test_design_refs": [
+      "TC-003"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "cách gửi hai yêu cầu đồng thời, cách thiết lập khoảng chồng lấn, và cách quan sát tập Appointment được lưu.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-003:003"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-004",
+    "name": "Hoàn tất Scheduled tạo một Visit mới và chuyển Appointment sang Completed",
+    "objective": "Xác nhận hoàn tất một Appointment Scheduled tạo đúng một Visit mới, chuyển Appointment sang Completed và giữ Appointment là đối tượng riêng với Visit.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff và có một Appointment Scheduled. OPEN execution dependencies: đường dẫn truy cập Appointment, thao tác hoàn tất, và cách quan sát trạng thái Appointment cùng số lượng và liên kết nhận diện Visit mới.",
+    "test_data": "Appointment Scheduled A; dữ liệu nhận diện A để đối chiếu Visit phát sinh.",
+    "steps": [
+      {
+        "action": "Chọn Appointment Scheduled cần hoàn tất.",
+        "test_data": null,
+        "expected_result": "Appointment được xác định là đối tượng cần hoàn tất."
+      },
+      {
+        "action": "Gửi yêu cầu hoàn tất Appointment.",
+        "test_data": null,
+        "expected_result": "Appointment chuyển sang Completed và có đúng một Visit mới gắn với hoạt động hoàn tất."
+      },
+      {
+        "action": "Quan sát Appointment và Visit mới.",
+        "test_data": null,
+        "expected_result": "Appointment vẫn là đối tượng riêng với Visit."
+      }
+    ],
+    "priority": "P0",
+    "requirement_refs": [
+      "FR-005",
+      "BR-002",
+      "BR-008",
+      "BR-010"
+    ],
+    "test_design_refs": [
+      "TC-004"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập Appointment, thao tác hoàn tất, và cách quan sát trạng thái Appointment cùng số lượng và liên kết nhận diện Visit mới.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-004:004"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-005",
+    "name": "Tạo Appointment hợp lệ với đủ thông tin và trạng thái Scheduled",
+    "objective": "Xác nhận Appointment hợp lệ được ghi nhận với Pet, Veterinarian, thời điểm bắt đầu, thời lượng, lý do/diễn giải đã cung cấp và trạng thái Scheduled.",
+    "preconditions": "Có quyền tạo Appointment trong vai trò Clinic Staff. OPEN execution dependencies: đường dẫn truy cập chức năng tạo, cách nhập các thông tin bắt buộc mà không giả định ánh xạ trường, cách biểu diễn thời điểm và thời lượng, và cách quan sát bản ghi đã lưu.",
+    "test_data": "Pet P-1; Veterinarian V-1; thời điểm bắt đầu T1 sau hiện tại theo Asia/Ho_Chi_Minh; thời lượng D1 > 0; lý do/diễn giải R1.",
+    "steps": [
+      {
+        "action": "Mở chức năng tạo Appointment.",
+        "test_data": null,
+        "expected_result": "Có thể bắt đầu thao tác tạo Appointment."
+      },
+      {
+        "action": "Cung cấp Pet, Veterinarian, thời điểm bắt đầu sau hiện tại theo Asia/Ho_Chi_Minh, thời lượng lớn hơn 0, và lý do/diễn giải.",
+        "test_data": null,
+        "expected_result": "Các thông tin được cung cấp cho yêu cầu tạo Appointment."
+      },
+      {
+        "action": "Gửi yêu cầu tạo Appointment.",
+        "test_data": null,
+        "expected_result": "Appointment được ghi nhận với các thông tin đã cung cấp và trạng thái Scheduled."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-001",
+      "BR-001",
+      "BR-003",
+      "BR-004",
+      "BR-005",
+      "BR-008"
+    ],
+    "test_design_refs": [
+      "TC-005"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập chức năng tạo, cách nhập các thông tin bắt buộc mà không giả định ánh xạ trường, cách biểu diễn thời điểm và thời lượng, và cách quan sát bản ghi đã lưu.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-005:005"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-006",
+    "name": "Không chấp nhận thời điểm bắt đầu bằng hoặc trước hiện tại theo Asia/Ho_Chi_Minh",
+    "objective": "Xác nhận không tạo Appointment mới khi thời điểm bắt đầu bằng hiện tại hoặc đã qua theo Asia/Ho_Chi_Minh.",
+    "preconditions": "Có quyền tạo Appointment trong vai trò Clinic Staff. OPEN execution dependencies: đường dẫn truy cập chức năng tạo, cách nhập và kiểm soát mốc thời gian hiện tại theo Asia/Ho_Chi_Minh, ánh xạ thời điểm nhập vào thời điểm bắt đầu, và cách quan sát việc không tạo bản ghi.",
+    "test_data": "Pet P-1; Veterinarian V-1; thời lượng D1 > 0; hai bộ dữ liệu hợp lệ khác biệt chỉ ở thời điểm bắt đầu: T-now bằng hiện tại; T-past đã qua theo Asia/Ho_Chi_Minh.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu tạo Appointment với thời điểm bắt đầu bằng hiện tại theo Asia/Ho_Chi_Minh.",
+        "test_data": null,
+        "expected_result": "Không có Appointment mới được tạo."
+      },
+      {
+        "action": "Gửi yêu cầu tạo Appointment với thời điểm bắt đầu đã qua theo Asia/Ho_Chi_Minh.",
+        "test_data": null,
+        "expected_result": "Không có Appointment mới được tạo."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-001",
+      "BR-004"
+    ],
+    "test_design_refs": [
+      "TC-006"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập chức năng tạo, cách nhập và kiểm soát mốc thời gian hiện tại theo Asia/Ho_Chi_Minh, ánh xạ thời điểm nhập vào thời điểm bắt đầu, và cách quan sát việc không tạo bản ghi.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-006:006"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-007",
+    "name": "Không chấp nhận thời lượng bằng 0 hoặc âm",
+    "objective": "Xác nhận không tạo Appointment mới khi thời lượng bằng 0 hoặc nhỏ hơn 0.",
+    "preconditions": "Có quyền tạo Appointment trong vai trò Clinic Staff. OPEN execution dependencies: đường dẫn truy cập chức năng tạo, ánh xạ giá trị nhập sang thời lượng, và cách quan sát việc không tạo bản ghi.",
+    "test_data": "Pet P-1; Veterinarian V-1; thời điểm bắt đầu T-future sau hiện tại theo Asia/Ho_Chi_Minh; hai bộ dữ liệu hợp lệ khác biệt chỉ ở thời lượng: 0 và D-negative < 0.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu tạo Appointment với thời lượng bằng 0.",
+        "test_data": null,
+        "expected_result": "Không có Appointment mới được tạo."
+      },
+      {
+        "action": "Gửi yêu cầu tạo Appointment với thời lượng nhỏ hơn 0.",
+        "test_data": null,
+        "expected_result": "Không có Appointment mới được tạo."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-001",
+      "BR-005"
+    ],
+    "test_design_refs": [
+      "TC-007"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập chức năng tạo, ánh xạ giá trị nhập sang thời lượng, và cách quan sát việc không tạo bản ghi.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-007:007"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-008",
+    "name": "Chỉnh sửa Appointment ở trạng thái Scheduled",
+    "objective": "Xác nhận thay đổi hợp lệ trên Appointment Scheduled được lưu và Appointment vẫn ở trạng thái Scheduled.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff và có một Appointment Scheduled. OPEN execution dependencies: đường dẫn truy cập và chọn Appointment, lựa chọn trường cần chỉnh sửa vẫn OPEN, cách cung cấp thay đổi hợp lệ, và cách quan sát giá trị cùng trạng thái sau khi lưu.",
+    "test_data": "Appointment Scheduled A; giá trị hiện tại và giá trị mới hợp lệ cho trường được chọn.",
+    "steps": [
+      {
+        "action": "Chọn Appointment Scheduled và trường cần chỉnh sửa.",
+        "test_data": null,
+        "expected_result": "Appointment ở trạng thái Scheduled được chọn để chỉnh sửa."
+      },
+      {
+        "action": "Cung cấp một thay đổi hợp lệ và gửi yêu cầu lưu.",
+        "test_data": null,
+        "expected_result": "Thay đổi được lưu."
+      },
+      {
+        "action": "Quan sát Appointment.",
+        "test_data": null,
+        "expected_result": "Appointment vẫn ở trạng thái Scheduled."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-003",
+      "BR-008"
+    ],
+    "test_design_refs": [
+      "TC-008"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập và chọn Appointment, lựa chọn trường cần chỉnh sửa vẫn OPEN, cách cung cấp thay đổi hợp lệ, và cách quan sát giá trị cùng trạng thái sau khi lưu.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-008:008"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-009",
+    "name": "Không cho chỉnh sửa hoặc đổi lịch Appointment không ở Scheduled",
+    "objective": "Xác nhận không lưu thay đổi trường hoặc thời điểm đối với Appointment ở trạng thái Cancelled hoặc Completed.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff và có một Appointment Cancelled cùng một Appointment Completed. OPEN execution dependencies: đường dẫn truy cập và chọn Appointment, trường hoặc thời điểm có thể gửi làm thay đổi, và cách quan sát giá trị cùng trạng thái trước và sau yêu cầu.",
+    "test_data": "Appointment Cancelled A và Appointment Completed B; mỗi yêu cầu gửi một giá trị trường hoặc thời điểm khác với giá trị hiện tại.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu chỉnh sửa trường hoặc đổi lịch Appointment Cancelled.",
+        "test_data": null,
+        "expected_result": "Không có thay đổi trường hoặc thời điểm được lưu."
+      },
+      {
+        "action": "Gửi yêu cầu chỉnh sửa trường hoặc đổi lịch Appointment Completed.",
+        "test_data": null,
+        "expected_result": "Không có thay đổi trường hoặc thời điểm được lưu."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-003",
+      "BR-008"
+    ],
+    "test_design_refs": [
+      "TC-009"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập và chọn Appointment, trường hoặc thời điểm có thể gửi làm thay đổi, và cách quan sát giá trị cùng trạng thái trước và sau yêu cầu.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-009:009"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-010",
+    "name": "Đổi lịch Appointment Scheduled mà không tự gây xung đột với chính nó",
+    "objective": "Xác nhận Appointment Scheduled có thể được đổi sang slot không xung đột với Appointment Scheduled khác cùng Veterinarian, khi bỏ Appointment đang đổi khỏi đối chiếu xung đột.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff và có Appointment Scheduled A. OPEN execution dependencies: đường dẫn truy cập và chọn A, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng lịch, cách cung cấp slot đích không xung đột với Appointment Scheduled khác cùng Veterinarian, và cách quan sát kết quả lưu.",
+    "test_data": "Appointment Scheduled A; Veterinarian V-1; slot đích trong tương lai, không chồng lấn lịch Scheduled khác của V-1.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu đổi lịch A sang slot đích không chồng lấn Appointment Scheduled khác cùng Veterinarian.",
+        "test_data": null,
+        "expected_result": "Lịch mới được lưu và không bị từ chối do chính A."
+      },
+      {
+        "action": "Quan sát Appointment A.",
+        "test_data": null,
+        "expected_result": "Appointment phản ánh lịch mới đã lưu."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-003",
+      "BR-007"
+    ],
+    "test_design_refs": [
+      "TC-010"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập và chọn A, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng lịch, cách cung cấp slot đích không xung đột với Appointment Scheduled khác cùng Veterinarian, và cách quan sát kết quả lưu.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-010:010"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-011",
+    "name": "Từ chối đổi lịch vào khoảng chồng lấn với Appointment Scheduled khác cùng Veterinarian",
+    "objective": "Xác nhận thay đổi lịch xung đột không được lưu và lịch hiện có không bị thay đổi.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff và có Appointment Scheduled A cùng một Appointment Scheduled khác của cùng Veterinarian. OPEN execution dependencies: đường dẫn truy cập và chọn Appointment, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng lịch, cách cung cấp slot đích chồng lấn, và cách quan sát lịch trước/sau.",
+    "test_data": "Appointment Scheduled A và B; cùng Veterinarian V-1; slot đích của A trong tương lai, chồng lấn B.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu đổi lịch A sang khoảng thời gian chồng lấn Appointment Scheduled khác cùng Veterinarian.",
+        "test_data": null,
+        "expected_result": "Thay đổi xung đột không được lưu."
+      },
+      {
+        "action": "Quan sát lịch của các Appointment liên quan.",
+        "test_data": null,
+        "expected_result": "Lịch hiện có không bị thay đổi."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-002",
+      "FR-003",
+      "BR-006",
+      "BR-007"
+    ],
+    "test_design_refs": [
+      "TC-011"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập và chọn Appointment, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng lịch, cách cung cấp slot đích chồng lấn, và cách quan sát lịch trước/sau.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-011:011"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-012",
+    "name": "Hủy Appointment Scheduled, giữ lại bản ghi và giải phóng slot",
+    "objective": "Xác nhận hủy chuyển Appointment Scheduled sang Cancelled mà không xóa bản ghi, đồng thời giải phóng slot cho một Appointment khác cùng Veterinarian.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff và có Appointment Scheduled A. OPEN execution dependencies: đường dẫn truy cập và chọn A, thao tác hủy, ánh xạ slot của A, cách quan sát bản ghi còn tồn tại/trạng thái, và cách kiểm tra Appointment mới được đặt vào slot đã giải phóng.",
+    "test_data": "Appointment Scheduled A; Veterinarian V-1; Appointment mới B với slot tương lai trùng slot vừa giải phóng.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu hủy Appointment Scheduled A.",
+        "test_data": null,
+        "expected_result": "A chuyển sang Cancelled và vẫn tồn tại."
+      },
+      {
+        "action": "Gửi yêu cầu đặt Appointment khác của cùng Veterinarian vào slot vừa giải phóng.",
+        "test_data": null,
+        "expected_result": "Appointment khác có thể được đặt vào slot đó."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-004",
+      "BR-008",
+      "BR-009",
+      "BR-011"
+    ],
+    "test_design_refs": [
+      "TC-012"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập và chọn A, thao tác hủy, ánh xạ slot của A, cách quan sát bản ghi còn tồn tại/trạng thái, và cách kiểm tra Appointment mới được đặt vào slot đã giải phóng.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-012:012"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-013",
+    "name": "Không cho hủy Appointment đã Cancelled hoặc Completed",
+    "objective": "Xác nhận yêu cầu hủy Appointment không ở Scheduled không xóa cứng bản ghi và không thay đổi trạng thái.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff và có một Appointment Cancelled cùng một Appointment Completed. OPEN execution dependencies: đường dẫn truy cập và chọn Appointment, thao tác gửi yêu cầu hủy, và cách quan sát bản ghi cùng trạng thái sau yêu cầu.",
+    "test_data": "Appointment Cancelled A và Appointment Completed B.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu hủy Appointment Cancelled.",
+        "test_data": null,
+        "expected_result": "Appointment không bị xóa cứng hoặc thay đổi trạng thái."
+      },
+      {
+        "action": "Gửi yêu cầu hủy Appointment Completed.",
+        "test_data": null,
+        "expected_result": "Appointment không bị xóa cứng hoặc thay đổi trạng thái."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-004",
+      "BR-008",
+      "BR-011"
+    ],
+    "test_design_refs": [
+      "TC-013"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập và chọn Appointment, thao tác gửi yêu cầu hủy, và cách quan sát bản ghi cùng trạng thái sau yêu cầu.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-013:013"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-014",
+    "name": "Không cho hoàn tất Appointment đã Cancelled hoặc Completed",
+    "objective": "Xác nhận yêu cầu hoàn tất lặp hoặc sai trạng thái không chuyển Appointment sang Completed lần nữa và không tạo thêm Visit.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff; có Appointment Cancelled A và Appointment Completed B, trong đó B đã có Visit được tạo khi hoàn tất. OPEN execution dependencies: đường dẫn truy cập và chọn Appointment, thao tác gửi yêu cầu hoàn tất, và cách quan sát trạng thái cùng số lượng Visit trước/sau.",
+    "test_data": "Appointment Cancelled A; Appointment Completed B với một Visit hiện có.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu hoàn tất Appointment Cancelled A.",
+        "test_data": null,
+        "expected_result": "Trạng thái không chuyển sang Completed và không tạo Visit."
+      },
+      {
+        "action": "Gửi lại yêu cầu hoàn tất Appointment Completed B.",
+        "test_data": null,
+        "expected_result": "Trạng thái không chuyển lại sang Completed do yêu cầu lặp và không tạo thêm Visit."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-005",
+      "BR-008",
+      "BR-010"
+    ],
+    "test_design_refs": [
+      "TC-014"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập và chọn Appointment, thao tác gửi yêu cầu hoàn tất, và cách quan sát trạng thái cùng số lượng Visit trước/sau.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-014:014"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-015",
+    "name": "Cho phép Appointment của cùng Pet chồng lấn khi Veterinarian khác nhau",
+    "objective": "Xác nhận hai Appointment Scheduled chồng lấn của cùng Pet được chấp nhận khi Veterinarian khác nhau.",
+    "preconditions": "Có quyền thao tác với Appointment trong vai trò Clinic Staff. OPEN execution dependencies: đường dẫn truy cập chức năng tạo, thao tác thiết lập hai lịch, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng chồng lấn, và cách quan sát kết quả lưu.",
+    "test_data": "Pet P-1; Veterinarians V-1 và V-2; Appointment A và B với khoảng thời gian chồng lấn trong tương lai.",
+    "steps": [
+      {
+        "action": "Gửi yêu cầu tạo Appointment Scheduled A cho Pet P-1 và Veterinarian V-1.",
+        "test_data": null,
+        "expected_result": "Appointment A được chấp nhận."
+      },
+      {
+        "action": "Gửi yêu cầu tạo Appointment Scheduled B cho cùng Pet P-1, khoảng thời gian chồng lấn A và Veterinarian V-2.",
+        "test_data": null,
+        "expected_result": "Appointment B được chấp nhận; không áp dụng ràng buộc cấm chồng lấn của cùng Pet."
+      }
+    ],
+    "priority": "P2",
+    "requirement_refs": [
+      "FR-002",
+      "BR-006",
+      "BR-012"
+    ],
+    "test_design_refs": [
+      "TC-015"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn truy cập chức năng tạo, thao tác thiết lập hai lịch, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng chồng lấn, và cách quan sát kết quả lưu.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-015:015"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  },
+  {
+    "test_case_id": "TC-016",
+    "name": "Xem Appointment",
+    "objective": "Xác nhận Clinic Staff có thể xem Appointment.",
+    "preconditions": "Có một Appointment để xem và quyền thao tác trong vai trò Clinic Staff. OPEN execution dependencies: đường dẫn hoặc cơ chế truy cập để xem Appointment và cách quan sát thông tin Appointment mà không giả định vị trí hay cách trình bày.",
+    "test_data": "Appointment A.",
+    "steps": [
+      {
+        "action": "Truy cập và xem Appointment có sẵn.",
+        "test_data": null,
+        "expected_result": "Appointment có thể được xem."
+      }
+    ],
+    "priority": "P1",
+    "requirement_refs": [
+      "FR-006",
+      "BR-001",
+      "BR-003",
+      "BR-014"
+    ],
+    "test_design_refs": [
+      "TC-016"
+    ],
+    "execution_dependencies": [
+      {
+        "need": "đường dẫn hoặc cơ chế truy cập để xem Appointment và cách quan sát thông tin Appointment mà không giả định vị trí hay cách trình bày.",
+        "material": true,
+        "status": "RESOLVED",
+        "resolution_ref": "TEST_ONLY:EXECUTION:TC-016:016"
+      }
+    ],
+    "review_status": "IN_REVIEW"
+  }
+]

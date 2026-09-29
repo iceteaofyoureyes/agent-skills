@@ -63,7 +63,7 @@ Xem [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md).
 |---|---|---|
 | **BA Kit** | **1.0.0-rc.1 Public Preview** | **WHAT** |
 | **Dev Kit** | Planned | Engineering Impact + **HOW** |
-| **Test Kit** | Planned | **HOW DO WE PROVE IT** |
+| **Test Kit** | Test Kit V1 Core, XMind Projection V1, and Excel Projection V1 are **HUMAN_ACCEPTED** framework capabilities | **HOW DO WE PROVE IT** |
 
 ## Bắt đầu
 
@@ -106,3 +106,5 @@ Xem [Cài đặt](docs/vi/INSTALLATION.md).
 ## English documentation
 
 [BA Kit documentation — English](docs/en/README.md)
+
+Test Kit V1 status and frozen contracts: [Test Kit V1](docs/design/test-kit-v1/README.md). Test Kit V1 Core, XMind Projection V1, and Excel Projection V1 are **HUMAN_ACCEPTED** as framework capabilities. This does not approve generated Test Design, Testcases, or Testware for production; the real PetClinic case remains blocked by material execution dependencies.
