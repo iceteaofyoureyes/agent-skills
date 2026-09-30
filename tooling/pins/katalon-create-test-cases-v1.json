@@ -1,0 +1,13 @@
+{
+  "repository": "katalon-labs/true-skills",
+  "commit": "e6cdd774f66ce9d45ea5904101a96203e3a37581",
+  "capability": "create-test-cases",
+  "license": "MIT",
+  "files": {
+    "SKILL.md": "12c6759e7079e2297b998cd0ca7f11c2a0acc88283e7dd473b35652f4ff6b447",
+    "references/capability-boundaries.md": "539fe67867780b22ecc5d6127426db6b90dd7ead3439fce16982320ca44e4c1a",
+    "references/istqb-coverage.md": "ea7e5f5ef96606c158296e539b101f04ef354bcb5ed61eae020eea0bc9fcabd7",
+    "references/manual-test-case-format.md": "04eeac563de58896aedc02fd58da332dd4a08b4685142d77e7092af8f3b9b2a6",
+    "references/requirement-analysis.md": "ec495b4e32bcd9ef7b60a05292ff5bb8517878606d6405c2d4e964046ec9b70d"
+  }
+}

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 HANDOFF = ROOT / "kits/ba/examples/CR-001/vi/05-engineering-handoff.yml"
 BENCHMARK = ROOT / "benchmark/test-kit/petclinic/tea-test-design/raw-output/test-design/test-design-epic-1.md"
 NATIVE = ROOT / "benchmark/test-kit/petclinic/fixtures/test-only-native-tea-output-v1/test-design-epic-1.md"
-PINNED_TEA_FIXTURE = ROOT / "tooling/tests/fixtures/tea-test-design-v1"
+PINNED_TEA_FIXTURE = ROOT / "kits/test/skills/bmad-testarch-test-design"
 
 
 def _machine_specific_paths(text):

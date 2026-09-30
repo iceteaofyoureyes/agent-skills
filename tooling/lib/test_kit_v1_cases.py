@@ -5,10 +5,10 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import shutil
 import subprocess
 import tempfile
 import time
-import urllib.request
 import unicodedata
 from contextlib import nullcontext
 from dataclasses import dataclass, replace
@@ -22,23 +22,13 @@ from .codex_cli import CodexCommand, resolve_codex_command
 
 ROOT = Path(__file__).resolve().parents[2]
 TEST_ONLY_PROVENANCE_PIN = ROOT / "tooling/pins/test-only-provenance-relocations-v1.json"
-KATALON_REPOSITORY = "katalon-labs/true-skills"
-KATALON_COMMIT = "e6cdd774f66ce9d45ea5904101a96203e3a37581"
-KATALON_CAPABILITY = "create-test-cases"
-KATALON_SKILL_FILES = {
-    "SKILL.md": "12c6759e7079e2297b998cd0ca7f11c2a0acc88283e7dd473b35652f4ff6b447",
-    "references/capability-boundaries.md": "539fe67867780b22ecc5d6127426db6b90dd7ead3439fce16982320ca44e4c1a",
-    "references/istqb-coverage.md": "ea7e5f5ef96606c158296e539b101f04ef354bcb5ed61eae020eea0bc9fcabd7",
-    "references/manual-test-case-format.md": "04eeac563de58896aedc02fd58da332dd4a08b4685142d77e7092af8f3b9b2a6",
-    "references/requirement-analysis.md": "ec495b4e32bcd9ef7b60a05292ff5bb8517878606d6405c2d4e964046ec9b70d",
-}
-KATALON_REQUIRED_SKILL_FILES = (
-    "SKILL.md",
-    "references/capability-boundaries.md",
-    "references/istqb-coverage.md",
-    "references/manual-test-case-format.md",
-    "references/requirement-analysis.md",
-)
+KATALON_PIN_PATH = ROOT / "tooling/pins/katalon-create-test-cases-v1.json"
+KATALON_PIN = json.loads(KATALON_PIN_PATH.read_text(encoding="utf-8"))
+KATALON_REPOSITORY = KATALON_PIN["repository"]
+KATALON_COMMIT = KATALON_PIN["commit"]
+KATALON_CAPABILITY = KATALON_PIN["capability"]
+KATALON_SKILL_FILES = KATALON_PIN["files"]
+KATALON_REQUIRED_SKILL_FILES = tuple(KATALON_SKILL_FILES)
 CASE_SEMANTIC_FIELDS = (
     "test_case_id",
     "name",
@@ -2465,20 +2455,10 @@ def _verify_pinned_skill(skill_dir: str | Path) -> list[dict]:
 def _install_pinned_skill(native_workspace: Path) -> tuple[Path, list[dict]]:
     _validate_pinned_manifest()
     skill_dir = native_workspace / ".agents/skills" / KATALON_CAPABILITY
-    base_url = f"https://raw.githubusercontent.com/{KATALON_REPOSITORY}/{KATALON_COMMIT}/skills/{KATALON_CAPABILITY}/"
-    for relative in KATALON_REQUIRED_SKILL_FILES:
-        expected_hash = KATALON_SKILL_FILES[relative]
-        try:
-            with urllib.request.urlopen(base_url + relative, timeout=30) as response:
-                content = response.read()
-        except OSError as error:
-            raise _pin_integrity_failure(relative, expected_hash, None, f"pinned source unavailable: {error}") from error
-        actual_hash = hashlib.sha256(content).hexdigest()
-        if actual_hash != expected_hash:
-            raise _pin_integrity_failure(relative, expected_hash, actual_hash, "downloaded skill file does not match the pinned bytes")
-        path = skill_dir / Path(relative)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(content)
+    source = ROOT / "kits/test/skills" / KATALON_CAPABILITY
+    if not source.is_dir():
+        raise _pin_integrity_failure("<source>", "bundled skill", None, "test-only bundled skill source is unavailable")
+    shutil.copytree(source, skill_dir)
     return skill_dir, _verify_pinned_skill(skill_dir)
 
 

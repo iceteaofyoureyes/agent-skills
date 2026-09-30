@@ -13,3 +13,7 @@ Human acceptance áp dụng cho framework capabilities; điều đó không phê
 Bắt đầu với [Hướng dẫn nhanh BA Kit](../docs/vi/BA_KIT_QUICKSTART.md), sau đó xem [Quy trình và Human Gate](../docs/vi/BA_KIT_WORKFLOW.md), [ví dụ CR-001](ba/examples/CR-001/README.md) và [Cài đặt](../docs/vi/INSTALLATION.md). Thành phần dùng chung được ghép qua manifest của BA Kit.
 
 English: [Kit documentation](../docs/en/README.md)
+
+## Test Kit V1
+
+Install Test Kit independently with `tooling/install.ps1 -Kit test`. See [operator prerequisites, workflow, Human Gates, optional projections, upgrades, and removal](test/README.md). The Test Kit composition and explicit runtime file list are in [kits/test/kit.yaml](test/kit.yaml).

@@ -275,7 +275,15 @@ next_stage:
             self.assertIn("INVALID:", check.stderr)
             self.assertNotIn("NameError", check.stderr)
             (target / ".other-kit-install.json").write_text(
-                json.dumps({"kit": "other", "skills": {"verification-before-completion": {"sha256": "shared"}}}),
+                json.dumps({
+                    "schema_version": 1,
+                    "kit": "other",
+                    "version": "1.0.0",
+                    "skills": {"verification-before-completion": {"sha256": "b" * 64}},
+                    "files": {},
+                    "managed_files": {},
+                    "managed_file_count": 0,
+                }),
                 encoding="utf-8",
             )
             (target / "ba-workflow" / "SKILL.md").write_text("local edit", encoding="utf-8")

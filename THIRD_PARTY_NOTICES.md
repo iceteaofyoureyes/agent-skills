@@ -118,15 +118,24 @@ This index records third-party components and license locations. Third-party ski
   - License: MIT
 - Wheel integrity: `sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa`
 
-### BMAD TEA runtime pin test fixture
+### BMAD TEA runtime skill
 
-- Component: byte-exact upstream fixture used to test the pinned TEA runtime inventory
+- Component: byte-exact pinned TEA workflow skill bundled for native Test Kit V1 invocation
 - Source: `bmad-code-org/bmad-method-test-architecture-enterprise`, commit `1f53e9095061ab66f3c35abd9b98baf0f50cf8fe`
 - Source path: `src/workflows/testarch/bmad-testarch-test-design/`
-- Local fixture: `tooling/tests/fixtures/tea-test-design-v1/`; per-file SHA-256 values are in `tooling/pins/tea-test-design-v1.json`
+- Bundled skill: `kits/test/skills/bmad-testarch-test-design/`; per-file SHA-256 values are in `tooling/pins/tea-test-design-v1.json`
 - License: MIT; Copyright (c) 2025 BMad Code, LLC
-- License location: `tooling/tests/fixtures/tea-test-design-v1.LICENSE`
-- Local changes: none to upstream fixture bytes
+- License location: `kits/test/licenses/tea-test-design-v1.LICENSE`
+- Local changes: none to upstream skill bytes
+
+### Katalon create-test-cases skill
+
+- Component: required pinned native skill for Test Kit V1 testcase generation
+- Source: `katalon-labs/true-skills`, commit `e6cdd774f66ce9d45ea5904101a96203e3a37581`
+- Local bundled skill: `kits/test/skills/create-test-cases/`
+- Per-file SHA-256 values: `tooling/pins/katalon-create-test-cases-v1.json`
+- License: MIT; Copyright (c) 2026 Katalon, Inc.
+- License location: `kits/test/licenses/katalon-true-skills.LICENSE`
 
 ### webapp-testing
 
