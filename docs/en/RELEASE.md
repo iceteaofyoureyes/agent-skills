@@ -2,7 +2,11 @@
 
 BA Kit **1.0.0-rc.1** is a **Public Preview**, not a fully accepted release.
 
-Dev Kit and Test Kit are **Planned**; neither is included in this BA Kit preview.
+Dev Kit remains **Planned**. Test Kit V1 is a separate committed Kit, not part of the BA Kit preview.
+
+## Test Kit V1
+
+Test Kit V1 Core, XMind Projection V1, Excel Projection V1, Packaging Cleanup, and Packaging V1 have been Human accepted as framework capabilities. The installable package was committed at `55e88c39cd97945ee8c2e1b4f152599449966ddb`. **Internal Human acceptance is not a GitHub release, tag, or published artifact.** It does not approve any project's generated Design, Testcases, or Testware; those still need current authenticated Human Gate receipts. TEST_ONLY artifacts are not production testware. Automation Test V2 is not included. Start with the [Test Kit overview](TEST_KIT_README.md).
 
 ## Package / installer
 

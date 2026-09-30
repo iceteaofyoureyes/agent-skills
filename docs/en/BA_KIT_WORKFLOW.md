@@ -22,7 +22,7 @@ flowchart TD
     H --> I[Engineering Handoff]
     I -. Planned .-> J[Engineering Impact]
     J -. Planned .-> K[Dev Kit + repo-local Spec Kit]
-    K -. Planned .-> L[Test Kit + TEA]
+    I --> L[Test Kit V1: direct from Approved BA Baseline]
 ~~~
 
 This core flow manages **business semantics**. Draw.io, prototypes, and DOCX are derived/visual/delivery lanes and do not replace semantic authority.

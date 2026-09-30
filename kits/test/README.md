@@ -1,100 +1,65 @@
 # Test Kit V1
 
-Test Kit V1 turns an approved BA handoff into a reviewed Test Design and reviewed manual testcases. Human decisions remain the gates between the artifacts.
+**Test Kit = HOW DO WE PROVE IT.** Test Kit V1 turns an approved BA baseline into reviewed manual testware. The Human owns both approval gates.
 
-## Prerequisites
-
-- Python 3.10 or newer.
-- The packaged V1 workflow targets Codex projects (`.agents/skills`).
-- Codex CLI for native TEA and Katalon generation. The shared resolver uses `TEST_KIT_CODEX_COMMAND`, then `PATH`, then fails closed. A `.js` override also needs Node on `PATH`.
-- A project `_bmad/tea/config.yaml` compatible with the pinned TEA skill.
-- The pinned TEA and Katalon skills are included in the install. Installation makes no network requests.
-
-Node/npm and Python projection packages are needed only when you explicitly request XMind or Excel output.
-
-## Install and verify
-
-From the Agent Skills repository, install into the current Codex project. V1 uses project scope because native TEA and Katalon invocations require project-local pinned skills:
-
-```powershell
-.\tooling\install.ps1 -Kit test --agent codex --scope project
-.\tooling\doctor.ps1 -Kit test --agent codex --scope project
+```text
+Approved BA Baseline
+→ TEA analysis
+→ Canonical Test Design
+→ Human Design Gate
+→ Canonical Testcases
+→ Human Case Gate
+→ APPROVED_TESTWARE
+→ STOP_V1
 ```
 
-The skills install under `.agents/skills/`. Test Kit runtime, pins, dependency locks, notices, and this guide install under `.agents/skills/.test-kit/`.
+Optional, Human-triggered projections are one-way views of the canonical artifacts:
 
-To verify the installed runtime without loading repository modules:
-
-```powershell
-$env:PYTHONPATH = (Resolve-Path .agents/skills/.test-kit).Path
-python -m tooling.lib.test_kit_v1 --help
+```text
+Canonical Test Design → XMind projection
+Canonical Testcases   → Excel projection
 ```
 
-The `test-kit` skill provides the workflow instructions. The upstream TEA skill is `bmad-testarch-test-design`; the Katalon skill is `create-test-cases`.
+Automation planning, execution, triage, and evidence automation are **Automation Test V2** and are not included in V1.
 
-## Core workflow and Human Gates
+## Bắt đầu
 
-Use a project-owned run directory for each feature. The Test Kit writes raw invocation evidence, canonical snapshots, receipts, validation results, and workflow state only under that run directory.
+The full operator guides are maintained in the source repository and are not copied into the install. This README is self-contained for the installed context. Browse the [Agent Skills repository](https://github.com/iceteaofyoureyes/agent-skills); from a checkout, the detailed guides are at:
 
-1. Supply an approved BA handoff and its source files.
-2. Test Kit adapts the approved BA baseline and invokes pinned TEA.
-3. The adapter normalizes and validates the raw Test Design, then stops at `DESIGN_REVIEW`.
-4. A Human reviews the exact canonical snapshot and records `APPROVE` or `REQUEST_CHANGES`.
-5. After approval, Test Kit invokes the pinned Katalon skill and normalizes its manual testcase output.
-6. Test Kit stops at `CASE_REVIEW`. A Human reviews the exact canonical cases. Approval produces `APPROVED_TESTWARE`; material unresolved execution dependencies keep the gate blocked.
+- Quick Start — `docs/vi/TEST_KIT_QUICKSTART.md`
+- Capabilities and boundaries — `docs/vi/TEST_KIT_CAPABILITIES.md`
+- Usage Guide — `docs/vi/TEST_KIT_USAGE_GUIDE.md`
+- Workflow and Human Gates — `docs/vi/TEST_KIT_WORKFLOW.md`
+- CR-001 example — `kits/test/examples/CR-001/README.md`
+- [Installation and troubleshooting](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md) — `docs/vi/INSTALLATION.md`
+- [Provenance and licenses](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/PROVENANCE.md) — `docs/vi/PROVENANCE.md`
+- [Release status](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/RELEASE.md) — `docs/vi/RELEASE.md`
+- English overview — `docs/en/TEST_KIT_README.md`
 
-The BA baseline owns business behavior. Approved Test Design owns coverage. An approved interface or execution contract owns execution details. Test Kit does not infer missing Human decisions.
+## Prerequisites and install
 
-## Optional XMind projection
+Test Kit V1 supports Codex project scope. Use Python 3.10+, Codex CLI, and a project `_bmad/tea/config.yaml` compatible with the pinned TEA skill. The pinned TEA and Katalon skills are bundled; installation does not download dependencies. Codex resolves from `TEST_KIT_CODEX_COMMAND`, then `PATH`, and fails closed if an explicit override is invalid.
 
-XMind is an on-demand projection after the relevant Human decision. It does not change canonical artifacts or gate state. Install Node.js 18+ and npm 9+, then explicitly bootstrap the pinned SDK from the installed lockfile:
-
-```powershell
-Push-Location .agents/skills/.test-kit/tooling/xmind
-npm ci
-Pop-Location
-```
-
-The exporter uses the installed SDK and writes projection output beside the selected run artifact.
-
-## Optional Excel projection
-
-Excel is an on-demand projection of approved testcases. It does not change canonical artifacts or gate state. With the Python environment used by the projection, explicitly install the hash-pinned requirements:
+From the target project, invoke the scripts in your Agent Skills checkout:
 
 ```powershell
-python -m pip install --require-hashes -r .agents/skills/.test-kit/tooling/requirements-excel.lock
+& '<path-to-agent-skills>\tooling\install.ps1' test --agent codex --scope project
+& '<path-to-agent-skills>\tooling\doctor.ps1' test --agent codex --scope project
 ```
 
-Generated workbooks are written beside the selected run artifact. The projection code does not require an external workbook template.
-
-## Reinstall, upgrade, and removal
-
-Run the same install command to reinstall. Reinstall is idempotent. A newer manifest updates unchanged managed assets; locally edited managed assets and unrelated project files are preserved and reported.
-
-Remove an install with:
-
-```powershell
-.\tooling\uninstall.ps1 -Kit test --agent codex --scope project
+```bash
+<path-to-agent-skills>/tooling/install.sh test --agent codex --scope project
+<path-to-agent-skills>/tooling/doctor.sh test --agent codex --scope project
 ```
 
-Only unchanged files owned by Test Kit are removed. Edited or shared assets stay in place.
+Doctor verifies the installed package and reports local drift or corrupt metadata. Reinstall preserves locally edited managed files; it does not adopt those edits as the expected package bytes. Uninstall removes unchanged Test-owned files and preserves unrelated project files. See [Installation](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md) for details.
 
-Doctor reads `.test-kit/kit.yaml` as the installed package definition, verifies the pinned authority and payload, then reports local drift or corrupt metadata.
+## Workflow and projections
 
-## Troubleshooting
+TEA analysis is advisory. The adapter creates and validates Canonical Test Design, then stops for Human review at `DESIGN_REVIEW`. After an authenticated approval for that exact snapshot, the pinned Katalon skill generates cases; the adapter validates Canonical Testcases and stops at `CASE_REVIEW`. Only a valid Human approval receipt with no material open execution dependency produces `APPROVED_TESTWARE` and `STOP_V1`. Outputs and evidence belong in a project-owned run directory.
 
-- `Python 3.10+ is required`: use a supported Python interpreter and rerun install/doctor.
-- Codex resolution failed: set `TEST_KIT_CODEX_COMMAND` to the Codex executable/launcher, or make `codex` available on `PATH`. An invalid explicit override fails closed.
-- `XMIND_SDK_UNAVAILABLE`: install Node/npm and run the explicit `npm ci` bootstrap above.
-- Excel reports missing `openpyxl`: run the explicit `pip install --require-hashes` command above in the Python environment used for the projection.
-- `PIN_INTEGRITY_FAILURE`: reinstall Test Kit from the same pinned package source; do not edit upstream skill files.
-- `MODIFIED_MANAGED_FILE`: doctor found local edits. Reinstall preserves them and keeps the package's expected hash, so doctor remains not ready until you restore the expected file or resolve the edit and restore the pinned bytes.
-- `MISSING_MANAGED_FILE`: restore the missing file from the same pinned package and run doctor again.
-- `DEPENDENCY_MISSING`: Codex CLI is required for native generation. Optional XMind or Excel dependencies only affect their projection capabilities.
-- A preserved file was locally edited or is shared with another kit. Review it before manually removing it.
+XMind uses its pinned presentation profile and does not accept a Human-supplied template; ambiguous mapping returns `CANNOT_PROJECT_HUMAN_PROFILE`. Excel supports `HUMAN_SUPPLIED_APPROVED_TEMPLATE → PROJECT_TEMPLATE → DEFAULT_TEMPLATE`; ambiguous mapping returns `CANNOT_PROJECT_TEMPLATE`. XMind needs Node.js/npm and its pinned SDK; Excel needs the hash-locked Python projection dependencies. Bootstrap either capability explicitly only when requested. Both projections leave canonical artifacts and gate state unchanged.
 
 ## V1 boundary
 
-V1 covers Test Design, Human Design Review, manual testcase generation, Human Case Review, and optional XMind/Excel projections.
-
-**Automation execution, triage, and evidence automation are V2 and are not included in V1.**
+V1 produces reviewed Test Design and manual testcases, with optional XMind and Excel projections. It does not execute tests, produce execution evidence, triage failures, or automate defects. Those capabilities belong to **Automation Test V2**.

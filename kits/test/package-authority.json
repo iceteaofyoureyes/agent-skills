@@ -6,7 +6,7 @@
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "ebcbd618997625c093a11c33908e183e1b6853e9525e40220451241b21ee7421",
+      "sha256": "6608a7e9cfb7b6c6b66278fdbb9b7786bc3f4c6993c95bf975ba32f2307b2d4e",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
@@ -557,5 +557,5 @@
   ],
   "managed_file_count": 110,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "c9938ead3ef578feb395967cb0c01b73cb672b3f3db97edcd53664641841fb48"
+  "payload_tree_sha256": "410008594cd3e75d70f40193e00fa299d5f3a1ce169adc52dcd1bbf80863bc74"
 }

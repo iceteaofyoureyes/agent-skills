@@ -6,14 +6,14 @@ Kit kết hợp workflow theo vai trò với các skill có thể tái sử dụ
 |---|---|---|
 | BA Kit | **1.0.0-rc.1 Public Preview** | [BA Kit](ba/README.md) |
 | Dev Kit | Planned; chưa triển khai | — |
-| Test Kit | Test Kit V1 Core, XMind Projection V1 và Excel Projection V1 **đã được Human chấp nhận như framework capabilities** | [Test Kit V1 status](../docs/design/test-kit-v1/README.md) |
+| Test Kit V1 | Core, XMind, Excel và package **đã được Human chấp nhận**; đã commit, chưa public release/tag | [Test Kit](test/README.md) · [Quick Start](../docs/vi/TEST_KIT_QUICKSTART.md) |
 
-Human acceptance áp dụng cho framework capabilities; điều đó không phê duyệt Test Design, Testcases hoặc Testware được tạo ra để dùng trong production. PetClinic hiện vẫn bị chặn bởi các execution dependency trọng yếu chưa được giải quyết.
+Human acceptance của framework không phê duyệt Test Design, Testcases hoặc Testware của một project. Production Case Gate vẫn cần receipt Human đã xác thực và không còn material OPEN execution dependency.
 
-Bắt đầu với [Hướng dẫn nhanh BA Kit](../docs/vi/BA_KIT_QUICKSTART.md), sau đó xem [Quy trình và Human Gate](../docs/vi/BA_KIT_WORKFLOW.md), [ví dụ CR-001](ba/examples/CR-001/README.md) và [Cài đặt](../docs/vi/INSTALLATION.md). Thành phần dùng chung được ghép qua manifest của BA Kit.
+Bắt đầu với [BA Quick Start](../docs/vi/BA_KIT_QUICKSTART.md) hoặc [Test Quick Start](../docs/vi/TEST_KIT_QUICKSTART.md). Test Kit có [khả năng](../docs/vi/TEST_KIT_CAPABILITIES.md), [tình huống](../docs/vi/TEST_KIT_USAGE_GUIDE.md), [workflow/Human Gates](../docs/vi/TEST_KIT_WORKFLOW.md), [CR-001 example](test/examples/CR-001/README.md) và [cài đặt](../docs/vi/INSTALLATION.md).
 
 English: [Kit documentation](../docs/en/README.md)
 
 ## Test Kit V1
 
-Install Test Kit independently with `tooling/install.ps1 -Kit test`. See [operator prerequisites, workflow, Human Gates, optional projections, upgrades, and removal](test/README.md). The Test Kit composition and explicit runtime file list are in [kits/test/kit.yaml](test/kit.yaml).
+Install Test Kit independently with `tooling/install.ps1 test --agent codex --scope project`. Its [manifest](test/kit.yaml) lists the exact installed assets. The packaged [operator README](test/README.md) remains part of the accepted package payload; detailed onboarding lives in the linked guides above.

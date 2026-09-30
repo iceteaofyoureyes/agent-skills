@@ -71,16 +71,15 @@ The workflow starts at the earliest safe checkpoint rather than forcing every re
 | BA Kit | **WHAT**? | RC1 candidate; remediation |
 | Engineering Impact | **WHERE / WHO OWNS**? | Planned |
 | Dev Kit + Spec Kit | **HOW**? | Planned |
-| Test Kit + TEA | **HOW DO WE PROVE IT**? | Planned |
+| Test Kit V1 | **HOW DO WE PROVE IT**? | Core/XMind/Excel/Packaging V1 Human accepted; package committed |
 
 ~~~text
-Requirement
-→ BA Kit
-→ Approved BA Baseline
-→ Engineering Impact
-→ Dev Kit + repo-local Spec Kit
-→ Test Kit + TEA
-→ Human Final Acceptance
+Requirement → BA Kit → Approved BA Baseline
+                         ├──→ Engineering Impact → Dev/Spec path (planned)
+                         └──→ Test Kit V1 → Canonical Test Design
+                                        → Human Design Gate
+                                        → Canonical Testcases
+                                        → Human Case Gate → APPROVED_TESTWARE → STOP_V1
 ~~~
 
 ## Required vs optional

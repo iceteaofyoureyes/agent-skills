@@ -2,6 +2,8 @@
 
 Vietnamese is the primary user-facing documentation. This English set is maintained as a semantically equivalent secondary version.
 
+Test Kit V1 has an [English overview](TEST_KIT_README.md). Its complete operator guides are currently maintained in Vietnamese: [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [usage scenarios](../vi/TEST_KIT_USAGE_GUIDE.md), and [workflow](../vi/TEST_KIT_WORKFLOW.md).
+
 ## If you are new
 
 1. [Quick Start](BA_KIT_QUICKSTART.md)
