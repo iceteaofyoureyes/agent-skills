@@ -1,0 +1,27 @@
+# Test Kit V1 package integrity hashes raw source bytes.
+# Keep every manifest-selected Test Kit source stable across Windows/Linux checkouts.
+
+kits/test/README.md text eol=lf
+kits/test/kit.yaml text eol=lf
+kits/test/package-authority.json text eol=lf
+kits/test/licenses/** text eol=lf
+kits/test/skills/** text eol=lf
+
+tooling/__init__.py text eol=lf
+tooling/lib/__init__.py text eol=lf
+tooling/lib/codex_cli.py text eol=lf
+tooling/lib/test_kit_v1*.py text eol=lf
+tooling/pins/tea-test-design-v1.json text eol=lf
+tooling/pins/katalon-create-test-cases-v1.json text eol=lf
+tooling/pins/test-only-provenance-relocations-v1.json text eol=lf
+tooling/pins/testcase-excel-default-v1.json text eol=lf
+tooling/pins/xmind-sdk-v1.json text eol=lf
+tooling/pins/xmind-human-facing-profile-v1.json text eol=lf
+tooling/requirements-excel.txt text eol=lf
+tooling/requirements-excel.lock text eol=lf
+tooling/xmind/package.json text eol=lf
+tooling/xmind/package-lock.json text eol=lf
+tooling/xmind/serialize.js text eol=lf
+
+ba-workflow/scripts/contracts.py text eol=lf
+LICENSE text eol=lf
