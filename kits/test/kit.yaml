@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "id": "test",
+  "name": "Test Kit",
+  "version": "1.0.0",
+  "workflow": {
+    "skill": "test-kit"
+  },
+  "core": [],
+  "skills": {
+    "required": [
+      "bmad-testarch-test-design",
+      "create-test-cases"
+    ],
+    "optional": []
+  },
+  "skill_sources": {
+    "test-kit": "kits/test/skills/test-kit",
+    "bmad-testarch-test-design": "kits/test/skills/bmad-testarch-test-design",
+    "create-test-cases": "kits/test/skills/create-test-cases"
+  },
+  "files": [
+    {
+      "source": "kits/test/README.md",
+      "destination": ".test-kit/README.md",
+      "classification": "OPERATOR_DOCUMENTATION",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/licenses/README.md",
+      "destination": ".test-kit/licenses/README.md",
+      "classification": "PROVENANCE_LICENSE",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/licenses/tea-test-design-v1.LICENSE",
+      "destination": ".test-kit/licenses/tea-test-design-v1.LICENSE",
+      "classification": "PROVENANCE_LICENSE",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/licenses/tea-test-design-v1-provenance.md",
+      "destination": ".test-kit/licenses/tea-test-design-v1-provenance.md",
+      "classification": "PROVENANCE_LICENSE",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/licenses/katalon-true-skills.LICENSE",
+      "destination": ".test-kit/licenses/katalon-true-skills.LICENSE",
+      "classification": "PROVENANCE_LICENSE",
+      "capability": "core"
+    },
+    {
+      "source": "LICENSE",
+      "destination": ".test-kit/licenses/agent-skills.LICENSE",
+      "classification": "PROVENANCE_LICENSE",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/kit.yaml",
+      "destination": ".test-kit/kit.yaml",
+      "classification": "PACKAGE_MANIFEST",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/package-authority.json",
+      "destination": ".test-kit/package-authority.json",
+      "classification": "PACKAGE_AUTHORITY",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/__init__.py",
+      "destination": ".test-kit/tooling/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/__init__.py",
+      "destination": ".test-kit/tooling/lib/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/test_kit_v1.py",
+      "destination": ".test-kit/tooling/lib/test_kit_v1.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/test_kit_v1_cases.py",
+      "destination": ".test-kit/tooling/lib/test_kit_v1_cases.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/codex_cli.py",
+      "destination": ".test-kit/tooling/lib/codex_cli.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "ba-workflow/scripts/contracts.py",
+      "destination": ".test-kit/ba-workflow/scripts/contracts.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/pins/tea-test-design-v1.json",
+      "destination": ".test-kit/tooling/pins/tea-test-design-v1.json",
+      "classification": "PINNED_RUNTIME_DATA",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/pins/katalon-create-test-cases-v1.json",
+      "destination": ".test-kit/tooling/pins/katalon-create-test-cases-v1.json",
+      "classification": "PINNED_RUNTIME_DATA",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/pins/test-only-provenance-relocations-v1.json",
+      "destination": ".test-kit/tooling/pins/test-only-provenance-relocations-v1.json",
+      "classification": "GATE_VALIDATION_DATA",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/test_kit_v1_excel.py",
+      "destination": ".test-kit/tooling/lib/test_kit_v1_excel.py",
+      "classification": "OPTIONAL_RUNTIME",
+      "capability": "excel_projection"
+    },
+    {
+      "source": "tooling/pins/testcase-excel-default-v1.json",
+      "destination": ".test-kit/tooling/pins/testcase-excel-default-v1.json",
+      "classification": "OPTIONAL_PROJECTION_PROFILE",
+      "capability": "excel_projection"
+    },
+    {
+      "source": "tooling/requirements-excel.txt",
+      "destination": ".test-kit/tooling/requirements-excel.txt",
+      "classification": "OPTIONAL_DEPENDENCY_METADATA",
+      "capability": "excel_projection"
+    },
+    {
+      "source": "tooling/requirements-excel.lock",
+      "destination": ".test-kit/tooling/requirements-excel.lock",
+      "classification": "OPTIONAL_DEPENDENCY_LOCK",
+      "capability": "excel_projection"
+    },
+    {
+      "source": "tooling/lib/test_kit_v1_xmind.py",
+      "destination": ".test-kit/tooling/lib/test_kit_v1_xmind.py",
+      "classification": "OPTIONAL_RUNTIME",
+      "capability": "xmind_projection"
+    },
+    {
+      "source": "tooling/pins/xmind-sdk-v1.json",
+      "destination": ".test-kit/tooling/pins/xmind-sdk-v1.json",
+      "classification": "OPTIONAL_DEPENDENCY_PIN",
+      "capability": "xmind_projection"
+    },
+    {
+      "source": "tooling/pins/xmind-human-facing-profile-v1.json",
+      "destination": ".test-kit/tooling/pins/xmind-human-facing-profile-v1.json",
+      "classification": "OPTIONAL_PROJECTION_PROFILE",
+      "capability": "xmind_projection,excel_projection"
+    },
+    {
+      "source": "tooling/xmind/package.json",
+      "destination": ".test-kit/tooling/xmind/package.json",
+      "classification": "OPTIONAL_DEPENDENCY_METADATA",
+      "capability": "xmind_projection"
+    },
+    {
+      "source": "tooling/xmind/package-lock.json",
+      "destination": ".test-kit/tooling/xmind/package-lock.json",
+      "classification": "OPTIONAL_DEPENDENCY_LOCK",
+      "capability": "xmind_projection"
+    },
+    {
+      "source": "tooling/xmind/serialize.js",
+      "destination": ".test-kit/tooling/xmind/serialize.js",
+      "classification": "OPTIONAL_RUNTIME",
+      "capability": "xmind_projection"
+    }
+  ],
+  "capabilities": {
+    "core": "required",
+    "xmind_projection": "optional",
+    "excel_projection": "optional"
+  },
+  "prerequisites": {
+    "python": [
+      3,
+      10
+    ]
+  },
+  "agents": [
+    "codex"
+  ],
+  "scopes": [
+    "project"
+  ],
+  "dependencies": [
+    {
+      "id": "python",
+      "version": ">=3.10",
+      "required": true,
+      "capability": "core",
+      "source": "operator-managed"
+    },
+    {
+      "id": "codex-cli",
+      "version": "operator-managed",
+      "required": true,
+      "capability": "native TEA and Katalon invocation",
+      "source": "TEST_KIT_CODEX_COMMAND, then PATH"
+    },
+    {
+      "id": "bmad-testarch-test-design",
+      "version": "1f53e9095061ab66f3c35abd9b98baf0f50cf8fe",
+      "required": true,
+      "capability": "core",
+      "source": "bundled pinned skill"
+    },
+    {
+      "id": "create-test-cases",
+      "version": "e6cdd774f66ce9d45ea5904101a96203e3a37581",
+      "required": true,
+      "capability": "core",
+      "source": "bundled pinned skill"
+    },
+    {
+      "id": "openpyxl",
+      "version": "3.1.5",
+      "required": false,
+      "capability": "excel_projection",
+      "source": "requirements-excel.lock"
+    },
+    {
+      "id": "et-xmlfile",
+      "version": "2.0.0",
+      "required": false,
+      "capability": "excel_projection",
+      "source": "requirements-excel.lock"
+    },
+    {
+      "id": "node",
+      "version": ">=18",
+      "required": false,
+      "capability": "xmind_projection",
+      "source": "operator-managed PATH"
+    },
+    {
+      "id": "npm",
+      "version": ">=9",
+      "required": false,
+      "capability": "xmind_projection",
+      "source": "operator-managed PATH"
+    },
+    {
+      "id": "xmind",
+      "version": "2.2.33",
+      "required": false,
+      "capability": "xmind_projection",
+      "integrity": "sha512-0+kolKxRcif0v4EFFE6Tl+7mPlp7s4t4gHZl8PXWY05M469TFqwHWk9eaPfAeCL5GmeQGTWVoA5+rmj779thCg==",
+      "source": "package-lock.json"
+    }
+  ],
+  "install_metadata": {
+    "source_repository": "agent-skills"
+  },
+  "integrity": {
+    "authority": {
+      "path": ".test-kit/package-authority.json",
+      "sha256": "e019dafc60441110b1423f0bbb1a95cc16cd73e91b4d3452f66ee6000e0cd249"
+    },
+    "payload": {
+      "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
+      "sha256": "8a6573fe91bcee1c6fc4b832b71c0a23f244f6e6a02f1809826207930ba693f5"
+    }
+  }
+}

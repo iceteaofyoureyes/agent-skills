@@ -1,0 +1,8 @@
+{
+  "fixture_type": "TEST_ONLY_EXECUTION_ORACLE_RESOLUTION",
+  "not_for_production": true,
+  "case_id": "TC-006",
+  "dependency_need": "đường dẫn truy cập chức năng tạo, cách nhập và kiểm soát mốc thời gian hiện tại theo Asia/Ho_Chi_Minh, ánh xạ thời điểm nhập vào thời điểm bắt đầu, và cách quan sát việc không tạo bản ghi.",
+  "fixture_id": "TEST_ONLY-FIXTURE-TC-006-006",
+  "resolution": "TEST_ONLY fixture setup mapping: use TEST_ONLY-FIXTURE-TC-006-006 for this execution dependency; no business expected behavior is defined."
+}

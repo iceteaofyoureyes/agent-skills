@@ -1,0 +1,60 @@
+{
+  "profile": "HUMAN_FACING_XMIND_PROFILE",
+  "version": "1.3.0",
+  "layout": "LOGIC_CHART_RIGHT",
+  "machine_notes_allowed": false,
+  "machine_labels_allowed": false,
+  "machine_visible_metadata_allowed": false,
+  "traceability_location": "EXTERNAL_PROJECTION_MANIFEST",
+  "layout": "LOGIC_CHART_RIGHT",
+  "machine_notes_allowed": false,
+  "machine_labels_allowed": false,
+  "machine_visible_metadata_allowed": false,
+  "traceability_location": "EXTERNAL_PROJECTION_MANIFEST",
+  "functional_groups": [
+    {"functional_ref": "FR-001", "label": "Tạo lịch hẹn", "source_phrase": "Clinic Staff có thể tạo Appointment"},
+    {"functional_ref": "FR-002", "label": "Kiểm tra xung đột lịch", "source_phrase": "không được chồng lấn Appointment Scheduled khác của cùng Veterinarian"},
+    {"functional_ref": "FR-003", "label": "Chỉnh sửa / Đổi lịch", "source_phrase": "chỉ được chỉnh sửa hoặc đổi lịch Appointment"},
+    {"functional_ref": "FR-004", "label": "Hủy lịch hẹn", "source_phrase": "chỉ được hủy Appointment"},
+    {"functional_ref": "FR-005", "label": "Hoàn tất lịch hẹn", "source_phrase": "chỉ được hoàn tất Appointment"},
+    {"functional_ref": "FR-006", "label": "Xem lịch hẹn", "source_phrase": "có thể xem Appointment"}
+  ],
+  "business_rule_group_refs": [
+    {"business_rule_ref": "BR-006", "functional_ref": "FR-002", "source_phrase": "đối chiếu xung đột"},
+    {"business_rule_ref": "BR-013", "functional_ref": "FR-002", "source_phrase": "đặt đồng thời"}
+  ],
+  "scenario_overrides": {
+    "CR-001-test-design": {
+      "TC-011": {
+        "functional_ref": "FR-003",
+        "source_phrase": "đổi lịch"
+      }
+    }
+  },
+  "scenario_presentations": {
+    "CR-001-test-design": {
+      "TC-017": {
+        "visible_title": "Kiểm tra giới hạn thời lượng tối đa của Appointment",
+        "source_phrase": "thời lượng tối đa"
+      },
+      "TC-018": {
+        "visible_title": "Kiểm tra bộ lọc, sắp xếp và phân trang Appointment",
+        "source_phrase": "bộ lọc, sắp xếp và phân trang"
+      }
+    }
+  },
+  "open_question_presentations": [
+    {
+      "canonical_text": "Thời lượng tối đa là UNKNOWN.",
+      "visible_text": "Thời lượng tối đa chưa được xác định."
+    },
+    {
+      "canonical_text": "Bộ lọc, sắp xếp và phân trang vẫn UNKNOWN, chờ BA quyết định.",
+      "visible_text": "Bộ lọc, sắp xếp và phân trang chưa được xác định."
+    },
+    {
+      "canonical_text": "Bộ lọc, sắp xếp và phân trang vẫn UNKNOWN.",
+      "visible_text": "Bộ lọc, sắp xếp và phân trang chưa được xác định."
+    }
+  ]
+}

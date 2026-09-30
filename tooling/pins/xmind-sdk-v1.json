@@ -1,0 +1,8 @@
+{
+  "package": "xmind",
+  "version": "2.2.33",
+  "repository": "https://github.com/xmindltd/xmind-sdk-js",
+  "revision": "e5f8a6cfde44b813967471a8e0bdde33c1747cc1",
+  "license": "MIT",
+  "integrity": "sha512-0+kolKxRcif0v4EFFE6Tl+7mPlp7s4t4gHZl8PXWY05M469TFqwHWk9eaPfAeCL5GmeQGTWVoA5+rmj779thCg=="
+}

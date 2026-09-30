@@ -1,0 +1,9 @@
+{
+  "status": "NORMALIZED",
+  "record_count": 18,
+  "artifact_id": "CR-001-test-design",
+  "artifact_revision": "1",
+  "artifact_sha256": "7b27d01ed8c9f77b030a1befb942362e80d407a23024d3546051928b6ec8f987",
+  "raw_evidence_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+  "raw_evidence_sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49"
+}

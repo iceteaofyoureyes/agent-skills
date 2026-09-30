@@ -4,3 +4,10 @@ Thumbs.db
 .skills-manager.lock
 __pycache__/
 *.pyc
+/tooling/xmind/node_modules/
+/.work/
+/.pytest_cache/
+/.coverage
+/coverage.xml
+/htmlcov/
+.uv-cache/

@@ -1,0 +1,12 @@
+user_name: Codex benchmark
+communication_language: Vietnamese
+document_output_language: Vietnamese
+output_folder: D:/AI/agent-skills/benchmark/test-kit/petclinic/tea-test-design/raw-output
+test_artifacts: D:/AI/agent-skills/benchmark/test-kit/petclinic/tea-test-design/raw-output
+test_stack_type: fullstack
+tea_use_playwright_utils: false
+tea_use_pactjs_utils: false
+tea_pact_mcp: none
+tea_browser_automation: none
+tea_execution_mode: sequential
+tea_capability_probe: false

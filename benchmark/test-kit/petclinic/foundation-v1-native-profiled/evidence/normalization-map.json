@@ -1,0 +1,662 @@
+{
+  "1.0-UNIT-001": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 208,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 208,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 208,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 208,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 208,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 208,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 208,
+      "field": "scenario row"
+    }
+  },
+  "1.0-UNIT-002": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 209,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 209,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 209,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 209,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 209,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 209,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 209,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-001": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 210,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 210,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 210,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 210,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 210,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 210,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 210,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-002": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 211,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 211,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 211,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 211,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 211,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 211,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 211,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-003": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 212,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 212,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 212,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 212,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 212,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 212,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 212,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-004": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 213,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 213,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 213,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 213,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 213,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 213,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 213,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-005": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 214,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 214,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 214,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 214,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 214,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 214,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 214,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-006": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 215,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 215,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 215,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 215,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 215,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 215,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 215,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-007": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 216,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 216,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 216,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 216,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 216,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 216,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 216,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-008": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 217,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 217,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 217,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 217,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 217,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 217,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 217,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-009": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 218,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 218,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 218,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 218,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 218,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 218,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 218,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-010": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 219,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 219,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 219,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 219,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 219,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 219,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 219,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-011": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 220,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 220,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 220,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 220,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 220,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 220,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 220,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-012": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 221,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 221,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 221,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 221,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 221,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 221,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 221,
+      "field": "scenario row"
+    }
+  },
+  "1.0-E2E-013": {
+    "design_id": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 222,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 222,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 222,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 222,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 222,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 222,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "benchmark\\test-kit\\petclinic\\foundation-v1-native-profiled\\evidence\\tea-generated-completed.md",
+      "sha256": "6c0e0096f32cc07c4e1fe8e97ae12cb4e711902c2ead524e673983fa790cb55c",
+      "line": 222,
+      "field": "scenario row"
+    }
+  }
+}

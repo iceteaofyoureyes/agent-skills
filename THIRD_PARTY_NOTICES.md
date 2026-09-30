@@ -97,6 +97,46 @@ This index records third-party components and license locations. Third-party ski
 
 ## Other repository components
 
+### XMind JavaScript SDK
+
+- Component: optional Test Kit V1 XMind projection serializer
+- Package: `xmind@2.2.33` (exact; lockfile in `tooling/xmind/package-lock.json`)
+- Source: https://github.com/xmindltd/xmind-sdk-js/tree/e5f8a6cfde44b813967471a8e0bdde33c1747cc1
+- npm integrity: `sha512-0+kolKxRcif0v4EFFE6Tl+7mPlp7s4t4gHZl8PXWY05M469TFqwHWk9eaPfAeCL5GmeQGTWVoA5+rmj779thCg==`
+- License: MIT; Copyright (c) 2019 - 2023 Xmind Ltd.
+- Local adaptation: exporter and SDK bridge are project-owned; upstream SDK implementation is not copied
+- License location: installed npm package `xmind/LICENSE`
+
+### Excel projection Python dependencies
+
+- `openpyxl==3.1.5` (`tooling/requirements-excel.lock`)
+  - Upstream: https://foss.heptapod.net/openpyxl/openpyxl, release `3.1.5`; PyPI: https://pypi.org/project/openpyxl/3.1.5/
+  - License: MIT
+  - Wheel integrity: `sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2`
+- `et-xmlfile==2.0.0` (openpyxl runtime dependency; `tooling/requirements-excel.lock`)
+  - Upstream: https://foss.heptapod.net/openpyxl/et_xmlfile, release `v2.0.0`; PyPI: https://pypi.org/project/et-xmlfile/2.0.0/
+  - License: MIT
+- Wheel integrity: `sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa`
+
+### BMAD TEA runtime skill
+
+- Component: byte-exact pinned TEA workflow skill bundled for native Test Kit V1 invocation
+- Source: `bmad-code-org/bmad-method-test-architecture-enterprise`, commit `1f53e9095061ab66f3c35abd9b98baf0f50cf8fe`
+- Source path: `src/workflows/testarch/bmad-testarch-test-design/`
+- Bundled skill: `kits/test/skills/bmad-testarch-test-design/`; per-file SHA-256 values are in `tooling/pins/tea-test-design-v1.json`
+- License: MIT; Copyright (c) 2025 BMad Code, LLC
+- License location: `kits/test/licenses/tea-test-design-v1.LICENSE`
+- Local changes: none to upstream skill bytes
+
+### Katalon create-test-cases skill
+
+- Component: required pinned native skill for Test Kit V1 testcase generation
+- Source: `katalon-labs/true-skills`, commit `e6cdd774f66ce9d45ea5904101a96203e3a37581`
+- Local bundled skill: `kits/test/skills/create-test-cases/`
+- Per-file SHA-256 values: `tooling/pins/katalon-create-test-cases-v1.json`
+- License: MIT; Copyright (c) 2026 Katalon, Inc.
+- License location: `kits/test/licenses/katalon-true-skills.LICENSE`
+
 ### webapp-testing
 
 - Source: https://github.com/anthropics/skills/tree/34040c9c568585f6929bedeaad110ad08f079624/skills/webapp-testing

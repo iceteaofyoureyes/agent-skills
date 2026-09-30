@@ -1,0 +1,19 @@
+{
+  "status": "NORMALIZED",
+  "profile": "native-v1",
+  "findings": [],
+  "evidence": [
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\katalon-finalized\\canonical\\canonical-testcases.json",
+      "sha256": "569890e80d5d7993cf85b0777d958887d36ea79c01477c3509d59e6e7fa808d4",
+      "line": null,
+      "field": "canonical_testcases"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\katalon-finalized\\canonical\\semantic-payload.json",
+      "sha256": "bf85124d5f32cc3cee063ef84ac1b718a66cec9c9273316c4e3bd0a8e991db55",
+      "line": null,
+      "field": "semantic_payload"
+    }
+  ]
+}

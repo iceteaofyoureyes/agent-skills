@@ -41,7 +41,7 @@ Repository **không** claim:
 | [DiUS/agent-toolkit](https://github.com/DiUS/agent-toolkit) | **UPSTREAM CAPABILITY SOURCE** | `codebase-discovery` | Brownfield/current-code discovery capability | Cách BA Kit phân loại CURRENT_SYSTEM và ngăn current behavior tự trở thành target requirement |
 | [GitHub Spec Kit](https://github.com/github/spec-kit) | **PLANNED INTEGRATION** | Dev Kit downstream | Spec-driven development: specification → plan → tasks → implementation/convergence; tách “what/why” trước “how” | Engineering Impact chạy trước Spec Kit; central BA truth; Spec Kit per affected repo |
 | [BMad Method](https://docs.bmad-method.org/) | **DESIGN INFLUENCE** | Cross-session/project workflow thinking | Human giữ quyền quyết định; existing-codebase-first; context/decision được duy trì có chủ đích | 3-Kit product model, BA semantic authority, Impact contract và installer architecture |
-| [BMad Test Architect (TEA)](https://github.com/bmad-code-org/bmad-method-test-architecture-enterprise) | **PLANNED INTEGRATION / DESIGN INFLUENCE** | Test Kit downstream | Risk-based test design, traceability, quality/release gates; stack-neutral verification core tách khỏi execution target | BA→Test direct business trace, enterprise manual-test-first workflow và final Test Kit composition |
+| [BMad Test Architect (TEA)](https://github.com/bmad-code-org/bmad-method-test-architecture-enterprise) | **BUNDLED IN TEST KIT V1 / DESIGN INFLUENCE FOR BA** | Test Kit riêng, hạ nguồn BA | Risk-based test design, traceability, quality/release gates; stack-neutral verification core tách khỏi execution target | BA→Test direct business trace, enterprise manual-test-first workflow và final Test Kit composition |
 
 ## 1. Agent Skills — format được ADOPT
 
@@ -180,7 +180,7 @@ BMad hiện nhấn mạnh việc Human “make the calls”, hỗ trợ existing
 
 BA Kit không dùng runtime/workflow engine của BMad và không phải derivative implementation của BMad Method. Vì vậy mức claim là **DESIGN INFLUENCE**.
 
-## 7. TEA — nền tảng dự kiến cho Test Kit
+## 7. TEA — nền tảng của Test Kit V1
 
 BMad Test Architect (TEA) hiện mô tả một verification architecture hai lớp:
 
@@ -209,7 +209,7 @@ Automation / Regression
 Quality Evidence
 ~~~
 
-Tuy nhiên Test Kit chưa được triển khai/freeze. TEA hiện chỉ là **PLANNED INTEGRATION / DESIGN INFLUENCE**, không phải capability của BA Kit RC1.
+Test Kit V1 hiện đã triển khai/được Human chấp nhận như Kit riêng; TEA được bundle làm native analysis input, không phải capability của BA Kit RC1. Sơ đồ trên là hướng tham chiếu rộng hơn: **V1 dừng tại manual APPROVED_TESTWARE/STOP_V1**; Execution/Automation/Quality Evidence thuộc phase hạ nguồn, không nằm trong Test Kit V1. Xem [Test Kit workflow](TEST_KIT_WORKFLOW.md).
 
 ## 8. Các quyết định INTERNAL DESIGN phải tự chứng minh
 

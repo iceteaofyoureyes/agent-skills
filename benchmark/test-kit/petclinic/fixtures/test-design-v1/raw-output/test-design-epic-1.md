@@ -1,0 +1,3 @@
+Đã tạo [test-design-epic-1.md](D:/AI/agent-skills/benchmark/test-kit/petclinic/final-remediation/run-2026-09-26-luna-targeted-r4/petclinic-open/tea/raw-output/test-design-epic-1.md). Workflow dùng skill cục bộ tại pinned commit `1f53e9095061ab66f3c35abd9b98baf0f50cf8fe`; script resolver không có trong project nên đã dùng bước dự phòng được quy định trong workflow.
+
+Tài liệu giữ nguyên FR/BR, có 18 hàng Test ID duy nhất và đánh dấu các ca phụ thuộc quyết định BA là deferred. Không chạy test, sửa PetClinic source hay đưa ra release verdict.

@@ -41,7 +41,7 @@ The repository does **not** claim:
 | [DiUS/agent-toolkit](https://github.com/DiUS/agent-toolkit) | **UPSTREAM CAPABILITY SOURCE** | `codebase-discovery` | Brownfield/current-code discovery capability | BA Kit's CURRENT_SYSTEM semantics and protection against silently promoting current behavior into target requirements |
 | [GitHub Spec Kit](https://github.com/github/spec-kit) | **PLANNED INTEGRATION** | Downstream Dev Kit | Spec-driven development: specification → plan → tasks → implementation/convergence; separate what/why before how | Engineering Impact before Spec Kit; central BA truth; Spec Kit per affected repository |
 | [BMad Method](https://docs.bmad-method.org/) | **DESIGN INFLUENCE** | Cross-session/project workflow thinking | Human keeps decision authority; existing-codebase-first; deliberate project/context preservation | Three-Kit product model, BA semantic authority, Impact contract, installer architecture |
-| [BMad Test Architect (TEA)](https://github.com/bmad-code-org/bmad-method-test-architecture-enterprise) | **PLANNED INTEGRATION / DESIGN INFLUENCE** | Downstream Test Kit | Risk-based test design, traceability, quality/release gates; stack-neutral verification core separated from execution targets | Direct BA→Test business trace, enterprise manual-test-first workflow, final Test Kit composition |
+| [BMad Test Architect (TEA)](https://github.com/bmad-code-org/bmad-method-test-architecture-enterprise) | **BUNDLED IN TEST KIT V1 / DESIGN INFLUENCE FOR BA** | Separate downstream Test Kit | Risk-based test design, traceability, quality/release gates; stack-neutral verification core separated from execution targets | Direct BA→Test business trace, enterprise manual-test-first workflow, final Test Kit composition |
 
 ## 1. Agent Skills — adopted packaging format
 
@@ -180,7 +180,7 @@ Current BMad documentation emphasizes that the Human makes the calls, supports e
 
 BA Kit does not use BMad's runtime/workflow engine and is not a derivative implementation of BMad Method. The claim is **DESIGN INFLUENCE**.
 
-## 7. TEA — planned Test Kit foundation
+## 7. TEA — Test Kit V1 foundation
 
 BMad Test Architect (TEA) currently documents a two-layer verification architecture:
 
@@ -209,7 +209,7 @@ Automation / Regression
 Quality Evidence
 ~~~
 
-Test Kit has not yet been implemented or frozen. TEA is currently only **PLANNED INTEGRATION / DESIGN INFLUENCE**, not a BA Kit RC1 capability.
+Test Kit V1 is now implemented and Human accepted as a separate Kit; bundled TEA provides native analysis input, not a BA Kit RC1 capability. The wider diagram above is historical design context: **V1 stops at approved manual testware/STOP_V1**. Execution, automation, and quality evidence belong to later work. See the [Test Kit overview](TEST_KIT_README.md).
 
 ## 8. INTERNAL DESIGN decisions must stand on local evidence
 

@@ -1,0 +1,10 @@
+{
+  "fixture_type": "TEST_ONLY_EXECUTION_ORACLE_APPROVAL",
+  "not_for_production": true,
+  "decision": "APPROVE",
+  "actor_id": "TEST_ONLY:execution-oracle-human",
+  "actor_role": "HUMAN",
+  "source_id": "TEST_ONLY:EXECUTION:TC-001:001",
+  "source_revision": "TEST_ONLY-fixture-v1",
+  "source_sha256": "fa4f1e77d14c11f904e3190a99d3128bd90c68a63710a3776fd9b1ed803fdf29"
+}

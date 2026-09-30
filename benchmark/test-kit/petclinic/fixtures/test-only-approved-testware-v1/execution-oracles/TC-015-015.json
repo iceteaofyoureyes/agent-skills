@@ -1,0 +1,8 @@
+{
+  "fixture_type": "TEST_ONLY_EXECUTION_ORACLE_RESOLUTION",
+  "not_for_production": true,
+  "case_id": "TC-015",
+  "dependency_need": "đường dẫn truy cập chức năng tạo, thao tác thiết lập hai lịch, ánh xạ thời điểm bắt đầu/thời lượng sang khoảng chồng lấn, và cách quan sát kết quả lưu.",
+  "fixture_id": "TEST_ONLY-FIXTURE-TC-015-015",
+  "resolution": "TEST_ONLY fixture setup mapping: use TEST_ONLY-FIXTURE-TC-015-015 for this execution dependency; no business expected behavior is defined."
+}

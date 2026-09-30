@@ -2,13 +2,13 @@
 
 ## Mục tiêu
 
-BA Kit tổ chức các atomic skills thành một workflow cho BA mà vẫn giữ Human làm business authority.
+BA Kit tổ chức atomic skills cho business analysis; Test Kit V1 tổ chức native test analysis và manual testware. Human vẫn sở hữu business decision và từng approval gate.
 
 ~~~text
 BA Kit = WHAT
 Engineering Impact = WHERE / WHO OWNS
-Dev Kit + repo-local Spec Kit = HOW
-Test Kit + TEA = HOW DO WE PROVE IT
+Dev Kit + repo-local Spec Kit = HOW (planned)
+Test Kit V1 + TEA/Katalon = HOW DO WE PROVE IT
 ~~~
 
 ## Layer
@@ -55,6 +55,8 @@ CURRENT_SYSTEM evidence
 
 DOCX, Draw.io và prototype là derived artifacts; semantic change phải quay về semantic authority trước.
 
+Test Kit nhận **Approved BA Baseline** trực tiếp. TEA là analysis/advisory; Canonical Test Design được Human duyệt là coverage authority; Canonical Testcases được Human duyệt là manual testware authority. XMind/Excel là derived projections, không reverse import. P0–P3 là priority tư vấn, không có quyền thay BA rule hoặc Human Gate.
+
 ## Project modes
 
 - brownfield;
@@ -68,19 +70,19 @@ Workflow không bắt mọi request chạy full pipeline; nó bắt đầu từ 
 
 | Stage | Question | Status |
 |---|---|---|
-| BA Kit | **WHAT**? | RC1 candidate; remediation |
+| BA Kit | **WHAT**? | 1.0.0-rc.1 Public Preview; trạng thái BA riêng |
 | Engineering Impact | **WHERE / WHO OWNS**? | Planned |
 | Dev Kit + Spec Kit | **HOW**? | Planned |
-| Test Kit + TEA | **HOW DO WE PROVE IT**? | Planned |
+| Test Kit V1 | **HOW DO WE PROVE IT**? | Core, XMind, Excel, Packaging V1 Human accepted; package đã commit |
 
 ~~~text
-Requirement
-→ BA Kit
-→ Approved BA Baseline
-→ Engineering Impact
-→ Dev Kit + repo-local Spec Kit
-→ Test Kit + TEA
-→ Human Final Acceptance
+Requirement → BA Kit → Approved BA Baseline
+                         ├──→ Engineering Impact → Dev/Spec path (planned)
+                         └──→ Test Kit V1 → Canonical Test Design
+                                        → Human Design Gate
+                                        → Canonical Testcases
+                                        → Human Case Gate
+                                        → APPROVED_TESTWARE → STOP_V1
 ~~~
 
 ## Required vs optional
@@ -109,6 +111,8 @@ Engineering Handoff chỉ xuất hiện sau explicit BA approval và không ch�
 - locking/transaction strategy.
 
 Đó là input cho Engineering Impact.
+
+Test Kit không đòi output của Dev Kit để bắt đầu: approved BA handoff và hashed sources là đủ cho Test Design. Nếu testcase cần API/UI/setup/observation contract chưa duyệt, nó khai báo execution dependency; material `OPEN` chặn Case Gate approval. Xem [Test Kit workflow](TEST_KIT_WORKFLOW.md).
 
 ## Nguồn nền tảng
 

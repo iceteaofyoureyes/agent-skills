@@ -1,4 +1,8 @@
-# BA Kit RC1 provenance and redistribution
+# Provenance and redistribution
+
+Test Kit V1 source pins and license locations are indexed in [Vietnamese Test Kit provenance](../vi/PROVENANCE.md), [Test Kit licenses](../../kits/test/licenses/README.md), and [third-party notices](../../THIRD_PARTY_NOTICES.md). Exact TEA and Katalon revisions live in their pin files; optional XMind and Excel dependencies use committed lock/hash data.
+
+## BA Kit RC1
 
 ## Audit basis
 

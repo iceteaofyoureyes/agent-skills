@@ -1,0 +1,794 @@
+{
+  "TC-001": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 160,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 160,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 160,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 160,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 160,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 160,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 160,
+      "field": "scenario row"
+    }
+  },
+  "TC-002": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 161,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 161,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 161,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 161,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 161,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 161,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 161,
+      "field": "scenario row"
+    }
+  },
+  "TC-003": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 162,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 162,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 162,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 162,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 162,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 162,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 162,
+      "field": "scenario row"
+    }
+  },
+  "TC-004": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 163,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 163,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 163,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 163,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 163,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 163,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 163,
+      "field": "scenario row"
+    }
+  },
+  "TC-005": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 169,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 169,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 169,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 169,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 169,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 169,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 169,
+      "field": "scenario row"
+    }
+  },
+  "TC-006": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 170,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 170,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 170,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 170,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 170,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 170,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 170,
+      "field": "scenario row"
+    }
+  },
+  "TC-007": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 171,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 171,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 171,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 171,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 171,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 171,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 171,
+      "field": "scenario row"
+    }
+  },
+  "TC-008": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 172,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 172,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 172,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 172,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 172,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 172,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 172,
+      "field": "scenario row"
+    }
+  },
+  "TC-009": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 173,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 173,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 173,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 173,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 173,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 173,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 173,
+      "field": "scenario row"
+    }
+  },
+  "TC-010": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 174,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 174,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 174,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 174,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 174,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 174,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 174,
+      "field": "scenario row"
+    }
+  },
+  "TC-011": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 175,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 175,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 175,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 175,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 175,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 175,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 175,
+      "field": "scenario row"
+    }
+  },
+  "TC-012": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 176,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 176,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 176,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 176,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 176,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 176,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 176,
+      "field": "scenario row"
+    }
+  },
+  "TC-013": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 177,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 177,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 177,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 177,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 177,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 177,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 177,
+      "field": "scenario row"
+    }
+  },
+  "TC-014": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 178,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 178,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 178,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 178,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 178,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 178,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 178,
+      "field": "scenario row"
+    }
+  },
+  "TC-015": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 184,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 184,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 184,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 184,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 184,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 184,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 184,
+      "field": "scenario row"
+    }
+  },
+  "TC-016": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 185,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 185,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 185,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 185,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 185,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 185,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 185,
+      "field": "scenario row"
+    }
+  },
+  "TC-017": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 186,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 186,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 186,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 186,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 186,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 186,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 186,
+      "field": "scenario row"
+    }
+  },
+  "TC-018": {
+    "design_id": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 187,
+      "field": "scenario row"
+    },
+    "hierarchy_path": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 187,
+      "field": "scenario row"
+    },
+    "scenario_title": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 187,
+      "field": "scenario row"
+    },
+    "expected_behavior": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 187,
+      "field": "Kết quả quan sát được"
+    },
+    "requirement_refs": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 187,
+      "field": "Truy vết"
+    },
+    "open_questions": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 187,
+      "field": "scenario row"
+    },
+    "review_status": {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+      "sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+      "line": 187,
+      "field": "scenario row"
+    }
+  }
+}

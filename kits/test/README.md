@@ -1,0 +1,99 @@
+# Test Kit V1
+
+**Test Kit = HOW DO WE PROVE IT.** Test Kit V1 chuyển một BA baseline đã được phê duyệt thành manual testware có Human review. Human sở hữu cả hai approval gate.
+
+```text
+Approved BA Baseline
+→ TEA analysis
+→ Canonical Test Design
+→ Human Design Gate
+→ Canonical Testcases
+→ Human Case Gate
+→ APPROVED_TESTWARE
+→ STOP_V1
+```
+
+Các projection tùy chọn chỉ được tạo khi Human yêu cầu và là view một chiều từ canonical artifacts:
+
+```text
+Canonical Test Design → XMind projection
+Canonical Testcases   → Excel projection
+```
+
+Automation planning, execution, triage và automated evidence thuộc **Automation Test V2**, không nằm trong V1.
+
+## Bắt đầu
+
+Bộ operator guide đầy đủ được duy trì trong source repository và không được copy toàn bộ vào package cài đặt. README này đủ ngữ cảnh cơ bản khi được cài thành `.test-kit/README.md`.
+
+Trong repository, xem:
+
+- Quick Start — `docs/vi/TEST_KIT_QUICKSTART.md`
+- Capabilities và boundary — `docs/vi/TEST_KIT_CAPABILITIES.md`
+- Usage Guide theo tình huống — `docs/vi/TEST_KIT_USAGE_GUIDE.md`
+- Workflow và Human Gates — `docs/vi/TEST_KIT_WORKFLOW.md`
+- Ví dụ CR-001 — `kits/test/examples/CR-001/README.md`
+- [Installation và troubleshooting](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md) — `docs/vi/INSTALLATION.md`
+- [Provenance và license](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/PROVENANCE.md) — `docs/vi/PROVENANCE.md`
+- [Release status](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/RELEASE.md) — `docs/vi/RELEASE.md`
+- English overview — `docs/en/TEST_KIT_README.md`
+
+Repository: https://github.com/iceteaofyoureyes/agent-skills
+
+## Điều kiện và cài đặt
+
+Test Kit V1 hỗ trợ Codex ở project scope. Core cần Python 3.10+, Codex CLI và project có `_bmad/tea/config.yaml` tương thích với TEA skill đã pin. TEA và Katalon skills đã được bundle; install không tải lại chúng. Codex được resolve theo `TEST_KIT_CODEX_COMMAND`, sau đó `PATH`; explicit override không hợp lệ sẽ fail closed.
+
+Từ project đích, chạy script từ Agent Skills checkout:
+
+```powershell
+& '<path-to-agent-skills>\tooling\install.ps1' test --agent codex --scope project
+& '<path-to-agent-skills>\tooling\doctor.ps1' test --agent codex --scope project
+```
+
+```bash
+<path-to-agent-skills>/tooling/install.sh test --agent codex --scope project
+<path-to-agent-skills>/tooling/doctor.sh test --agent codex --scope project
+```
+
+Doctor kiểm tra integrity của package đã cài và phát hiện local drift hoặc metadata hỏng. Reinstall giữ lại managed files đã bị local edit; các edit đó không tự trở thành expected package bytes. Uninstall xóa các file do Test Kit sở hữu nếu chúng vẫn khớp expected bytes và giữ nguyên file không thuộc Test Kit. Xem [Installation](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md) để biết chi tiết.
+
+## Workflow và authority
+
+**TEA là analysis/advisory**, không phải Test Design authority. Adapter tạo và validate **Canonical Test Design**, sau đó dừng ở `DESIGN_REVIEW` để Human review. Chỉ approval hợp lệ cho đúng snapshot mới cho phép chuyển sang testcase generation.
+
+Pinned Katalon skill hỗ trợ sinh testcase; adapter validate **Canonical Testcases** rồi dừng ở `CASE_REVIEW`. Chỉ Human approval receipt hợp lệ cho đúng snapshot, đồng thời không còn material open execution dependency, mới tạo trạng thái `APPROVED_TESTWARE` và `STOP_V1`.
+
+`ANSWER`, `REVIEW`, `REQUEST_CHANGES`, `CONTINUE` và `APPROVE` là các ý định khác nhau. `Continue`, `Next`, `OK` hoặc `PASS` không tự động có nghĩa là approval. Agent không tự approve.
+
+Nếu BA baseline còn behavior chưa được quyết định, Test Kit giữ `UNKNOWN`/open question; không invent expected behavior để làm testcase trông hoàn chỉnh.
+
+## XMind và Excel
+
+XMind là projection một chiều từ Canonical Test Design. V1 dùng pinned presentation profile và **không nhận Human-supplied XMind template**; mapping/grouping mơ hồ trả `CANNOT_PROJECT_HUMAN_PROFILE`.
+
+Excel là projection một chiều từ Canonical Testcases và hỗ trợ precedence:
+
+```text
+HUMAN_SUPPLIED_APPROVED_TEMPLATE
+→ PROJECT_TEMPLATE
+→ DEFAULT_TEMPLATE
+```
+
+Mapping template mơ hồ trả `CANNOT_PROJECT_TEMPLATE`.
+
+XMind cần Node.js/npm và pinned SDK; Excel cần các Python projection dependencies đã hash-lock. Chỉ bootstrap capability tùy chọn khi thực sự được yêu cầu. Cả hai projection không thay đổi canonical artifacts hay gate state và không có reverse-import authority trong V1.
+
+## Phạm vi V1
+
+V1 tạo Human-reviewed Test Design và manual testcases, kèm XMind/Excel projection tùy chọn. V1 **không**:
+
+- chạy automated tests;
+- tạo execution evidence tự động;
+- quản lý flaky tests;
+- triage failure tự động;
+- tự động hóa defect handling.
+
+Các capability đó thuộc **Automation Test V2**.
+
+`TEST_ONLY` artifact không phải production-approved testware. Project thật vẫn cần Human gate hợp lệ cho snapshot hiện hành trước khi coi testware là approved.

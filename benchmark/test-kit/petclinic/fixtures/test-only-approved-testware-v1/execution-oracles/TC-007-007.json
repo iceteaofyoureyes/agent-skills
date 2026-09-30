@@ -1,0 +1,8 @@
+{
+  "fixture_type": "TEST_ONLY_EXECUTION_ORACLE_RESOLUTION",
+  "not_for_production": true,
+  "case_id": "TC-007",
+  "dependency_need": "đường dẫn truy cập chức năng tạo, ánh xạ giá trị nhập sang thời lượng, và cách quan sát việc không tạo bản ghi.",
+  "fixture_id": "TEST_ONLY-FIXTURE-TC-007-007",
+  "resolution": "TEST_ONLY fixture setup mapping: use TEST_ONLY-FIXTURE-TC-007-007 for this execution dependency; no business expected behavior is defined."
+}

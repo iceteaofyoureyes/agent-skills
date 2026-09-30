@@ -1,0 +1,412 @@
+{
+  "repository": "bmad-code-org/bmad-method-test-architecture-enterprise",
+  "commit": "1f53e9095061ab66f3c35abd9b98baf0f50cf8fe",
+  "capability": "bmad-testarch-test-design",
+  "installed_skill_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\runtime-projects\\tea\\.agents\\skills\\bmad-testarch-test-design",
+  "installed_skill_sha256": "ca933c020623c796a95ce9701039c2d5658fc3cc60f7768e2fdf556b1d0d506b",
+  "installed_skill_files": [
+    {
+      "path": "SKILL.md",
+      "sha256": "ca933c020623c796a95ce9701039c2d5658fc3cc60f7768e2fdf556b1d0d506b"
+    },
+    {
+      "path": "checklist.md",
+      "sha256": "89159973bf72d809484109b7c54c9c61136f072152add82211b6cac529aff499"
+    },
+    {
+      "path": "customize.toml",
+      "sha256": "1005e632a0a9ac176e99c32c49cf82067df84992f0e1fe7541e594704f1d5732"
+    },
+    {
+      "path": "instructions.md",
+      "sha256": "bd0759dfbca4e2cad958e0b4d378c11002ee90c849dcc5ee002e7c0773576b2d"
+    },
+    {
+      "path": "resources/knowledge/adr-quality-readiness-checklist.md",
+      "sha256": "a8129b16c3b2afbc1f58fe5edc73dc8f1291c172c6ca009d92f1947bef1a237e"
+    },
+    {
+      "path": "resources/knowledge/api-request.md",
+      "sha256": "28ef34b911b6d9cde3cb06367ecb6686f893236ed8f67975eaf6737f44f6e698"
+    },
+    {
+      "path": "resources/knowledge/api-testing-patterns.md",
+      "sha256": "5753ac9095991fec29f51f78a4152d7a39b6ba8a80f36f13413a50ef1c19c16d"
+    },
+    {
+      "path": "resources/knowledge/auth-session.md",
+      "sha256": "3b2ba3cdd58cf3decb3d427623ed43e070ff926b1c45abc0e7d0823ea3b85b1f"
+    },
+    {
+      "path": "resources/knowledge/burn-in.md",
+      "sha256": "6ad6b4fb23c9de2085c40e45defc782511b31ba7a0b85fdd6046265048ad17b2"
+    },
+    {
+      "path": "resources/knowledge/ci-burn-in.md",
+      "sha256": "224795cba3b6c5cfe6f4c85e6f99ade801d84a9f6edbff164a8b27fcc52370b1"
+    },
+    {
+      "path": "resources/knowledge/component-tdd.md",
+      "sha256": "265907160c95c8d7b2e9c05304665b68f3267b817920fff8afb131ec04184edb"
+    },
+    {
+      "path": "resources/knowledge/confidence-gate.md",
+      "sha256": "99df7e3ff38b6dd69f1c08de85b0d586aa9ac2dc1a33fcd4db682a78af4b4b67"
+    },
+    {
+      "path": "resources/knowledge/contract-testing.md",
+      "sha256": "da8ceb53fab22cd80270e3317a9fc7683b901c6303ac32a40022d7105f871f80"
+    },
+    {
+      "path": "resources/knowledge/data-factories.md",
+      "sha256": "036572ce6222b98829c681c9c2cebc54fa89d670356e4bc7d50e402af91f587d"
+    },
+    {
+      "path": "resources/knowledge/email-auth.md",
+      "sha256": "157996b68a3232f62a6911dd2cd336ca159098cf2210f991ae3e961f27eabc2c"
+    },
+    {
+      "path": "resources/knowledge/error-handling.md",
+      "sha256": "c941031c7535eb111d0afe53385b68b9f12d1478dea96c44c2b66d0267b8f1ce"
+    },
+    {
+      "path": "resources/knowledge/evidence-integrity.md",
+      "sha256": "864c16573a53b459b8a26c8cae26fc131d9de5056522157a65cf823348a46920"
+    },
+    {
+      "path": "resources/knowledge/feature-flags.md",
+      "sha256": "7e46668d5049933dbb5d60096dd2c3800605582dd4198523b10b4d02586c97dc"
+    },
+    {
+      "path": "resources/knowledge/file-utils.md",
+      "sha256": "7d1092930118fb160b9c0a4a48c398d9b08bb909d1e2432662d8e81e1e3b0087"
+    },
+    {
+      "path": "resources/knowledge/fixture-architecture.md",
+      "sha256": "c0c62381e7a0385fe0d8b59861a3756994d3bbc673e4605ded9607d5217c7e55"
+    },
+    {
+      "path": "resources/knowledge/fixtures-composition.md",
+      "sha256": "cd62666b34894c4130bc0da73503fc24b820094e8a4c3ec2a70a16700d77af5a"
+    },
+    {
+      "path": "resources/knowledge/intercept-network-call.md",
+      "sha256": "ac8213cc28a9f9c452a6fb419356dd1d66ce495d7f29d188fcb1bb51456ba869"
+    },
+    {
+      "path": "resources/knowledge/library-integration-mandate.md",
+      "sha256": "aa3f037ee82b93733bac6e9e7851836f215e2bc9980c24933aa3d5885a12941d"
+    },
+    {
+      "path": "resources/knowledge/log.md",
+      "sha256": "ef73615ce4535d4571567191ee9dc382cb87fd1eb75d3ee7e62f8f5dc9ca4c46"
+    },
+    {
+      "path": "resources/knowledge/maestro-flows.md",
+      "sha256": "02b1fff0e463708db474310792fd88a98dc425c621bac9cb3b7b7f1fbd47c3d3"
+    },
+    {
+      "path": "resources/knowledge/mobile-ci-device-lab.md",
+      "sha256": "0d992898bd8e1b1d047285097047bc5078528f2d3f6e6c2f61e6339cca71454e"
+    },
+    {
+      "path": "resources/knowledge/mobile-test-strategy.md",
+      "sha256": "d16495f50c2832acae9b5b0cb3c3b3443d2b7625dc3205076367834c66c7072c"
+    },
+    {
+      "path": "resources/knowledge/network-error-monitor.md",
+      "sha256": "e450d5db937dbc709f0ff7ba292f813cd8c0e7d8a0126b8580521210cf38e548"
+    },
+    {
+      "path": "resources/knowledge/network-first.md",
+      "sha256": "2920e58e145626f5505bcb75e263dbd0e6ac79a8c4c2ec138f5329e06a6ac014"
+    },
+    {
+      "path": "resources/knowledge/network-recorder.md",
+      "sha256": "f86bd52defea901fcf2c3bc2ba78dcb97047e30a49e552a5935bc8452851d33c"
+    },
+    {
+      "path": "resources/knowledge/nfr-criteria.md",
+      "sha256": "77a3a4711aea7a1efb3d4fe82a6842f53d761eeb3a909fd94e97182f781c8ee9"
+    },
+    {
+      "path": "resources/knowledge/overview.md",
+      "sha256": "eb9415d849698671b6fb763740d7b58ef9886911da895110da1ac73e2122c7e4"
+    },
+    {
+      "path": "resources/knowledge/pact-broker-webhooks.md",
+      "sha256": "7a54a5d1976e899508467468ed848beee66367f218470811528e9742f1d8daff"
+    },
+    {
+      "path": "resources/knowledge/pact-consumer-di.md",
+      "sha256": "8da93042ab11ad2e59ae8e37d44567d7bfec77760bb72467bde0d03987ebadce"
+    },
+    {
+      "path": "resources/knowledge/pact-consumer-framework-setup.md",
+      "sha256": "d514f2ee87f6ba64da407881bcb251bc41371794b2e0cfc488d179f380d21d28"
+    },
+    {
+      "path": "resources/knowledge/pact-mcp.md",
+      "sha256": "77f7a9fa2ee04f6cdd2af2f654602179f30008505c22e8ba9711e423ff61fc4e"
+    },
+    {
+      "path": "resources/knowledge/pactjs-utils-consumer-helpers.md",
+      "sha256": "de0efb6edd92e9e8f731132d02280c4edee882c3b58a9a1b37a027e95986b2ca"
+    },
+    {
+      "path": "resources/knowledge/pactjs-utils-mandate.md",
+      "sha256": "74b1dae511c46a2c3255f20b3a7405226ed7eceb47246d809f4388520e7ba529"
+    },
+    {
+      "path": "resources/knowledge/pactjs-utils-overview.md",
+      "sha256": "7403189c1388e3a4186b90d998b6042561ab73f80b5130cb4c787ca07b5d2ef9"
+    },
+    {
+      "path": "resources/knowledge/pactjs-utils-provider-verifier.md",
+      "sha256": "1c882c7ce145d7e9d12e6c39306947f7ab9897ad27633b638975502ea51431fd"
+    },
+    {
+      "path": "resources/knowledge/pactjs-utils-request-filter.md",
+      "sha256": "ca3aa1b6e6b4caa7aa63882b3803bf252f359af32374082c7148095468b1c020"
+    },
+    {
+      "path": "resources/knowledge/pactjs-utils-zod-to-pact.md",
+      "sha256": "a02b0859122ef4f720818ea78a149799202d0baf7852936f05a2f5d0c49935a8"
+    },
+    {
+      "path": "resources/knowledge/playwright-cli.md",
+      "sha256": "f8993bf5c649ff99a534e287f1d99aeef5ad224a8dfd76eb3db775040799f5cd"
+    },
+    {
+      "path": "resources/knowledge/playwright-config.md",
+      "sha256": "6f7cbf42be005165f68d50090bf0e86227cd401b8e0119ad9e65e7cb2a05644e"
+    },
+    {
+      "path": "resources/knowledge/playwright-utils-mandate.md",
+      "sha256": "d59b1a6e29d6b39dbf0dbf5e7b5f8d007a90cd979d47e437661a6fd85d8a73ed"
+    },
+    {
+      "path": "resources/knowledge/probability-impact.md",
+      "sha256": "3a73880070a9a1508a3058c7744aaf6b7fb78c844fe368ed6478e59e719cad10"
+    },
+    {
+      "path": "resources/knowledge/recurse.md",
+      "sha256": "cf6e8fa4f0d40098004b36b79262773ae1ebe058a8275b3a6ec3ec4b9c1f6e8c"
+    },
+    {
+      "path": "resources/knowledge/risk-governance.md",
+      "sha256": "c496ab24883085dcc178493632fe61fa6b1617c16aa70e186befd587faccda77"
+    },
+    {
+      "path": "resources/knowledge/selective-testing.md",
+      "sha256": "99f72ba9117ecfdc8be51346b12d610bfd6e48ea6b6310575c7be7d0766cb5fd"
+    },
+    {
+      "path": "resources/knowledge/selector-resilience.md",
+      "sha256": "baab01dce68b97e87b27036b207ce10b7429a3e111cead0f1662ab726ec355ca"
+    },
+    {
+      "path": "resources/knowledge/test-healing-patterns.md",
+      "sha256": "612df5155306376f011f7e1f5da5d660d1c1bec5aca9697e5a3bcefe505399d1"
+    },
+    {
+      "path": "resources/knowledge/test-levels-framework.md",
+      "sha256": "22b76acf805447f5968178e1a8c48f7e7e0d65965f1fe70a8f0f2a765ed0a216"
+    },
+    {
+      "path": "resources/knowledge/test-priorities-matrix.md",
+      "sha256": "45dc87b018586c439d451b7b22c476e4ec70e8cd0ee28e9136dd2eac9fe34bef"
+    },
+    {
+      "path": "resources/knowledge/test-quality.md",
+      "sha256": "d29d97571514d0c191200ed25047a0a5f68c23eeb8a99a4d0dfeff2c33d12fa9"
+    },
+    {
+      "path": "resources/knowledge/timing-debugging.md",
+      "sha256": "fe0a57f14f154fe0acd898a90ca930197c8ddfb72761ab872c68fe13e669c361"
+    },
+    {
+      "path": "resources/knowledge/visual-debugging.md",
+      "sha256": "4c40d5173d5b933d650884c4206f7e12aea77e7ca6fc0eb22770865b55e6522d"
+    },
+    {
+      "path": "resources/knowledge/webhook-module-setup.md",
+      "sha256": "87dd6d7eb4dfd45691ccbb876a0bdf0b8a8b8622351be7539b8fb80504068048"
+    },
+    {
+      "path": "resources/knowledge/webhook-providers.md",
+      "sha256": "a71ba2c09c45541d4d262c4db85fb9b2aeb021bb09779c65454a5ed3bd546c63"
+    },
+    {
+      "path": "resources/knowledge/webhook-risk-guidance.md",
+      "sha256": "ff8a5b79d3d4e5b9a98eaf346e7efcf685e40bf012e1a8a3e5e1b6c3635be26f"
+    },
+    {
+      "path": "resources/knowledge/webhook-template-matchers.md",
+      "sha256": "abf92e617b194199439c60fafe68cb0481b48e9ef09f69c01c8a424429a6009f"
+    },
+    {
+      "path": "resources/knowledge/webhook-testing-fundamentals.md",
+      "sha256": "cc1778b9aa95cb6fe00cfbb2115a2238636f71513cf159b7c02cbb3e091541c3"
+    },
+    {
+      "path": "resources/knowledge/webhook-timeout-error.md",
+      "sha256": "98313793aac3314653d3e1f543bd6136206132e7cfb9ecb4bea3417587b6d09b"
+    },
+    {
+      "path": "resources/knowledge/webhook-waiting-querying.md",
+      "sha256": "d914f3cfa9b3cfbd94fd0d3d057a7b578764cf37cdfc1b29278e03c88c3b06c5"
+    },
+    {
+      "path": "resources/tea-index.csv",
+      "sha256": "5fb1e2bbe2c7053135a6281b3535a14b71ac5ba159f763f45f8dc3f0564c2932"
+    },
+    {
+      "path": "resources/test-design-epic-3.example.md",
+      "sha256": "4410d6ff58e4df84b688f7d7d360c84da622f192af82231b75b3b4ae117d9508"
+    },
+    {
+      "path": "steps-c/step-01-detect-mode.md",
+      "sha256": "04e4002291e571e7a0a5821d2fd8dd6c06478e9765102f381d301ddbee0ac928"
+    },
+    {
+      "path": "steps-c/step-01b-resume.md",
+      "sha256": "d0eae1bb3441c303319792c60d2c2b096ec5e2597171562393092384e6e660de"
+    },
+    {
+      "path": "steps-c/step-02-load-context.md",
+      "sha256": "f7e8fbb877c64e1c573006dec73dd4874df352bce4f97d101a5bebc0785241fa"
+    },
+    {
+      "path": "steps-c/step-03-risk-and-testability.md",
+      "sha256": "86e1b881ccc2a4b432dca056148f8143f6e4b61f01e7802a543223d2335d9d46"
+    },
+    {
+      "path": "steps-c/step-04-coverage-plan.md",
+      "sha256": "0e3ff4e22f2bdb535d1b6b823b37d383a5ab8e4270253f3d22a398f77042f190"
+    },
+    {
+      "path": "steps-c/step-05-generate-output.md",
+      "sha256": "4c7f8a29c5cc28be635a4cc5accaa06e93f6b31be958a2ceb7c743cd952c4a6e"
+    },
+    {
+      "path": "steps-e/step-01-assess.md",
+      "sha256": "2d464cba68bc6aea84cd52c622097346c3ffc1ceb5ed7d6d32c744b615488250"
+    },
+    {
+      "path": "steps-e/step-02-apply-edit.md",
+      "sha256": "e91adf57c17b5d8f984fe4a1fc1090910ee0a6bb31e81dae19af8ca06e406e0a"
+    },
+    {
+      "path": "steps-v/step-01-validate.md",
+      "sha256": "65d9fb4853412af9c8614fee1acfd6d3a2ca8ff26a87475e2c5846e86bf41e0d"
+    },
+    {
+      "path": "test-design-architecture-template.md",
+      "sha256": "5a20da93f6f17713a429e6b24fc4a1ed16667bb4b1830d517c3dbd2eb630c89d"
+    },
+    {
+      "path": "test-design-handoff-template.md",
+      "sha256": "ce1dd24dd95244e4a511bef74a3a7cb10e5620a3a137195a31608f81ac7e7b1b"
+    },
+    {
+      "path": "test-design-qa-template.md",
+      "sha256": "65177a5ef6e6ef72cf161c5ed1fe6bf1d2bfb499b1803c76973f1dc7958850cd"
+    },
+    {
+      "path": "test-design-template.md",
+      "sha256": "c38a19deb8b97cab1e5671f1253d57ea3212a63694f5cb8faba984906ae64803"
+    },
+    {
+      "path": "workflow.yaml",
+      "sha256": "71de59a82e9480e28a0bb5c7ab29ab2732910b186b381ed6e803a807c9736513"
+    }
+  ],
+  "pin_manifest_sha256": "e227f33504506de984e578fc4ae50df09142d8d31b74993489cc671ed3bca1fd",
+  "project_config": {
+    "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\runtime-projects\\tea\\_bmad\\tea\\config.yaml",
+    "sha256": "d5070e702f56e09f83d6996a7266f29e9fc7a8a814872822c620302da50a54a4"
+  },
+  "model": "gpt-6-luna",
+  "normalizer_profile": "tea-native-runtime-v1",
+  "ba_revision": "example-only-CR-001-vi-r1",
+  "invocation_command": [
+    "node",
+    "C:\\nvm4w\\nodejs\\node_modules\\@openai\\codex\\bin\\codex.js",
+    "--no-daemon",
+    "--approve-for-me",
+    "exec",
+    "--json",
+    "--ephemeral",
+    "--skip-git-repo-check",
+    "--sandbox",
+    "workspace-write",
+    "--model",
+    "gpt-6-luna",
+    "-C",
+    "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\runtime-projects\\tea",
+    "--add-dir",
+    "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea",
+    "-o",
+    "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\raw-output\\test-design-epic-1.md",
+    "-"
+  ],
+  "started_at": "2026-09-26T03:36:30.646359+00:00",
+  "status": "ARTIFACT_COMPLETE",
+  "inputs": [
+    {
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\05-engineering-handoff.yml",
+      "sha256": "54c93b5118afa47be3d374a2c42ebdc6c378936bdfb6f4f228dd539624f7f990"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\03-approved-business-rules.md",
+      "sha256": "665127107a9cd764bb3d5d6c610b0de1cebd2f2e3b74d038b1aa8ce454104032"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\04-srs-excerpt.md",
+      "sha256": "f8a3aa2ed7d8c2aae57f49b919afcf40c26c905493628429da94b9440d33fc32"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\kits\\ba\\examples\\CR-001\\vi\\02-gap-review.md",
+      "sha256": "ccce69b493b63436afa78b78f8abd0b61fcb8ef4713d5f67867b51a42fa56f91"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\inputs\\adapter\\epic-1.md",
+      "sha256": "1a6390624d44d9ce68f7310f7d55e78b1770762d61861cf7ea2a260db98632e9"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\inputs\\adapter\\business-rules.md",
+      "sha256": "3c51a6a46d9382e2749c2478fc362ffa253da64896f3f9eabd508832103005b1"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\inputs\\adapter\\open-decisions.md",
+      "sha256": "b06c1fce213648c98bd857b082ce1d0e5b470b3eca699946615d7875f7e5a12f"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\raw-output\\invocation-prompt.md",
+      "sha256": "b0100d608b954c9ff13ce134a831253251cd0ced9403d4d951e82eeb12fb865b"
+    },
+    {
+      "path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\runtime-projects\\tea\\_bmad\\tea\\config.yaml",
+      "sha256": "d5070e702f56e09f83d6996a7266f29e9fc7a8a814872822c620302da50a54a4"
+    }
+  ],
+  "raw_output_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\raw-output\\test-design-epic-1.md",
+  "completed_artifact_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\evidence\\tea-generated-completed.md",
+  "stdout_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\raw-output\\invocation.jsonl",
+  "stderr_path": "D:\\AI\\agent-skills\\benchmark\\test-kit\\petclinic\\final-remediation\\run-2026-09-26-luna-targeted-r4\\petclinic-open\\tea\\raw-output\\stderr.txt",
+  "finished_at": "2026-09-26T03:43:39.532680+00:00",
+  "exit_code": 0,
+  "artifact_sha256": "30f92b2a51e310dca5572e68e71154af011e5b797fef94142c3d6d4831b16e49",
+  "final_output_sha256": "5f0c585c439b691f0e5b70d9d45001514cb29e020da3ae9cf3eb583e3a1ee8d3",
+  "workflow_status": null,
+  "completion_basis": "completed-tea-checkpoint-and-frozen-raw-profile",
+  "closeout_caveat": "TEA wrote a completed artifact, then replaced the output target during closeout; the immutable completed copy is preserved at completed_artifact_path.",
+  "normalization_status": "NORMALIZED",
+  "canonical_artifact_id": "CR-001-test-design",
+  "canonical_artifact_revision": "1",
+  "canonical_artifact_sha256": "7b27d01ed8c9f77b030a1befb942362e80d407a23024d3546051928b6ec8f987",
+  "validator_status": "PASS",
+  "workflow_state": "DESIGN_REVIEW",
+  "review_status": "IN_REVIEW"
+}

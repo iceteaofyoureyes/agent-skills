@@ -1,6 +1,6 @@
 # BA Kit Documentation — English
 
-Vietnamese is the primary user-facing documentation. This English set is maintained as a semantically equivalent secondary version.
+Vietnamese is the primary user-facing documentation. English documentation is secondary. BA Kit maintains broad English coverage; Test Kit V1 currently provides an [English overview](TEST_KIT_README.md), while its complete operator guides are maintained in Vietnamese: [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [usage scenarios](../vi/TEST_KIT_USAGE_GUIDE.md), and [workflow](../vi/TEST_KIT_WORKFLOW.md).
 
 ## If you are new
 
