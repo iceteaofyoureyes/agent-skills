@@ -12,7 +12,7 @@ Dev Kit vẫn **Planned**. Test Kit V1 là Kit riêng, **không** nằm trong BA
 | XMind Projection V1 | Human accepted như optional framework capability |
 | Excel Projection V1 | Human accepted như optional framework capability |
 | Packaging Cleanup / Packaging V1 | Human accepted |
-| Installable Test Kit V1 | Đã commit tại `55e88c39cd97945ee8c2e1b4f152599449966ddb` |
+| Packaging V1 baseline | Đã commit tại `55e88c39cd97945ee8c2e1b4f152599449966ddb`; các revision documentation/package identity tiếp theo được theo dõi bằng lịch sử repository |
 
 **Human accepted nội bộ ≠ GitHub release/tag/published artifact.** Không có claim rằng Test Kit V1 đã được phát hành công khai dưới một release/tag. Framework acceptance cũng không phê duyệt Test Design/Testcases/Testware của project thật; production Case Gate cần Human receipt đã xác thực cho snapshot hiện hành và không còn material OPEN execution dependency. `TEST_ONLY` output không dùng cho production. Automation Test V2 chưa nằm trong package V1.
 
