@@ -1,6 +1,6 @@
 # Test Kit V1
 
-**Test Kit = HOW DO WE PROVE IT.** Test Kit V1 turns an approved BA baseline into reviewed manual testware. The Human owns both approval gates.
+**Test Kit = HOW DO WE PROVE IT.** Test Kit V1 chuyển một BA baseline đã được phê duyệt thành manual testware có Human review. Human sở hữu cả hai approval gate.
 
 ```text
 Approved BA Baseline
@@ -13,34 +13,38 @@ Approved BA Baseline
 → STOP_V1
 ```
 
-Optional, Human-triggered projections are one-way views of the canonical artifacts:
+Các projection tùy chọn chỉ được tạo khi Human yêu cầu và là view một chiều từ canonical artifacts:
 
 ```text
 Canonical Test Design → XMind projection
 Canonical Testcases   → Excel projection
 ```
 
-Automation planning, execution, triage, and evidence automation are **Automation Test V2** and are not included in V1.
+Automation planning, execution, triage và automated evidence thuộc **Automation Test V2**, không nằm trong V1.
 
 ## Bắt đầu
 
-The full operator guides are maintained in the source repository and are not copied into the install. This README is self-contained for the installed context. Browse the [Agent Skills repository](https://github.com/iceteaofyoureyes/agent-skills); from a checkout, the detailed guides are at:
+Bộ operator guide đầy đủ được duy trì trong source repository và không được copy toàn bộ vào package cài đặt. README này đủ ngữ cảnh cơ bản khi được cài thành `.test-kit/README.md`.
+
+Trong repository, xem:
 
 - Quick Start — `docs/vi/TEST_KIT_QUICKSTART.md`
-- Capabilities and boundaries — `docs/vi/TEST_KIT_CAPABILITIES.md`
-- Usage Guide — `docs/vi/TEST_KIT_USAGE_GUIDE.md`
-- Workflow and Human Gates — `docs/vi/TEST_KIT_WORKFLOW.md`
-- CR-001 example — `kits/test/examples/CR-001/README.md`
-- [Installation and troubleshooting](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md) — `docs/vi/INSTALLATION.md`
-- [Provenance and licenses](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/PROVENANCE.md) — `docs/vi/PROVENANCE.md`
+- Capabilities và boundary — `docs/vi/TEST_KIT_CAPABILITIES.md`
+- Usage Guide theo tình huống — `docs/vi/TEST_KIT_USAGE_GUIDE.md`
+- Workflow và Human Gates — `docs/vi/TEST_KIT_WORKFLOW.md`
+- Ví dụ CR-001 — `kits/test/examples/CR-001/README.md`
+- [Installation và troubleshooting](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md) — `docs/vi/INSTALLATION.md`
+- [Provenance và license](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/PROVENANCE.md) — `docs/vi/PROVENANCE.md`
 - [Release status](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/RELEASE.md) — `docs/vi/RELEASE.md`
 - English overview — `docs/en/TEST_KIT_README.md`
 
-## Prerequisites and install
+Repository: https://github.com/iceteaofyoureyes/agent-skills
 
-Test Kit V1 supports Codex project scope. Use Python 3.10+, Codex CLI, and a project `_bmad/tea/config.yaml` compatible with the pinned TEA skill. The pinned TEA and Katalon skills are bundled; installation does not download dependencies. Codex resolves from `TEST_KIT_CODEX_COMMAND`, then `PATH`, and fails closed if an explicit override is invalid.
+## Điều kiện và cài đặt
 
-From the target project, invoke the scripts in your Agent Skills checkout:
+Test Kit V1 hỗ trợ Codex ở project scope. Core cần Python 3.10+, Codex CLI và project có `_bmad/tea/config.yaml` tương thích với TEA skill đã pin. TEA và Katalon skills đã được bundle; install không tải lại chúng. Codex được resolve theo `TEST_KIT_CODEX_COMMAND`, sau đó `PATH`; explicit override không hợp lệ sẽ fail closed.
+
+Từ project đích, chạy script từ Agent Skills checkout:
 
 ```powershell
 & '<path-to-agent-skills>\tooling\install.ps1' test --agent codex --scope project
@@ -52,14 +56,44 @@ From the target project, invoke the scripts in your Agent Skills checkout:
 <path-to-agent-skills>/tooling/doctor.sh test --agent codex --scope project
 ```
 
-Doctor verifies the installed package and reports local drift or corrupt metadata. Reinstall preserves locally edited managed files; it does not adopt those edits as the expected package bytes. Uninstall removes unchanged Test-owned files and preserves unrelated project files. See [Installation](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md) for details.
+Doctor kiểm tra integrity của package đã cài và phát hiện local drift hoặc metadata hỏng. Reinstall giữ lại managed files đã bị local edit; các edit đó không tự trở thành expected package bytes. Uninstall xóa các file do Test Kit sở hữu nếu chúng vẫn khớp expected bytes và giữ nguyên file không thuộc Test Kit. Xem [Installation](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md) để biết chi tiết.
 
-## Workflow and projections
+## Workflow và authority
 
-TEA analysis is advisory. The adapter creates and validates Canonical Test Design, then stops for Human review at `DESIGN_REVIEW`. After an authenticated approval for that exact snapshot, the pinned Katalon skill generates cases; the adapter validates Canonical Testcases and stops at `CASE_REVIEW`. Only a valid Human approval receipt with no material open execution dependency produces `APPROVED_TESTWARE` and `STOP_V1`. Outputs and evidence belong in a project-owned run directory.
+**TEA là analysis/advisory**, không phải Test Design authority. Adapter tạo và validate **Canonical Test Design**, sau đó dừng ở `DESIGN_REVIEW` để Human review. Chỉ approval hợp lệ cho đúng snapshot mới cho phép chuyển sang testcase generation.
 
-XMind uses its pinned presentation profile and does not accept a Human-supplied template; ambiguous mapping returns `CANNOT_PROJECT_HUMAN_PROFILE`. Excel supports `HUMAN_SUPPLIED_APPROVED_TEMPLATE → PROJECT_TEMPLATE → DEFAULT_TEMPLATE`; ambiguous mapping returns `CANNOT_PROJECT_TEMPLATE`. XMind needs Node.js/npm and its pinned SDK; Excel needs the hash-locked Python projection dependencies. Bootstrap either capability explicitly only when requested. Both projections leave canonical artifacts and gate state unchanged.
+Pinned Katalon skill hỗ trợ sinh testcase; adapter validate **Canonical Testcases** rồi dừng ở `CASE_REVIEW`. Chỉ Human approval receipt hợp lệ cho đúng snapshot, đồng thời không còn material open execution dependency, mới tạo trạng thái `APPROVED_TESTWARE` và `STOP_V1`.
 
-## V1 boundary
+`ANSWER`, `REVIEW`, `REQUEST_CHANGES`, `CONTINUE` và `APPROVE` là các ý định khác nhau. `Continue`, `Next`, `OK` hoặc `PASS` không tự động có nghĩa là approval. Agent không tự approve.
 
-V1 produces reviewed Test Design and manual testcases, with optional XMind and Excel projections. It does not execute tests, produce execution evidence, triage failures, or automate defects. Those capabilities belong to **Automation Test V2**.
+Nếu BA baseline còn behavior chưa được quyết định, Test Kit giữ `UNKNOWN`/open question; không invent expected behavior để làm testcase trông hoàn chỉnh.
+
+## XMind và Excel
+
+XMind là projection một chiều từ Canonical Test Design. V1 dùng pinned presentation profile và **không nhận Human-supplied XMind template**; mapping/grouping mơ hồ trả `CANNOT_PROJECT_HUMAN_PROFILE`.
+
+Excel là projection một chiều từ Canonical Testcases và hỗ trợ precedence:
+
+```text
+HUMAN_SUPPLIED_APPROVED_TEMPLATE
+→ PROJECT_TEMPLATE
+→ DEFAULT_TEMPLATE
+```
+
+Mapping template mơ hồ trả `CANNOT_PROJECT_TEMPLATE`.
+
+XMind cần Node.js/npm và pinned SDK; Excel cần các Python projection dependencies đã hash-lock. Chỉ bootstrap capability tùy chọn khi thực sự được yêu cầu. Cả hai projection không thay đổi canonical artifacts hay gate state và không có reverse-import authority trong V1.
+
+## Phạm vi V1
+
+V1 tạo Human-reviewed Test Design và manual testcases, kèm XMind/Excel projection tùy chọn. V1 **không**:
+
+- chạy automated tests;
+- tạo execution evidence tự động;
+- quản lý flaky tests;
+- triage failure tự động;
+- tự động hóa defect handling.
+
+Các capability đó thuộc **Automation Test V2**.
+
+`TEST_ONLY` artifact không phải production-approved testware. Project thật vẫn cần Human gate hợp lệ cho snapshot hiện hành trước khi coi testware là approved.
