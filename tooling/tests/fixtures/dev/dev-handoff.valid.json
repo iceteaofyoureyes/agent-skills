@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "change_id": "CHANGE-001",
+  "baseline_ref": {
+    "path": "approved/engineering-handoff.yml",
+    "revision": "ba-rev-7",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "implementation": {
+    "commits": ["abc1234"],
+    "changed_components": ["AppointmentService"]
+  },
+  "requirements_coverage": [
+    {"requirement_id": "FR-001", "status": "COVERED", "evidence": ["tests/test_appointment.py"]}
+  ],
+  "verification": {
+    "build": {"status": "PASS", "command": ["python", "-m", "compileall", "src"], "exit_code": 0},
+    "tests": [{"name": "unit", "status": "PASS", "command": ["python", "-m", "unittest"], "exit_code": 0}],
+    "static_checks": []
+  },
+  "review": {
+    "full_reviews": 1,
+    "blocking_fix_waves": 1,
+    "scoped_rereviews": 0,
+    "blocking_findings": [],
+    "followups": []
+  },
+  "business_ambiguity": {"status": "CLEAR", "items": []},
+  "human_gate": {"required": false, "resolved": true},
+  "known_risks": [],
+  "state": "READY_FOR_TEST"
+}

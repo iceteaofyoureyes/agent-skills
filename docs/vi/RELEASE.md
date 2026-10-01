@@ -2,7 +2,11 @@
 
 BA Kit **1.0.0-rc.1** là **Public Preview**, chưa được chấp nhận hoàn toàn.
 
-Dev Kit và Test Kit đều **Planned**, chưa nằm trong Public Preview của BA Kit.
+Dev Kit và Test Kit không nằm trong Public Preview của BA Kit.
+
+## Dev Kit V1 implementation state
+
+Phase 3–5 Dev Kit runtime, routing, schemas, validators, Doctor, local plugin marketplace entry, and usage guide are implemented in the development branch. The current status is **READY_FOR_SOL_REVIEW**. Petclinic benchmark, fresh-session acceptance, and release approval have not run; Dev Kit is not RC and is not part of the BA Kit release.
 
 ## Package / installer
 

@@ -19,6 +19,12 @@ Tiếng Việt là tài liệu người dùng chính. Bản tiếng Anh được
 
 - [Installation / Doctor / uninstall](INSTALLATION.md)
 
+## Dev Kit V1
+
+- [Dev Kit Usage Guide — installation, TRIVIAL/NORMAL/HIGH_RISK, artifacts, Doctor, recovery](DEV_KIT_USAGE_GUIDE.md)
+- [Dev Kit architecture](DEV_KIT_ARCHITECTURE.md)
+- [Dev Kit routing](DEV_KIT_ROUTING.md)
+
 ## Reference
 
 - [Kiến trúc](ARCHITECTURE.md)

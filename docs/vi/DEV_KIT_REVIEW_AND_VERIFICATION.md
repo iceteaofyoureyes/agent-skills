@@ -51,6 +51,8 @@ Một implementer/fixer xử lý toàn bộ blocking findings trong **one fix wa
 
 Không dùng một fixer/subagent riêng cho từng finding nếu không có lý do kỹ thuật đặc biệt.
 
+Runtime lưu `review_budget` trong `.devkit/runs/<change_id>/lifecycle.json`. Workflow phải claim `full_reviews`, `blocking_fix_waves` và `scoped_rereviews` trước stage tương ứng; claim thứ hai vượt ngưỡng sẽ dừng run. Fix/re-review prompt là no-op khi không có blocker/material change.
+
 ## Scoped re-review
 
 Chỉ chạy nếu fix materially changes logic/risk surface hoặc prior finding cần judgement confirmation.
@@ -69,6 +71,8 @@ Trước `READY_FOR_TEST`:
 3. đọc output/exit code;
 4. report failures trung thực;
 5. chỉ claim success khi evidence đủ.
+
+`tooling/lib/dev_kit.py verify fresh` chạy lại argv đã cấu hình, không dùng shell interpolation, sau review/fix stages. `handoff` dựng state từ verification results, review findings, requirements coverage, ambiguity và Human gate; model không tự đặt `READY_FOR_TEST`.
 
 `verification-before-completion` là owner của evidence-before-claim, nhưng deterministic project tooling mới là proof.
 

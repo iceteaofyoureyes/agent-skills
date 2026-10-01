@@ -1,0 +1,122 @@
+schema_version: "1.0"
+workflow:
+  id: "dev-high-risk"
+  name: "Dev Kit — High-Risk Change"
+  version: "1.0.0"
+  author: "Agent Skills Dev Kit"
+  description: "Normal Dev workflow with deep impact, a Human/Tech Lead plan gate, and only triggered specialists."
+requires:
+  speckit_version: "==1.0.11"
+inputs:
+  integration:
+    type: string
+    default: "auto"
+    prompt: "Agent integration (auto uses the initialized project integration)"
+steps:
+  - id: confirm-high-risk-route
+    type: shell
+    run: "python tooling/lib/dev_kit.py assert-workflow high-risk"
+  - id: readiness-and-deep-impact
+    type: prompt
+    integration: "{{ inputs.integration }}"
+    prompt: |
+      Run Dev Kit Spec Readiness for the active run in .devkit/current.json. Read input.json and the Approved BA
+      Baseline at the recorded path. Read requirements-gap-auditor/SKILL.md and use it for readiness only. Do not edit, copy, summarize
+      into another source of truth, or reinterpret the baseline. If user-visible behavior is unresolved, write
+      spec-readiness.json with NEEDS_BA_CLARIFICATION and the questions; do not plan or implement. Otherwise write
+      READY_FOR_PLANNING with no business ambiguities. Perform deep Engineering Impact, verify ownership and blast
+      radius from source, and create impact-manifest.json per kits/dev/schemas/impact-manifest.schema.json. Use
+      codebase-memory-mcp only if native source inspection cannot establish dependencies/callers. Record technical
+      facts and unknowns only. Never write into an Approved BA Baseline path.
+  - id: enforce-readiness-and-impact
+    type: shell
+    run: "python tooling/lib/dev_kit.py preflight"
+  - id: plan
+    type: prompt
+    integration: "{{ inputs.integration }}"
+    prompt: |
+      Read kits/dev/plugin/skills/planning-and-task-breakdown/SKILL.md and use it to create dev-plan.md and dev-tasks.md for the active run. Reference the
+      Approved BA Baseline; do not copy or reinterpret its business semantics. Cover technical scope, owners, impact,
+      architecture/code decisions, data/interface/dependency constraints, implementation slices, tests, verification,
+      and technical unknowns. Load only specialists whose capability triggers match the impact. A Human/Tech Lead
+      approval gate follows before implementation. For bugs, design the regression test first. Do not edit the baseline.
+  - id: human-tech-lead-plan-gate
+    type: gate
+    message: "Review dev-plan.md, dev-tasks.md, and impact-manifest.json. Approve to proceed; reject to stop for replanning."
+    options: [approve, reject]
+    on_reject: abort
+  - id: record-human-plan-approval
+    type: shell
+    run: "python tooling/lib/dev_kit.py gate-approved"
+  - id: implementation
+    type: prompt
+    integration: "{{ inputs.integration }}"
+    prompt: |
+      Implement the approved technical plan using kits/dev/plugin/skills/incremental-implementation/SKILL.md. Read
+      kits/dev/plugin/skills/test-driven-development/SKILL.md and use it for behavior changes and regression tests first for bugs.
+      Activate only specialists whose trigger matches, using their files under kits/dev/plugin/skills/: security-and-hardening,
+      api-and-interface-design, source-driven-development, performance-optimization, observability-and-instrumentation.
+      If an unexpected failure occurs, then read kits/dev/plugin/skills/debugging-and-error-recovery/SKILL.md. Keep slices small, verify focused checks, and do not edit the
+      Approved BA Baseline. Stop before review; the workflow owns the one consolidated review.
+  - id: focused-checks
+    type: shell
+    run: "python tooling/lib/dev_kit.py verify focused"
+  - id: claim-one-full-review
+    type: shell
+    run: "python tooling/lib/dev_kit.py claim full_reviews"
+  - id: consolidated-review
+    type: prompt
+    integration: "{{ inputs.integration }}"
+    prompt: |
+      Read kits/dev/plugin/skills/code-review-and-quality/SKILL.md and perform exactly one consolidated full review for the active run. Read its
+      Approved BA Baseline reference, impact manifest, plan/tasks, diff, and focused-check results. Invoke only
+      relevant specialists. Write review.json with BLOCKING and FOLLOW_UP finding classes. Follow-ups never expand
+      scope. Do not start fixes or a second full review.
+  - id: validate-review
+    type: shell
+    run: "python tooling/lib/dev_kit.py review-check"
+  - id: claim-one-fix-wave
+    type: shell
+    run: "python tooling/lib/dev_kit.py claim blocking_fix_waves"
+  - id: one-blocking-fix-wave
+    type: prompt
+    integration: "{{ inputs.integration }}"
+    prompt: |
+      Read review.json. If it has no BLOCKING findings, do no work and write fix-result.json with performed=false,
+      no remaining blockers, and materially_changed=false. Otherwise fix every blocker in one wave and write the
+      remaining BLOCKING findings and whether logic/risk materially changed. Do not run a second full review. If major
+      blockers remain, stop for HUMAN_TECH_LEAD_REVIEW. Never edit the Approved BA Baseline.
+  - id: enforce-fix-budget
+    type: shell
+    run: "python tooling/lib/dev_kit.py fix-check"
+  - id: claim-optional-scoped-rereview
+    type: shell
+    run: "python tooling/lib/dev_kit.py claim scoped_rereviews"
+  - id: optional-scoped-rereview
+    type: prompt
+    integration: "{{ inputs.integration }}"
+    prompt: |
+      Read lifecycle.json and fix-result.json. If materially_changed is false, do not invoke review; write a skipped
+      scoped-rereview.json. If one scoped rereview was claimed, review only previous blockers and the fix diff. Set
+      full_feature_review=false and list every prior finding ID reviewed plus any new blocking finding. Never perform
+      another feature-wide review.
+  - id: validate-scoped-rereview
+    type: shell
+    run: "python tooling/lib/dev_kit.py rereview-check"
+  - id: fresh-verification
+    type: shell
+    run: "python tooling/lib/dev_kit.py verify fresh"
+  - id: prepare-handoff
+    type: shell
+    run: "python tooling/lib/dev_kit.py prepare-handoff"
+  - id: complete-handoff
+    type: prompt
+    integration: "{{ inputs.integration }}"
+    prompt: |
+      Complete dev-handoff.json for the active run. Add commit IDs if available and requirements_coverage mapping each
+      accepted BA requirement ID to code/test evidence. Preserve generated baseline reference, review counts/findings,
+      Human/Tech Lead gate result, and verification evidence. The validator derives final state; do not set it yourself
+      and do not modify the Approved BA Baseline. Read verification-before-completion/SKILL.md before the success claim.
+  - id: enforce-ready-for-test
+    type: shell
+    run: "python tooling/lib/dev_kit.py handoff"

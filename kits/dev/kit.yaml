@@ -2,8 +2,8 @@
   "schema_version": 2,
   "id": "dev",
   "name": "Dev Kit",
-  "version": "0.1.0-dev.2",
-  "status": "ASSEMBLED_NOT_RUNTIME_ACCEPTED",
+  "version": "0.1.0-dev.3",
+  "status": "READY_FOR_SOL_REVIEW",
   "packaging": {
     "type": "agent-plugin",
     "path": "kits/dev/plugin"
@@ -67,11 +67,21 @@
     "max_blocking_fix_waves": 1,
     "max_scoped_rereviews": 1
   },
+  "runtime": {
+    "marketplace_manifest": ".agents/plugins/marketplace.json",
+    "workflow_definitions": [
+      "plugin/workflows/dev-normal.workflow.yml",
+      "plugin/workflows/dev-high-risk.workflow.yml"
+    ],
+    "run_state": ".specify/workflows/runs/<spec-kit-run-id>/state.json",
+    "artifacts": ".devkit/runs/<change_id>/"
+  },
   "outputs": [
-    "impact-manifest.yml",
+    "impact-manifest.json",
     "dev-plan.md",
     "dev-tasks.md",
-    "dev-handoff.yml"
+    "review.json",
+    "dev-handoff.json"
   ],
   "release_claim": "No READY/RC claim until provenance, Doctor, benchmark, fresh-session acceptance and docs gates pass."
 }

@@ -31,7 +31,7 @@ atomic capabilities
     └── optional UX/UI/prototype
 ~~~
 
-BA Kit hiện dùng atomic skills canonical ở repository root. Dev Kit V1 đang thiết kế package theo kit-scoped Agent Plugin để giữ nguyên upstream skill layout/resources khi cần. Mỗi Kit vẫn phải có một composition manifest duy nhất làm source of truth; không được để global/user skills ngầm trở thành dependency.
+BA Kit hiện dùng atomic skills canonical ở repository root. Dev Kit V1 dùng kit-scoped Agent Plugin để giữ nguyên upstream skill layout/resources. Mỗi Kit có một composition manifest làm source of truth; Doctor/context-purity kiểm tra global/user skills để ngăn dependency ngầm.
 
 ## Semantic, visual và delivery authority
 
@@ -70,8 +70,8 @@ Workflow không bắt mọi request chạy full pipeline; nó bắt đầu từ 
 | Stage | Question | Status |
 |---|---|---|
 | BA Kit | **WHAT**? | RC1 candidate; remediation |
-| Dev Kit / Engineering Impact | **WHERE / WHO OWNS**? | V1 foundation in development |
-| Dev Kit / Spec Kit + engineering capabilities | **HOW**? | V1 foundation in development |
+| Dev Kit / Engineering Impact | **WHERE / WHO OWNS**? | V1 implementation awaiting Sol review |
+| Dev Kit / Spec Kit + engineering capabilities | **HOW**? | V1 implementation awaiting Sol review |
 | Test Kit + TEA | **HOW DO WE PROVE IT**? | Planned |
 
 ~~~text
@@ -81,7 +81,10 @@ Requirement
 → Dev Kit
    → Spec Readiness
    → Engineering Impact
-   → repo-local Spec Kit / implementation / review / verification
+   → Technical plan / tasks
+   → Incremental implementation
+   → One consolidated review / blocking-fix wave
+   → Fresh verification
 → Test Kit + TEA
 → Human Final Acceptance
 ~~~
@@ -120,3 +123,5 @@ Claim level và reference standards/frameworks nằm ở [FOUNDATIONS.md](FOUNDA
 ---
 
 English: [Architecture](../en/ARCHITECTURE.md)
+
+Dev Kit operation, artifacts, installation and Doctor are documented in [DEV_KIT_USAGE_GUIDE.md](DEV_KIT_USAGE_GUIDE.md). Petclinic benchmark has not run; Dev Kit is not RC.

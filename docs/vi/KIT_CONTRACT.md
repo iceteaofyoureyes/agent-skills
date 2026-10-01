@@ -20,6 +20,6 @@ English: [Kit contract](../en/KIT_CONTRACT.md)
 - Engineering Impact nằm trong Dev Kit và sở hữu WHERE / WHO OWNS, không sở hữu business WHAT.
 - Default normal path phải bounded: planning → implementation → one consolidated review → one blocking-fix wave → fresh verification.
 - Tối đa một scoped re-review, chỉ khi blocking fix materially thay đổi logic/risk; không fresh-review toàn feature lần hai.
-- Conditional capability (security/API/performance/observability/debugging/code graph/analyze/converge) chỉ activate theo trigger/risk; **installed != invoked**.
+- Conditional capability (security/API/performance/observability/debugging/code graph/source grounding) chỉ activate theo trigger/risk; **installed != invoked**. Spec Kit core `specify/plan/tasks/analyze/converge` không được gọi trong Dev Kit V1.
 - Benchmark mode phải fail khi có unrelated global methodology/plugin/hook contamination.
 - Provenance/license/docs là release gate, không phải post-release polish.

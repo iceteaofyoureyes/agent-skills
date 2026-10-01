@@ -1,6 +1,6 @@
 # Dev Kit V1 — Foundation
 
-> Status: **DESIGN_FROZEN_CANDIDATE**. Chưa phải runtime/installer-ready và chưa được gọi RC.
+> Status: **READY_FOR_SOL_REVIEW**. Chưa phải RC/release.
 
 Dev Kit chịu trách nhiệm phần **WHERE / WHO OWNS + HOW** sau khi nhận **Approved BA Baseline**. Dev Kit không sở hữu business semantics và không được tự thay đổi WHAT.
 
@@ -37,7 +37,17 @@ Nguyên tắc chính:
 - [Routing](../../docs/vi/DEV_KIT_ROUTING.md)
 - [Review & verification](../../docs/vi/DEV_KIT_REVIEW_AND_VERIFICATION.md)
 - [Benchmark](../../docs/vi/DEV_KIT_BENCHMARK.md)
+- [Usage Guide](../../docs/vi/DEV_KIT_USAGE_GUIDE.md)
 - [Composition/provenance lock](provenance.lock.json)
+
+## Runtime paths
+
+- Codex local marketplace: [`.agents/plugins/marketplace.json`](../../.agents/plugins/marketplace.json)
+- Spec Kit workflows for NORMAL/HIGH_RISK: `plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`
+- TRIVIAL: direct `start` → edit → `finish-trivial` path; no Spec Kit workflow
+- JSON schemas/templates: `schemas/`, `templates/`
+- Run state/evidence: `.specify/workflows/runs/` and `.devkit/runs/`
+- Doctor/validators: `../../tooling/lib/dev_kit.py`
 
 Không vendor hoặc upgrade upstream component nếu chưa cập nhật provenance, license/notice và dependency closure trong cùng change.
 

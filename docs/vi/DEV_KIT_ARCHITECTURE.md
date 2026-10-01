@@ -82,6 +82,14 @@ Conditional capabilities không tạo mandatory stages. Security, API, source-gr
 - benchmark/evals;
 - release evidence.
 
+## Runtime V1
+
+- `kits/dev/plugin/workflows/dev-normal.workflow.yml` và `dev-high-risk.workflow.yml` dùng workflow/pause/resume state của Spec Kit `v1.0.11`; TRIVIAL chạy bằng direct check path.
+- `tooling/lib/dev_kit.py` là policy adapter nhỏ cho routing, baseline hash guard, review-budget claims, deterministic checks, schemas và Doctor; nó không tạo workflow engine thứ hai.
+- Workflow gọi shell/prompt/gate primitives và không gọi `speckit.specify/plan/tasks/analyze/converge`.
+- Codex local marketplace trỏ vào plugin root `kits/dev/plugin/`; runtime artifacts nằm trong `.devkit/runs/<change_id>/`, còn authoritative Spec Kit run state nằm trong `.specify/workflows/runs/<run_id>/`.
+- Plugin và workflow đã được hiện thực hóa, nhưng benchmark/fresh-session acceptance còn NOT_RUN. Trạng thái hiện tại là chờ Sol review, không phải RC.
+
 ## Nguyên tắc chống over-engineering workflow
 
 1. Capability available không có nghĩa capability phải chạy.

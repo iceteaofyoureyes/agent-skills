@@ -33,6 +33,10 @@ Một hoặc nhiều:
 - deployment topology;
 - major architecture change.
 
+Runtime nhận các signal có cấu trúc qua `--signal` (`auth`, `security`, `sensitive_data`, `pii`, `database_migration`, `public_api`, `event_contract`, `cross_repo`, `concurrency`, `major_architecture`, `deployment_topology`). Summary cũng được dò từ khóa high-risk; explicit signal được ưu tiên vì ít mơ hồ hơn.
+
+`docs`, `rename`, `mechanical` và `config` chỉ được xếp TRIVIAL khi không có behavior change hoặc high-risk signal. Các kind còn lại mặc định NORMAL.
+
 ## Conditional routing
 
 ```text
@@ -58,6 +62,8 @@ uncertain blast radius
   → codebase-memory-mcp
   → verify important findings against source
 ```
+
+Route và capability list được kiểm tra bởi `tooling/lib/dev_kit.py route_change`; TRIVIAL chạy direct `start → edit → finish-trivial`, còn NORMAL/HIGH_RISK chọn workflow YAML tương ứng. NORMAL không có Human gate. Mỗi HIGH_RISK route hiện yêu cầu plan gate theo V1 policy.
 
 ## Human gates
 

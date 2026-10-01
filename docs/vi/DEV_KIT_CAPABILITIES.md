@@ -1,6 +1,6 @@
 # Dev Kit V1 — Capability Selection
 
-> Candidate selection snapshot: 2026-09-25. Runtime acceptance chưa thực hiện.
+> Frozen selection: 2026-09-25. Phase 3–5 implementation đã có; fresh-session acceptance và benchmark chưa thực hiện.
 
 ## Core/default capability owners
 
@@ -44,3 +44,5 @@ Available capability != Mandatory workflow stage
 ```
 
 Routing policy là authority quyết định capability nào được load/call. `planning-and-task-breakdown` giữ upstream planning mechanics nhưng hai mandatory Human checkpoints được đổi thành risk-gated Human/Tech Lead approval; exact diff được pin trong provenance.
+
+Runtime owners hiện được gọi từ ba Spec Kit workflow tại `kits/dev/plugin/workflows/`. Prompt steps trỏ tới plugin `SKILL.md`; Doctor kiểm tra composition, provenance, schemas và review budget. Xem [Usage Guide](DEV_KIT_USAGE_GUIDE.md) cho installation và thao tác theo từng scenario.

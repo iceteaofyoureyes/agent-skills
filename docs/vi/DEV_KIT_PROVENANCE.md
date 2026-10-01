@@ -1,7 +1,7 @@
 # Dev Kit V1 — Provenance Audit
 
-> Snapshot: 2026-09-25  
-> Status: **ASSEMBLED_WITH_ONE_MINIMAL_UPSTREAM_ADAPTATION**. Selected payload is vendored with license evidence, but Dev Kit is still not runtime-accepted or RC.
+> Snapshot: 2026-10-01
+> Status: **READY_FOR_SOL_REVIEW**. Selected payload remains pinned and licensed; the pinned workflows, artifact contracts, risk routing, and Doctor have fresh evidence. Petclinic benchmark and fresh-session acceptance have not run; Dev Kit is not RC.
 
 ## 1. Audit policy
 
@@ -207,5 +207,16 @@ VENDORED PAYLOAD: ASSEMBLED
 ADDY EXACT FILE CHECKS: PASS
 PLANNING MINIMAL PATCH: RECORDED
 REDISTRIBUTION EVIDENCE FOR PLUGIN PAYLOAD: READY_WITH_ATTRIBUTION
-RUNTIME ACCEPTANCE: NOT RUN
+PHASE 3-5 IMPLEMENTATION: READY_FOR_SOL_REVIEW
+SPEC KIT V1.0.11 WORKFLOWS: PASS (NORMAL + HIGH_RISK; FULL 12-TYPE STEP REGISTRY)
+SPEC KIT E2E SMOKE: PASS (RUN 00c0cf80; PERSISTED GATE PAUSE, RESUMED, COMPLETED; DISPOSABLE FIXTURE OUTSIDE REPOSITORY)
+TOOLING TESTS: PASS (42/42; ROUTING, CONTRACTS, RUNTIME STATE, PROVENANCE, DOC LINKS)
+PROVENANCE CHECK: PASS (9 ADDY BLOBS, 5 SHARED REFERENCES, APPROVED PLANNER PATCH, LICENSES/NOTICES)
+DEV DOCTOR DAILY: DEGRADED (CONTEXT_PURITY=DEGRADED; 124 FINDINGS, 74 RELEVANT)
+DEV DOCTOR BENCHMARK: FAIL AS REQUIRED FOR THIS HOST (73 METHODOLOGY OVERLAPS + ALWAYS-ON HOOK)
+GIT DIFF CHECK: PASS
+BENCHMARK / FRESH-SESSION ACCEPTANCE: NOT RUN
+RELEASE STATE: NOT RC
 ```
+
+The local Codex marketplace manifest at `.agents/plugins/marketplace.json` points to the unchanged plugin payload at `kits/dev/plugin/`. Project-owned workflows and the Python policy adapter add no third-party component or runtime dependency.

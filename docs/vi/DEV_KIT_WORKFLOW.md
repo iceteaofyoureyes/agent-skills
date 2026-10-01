@@ -1,5 +1,15 @@
 # Dev Kit V1 — Lean Execution Workflow
 
+## Runtime files
+
+- Spec Kit definitions: `kits/dev/plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`.
+- TRIVIAL: `start` → edit → `finish-trivial`; không dùng Spec Kit, plan, review hoặc gate.
+- Dev policy/state adapter: `tooling/lib/dev_kit.py`.
+- Change inputs/evidence: `.devkit/runs/<change_id>/`; Spec Kit pause/resume state: `.specify/workflows/runs/<run_id>/`.
+- Operator commands/examples: [DEV_KIT_USAGE_GUIDE.md](DEV_KIT_USAGE_GUIDE.md).
+
+Each workflow uses only top-level persisted steps. The HIGH_RISK gate is top-level so resume does not rerun planning; review/fix/re-review steps are also top-level. Static shell commands take no untrusted interpolated values.
+
 ## 1. Spec Readiness
 
 Câu hỏi duy nhất:
@@ -85,6 +95,8 @@ Spec Readiness
 → Dev Handoff
 ```
 
+Routing starts from `tooling/lib/dev_kit.py start`. It records the route and required deterministic commands in `.devkit/runs/<change_id>/input.json`; the matching workflow begins with `assert-workflow` and refuses a mismatched risk depth.
+
 ## 4. Implementation discipline
 
 Per slice:
@@ -101,6 +113,7 @@ Không spawn independent reviewer cho từng normal slice.
 - Plan invalidated by implementation evidence → `NEEDS_REPLAN`.
 - Review budget exhausted with Critical/Important blocker → Human/Tech Lead decision, không review #3.
 - Verification red → không claim READY_FOR_TEST.
+- Approved BA Baseline SHA-256 thay đổi → workflow dừng; BA phải duyệt revision mới và Dev tạo run mới.
 
 ## 6. Review budget
 
