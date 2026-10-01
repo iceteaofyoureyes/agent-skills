@@ -1,0 +1,5 @@
+[workflow]
+persistent_facts = [
+  "file:{project-root}/.test-kit/rules/common.md",
+  "file:{project-root}/.test-kit/rules/test-design.md"
+]

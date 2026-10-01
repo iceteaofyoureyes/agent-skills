@@ -1,0 +1,12 @@
+schema_version: 1
+profile:
+  id: cr001-testing
+  revision: "1"
+rules:
+  common:
+    - rules/common.md
+  test_design:
+    - rules/test-design.md
+  testcases:
+    - rules/testcases.md
+templates: {}

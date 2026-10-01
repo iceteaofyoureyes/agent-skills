@@ -73,3 +73,7 @@ Approved BA → Canonical Design → Human Design Gate
 - Sau `APPROVED_TESTWARE`/`STOP_V1`, Human có thể yêu cầu Excel. Default là một testcase/một row; Step/Test Data/Expected Result theo thứ tự, `Key` để trống. `*.xlsx.projection.json` giữ canonical ID và trace. Template Excel hợp lệ chỉ đổi presentation.
 
 Chỉnh file XMind/Excel không sửa canonical source. Nếu semantics đổi, quay lại Design/Testcases và gate thích hợp. [Quick Start](../../../../docs/vi/TEST_KIT_QUICKSTART.md) · [Usage Guide](../../../../docs/vi/TEST_KIT_USAGE_GUIDE.md) · [Workflow](../../../../docs/vi/TEST_KIT_WORKFLOW.md).
+
+## 08 — Project customization V1.1
+
+[Ví dụ policy CR-001](customization/README.md) có profile/rule/TEA bridge project-owned cho naming tiếng Việt, atomic cases và boundary/negative guidance. Ví dụ giữ maximum duration `UNKNOWN`, chỉ rõ exact policy snapshot/evidence, stale-policy rejection và Excel project-template precedence. Toàn bộ example là `TEST_ONLY`, không cấp production Human approval.
