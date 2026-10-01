@@ -37,7 +37,7 @@ class TestKitPackagingTests(unittest.TestCase):
     def test_test_manifest_resolves_explicit_runtime_only_closure(self):
         manifest = ba_kit.load_manifest(ROOT, "test")
         self.assertEqual(manifest["id"], "test")
-        self.assertEqual(manifest["version"], "1.0.0")
+        self.assertEqual(manifest["version"], "1.1.0")
         self.assertEqual(manifest["capabilities"]["core"], "required")
         self.assertEqual(manifest["capabilities"]["xmind_projection"], "optional")
         self.assertEqual(manifest["capabilities"]["excel_projection"], "optional")
@@ -60,6 +60,7 @@ class TestKitPackagingTests(unittest.TestCase):
             destinations.add(item["destination"])
         self.assertEqual(len(destinations), len(manifest["files"]))
         self.assertIn("tooling/lib/test_kit_v1.py", sources)
+        self.assertIn("tooling/lib/test_kit_policy.py", sources)
         self.assertIn("tooling/lib/test_kit_v1_cases.py", sources)
         self.assertIn("tooling/lib/codex_cli.py", sources)
         self.assertIn("ba-workflow/scripts/contracts.py", sources)

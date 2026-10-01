@@ -277,11 +277,17 @@ def _make_review_state(workflow: dict, snapshot: cases.CaseSnapshot, input_refs:
         "CASE_REVIEW", snapshot.artifact_id, snapshot.revision, snapshot.sha256, "IN_REVIEW", "PASS",
         cases._execution_contract_signature(execution_refs), workflow.get("design_gate_receipt_mode"),
         workflow.get("design_gate_receipt_evidence"), cases._input_ref_signature(input_refs), execution_refs,
+        workflow.get("project_policy_context"),
     )
 
 
 def _authorize_collection(root, workflow, approved, snapshot, receipt, design, baseline, design_directory, *, test_only, human_actor_authenticator):
-    input_refs = cases.case_gate_input_refs(baseline, design)
+    try:
+        input_refs = cases.case_gate_input_refs(baseline, design, run_dir=root)
+    except core.ProjectPolicyBindingError as error:
+        raise ExcelProjectionError(error.code, str(error)) from error
+    if approved.get("project_policy_context") != workflow.get("project_policy_context"):
+        raise ExcelProjectionError("PROJECT_POLICY_STALE", "Approved Testware policy context differs from the terminal workflow")
     if approved.get("ba_input_refs") != cases.baseline_receipt_refs(baseline):
         raise ExcelProjectionError("CASE_REVIEW_INPUTS_STALE", "Approved Testware BA refs do not match current approved inputs")
     expected_design = {"artifact_id": design.artifact_id, "revision": design.revision, "sha256": design.sha256}
@@ -787,7 +793,9 @@ def validate_excel_projection(snapshot, baseline, xlsx_path: str | Path, manifes
     if design is None or approved_testware is None or test_only is None:
         findings.append("current Test Kit authority context is required for semantic validation")
     else:
-        if manifest.get("current_input_refs") != cases.case_gate_input_refs(baseline, design):
+        context = approved_testware.get("project_policy_context")
+        policy_run = Path(context["context_path"]).parents[1] if context else None
+        if manifest.get("current_input_refs") != cases.case_gate_input_refs(baseline, design, run_dir=policy_run):
             findings.append("manifest current input refs differ from current approved BA and Design snapshots")
         expected_receipt_ref = approved_testware.get("case_gate_receipt", {})
         if manifest.get("case_gate_receipt_ref") != {"path": expected_receipt_ref.get("path"), "sha256": expected_receipt_ref.get("sha256")}:
@@ -1120,7 +1128,7 @@ def _final_artifact_integrity_check(
         raise ExcelProjectionError("EXCEL_ARTIFACT_INTEGRITY_FAILURE", "published projection artifacts lost their sealed state")
 
 
-def _export(directory, design_directory, baseline_handoff_path, output_dir, *, test_only, human_actor_authenticator, template_path, project_template_path, row_model):
+def _export(directory, design_directory, baseline_handoff_path, output_dir, *, test_only, human_actor_authenticator, template_path, project_template_path, row_model, project_root=None):
     _load_default_pin()
     baseline = core.load_approved_baseline(baseline_handoff_path)
     design = _load_design(design_directory)
@@ -1129,6 +1137,17 @@ def _export(directory, design_directory, baseline_handoff_path, output_dir, *, t
         root, workflow, approved, snapshot, receipt, design, baseline, design_directory,
         test_only=test_only, human_actor_authenticator=human_actor_authenticator,
     )
+    if not template_path and project_root is not None:
+        from .test_kit_policy import PolicyError, resolve_project_excel_template
+
+        try:
+            configured_template = resolve_project_excel_template(project_root)
+        except (PolicyError, OSError) as error:
+            raise ExcelProjectionError("CANNOT_PROJECT_TEMPLATE", str(error)) from error
+        if configured_template is not None:
+            if project_template_path is not None and Path(project_template_path).resolve() != configured_template:
+                raise ExcelProjectionError("CANNOT_PROJECT_TEMPLATE", "explicit project template conflicts with project.yaml")
+            project_template_path = configured_template
     source_path = template_path or project_template_path
     source = "HUMAN_SUPPLIED_APPROVED_TEMPLATE" if template_path else "PROJECT_TEMPLATE" if project_template_path else "DEFAULT_TEMPLATE"
     contract = inspect_template(source_path, row_model=row_model) if source_path else None
@@ -1229,12 +1248,14 @@ def export_approved_testware_excel(
     template_path: str | Path | None = None,
     project_template_path: str | Path | None = None,
     row_model: str | None = None,
+    project_root: str | Path | None = None,
 ) -> ExcelExportResult:
     """Production export requires a persisted Human-authenticated terminal Test Gate."""
     return _export(
         approved_testware_dir, design_directory, baseline_handoff_path, output_dir,
         test_only=False, human_actor_authenticator=human_actor_authenticator,
         template_path=template_path, project_template_path=project_template_path, row_model=row_model,
+        project_root=project_root,
     )
 
 
@@ -1247,6 +1268,7 @@ def export_test_only_approved_testware_excel(
     template_path: str | Path | None = None,
     project_template_path: str | Path | None = None,
     row_model: str | None = None,
+    project_root: str | Path | None = None,
 ) -> ExcelExportResult:
     """Acceptance-only export for an isolated persisted TEST_ONLY terminal fixture."""
     output = Path(output_dir).resolve()
@@ -1256,4 +1278,5 @@ def export_test_only_approved_testware_excel(
         approved_testware_dir, design_directory, baseline_handoff_path, output,
         test_only=True, human_actor_authenticator=None,
         template_path=template_path, project_template_path=project_template_path, row_model=row_model,
+        project_root=project_root,
     )

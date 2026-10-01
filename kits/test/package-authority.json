@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "1.0.0",
+  "kit_version": "1.1.0",
   "manifest_schema_version": 1,
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "897fb5e6370fe13c60e319842b25b5f4705eb3509cf64f80831d7301041e158e",
+      "sha256": "7f2576684d6cb82de8504b603c3ea59eb0db435ef26a31a2097e6af338f14d29",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
@@ -55,18 +55,23 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/tooling/lib/test_kit_policy.py",
+      "sha256": "f686cb7f7c5fb3060e48f90163b86506c5c3ebfbcb46dbe1e6e31341016b057c",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "d68a23f341349d8085b0f5a43ddd0996520f85d6d378c71cde5389a07b0d6497",
+      "sha256": "1ffabc165a04eaf3e35dff57e8319f17833a84a5f71b8cb51faf636df1f42cd1",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_cases.py",
-      "sha256": "23f91e6c94db827af5c2b23aa4eb787ef83994fa4397807c9563fa2150db2c5e",
+      "sha256": "6ca606264c80a384e229493ffa1f0c8fcd1e0a80fcecf6effb38a17f24624912",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_excel.py",
-      "sha256": "4d17a062e2beacdfc31f4659e6d0d346e713dd6bfe61adba284032accaa2d37c",
+      "sha256": "1ad62f3093b0c01ac5791dcbc59ee43d3071203b7e69bd12d55004f9a6a997bc",
       "classification": "OPTIONAL_RUNTIME"
     },
     {
@@ -81,12 +86,12 @@
     },
     {
       "path": ".test-kit/tooling/pins/tea-test-design-v1.json",
-      "sha256": "e227f33504506de984e578fc4ae50df09142d8d31b74993489cc671ed3bca1fd",
+      "sha256": "d29797d379c013964c9755a5fe3e9b485bd4a5f0cf62b5604b41d426c171f337",
       "classification": "PINNED_RUNTIME_DATA"
     },
     {
       "path": ".test-kit/tooling/pins/test-only-provenance-relocations-v1.json",
-      "sha256": "8d7bd9d2c3a28f909e7765da787ffa1f4593ec44307d0baa2b56eab46129edcd",
+      "sha256": "9392679b6217cd41690f41e2538cf2ac757e4853a7ac04a4d2aa43d2b66c0394",
       "classification": "GATE_VALIDATION_DATA"
     },
     {
@@ -551,11 +556,11 @@
     },
     {
       "path": "test-kit/SKILL.md",
-      "sha256": "bd5fd510febebd7ae26e333e25cf1cf12d32d3dfe797d0989f235e53953b3fb7",
+      "sha256": "13771ee61f508f54b1a56429aa72b723973d4501b9755603ae680892f84c1fdb",
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 110,
+  "managed_file_count": 111,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "8a6573fe91bcee1c6fc4b832b71c0a23f244f6e6a02f1809826207930ba693f5"
+  "payload_tree_sha256": "75756c2c36c32f9780ea377f43ab66cd8f9363ea0adfcf377b72141ceba82bba"
 }

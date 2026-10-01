@@ -40,7 +40,7 @@ TEA_COMMIT = "1f53e9095061ab66f3c35abd9b98baf0f50cf8fe"
 TEA_CAPABILITY = "bmad-testarch-test-design"
 TEA_SKILL_SHA256 = "ca933c020623c796a95ce9701039c2d5658fc3cc60f7768e2fdf556b1d0d506b"
 TEA_PIN_MANIFEST = ROOT / "tooling/pins/tea-test-design-v1.json"
-TEA_PIN_MANIFEST_SHA256 = "e227f33504506de984e578fc4ae50df09142d8d31b74993489cc671ed3bca1fd"
+TEA_PIN_MANIFEST_SHA256 = "d29797d379c013964c9755a5fe3e9b485bd4a5f0cf62b5604b41d426c171f337"
 SEMANTIC_FIELDS = (
     "design_id",
     "hierarchy_path",
@@ -1035,7 +1035,9 @@ def _apply_design_decision(
     if finding:
         return DecisionAttempt(False, state, finding)
     try:
-        expected_refs = tuple((row["id"], row["revision"], row["sha256"]) for row in baseline_receipt_refs(baseline))
+        expected_refs = tuple((row["id"], row["revision"], row["sha256"]) for row in design_gate_input_refs(baseline, run_dir))
+    except ProjectPolicyBindingError as error:
+        return DecisionAttempt(False, state, Finding(error.code, str(error)))
     except (BaselineError, OSError) as error:
         return DecisionAttempt(False, state, Finding("BA_BASELINE_STALE", str(error)))
     actual_refs = _design_receipt_refs(receipt)
@@ -1167,6 +1169,99 @@ def baseline_receipt_refs(baseline: ApprovedBaseline) -> list[dict]:
     return refs
 
 
+class ProjectPolicyBindingError(ValueError):
+    def __init__(self, message: str, *, code: str = "PROJECT_POLICY_STALE"):
+        super().__init__(message)
+        self.code = code
+
+
+def persist_project_policy_context(
+    run_dir: str | Path, project_root: str | Path, stage: str, *, bootstrap_tea: bool = False,
+) -> dict:
+    """Bind a run to its project, including explicit no-policy compatibility."""
+    from .test_kit_policy import persist_policy_snapshot, resolve_project_policy
+
+    root = Path(project_root).resolve()
+    run_dir = Path(run_dir).resolve()
+    snapshot = resolve_project_policy(root, stage, bootstrap_tea=bootstrap_tea)
+    context = {
+        "project_root": str(root), "stage": stage,
+        "status": "PROJECT_POLICY" if snapshot else "NO_PROJECT_POLICY",
+        "policy": persist_policy_snapshot(snapshot, run_dir) if snapshot else None,
+        "context_path": str(run_dir / "inputs/project-policy-context.json"),
+    }
+    _write_if_same_or_absent(
+        Path(context["context_path"]),
+        (json.dumps(context, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return context
+
+
+def current_project_policy_ref(run_dir: str | Path, stage: str) -> dict | None:
+    """Re-resolve policy at each gate; callers cannot omit the recorded project."""
+    from .test_kit_policy import resolve_project_policy
+
+    run_dir = Path(run_dir).resolve()
+    path = run_dir / "inputs/project-policy-context.json"
+    bindings = []
+    for relative in ("workflow-state.json", "raw-output/invocation-manifest.json", "evidence/invocation-manifest.json", "evidence/input-manifest.json", "inputs/input-manifest.json"):
+        anchor = run_dir / relative
+        if anchor.is_file():
+            try:
+                value = json.loads(anchor.read_text(encoding="utf-8"))
+                if "project_policy_context" in value:
+                    bindings.append(value["project_policy_context"])
+            except (OSError, ValueError, TypeError) as error:
+                raise ProjectPolicyBindingError(f"policy binding metadata is unavailable: {relative}: {error}") from error
+    if not path.is_file():
+        if (run_dir / "inputs/project-policy").exists() or any(binding is not None for binding in bindings):
+            raise ProjectPolicyBindingError("policy evidence exists without its run/project binding")
+        return None  # V1 runs predate project-policy context.
+    try:
+        context = json.loads(path.read_text(encoding="utf-8"))
+        if any(binding != context for binding in bindings):
+            raise ValueError("review/invocation binding differs from the immutable policy run context")
+        if (
+            not isinstance(context, dict) or context.get("stage") != stage
+            or context.get("context_path") != str(path)
+            or not isinstance(context.get("project_root"), str)
+        ):
+            raise ValueError("invalid policy run context")
+        snapshot = resolve_project_policy(context["project_root"], stage)
+        evidence = context.get("policy")
+        if snapshot is None:
+            if evidence is not None or context.get("status") != "NO_PROJECT_POLICY":
+                raise ValueError("project policy was removed after invocation/review")
+            return None
+        if not isinstance(evidence, dict) or context.get("status") != "PROJECT_POLICY" or evidence.get("policy_ref") != snapshot.ref:
+            raise ValueError("project policy differs from the invocation/review snapshot")
+        if [(r["logical_path"], r["sha256"]) for r in evidence["rules"]] != [(r.logical_path, r.sha256) for r in snapshot.rules]:
+            raise ValueError("policy rule provenance differs from the ordered snapshot")
+        snapshot_path = Path(evidence["snapshot_path"]).resolve()
+        record = {"semantic_payload": json.loads(snapshot.payload_bytes), "semantic_payload_sha256": snapshot.sha256, "evidence": evidence}
+        expected_bytes = json.dumps(record, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        if not snapshot_path.is_relative_to(run_dir) or snapshot_path.read_bytes() != expected_bytes:
+            raise ValueError("immutable policy snapshot evidence changed")
+        for rule in evidence["rules"]:
+            evidence_path = Path(rule["evidence_path"]).resolve()
+            if not evidence_path.is_relative_to(run_dir) or _source_hash(evidence_path) != rule["sha256"]:
+                raise ValueError("immutable policy rule evidence changed")
+        tea = evidence.get("tea_customization")
+        if tea:
+            tea_path = Path(tea["evidence_path"]).resolve()
+            if not tea_path.is_relative_to(run_dir) or _source_hash(tea_path) != tea["sha256"]:
+                raise ValueError("immutable TEA customization evidence changed")
+        return snapshot.ref
+    except (OSError, ValueError, KeyError, TypeError) as error:
+        raise ProjectPolicyBindingError(str(error), code=getattr(error, "code", "PROJECT_POLICY_STALE")) from error
+
+
+def design_gate_input_refs(baseline: ApprovedBaseline, run_dir: str | Path) -> list[dict]:
+    refs = baseline_receipt_refs(baseline)
+    policy_ref = current_project_policy_ref(run_dir, "DESIGN")
+    return refs + ([policy_ref] if policy_ref else [])
+
+
 def _design_receipt_refs(receipt: dict) -> tuple[tuple[str, str, str], ...] | None:
     refs = receipt.get("input_refs")
     if not isinstance(refs, list):
@@ -1279,8 +1374,15 @@ def persist_design_review(
     snapshot: DesignSnapshot,
     validation: ValidatorResult,
     state: DesignWorkflowState,
+    *,
+    project_root: str | Path | None = None,
 ) -> None:
-    run_dir = Path(run_dir)
+    run_dir = Path(run_dir).resolve()
+    context_path = run_dir / "inputs/project-policy-context.json"
+    if project_root is not None and not context_path.exists():
+        persist_project_policy_context(run_dir, project_root, "DESIGN", bootstrap_tea=True)
+    policy_ref = current_project_policy_ref(run_dir, "DESIGN")
+    policy_context = json.loads(context_path.read_text(encoding="utf-8")) if context_path.is_file() else None
     identity = (snapshot.artifact_id, snapshot.revision, snapshot.sha256)
     if state.state != "DESIGN_REVIEW" or state.review_status != "IN_REVIEW" or validation.status != "PASS":
         raise ValueError("only validated DESIGN_REVIEW artifacts can be persisted")
@@ -1306,6 +1408,8 @@ def persist_design_review(
     for name, source in bundle.baseline.source_paths.items():
         input_refs.append({"name": name, "path": str(source), "revision": bundle.baseline.revision, "sha256": bundle.baseline.source_hashes[name]})
     input_refs.append({"name": "handoff", "path": str(bundle.baseline.handoff_path), "revision": bundle.baseline.revision, "sha256": _source_hash(bundle.baseline.handoff_path)})
+    if policy_ref:
+        input_refs.append(policy_ref)
     _write_exclusive(evidence_dir / "tea-raw-output.md", raw_bytes)
     _write_exclusive(canonical_dir / "semantic-payload.json", snapshot.payload_bytes)
     projection = snapshot.project("IN_REVIEW")
@@ -1346,6 +1450,7 @@ def persist_design_review(
             {"event": "SUBMIT_FOR_DESIGN_REVIEW", "state": "DESIGN_REVIEW", "review_status": "IN_REVIEW", "artifact_sha256": state.artifact_sha256},
         ],
         "inputs": input_refs,
+        "project_policy_context": policy_context,
     }
     _write_exclusive(run_dir / "workflow-state.json", (json.dumps(workflow_json, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
     if manifest is not None:
@@ -1444,13 +1549,18 @@ def invoke_native_tea(
     if not project_config.is_file():
         raise RuntimeError(f"native TEA invocation requires its project configuration: {project_config}")
     project_config_sha256 = _source_hash(project_config)
+    policy_context = persist_project_policy_context(run_dir, petclinic_root, "DESIGN", bootstrap_tea=True)
     codex_command = resolve_codex_command()
-    epic, rules, unknowns = persist_adapter_bundle(bundle, run_dir)
+    epic, rules, unknowns = persist_adapter_bundle(bundle, run_dir, project_policy_context=policy_context)
     output_dir = run_dir / "raw-output"
     output = output_dir / "test-design-epic-1.md"
     output_dir.mkdir(parents=True, exist_ok=True)
     supplemental_path = run_dir / "inputs/adapter/current-system-supplemental.md"
     prompt = _invocation_prompt(epic, rules, unknowns, output, supplemental_path if supplemental_path.is_file() else None)
+    if policy_context["policy"]:
+        from .test_kit_policy import non_authoritative_policy_prompt, resolve_project_policy
+        prompt += "\n" + non_authoritative_policy_prompt(resolve_project_policy(petclinic_root, "DESIGN"), policy_context["policy"])
+        prompt += "\nLoad the project-owned TEA team customization via upstream workflow.persistent_facts in declared order; these facts remain testing guidance only.\n"
     prompt_path = output_dir / "invocation-prompt.md"
     prompt_path.write_text(prompt, encoding="utf-8", newline="\n")
     stdout_path = output_dir / "invocation.jsonl"
@@ -1479,6 +1589,7 @@ def invoke_native_tea(
         "installed_skill_files": pinned_skill_files,
         "pin_manifest_sha256": TEA_PIN_MANIFEST_SHA256,
         "project_config": {"path": str(project_config), "sha256": project_config_sha256},
+        "project_policy_context": policy_context,
         "model": model,
         "normalizer_profile": "tea-native-runtime-v1",
         "ba_revision": bundle.baseline.revision,
@@ -1567,7 +1678,9 @@ def read_supplemental_context(input_manifest_path: str | Path) -> str:
     return match.group(1).strip()
 
 
-def persist_adapter_bundle(bundle: AdapterBundle, run_dir: str | Path) -> tuple[Path, Path, Path]:
+def persist_adapter_bundle(
+    bundle: AdapterBundle, run_dir: str | Path, *, project_policy_context: dict | None = None,
+) -> tuple[Path, Path, Path]:
     """Write only fresh evidence paths; existing files are never overwritten."""
     run_dir = Path(run_dir)
     epic, rules, unknowns = _write_adapter_inputs(bundle, run_dir)
@@ -1575,6 +1688,7 @@ def persist_adapter_bundle(bundle: AdapterBundle, run_dir: str | Path) -> tuple[
     adapter_dir = input_dir / "adapter"
     manifest = {
         "feature_id": bundle.baseline.feature_id,
+        "project_policy_context": project_policy_context,
         "ba_baseline_revision": bundle.baseline.revision,
         "ba_handoff_sha256": _source_hash(bundle.baseline.handoff_path),
         "sources": [

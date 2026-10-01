@@ -28,6 +28,7 @@ Bộ operator guide đầy đủ được duy trì trong source repository và k
 
 Trong repository, xem:
 
+- Project customization & policy (V1.1) — `docs/vi/TEST_KIT_CUSTOMIZATION.md`
 - Quick Start — `docs/vi/TEST_KIT_QUICKSTART.md`
 - Capabilities và boundary — `docs/vi/TEST_KIT_CAPABILITIES.md`
 - Usage Guide theo tình huống — `docs/vi/TEST_KIT_USAGE_GUIDE.md`

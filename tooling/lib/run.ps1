@@ -9,14 +9,16 @@ $kitId = if ($Kit) { $Kit } else { 'ba' }
 $agent = 'codex'
 $scope = 'project'
 $explicitTarget = $null
+$projectPolicyRoot = $null
 for ($i = 0; $i -lt $Arguments.Count; $i++) {
     switch ($Arguments[$i]) {
         '--kit' { if ($i + 1 -ge $Arguments.Count) { Write-Error 'Missing value for --kit.'; exit 2 }; $kitId = $Arguments[++$i] }
         '--agent' { if ($i + 1 -ge $Arguments.Count) { Write-Error 'Missing value for --agent.'; exit 2 }; $agent = $Arguments[++$i] }
         '--scope' { if ($i + 1 -ge $Arguments.Count) { Write-Error 'Missing value for --scope.'; exit 2 }; $scope = $Arguments[++$i] }
         '--target' { if ($i + 1 -ge $Arguments.Count) { Write-Error 'Missing value for --target.'; exit 2 }; $explicitTarget = $Arguments[++$i] }
+        '--project-root' { if ($Operation -ne 'doctor') { Write-Error '--project-root is supported only for doctor.'; exit 2 }; if ($i + 1 -ge $Arguments.Count) { Write-Error 'Missing value for --project-root.'; exit 2 }; $projectPolicyRoot = $Arguments[++$i] }
         default {
-            if ($Arguments[$i] -like '--*') { Write-Error "Unknown option '$($Arguments[$i])'. Supported options: --agent, --scope, --target."; exit 2 }
+            if ($Arguments[$i] -like '--*') { Write-Error "Unknown option '$($Arguments[$i])'. Supported options: --agent, --scope, --target, --project-root (doctor only)."; exit 2 }
             if ($i -eq 0 -and -not $Kit) { $kitId = $Arguments[$i] }
             elseif ($i -gt 0) { Write-Error "Unexpected argument '$($Arguments[$i])'."; exit 2 }
         }
@@ -34,5 +36,6 @@ $adapter = Join-Path $PSScriptRoot (Join-Path '..\adapters' $adapterName)
 $target = & $adapter -Scope $scope -ProjectRoot (Get-Location).Path -Target $explicitTarget
 $script = Join-Path $PSScriptRoot 'ba_kit.py'
 $cli = @($Operation, $kitId, '--agent', $agent, '--scope', $scope, '--target', $target)
+if ($projectPolicyRoot) { $cli += @('--project-root', $projectPolicyRoot) }
 & $python.Source $script @cli
 exit $LASTEXITCODE
