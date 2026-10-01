@@ -223,7 +223,7 @@ mật mã hay bảo đảm chống giả mạo.
 # Technical plan or tasks
 ```
 
-V1 chỉ cho phép một run Dev đang active per working tree; dùng worktree riêng nếu cần chạy changes đồng thời. `.devkit/` đã được git-ignore.
+V1 chỉ cho phép một run Dev đang active per working tree; dùng worktree riêng nếu cần chạy changes đồng thời. Trong target repository, thêm `.devkit/` vào `.gitignore` nếu không muốn commit local run state.
 
 ## 9. Dev Doctor
 
