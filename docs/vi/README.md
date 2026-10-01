@@ -10,13 +10,14 @@ Tiếng Việt là tài liệu người dùng chính. Bản tiếng Anh được
 4. [Workflow và Human Gates](BA_KIT_WORKFLOW.md)
 5. [Ví dụ CR-001](../../kits/ba/examples/CR-001/README.md)
 
-## Test Kit V1 cho tester
+## Test Kit V1.1 cho tester
 
 1. [Bắt đầu nhanh](TEST_KIT_QUICKSTART.md)
-2. [Khả năng, canonical artifact và template policy](TEST_KIT_CAPABILITIES.md)
-3. [Hướng dẫn theo tình huống](TEST_KIT_USAGE_GUIDE.md)
-4. [Workflow và Human Gates](TEST_KIT_WORKFLOW.md)
-5. [Ví dụ CR-001](../../kits/test/examples/CR-001/README.md)
+2. [Project Customization & Policy](TEST_KIT_CUSTOMIZATION.md)
+3. [Khả năng, canonical artifact và template policy](TEST_KIT_CAPABILITIES.md)
+4. [Hướng dẫn theo tình huống](TEST_KIT_USAGE_GUIDE.md)
+5. [Workflow và Human Gates](TEST_KIT_WORKFLOW.md)
+6. [Ví dụ CR-001](../../kits/test/examples/CR-001/README.md)
 
 ## Làm tài liệu và visual
 
