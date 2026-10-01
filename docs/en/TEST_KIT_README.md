@@ -1,4 +1,4 @@
-# Test Kit V1 — English overview
+# Test Kit V1.1 — English overview
 
 **Test Kit answers “How do we prove it?”** It turns a Human-approved BA baseline into a canonical Test Design and manual testcases, with a separate authenticated Human gate for each. It does not redefine business requirements or decide implementation architecture.
 
@@ -8,11 +8,11 @@ Approved BA Baseline → TEA analysis → Canonical Test Design
 → Human Case Gate → APPROVED_TESTWARE → STOP_V1
 ```
 
-The full operator documentation is currently in Vietnamese: [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [scenario guide](../vi/TEST_KIT_USAGE_GUIDE.md), [workflow and gates](../vi/TEST_KIT_WORKFLOW.md), and the [CR-001 example](../../kits/test/examples/CR-001/README.md). This page is an English entrypoint, not a full translation of those guides.
+V1.1 adds project-owned, hash-bound testing policy as non-authoritative guidance for Design and Cases; see the [Vietnamese customization guide](../vi/TEST_KIT_CUSTOMIZATION.md). The full operator documentation is currently in Vietnamese: [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [scenario guide](../vi/TEST_KIT_USAGE_GUIDE.md), [workflow and gates](../vi/TEST_KIT_WORKFLOW.md), and the [CR-001 example](../../kits/test/examples/CR-001/README.md). This page is an English entrypoint, not a full translation of those guides.
 
 ## Install
 
-Test Kit V1 supports Codex project scope. From the target project, with Python 3.10+ and Codex CLI available:
+Test Kit V1.1 supports Codex project scope. From the target project, with Python 3.10+ and Codex CLI available:
 
 ```powershell
 & 'C:\tools\agent-skills\tooling\install.ps1' test --agent codex --scope project
@@ -32,7 +32,7 @@ An approved engineering handoff and its hashed Business Rules, SRS, and decision
 
 Unknown BA behavior stays `UNKNOWN`. A deferred scenario does not acquire an invented expected result. P0–P3 are advisory test priorities, not business rules or execution results. A material open execution dependency blocks Case Gate approval.
 
-## Optional projections and V1 limit
+## Optional projections and V1.1 limit
 
 XMind is a one-way view of approved Canonical Test Design, using the pinned Logic Chart Right presentation profile. Excel is a one-way view of approved Canonical Testcases, with one testcase per row by default. External projection manifests retain trace and hashes. Neither file is canonical, and V1 does not import edits back into Test Design or Testcases.
 
