@@ -222,6 +222,7 @@ class CaseWorkflowState:
     design_gate_receipt_evidence: dict | None = None
     input_refs: tuple[tuple[str, str, str], ...] = ()
     execution_oracle_refs: tuple[dict, ...] = ()
+    project_policy_context: dict | None = None
 
 
 @dataclass(frozen=True)
@@ -329,11 +330,14 @@ def baseline_receipt_refs(baseline: foundation.ApprovedBaseline) -> list[dict]:
 
 
 def case_gate_input_refs(
-    baseline: foundation.ApprovedBaseline, design: foundation.DesignSnapshot
+    baseline: foundation.ApprovedBaseline, design: foundation.DesignSnapshot,
+    *, run_dir: str | Path | None = None,
 ) -> list[dict]:
-    return baseline_receipt_refs(baseline) + [
+    refs = baseline_receipt_refs(baseline) + [
         {"id": design.artifact_id, "revision": design.revision, "sha256": design.sha256}
     ]
+    policy_ref = foundation.current_project_policy_ref(run_dir, "CASES") if run_dir is not None else None
+    return refs + ([policy_ref] if policy_ref else [])
 
 
 def load_design_snapshot(
@@ -446,6 +450,7 @@ def load_case_review_snapshot(
         workflow["review_status"], workflow["validation_status"], signature,
         design_receipt_mode, design_receipt_evidence, input_signature,
         tuple(dict(ref) for ref in execution_oracle_refs),
+        workflow.get("project_policy_context"),
     )
 
 
@@ -520,7 +525,9 @@ def validate_design_gate_receipt(
     if receipt["actor_id"].startswith("TEST_ONLY:"):
         return GateReceiptResult("FAIL", foundation.Finding("TEST_ONLY_RECEIPT_NOT_PRODUCTION", "TEST_ONLY simulated receipts are never valid for production Human-auth verification"))
     try:
-        expected_refs = tuple((ref["id"], ref["revision"], ref["sha256"]) for ref in baseline_receipt_refs(baseline))
+        expected_refs = tuple((ref["id"], ref["revision"], ref["sha256"]) for ref in foundation.design_gate_input_refs(baseline, design_workflow_dir))
+    except foundation.ProjectPolicyBindingError as error:
+        return GateReceiptResult("FAIL", foundation.Finding(error.code, str(error)))
     except (OSError, ValueError) as error:
         return GateReceiptResult("FAIL", foundation.Finding("BA_BASELINE_STALE", str(error)))
     actual_refs = _receipt_refs(receipt)
@@ -606,7 +613,9 @@ def validate_test_only_design_fixture(
     if finding:
         return GateReceiptResult("FAIL", finding)
     try:
-        expected = tuple((ref["id"], ref["revision"], ref["sha256"]) for ref in baseline_receipt_refs(baseline))
+        expected = tuple((ref["id"], ref["revision"], ref["sha256"]) for ref in foundation.design_gate_input_refs(baseline, design_workflow_dir))
+    except foundation.ProjectPolicyBindingError as error:
+        return GateReceiptResult("FAIL", foundation.Finding(error.code, str(error)))
     except (OSError, ValueError) as error:
         return GateReceiptResult("FAIL", foundation.Finding("BA_BASELINE_STALE", str(error)))
     actual = _receipt_refs(receipt)
@@ -671,7 +680,8 @@ def adapt_approved_design_to_katalon(
     if provenance_findings:
         raise ValueError(provenance_findings[0].message)
     try:
-        current_refs = tuple((ref["id"], ref["revision"], ref["sha256"]) for ref in baseline_receipt_refs(baseline))
+        design_run_dir = Path(authorization.receipt_path).resolve().parents[3]
+        current_refs = tuple((ref["id"], ref["revision"], ref["sha256"]) for ref in foundation.design_gate_input_refs(baseline, design_run_dir))
     except (OSError, ValueError) as error:
         raise ValueError(f"BA_BASELINE_STALE: {error}") from error
     if (
@@ -1517,6 +1527,7 @@ def submit_cases_for_review(
     design_gate_receipt_mode: str | None = None,
     design_gate_receipt_evidence: dict | None = None,
     input_refs: Iterable[dict] = (),
+    project_policy_context: dict | None = None,
 ) -> CaseWorkflowState:
     execution_refs = tuple(execution_contract_refs)
     if state.state != "DRAFT_CASES":
@@ -1539,6 +1550,7 @@ def submit_cases_for_review(
         dict(design_gate_receipt_evidence) if design_gate_receipt_evidence else None,
         _input_ref_signature(input_refs),
         tuple(dict(ref) for ref in execution_refs),
+        project_policy_context,
     )
 
 
@@ -1616,7 +1628,14 @@ def _validate_case_gate_receipt(
         return GateReceiptResult("FAIL", finding, findings=(finding, *current_validation.findings))
 
     try:
-        expected = tuple((ref["id"], ref["revision"], ref["sha256"].lower()) for ref in case_gate_input_refs(baseline, design))
+        context = state.project_policy_context
+        policy_run = Path(context["context_path"]).parents[1] if context else None
+        expected = tuple((ref["id"], ref["revision"], ref["sha256"].lower()) for ref in case_gate_input_refs(baseline, design, run_dir=policy_run))
+        if context and json.loads(Path(context["context_path"]).read_text(encoding="utf-8")) != context:
+            raise foundation.ProjectPolicyBindingError("Case Review policy context changed")
+    except foundation.ProjectPolicyBindingError as error:
+        finding = foundation.Finding(error.code, str(error))
+        return GateReceiptResult("FAIL", finding, findings=(finding,))
     except (OSError, ValueError) as error:
         finding = foundation.Finding("BA_BASELINE_STALE", str(error))
         return GateReceiptResult("FAIL", finding, findings=(finding,))
@@ -1717,7 +1736,9 @@ def _validate_design_gate_evidence(
     if finding:
         return finding
     try:
-        expected_refs = tuple((ref["id"], ref["revision"], ref["sha256"].lower()) for ref in case_gate_input_refs(baseline, design)[:-1])
+        expected_refs = tuple((ref["id"], ref["revision"], ref["sha256"].lower()) for ref in foundation.design_gate_input_refs(baseline, design_run_dir))
+    except foundation.ProjectPolicyBindingError as error:
+        return foundation.Finding(error.code, str(error))
     except (OSError, ValueError) as error:
         return foundation.Finding("BA_BASELINE_STALE", str(error))
     if (
@@ -1829,6 +1850,7 @@ def _approved_testware(
     baseline: foundation.ApprovedBaseline,
     receipt_sha256: str,
     execution_contract_refs: Iterable[dict],
+    project_policy_context: dict | None = None,
 ) -> ApprovedTestware:
     used_resolution_refs = {
         dependency.resolution_ref
@@ -1855,6 +1877,7 @@ def _approved_testware(
         "case_gate_receipt": {"path": "case-gate/receipt.json", "sha256": receipt_sha256},
         "execution_oracle_refs": list(execution_refs),
         "evidence_locations": list(evidence),
+        "project_policy_context": project_policy_context,
     }
     payload_bytes = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     return ApprovedTestware(payload_bytes, hashlib.sha256(payload_bytes).hexdigest())
@@ -1892,13 +1915,14 @@ def _case_gate_transition(
     if receipt["decision"] == "APPROVE":
         approved_snapshot = snapshot.project("APPROVED")
         testware = _approved_testware(
-            snapshot, design, baseline, receipt_sha256, execution_contract_refs
+            snapshot, design, baseline, receipt_sha256, execution_contract_refs, state.project_policy_context,
         )
         workflow = CaseWorkflowState(
             "STOP_V1", snapshot.artifact_id, snapshot.revision, snapshot.sha256,
             "APPROVED", "PASS", state.execution_contract_refs,
             state.design_gate_receipt_mode, state.design_gate_receipt_evidence, state.input_refs,
             state.execution_oracle_refs,
+            state.project_policy_context,
         )
         return CaseGateDecisionResult(
             "STOP_V1", None, (), workflow, approved_snapshot, receipt_bytes=receipt_bytes,
@@ -1919,6 +1943,7 @@ def _case_gate_transition(
         "DRAFT", "NOT_RUN", state.execution_contract_refs,
         state.design_gate_receipt_mode, state.design_gate_receipt_evidence, state.input_refs,
         state.execution_oracle_refs,
+        state.project_policy_context,
     )
     return CaseGateDecisionResult(
         "DRAFT_CASES", None, (), workflow, changed_snapshot, next_snapshot=next_snapshot,
@@ -2140,6 +2165,7 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
             ],
             "history": list(decision.state_history),
             "test_only": decision.test_only,
+            "project_policy_context": decision.workflow.project_policy_context,
         }, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
     )
     root_workflow.update({
@@ -2350,6 +2376,7 @@ def persist_case_review(
             {"id": ref[0], "revision": ref[1], "sha256": ref[2]}
             for ref in state.input_refs
         ],
+        "project_policy_context": state.project_policy_context,
         "history": [
             {"state": "DRAFT_CASES", "review_status": "DRAFT"},
             {"event": "SUBMIT_FOR_CASE_REVIEW", "state": "CASE_REVIEW", "review_status": "IN_REVIEW", "artifact_sha256": snapshot.sha256},
@@ -2581,6 +2608,14 @@ def _invoke_native_katalon(
             "production invocation requires a project root; temporary fallback is TEST_ONLY only",
         )
     project_root = Path(project_root).resolve() if project_root is not None else None
+    design_run = Path(authorization.receipt_path).resolve().parents[3]
+    design_context_path = design_run / "inputs/project-policy-context.json"
+    if design_context_path.is_file():
+        design_context = json.loads(design_context_path.read_text(encoding="utf-8"))
+        bound_root = Path(design_context["project_root"]).resolve()
+        if project_root is not None and project_root != bound_root:
+            raise foundation.ProjectPolicyBindingError("case project root differs from the approved Design run")
+        project_root = bound_root
     if project_root is not None:
         _verify_pinned_skill(project_root / ".agents/skills" / KATALON_CAPABILITY)
     codex_command = resolve_codex_command()
@@ -2593,6 +2628,11 @@ def _invoke_native_katalon(
         raise RuntimeError("TEST_ONLY invocation must use a temporary directory or .work/benchmark-runs")
     if (run_dir / "evidence/invocation-manifest.json").exists():
         raise RuntimeError("invocation evidence already exists; choose a new run directory")
+    policy_context = foundation.persist_project_policy_context(run_dir, project_root, "CASES") if project_root else None
+    if policy_context and policy_context["policy"]:
+        from .test_kit_policy import non_authoritative_policy_prompt, resolve_project_policy
+        guidance = non_authoritative_policy_prompt(resolve_project_policy(project_root, "CASES"), policy_context["policy"])
+        katalon_input = replace(katalon_input, markdown=katalon_input.markdown + "\n" + guidance)
     _write_if_same_or_absent(run_dir / "inputs/approved-test-design.md", katalon_input.markdown.encode("utf-8"))
     for source in (*baseline.source_paths.values(), baseline.handoff_path):
         _write_if_same_or_absent(run_dir / "inputs/baseline" / source.name, source.read_bytes())
@@ -2609,6 +2649,7 @@ def _invoke_native_katalon(
             "fixture": receipt_evidence.__dict__ if receipt_evidence else None,
         },
         "model": model,
+        "project_policy_context": policy_context,
     }
     _write_if_same_or_absent(run_dir / "inputs/input-manifest.json", (json.dumps(input_manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
     raw_dir = run_dir / "raw-output"
@@ -2714,6 +2755,7 @@ def _run_pinned_native_skill(
             "execution_contract_refs": input_manifest["execution_contract_refs"],
             "receipt_mode": input_manifest["receipt_mode"],
             "design_gate_receipt_evidence": input_manifest["design_gate_receipt_evidence"],
+            "project_policy_context": input_manifest.get("project_policy_context"),
             "invocation_command": argv,
             "started_at": datetime.now(timezone.utc).isoformat(),
             "status": "RUNNING",
@@ -2848,7 +2890,8 @@ def _finish_case_integration(
         execution_contract_refs=execution_contract_refs,
         design_gate_receipt_mode=manifest.get("receipt_mode"),
         design_gate_receipt_evidence=manifest.get("design_gate_receipt_evidence"),
-        input_refs=case_gate_input_refs(baseline, design),
+        input_refs=case_gate_input_refs(baseline, design, run_dir=run_dir),
+        project_policy_context=manifest.get("project_policy_context"),
     )
     try:
         persist_case_review(

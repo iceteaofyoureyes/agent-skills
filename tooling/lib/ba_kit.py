@@ -875,13 +875,43 @@ def _doctor_manifest(source_root, target_dir, kit_id):
     return source_manifest, None
 
 
-def doctor(source_root, target_dir, kit_id="ba"):
+def _with_project_policy(report, target_dir, kit_id, project_root):
+    """Diagnose project inputs independently of installed-package ownership."""
+    if kit_id != "test":
+        return report
+    target = Path(target_dir).resolve()
+    if project_root is None:
+        if target.name == "skills" and target.parent.name in {".agents", ".claude"}:
+            project_root = target.parent.parent
+        else:
+            # Generic package inspection has no unambiguous project context.
+            return report
+    from tooling.lib.test_kit_policy import check_project_policy
+
+    project_report = check_project_policy(Path(project_root).resolve())
+    report["project_policy"] = project_report
+    if project_report["status"] == "FAIL":
+        report["checks"].extend(
+            (finding["code"], False, "project_policy", finding["message"])
+            for finding in project_report["findings"]
+        )
+        report["status"] = "FAIL"
+    else:
+        name = "NO_PROJECT_POLICY" if project_report["status"] == "NO_PROJECT_POLICY" else "PROJECT_POLICY_VALID"
+        report["checks"].append((name, True, "project_policy", ""))
+    return report
+
+
+def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
     source_root = Path(source_root).resolve()
     target_dir = Path(target_dir).expanduser().resolve()
     try:
         manifest, definition_file = _doctor_manifest(source_root, target_dir, kit_id)
     except (OSError, ValueError, json.JSONDecodeError) as error:
-        return {"status": "FAIL", "kit": kit_id, "checks": [("PACKAGE_DEFINITION_INVALID", False, "contract", str(error))]}
+        return _with_project_policy(
+            {"status": "FAIL", "kit": kit_id, "checks": [("PACKAGE_DEFINITION_INVALID", False, "contract", str(error))]},
+            target_dir, kit_id, project_root,
+        )
     checks = []
     integrity = manifest.get("integrity")
     authority_spec = integrity.get("authority") if integrity else None
@@ -1082,7 +1112,10 @@ def doctor(source_root, target_dir, kit_id="ba"):
     contract_failed = any(not ok and kind == "contract" for _, ok, kind, _ in checks)
     optional_missing = any(not ok and kind == "optional" for _, ok, kind, _ in checks)
     status = "FAIL" if required_failed or contract_failed else "DEGRADED" if optional_missing else "READY"
-    return {"status": status, "kit": manifest["name"], "checks": checks}
+    return _with_project_policy(
+        {"status": status, "kit": manifest["name"], "checks": checks},
+        target_dir, kit_id, project_root,
+    )
 
 
 def resolve_target(agent, scope, explicit=None, project_dir=None):
@@ -1102,7 +1135,9 @@ def resolve_target(agent, scope, explicit=None, project_dir=None):
 
 def _print_doctor(report):
     print(f"{report.get('kit', 'Kit')} Doctor")
-    for name, ok, kind, detail in report["checks"]:
+    package_checks = [check for check in report["checks"] if check[2] != "project_policy"]
+    project_checks = [check for check in report["checks"] if check[2] == "project_policy"]
+    for name, ok, kind, detail in package_checks:
         label = "PASS" if ok else "MISSING" if kind == "dependency" else "DEGRADED" if kind == "optional" else "FAIL"
         suffix = f" - {kind}" if kind == "optional" and not ok else ""
         if kind == "required":
@@ -1110,6 +1145,11 @@ def _print_doctor(report):
         if detail:
             suffix += f": {detail}"
         print(f"[{label}] {name}{suffix}")
+    if project_checks:
+        print("Project policy (project-owned inputs)")
+        for name, ok, _kind, detail in project_checks:
+            suffix = f": {detail}" if detail else ""
+            print(f"[{'PASS' if ok else 'FAIL'}] {name}{suffix}")
     print(f"STATUS: {report['status']}")
 
 
@@ -1122,6 +1162,8 @@ def main(argv=None):
         sub.add_argument("--agent", choices=("codex", "claude-code", "generic"), default="codex")
         sub.add_argument("--scope", choices=("user", "project"), default="project")
         sub.add_argument("--target", type=Path)
+        if command == "doctor":
+            sub.add_argument("--project-root", type=Path, help="project customization root (default: current directory)")
     state_parser = commands.add_parser("validate-state")
     state_parser.add_argument("path", type=Path)
     handoff_parser = commands.add_parser("validate-handoff")
@@ -1181,7 +1223,7 @@ def main(argv=None):
             if result["preserved"]:
                 print("Preserved modified or shared skills: " + ", ".join(result["preserved"]))
             return 0
-        report = doctor(ROOT, target, args.kit)
+        report = doctor(ROOT, target, args.kit, project_root=args.project_root or Path.cwd())
         _print_doctor(report)
         return 1 if report["status"] == "FAIL" else 0
     except (OSError, ValueError, json.JSONDecodeError) as error:

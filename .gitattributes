@@ -11,6 +11,7 @@ tooling/__init__.py text eol=lf
 tooling/lib/__init__.py text eol=lf
 tooling/lib/codex_cli.py text eol=lf
 tooling/lib/test_kit_v1*.py text eol=lf
+tooling/lib/test_kit_policy.py text eol=lf
 tooling/pins/tea-test-design-v1.json text eol=lf
 tooling/pins/katalon-create-test-cases-v1.json text eol=lf
 tooling/pins/test-only-provenance-relocations-v1.json text eol=lf
@@ -25,3 +26,10 @@ tooling/xmind/serialize.js text eol=lf
 
 ba-workflow/scripts/contracts.py text eol=lf
 LICENSE text eol=lf
+
+# Reviewed BA and Test Kit evidence hashes bind exact LF bytes.
+kits/ba/examples/CR-001/** text eol=lf
+benchmark/test-kit/**/*.md text eol=lf
+benchmark/test-kit/**/*.json text eol=lf
+benchmark/test-kit/**/*.yml text eol=lf
+benchmark/test-kit/**/*.yaml text eol=lf

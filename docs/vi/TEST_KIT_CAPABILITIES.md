@@ -1,4 +1,4 @@
-# Khả năng và ranh giới Test Kit V1
+# Khả năng và ranh giới Test Kit V1.1
 
 **Test Kit = HOW DO WE PROVE IT.** Kit tạo Test Design và testcase thủ công từ BA baseline đã được phê duyệt, rồi dừng ở Human Gate. BA giữ quyền quyết định **WHAT**; Test Kit không thiết kế API/DB/architecture và không biến TEA/Katalon thành nguồn business rule.
 
@@ -11,6 +11,7 @@
 | Canonical Test Design + Design Gate receipt | Revision/hash/BA refs hiện hành; Human đã xác thực | Coverage authority cho testcase và XMind |
 | Output native của `create-test-cases` | Chỉ sau Design Gate; adapter chuẩn hóa/validate | Raw testcase evidence, chưa là canonical |
 | Approved execution/interface contract | Khi cần setup, action hoặc observation cụ thể | Resolution ref cho execution dependency; không đổi BA rule |
+| `.test-kit/project.yaml` + project rule files | Optional V1.1; strict schema/path/hash; project-owned | Non-authoritative testing/generation guidance; snapshot bind vào Design/Case Gate |
 | Canonical Testcases + Case Gate receipt | `APPROVED_TESTWARE`, state `STOP_V1`, refs hiện hành | Authority cho Excel production projection |
 | Human/project `.xlsx` template | Inspector ánh xạ không mơ hồ, template đủ trường semantic cần thiết | Trình bày Excel, không đổi testcase |
 
@@ -25,6 +26,7 @@ XMind V1 **không** nhận Human-supplied hoặc project XMind template. Nó dù
 | Canonical Test Design | Coverage oracle sau Human Design Gate |
 | Canonical Testcases | Manual testcase authority sau Human Case Gate |
 | Approved execution/interface contract | Execution oracle cho setup/action/observation được phép khẳng định |
+| Project Test Policy V1.1 | Testing/generation guidance; không được override BA/Design/execution authority |
 | XMind / Excel | Human-facing derived projection, không phải source of truth |
 
 `review_status` là projection của trạng thái review, không phải bằng chứng tự thân về approval. `P0/P1/P2/P3` là **advisory testing priority**: không xác lập business authority, trạng thái approval, kết quả chạy test hay production readiness. Design canonical không có field `priority`; heading priority của TEA chỉ ở `hierarchy_path`/raw evidence. Testcase canonical có `priority` vì raw case có nhãn này.
@@ -38,7 +40,8 @@ Nếu BA còn UNKNOWN, giữ câu hỏi và ref; scenario có thể deferred v�
 3. **Human Gates:** `DESIGN_REVIEW` và `CASE_REVIEW` nhận `APPROVE` hoặc `REQUEST_CHANGES` bằng receipt đã xác thực, gắn artifact ID/revision/semantic SHA-256/input refs. `ANSWER`, `REVIEW`, `CONTINUE` không phải approval.
 4. **Optional XMind:** một chiều từ approved Canonical Test Design; Logic Chart Right, nhóm chức năng được kiểm tra với BA, Expected Behavior/BA warning dễ đọc, trace/hash ở external manifest. Không reverse import.
 5. **Optional Excel:** một chiều từ approved Canonical Testcases; một testcase/một row mặc định, step theo thứ tự trong cell nhiều dòng, trace/hash ở external manifest. Không reverse import.
-6. **Package lifecycle:** `install`, `doctor`, reinstall và `uninstall` quản lý file thuộc Kit. Doctor kiểm tra package definition, authority, payload, managed-file drift và dependency bắt buộc; BA và Test có thể cùng cài trong một project.
+6. **Project Customization V1.1:** strict project profile/rules, DESIGN/CASES policy snapshots, TEA/Katalon guidance, stale-policy gate binding, Doctor/bootstrap và project Excel template; xem [Customization Guide](TEST_KIT_CUSTOMIZATION.md).
+7. **Package lifecycle:** `install`, `doctor`, reinstall và `uninstall` quản lý file thuộc Kit. Doctor kiểm tra package definition, authority, payload, managed-file drift và dependency bắt buộc; BA và Test có thể cùng cài trong một project.
 
 ## Hình dạng canonical
 
@@ -85,9 +88,9 @@ Cả hai projection đều cần Human yêu cầu rõ ràng; production export k
 
 ## Required, optional và provenance
 
-[Manifest Test Kit](../../kits/test/kit.yaml) v`1.0.0` cài required workflow `test-kit`, TEA `bmad-testarch-test-design`, Katalon `create-test-cases` và Python core. Python 3.10+ cùng Codex CLI là prerequisite cho native generation. Optional XMind cần Node.js 18+/npm 9+ và SDK từ `package-lock.json`; optional Excel cần `openpyxl==3.1.5` và `et-xmlfile==2.0.0` từ hash-locked `requirements-excel.lock`. Installer không tự bootstrap dependency tùy chọn. Pin, license và nguồn upstream: [Provenance](PROVENANCE.md) và [notices](../../THIRD_PARTY_NOTICES.md).
+[Manifest Test Kit](../../kits/test/kit.yaml) v`1.1.0` cài required workflow `test-kit`, TEA `bmad-testarch-test-design`, Katalon `create-test-cases` và Python core. Python 3.10+ cùng Codex CLI là prerequisite cho native generation. Optional XMind cần Node.js 18+/npm 9+ và SDK từ `package-lock.json`; optional Excel cần `openpyxl==3.1.5` và `et-xmlfile==2.0.0` từ hash-locked `requirements-excel.lock`. Installer không tự bootstrap dependency tùy chọn. Pin, license và nguồn upstream: [Provenance](PROVENANCE.md) và [notices](../../THIRD_PARTY_NOTICES.md).
 
-## Không thuộc V1
+## Không thuộc V1.1
 
 Automation planning, automation code generation, Playwright/API execution, execution evidence, flaky management, failure triage và automated defect handling thuộc **Automation Test V2**. V1 không có XMind/Excel → canonical import, bidirectional sync, Jira/TestOps/Xray write hoặc claim production testware từ `TEST_ONLY` fixture.
 

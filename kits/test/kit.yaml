@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "test",
   "name": "Test Kit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "workflow": {
     "skill": "test-kit"
   },
@@ -83,6 +83,12 @@
     {
       "source": "tooling/lib/test_kit_v1.py",
       "destination": ".test-kit/tooling/lib/test_kit_v1.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/test_kit_policy.py",
+      "destination": ".test-kit/tooling/lib/test_kit_policy.py",
       "classification": "CORE_RUNTIME",
       "capability": "core"
     },
@@ -272,11 +278,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "e019dafc60441110b1423f0bbb1a95cc16cd73e91b4d3452f66ee6000e0cd249"
+      "sha256": "325bcf777c8483824e4425afd9290fe9883616067669dddcf9f59df051d62b90"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "8a6573fe91bcee1c6fc4b832b71c0a23f244f6e6a02f1809826207930ba693f5"
+      "sha256": "75756c2c36c32f9780ea377f43ab66cd8f9363ea0adfcf377b72141ceba82bba"
     }
   }
 }

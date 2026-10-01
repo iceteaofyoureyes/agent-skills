@@ -41,9 +41,9 @@ Human BA vẫn sở hữu business decision, stakeholder/customer communication 
 
 Chi tiết: [Khả năng BA Kit](docs/vi/BA_KIT_CAPABILITIES.md).
 
-## Test Kit V1 là gì?
+## Test Kit V1.1 là gì?
 
-**Test Kit V1** hỗ trợ tester làm phần **HOW DO WE PROVE IT** từ BA baseline đã duyệt:
+**Test Kit V1.1** hỗ trợ tester làm phần **HOW DO WE PROVE IT** từ BA baseline đã duyệt. V1.1 giữ nguyên workflow/gate của V1 và bổ sung project-owned testing policy có snapshot/hash để hướng dẫn agent theo convention của từng project:
 
 ~~~text
 Approved BA Baseline → TEA analysis → Canonical Test Design
@@ -51,7 +51,7 @@ Approved BA Baseline → TEA analysis → Canonical Test Design
 → Human Case Gate → APPROVED_TESTWARE → STOP_V1
 ~~~
 
-XMind và Excel là bản chiếu tùy chọn từ canonical artifacts, không phải nguồn chuẩn. Test Kit V1 không sinh/chạy Playwright/API automation; execution, evidence và triage thuộc Automation Test V2. Xem [README đi cùng package](kits/test/README.md), rồi bắt đầu tại [Test Kit Quick Start](docs/vi/TEST_KIT_QUICKSTART.md), [khả năng](docs/vi/TEST_KIT_CAPABILITIES.md), [tình huống sử dụng](docs/vi/TEST_KIT_USAGE_GUIDE.md), [workflow/Human Gates](docs/vi/TEST_KIT_WORKFLOW.md) và [ví dụ CR-001](kits/test/examples/CR-001/README.md).
+XMind và Excel là bản chiếu tùy chọn từ canonical artifacts, không phải nguồn chuẩn. V1.1 thêm [Project Customization & Policy](docs/vi/TEST_KIT_CUSTOMIZATION.md): rule project chỉ là non-authoritative testing guidance, không override BA/Design/execution authority. Test Kit không sinh/chạy Playwright/API automation; execution, evidence và triage thuộc Automation Test V2. Xem [README đi cùng package](kits/test/README.md), rồi bắt đầu tại [Test Kit Quick Start](docs/vi/TEST_KIT_QUICKSTART.md), [customization](docs/vi/TEST_KIT_CUSTOMIZATION.md), [khả năng](docs/vi/TEST_KIT_CAPABILITIES.md), [tình huống sử dụng](docs/vi/TEST_KIT_USAGE_GUIDE.md), [workflow/Human Gates](docs/vi/TEST_KIT_WORKFLOW.md) và [ví dụ CR-001](kits/test/examples/CR-001/README.md).
 
 ## SRS template và DOCX
 
@@ -75,7 +75,7 @@ Xem [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md).
 |---|---|---|
 | **BA Kit** | **1.0.0-rc.1 Public Preview** | **WHAT** |
 | **Dev Kit** | Planned | Engineering Impact + **HOW** |
-| **Test Kit V1** | Core, XMind, Excel, Packaging Cleanup và Packaging V1 **Human accepted**; installable package đã commit, chưa có public release/tag | **HOW DO WE PROVE IT** |
+| **Test Kit V1.1** | V1 core + XMind/Excel + Packaging + Project Customization & Policy Layer **Human accepted**; manifest `1.1.0`, chưa có public release/tag | **HOW DO WE PROVE IT** |
 
 ## Bắt đầu
 
@@ -99,7 +99,7 @@ Xem [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md).
 
 Xem [Cài đặt](docs/vi/INSTALLATION.md).
 
-## Cài Test Kit V1
+## Cài Test Kit V1.1
 
 Chạy từ project Codex với Python 3.10+ và Codex CLI:
 
@@ -130,6 +130,6 @@ BA Kit và Test Kit có thể cùng cài. Xem [hướng dẫn cài cả hai Kit]
 
 [BA Kit documentation — English](docs/en/README.md)
 
-[Test Kit V1 overview — English](docs/en/TEST_KIT_README.md)
+[Test Kit V1.1 overview — English](docs/en/TEST_KIT_README.md)
 
 Human acceptance của framework không tự phê duyệt Test Design/Testcases của một project thật. `TEST_ONLY` artifact không phải production testware; Human Gate vẫn phải xác thực đúng snapshot. Xem [Release status](docs/vi/RELEASE.md).
