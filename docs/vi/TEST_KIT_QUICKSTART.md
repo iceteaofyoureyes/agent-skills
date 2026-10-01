@@ -1,6 +1,6 @@
-# Bắt đầu nhanh với Test Kit V1
+# Bắt đầu nhanh với Test Kit V1.1
 
-Test Kit giúp tester biến **BA baseline đã được phê duyệt** thành Test Design và testcase thủ công có truy vết. Agent phân tích, tạo bản nháp và kiểm tra; Human review và quyết định ở hai gate. V1 dừng tại `APPROVED_TESTWARE` → `STOP_V1`. XMind và Excel chỉ là bản chiếu tùy chọn.
+Test Kit giúp tester biến **BA baseline đã được phê duyệt** thành Test Design và testcase thủ công có truy vết. Agent phân tích, tạo bản nháp và kiểm tra; Human review và quyết định ở hai gate. V1.1 giữ terminal `APPROVED_TESTWARE` → `STOP_V1`, đồng thời cho phép project khai báo testing policy versioned/hash-bound để agent follow convention của nhóm. XMind và Excel chỉ là bản chiếu tùy chọn.
 
 ```text
 Approved BA Baseline → TEA → Canonical Test Design → Human Design Gate
@@ -27,9 +27,9 @@ cd /path/to/your-project
 ~/src/agent-skills/tooling/doctor.sh test --agent codex --scope project
 ```
 
-Test Kit V1 chỉ hỗ trợ **Codex project scope**; ba skill nằm dưới `.agents/skills/`, runtime và pin nằm dưới `.agents/skills/.test-kit/`. BA Kit có thể cài cùng project, nhưng không bắt buộc nếu project đã có BA handoff hợp lệ. `TEST_KIT_CODEX_COMMAND` là override tường minh; nếu không đặt, resolver tìm `codex` trên `PATH`. Override sai sẽ báo lỗi, không tự tìm đường cài đặt riêng của máy.
+Test Kit V1.1 chỉ hỗ trợ **Codex project scope**; ba skill nằm dưới `.agents/skills/`, runtime và pin nằm dưới `.agents/skills/.test-kit/`. BA Kit có thể cài cùng project, nhưng không bắt buộc nếu project đã có BA handoff hợp lệ. `TEST_KIT_CODEX_COMMAND` là override tường minh; nếu không đặt, resolver tìm `codex` trên `PATH`. Override sai sẽ báo lỗi, không tự tìm đường cài đặt riêng của máy.
 
-Doctor `READY` nghĩa package bắt buộc và các hợp đồng đã kiểm tra còn khớp; `DEGRADED` nghĩa có capability tùy chọn thiếu; `FAIL` nghĩa phần bắt buộc hoặc tính toàn vẹn lỗi. Doctor có thể liệt kê `DEPENDENCY_MISSING` cho XMind/Excel tùy chọn trong khi core vẫn dùng được. Xem [cài đặt và xử lý lỗi](INSTALLATION.md).
+Nếu cần rule/template riêng của project, bootstrap `.test-kit/project.yaml` và rule files theo [Project Customization & Policy](TEST_KIT_CUSTOMIZATION.md). Policy chỉ là testing guidance, không thay BA/Design/execution authority. Doctor `READY` nghĩa package bắt buộc và các hợp đồng đã kiểm tra còn khớp; `DEGRADED` nghĩa có capability tùy chọn thiếu; `FAIL` nghĩa phần bắt buộc hoặc tính toàn vẹn lỗi. Doctor có thể liệt kê `DEPENDENCY_MISSING` cho XMind/Excel tùy chọn trong khi core vẫn dùng được. Xem [cài đặt và xử lý lỗi](INSTALLATION.md).
 
 ## 2. Cung cấp BA baseline đã duyệt
 
