@@ -72,7 +72,7 @@ Trước `READY_FOR_TEST`:
 4. report failures trung thực;
 5. chỉ claim success khi evidence đủ.
 
-`tooling/lib/dev_kit.py verify fresh` chạy lại argv đã cấu hình, không dùng shell interpolation, sau review/fix stages. `handoff` dựng state từ verification results, review findings, requirements coverage, ambiguity và Human gate; model không tự đặt `READY_FOR_TEST`.
+`devkit verify fresh` chạy lại mọi argv build/tests/static đã cấu hình, không dùng shell interpolation, sau review/fix stages. Dev Handoff giữ tất cả build results trong một list; một kết quả FAIL/NOT_RUN chặn `READY_FOR_TEST`, kể cả khi các build khác PASS. Handoff dựng state từ mọi verification result, review findings, requirements coverage, ambiguity và Human gate; model không tự đặt `READY_FOR_TEST`.
 
 `verification-before-completion` là owner của evidence-before-claim, nhưng deterministic project tooling mới là proof.
 

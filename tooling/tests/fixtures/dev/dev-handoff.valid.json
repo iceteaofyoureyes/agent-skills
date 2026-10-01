@@ -14,7 +14,7 @@
     {"requirement_id": "FR-001", "status": "COVERED", "evidence": ["tests/test_appointment.py"]}
   ],
   "verification": {
-    "build": {"status": "PASS", "command": ["python", "-m", "compileall", "src"], "exit_code": 0},
+    "build": [{"name": "compile", "status": "PASS", "command": ["python", "-m", "compileall", "src"], "exit_code": 0}],
     "tests": [{"name": "unit", "status": "PASS", "command": ["python", "-m", "unittest"], "exit_code": 0}],
     "static_checks": []
   },

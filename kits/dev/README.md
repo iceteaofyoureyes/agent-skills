@@ -43,9 +43,10 @@ Nguyên tắc chính:
 ## Runtime paths
 
 - Codex local marketplace: [`.agents/plugins/marketplace.json`](../../.agents/plugins/marketplace.json)
-- Spec Kit workflows for NORMAL/HIGH_RISK: `plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`
+- NORMAL/HIGH_RISK workflows are installed at user scope and listed by `devkit workflow normal|high-risk`; their source is `plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`
 - TRIVIAL: direct `start` → edit → `finish-trivial` path; no Spec Kit workflow
-- JSON schemas/templates: `schemas/`, `templates/`
+- External-project runtime installer: `../../tooling/install_dev_kit.py`; it installs only the runtime helper/BA contract parser, schemas, templates and workflow definitions under `~/.devkit/runtime/v1`
+- JSON schemas/templates: `schemas/`, `templates/`; the installed CLI prints their contracts using `devkit schema impact-manifest|dev-handoff`
 - Run state/evidence: `.specify/workflows/runs/` and `.devkit/runs/`
 - Doctor/validators: `../../tooling/lib/dev_kit.py`
 

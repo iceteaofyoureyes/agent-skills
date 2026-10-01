@@ -12,64 +12,78 @@ inputs:
     type: string
     default: "auto"
     prompt: "Agent integration (auto uses the initialized project integration)"
+  devkit_command:
+    type: string
+    default: "devkit"
+    prompt: "Installed Dev Kit runtime command available on PATH"
 steps:
   - id: confirm-normal-route
     type: shell
-    run: "python tooling/lib/dev_kit.py assert-workflow normal"
+    run: "{{ inputs.devkit_command }} assert-workflow normal"
   - id: readiness-and-impact
     type: prompt
     integration: "{{ inputs.integration }}"
     prompt: |
       Run Dev Kit Spec Readiness for the active run in .devkit/current.json. Read input.json and the Approved BA
-      Baseline at the recorded path. Read requirements-gap-auditor/SKILL.md and use it for readiness only. Do not edit,
+      Baseline at the recorded path. Use requirements-gap-auditor for readiness only. Do not edit,
       copy, summarize into a new source of truth, or reinterpret the baseline. If business behavior is unresolved,
       write spec-readiness.json with status NEEDS_BA_CLARIFICATION and the open questions; do not plan or implement.
       Otherwise write status READY_FOR_PLANNING and an empty business_ambiguities list. In the same preflight,
-      inspect relevant source and create impact-manifest.json following kits/dev/schemas/impact-manifest.schema.json.
+      inspect relevant source and create impact-manifest.json following the schema printed by
+      `{{ inputs.devkit_command }} schema impact-manifest`.
       Record technical owners, repositories, components, interfaces, data, dependencies, constraints, risk reasons,
       and technical unknowns. Do not decide WHAT. Never write into any Approved BA Baseline path.
   - id: enforce-readiness-and-impact
     type: shell
-    run: "python tooling/lib/dev_kit.py preflight"
+    run: "{{ inputs.devkit_command }} preflight"
   - id: plan
     type: prompt
     integration: "{{ inputs.integration }}"
     prompt: |
-      For the active run, read kits/dev/plugin/skills/planning-and-task-breakdown/SKILL.md and create dev-plan.md and dev-tasks.md in its .devkit/runs
+      For the active run, use planning-and-task-breakdown and create dev-plan.md and dev-tasks.md in its .devkit/runs
       directory. Reference the Approved BA Baseline path/revision; do not copy or rewrite its business requirements.
       Cover technical scope, affected components, code/architecture decisions, dependencies, approach, risks, tests,
       vertical slices, acceptance criteria, verification, and technical unknowns. NORMAL work has no Human plan
       approval gate. For bug work, require a regression reproduction test before the fix. Do not edit the baseline.
+      Each file must begin with a `devkit-planning-metadata` JSON comment containing the active change_id, the exact
+      baseline_ref object from that run's input.json, and business_ambiguity set to CLEAR. Keep technical planning
+      content after the metadata.
+  - id: enforce-planning-artifacts
+    type: shell
+    run: "{{ inputs.devkit_command }} plan-check"
+  - id: authorize-normal-implementation
+    type: shell
+    run: "{{ inputs.devkit_command }} implementation-ready normal"
   - id: implementation
     type: prompt
     integration: "{{ inputs.integration }}"
     prompt: |
-      Implement the approved technical plan for the active run using kits/dev/plugin/skills/incremental-implementation/SKILL.md. Read
-      kits/dev/plugin/skills/test-driven-development/SKILL.md and use it at behavior-changing seams; bugs start with a regression test. Keep each slice small,
+      Implement the approved technical plan for the active run using incremental-implementation. Use test-driven-development
+      at behavior-changing seams; bugs start with a regression test. Keep each slice small,
       run focused checks, and do not alter Approved BA Baseline semantics. If an unexpected failure occurs, then read
-      kits/dev/plugin/skills/debugging-and-error-recovery/SKILL.md; do not load it without a failure. When finished, stop before doing the
+      debugging-and-error-recovery; do not load it without a failure. When finished, stop before doing the
       consolidated review; the workflow owns the single review stage.
   - id: focused-checks
     type: shell
-    run: "python tooling/lib/dev_kit.py verify focused"
+    run: "{{ inputs.devkit_command }} verify focused"
   - id: claim-one-full-review
     type: shell
-    run: "python tooling/lib/dev_kit.py claim full_reviews"
+    run: "{{ inputs.devkit_command }} claim full_reviews"
   - id: consolidated-review
     type: prompt
     integration: "{{ inputs.integration }}"
     prompt: |
-      Read kits/dev/plugin/skills/code-review-and-quality/SKILL.md and perform exactly one consolidated full review for the active run. Read its
+      Use code-review-and-quality to perform exactly one consolidated full review for the active run. Read its
       Approved BA Baseline reference, impact manifest, plan/tasks, current diff, and focused-check results. Invoke
       only risk-triggered specialists. Write review.json with full_review_performed=true, BLOCKING findings for
       requirement misses/correctness/security/unapproved compatibility/invalid evidence, and FOLLOW_UP findings
       for optional cleanup or nits. A follow-up does not expand scope. Do not start a fix or a second review.
   - id: validate-review
     type: shell
-    run: "python tooling/lib/dev_kit.py review-check"
+    run: "{{ inputs.devkit_command }} review-check"
   - id: claim-one-fix-wave
     type: shell
-    run: "python tooling/lib/dev_kit.py claim blocking_fix_waves"
+    run: "{{ inputs.devkit_command }} claim blocking_fix_waves"
   - id: one-blocking-fix-wave
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -81,10 +95,10 @@ steps:
       full review. If major blockers remain, stop for NEEDS_REPLAN. Never alter the Approved BA Baseline.
   - id: enforce-fix-budget
     type: shell
-    run: "python tooling/lib/dev_kit.py fix-check"
+    run: "{{ inputs.devkit_command }} fix-check"
   - id: claim-optional-scoped-rereview
     type: shell
-    run: "python tooling/lib/dev_kit.py claim scoped_rereviews"
+    run: "{{ inputs.devkit_command }} claim scoped_rereviews"
   - id: optional-scoped-rereview
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -96,13 +110,13 @@ steps:
       review the feature again from scratch.
   - id: validate-scoped-rereview
     type: shell
-    run: "python tooling/lib/dev_kit.py rereview-check"
+    run: "{{ inputs.devkit_command }} rereview-check"
   - id: fresh-verification
     type: shell
-    run: "python tooling/lib/dev_kit.py verify fresh"
+    run: "{{ inputs.devkit_command }} verify fresh"
   - id: prepare-handoff
     type: shell
-    run: "python tooling/lib/dev_kit.py prepare-handoff"
+    run: "{{ inputs.devkit_command }} prepare-handoff"
   - id: complete-handoff
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -110,7 +124,7 @@ steps:
       Complete dev-handoff.json for the active run. Add implementation commit IDs if available and requirements_coverage
       entries tracing each accepted BA requirement ID to code/test evidence. Preserve generated baseline reference,
       review counts/findings, gate result, and deterministic verification results. Do not set the state yourself and do
-      not alter the Approved BA Baseline. Read verification-before-completion/SKILL.md before the success claim. The validator derives the final state.
+      not alter the Approved BA Baseline. Invoke verification-before-completion before the success claim. The validator derives the final state.
   - id: enforce-ready-for-test
     type: shell
-    run: "python tooling/lib/dev_kit.py handoff"
+    run: "{{ inputs.devkit_command }} handoff"

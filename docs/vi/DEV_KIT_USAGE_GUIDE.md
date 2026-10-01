@@ -26,6 +26,19 @@ Gỡ plugin trong Plugins Directory của ChatGPT desktop app, sau đó gỡ mar
 codex plugin marketplace remove agent-skills-dev-kit
 ```
 
+Cài runtime helper một lần từ checkout Dev Kit. Runtime nằm ngoài target project và installer chỉ chép helper,
+BA contract reader dùng chung, schemas/templates và hai workflow vào user scope; không chép skill methodology:
+
+```powershell
+# Chạy trong checkout agent-skills
+python tooling/install_dev_kit.py
+$env:PATH = "$HOME\.devkit\bin;$env:PATH"
+devkit runtime-root
+```
+
+Với Bash, thêm `$HOME/.devkit/bin` vào `PATH`. Để giữ cấu hình cho terminal mới, thêm thư mục này vào user PATH của hệ điều hành.
+Agent plugin/skills được cài riêng qua marketplace như trên. Target project chỉ nhận `.devkit/` và `.specify/` state.
+
 Khởi tạo Spec Kit một lần nếu sẽ chạy NORMAL/HIGH_RISK và project chưa có workflow state:
 
 ```powershell
@@ -37,10 +50,11 @@ specify init
 
 ## 3. Bắt đầu một change
 
-Chạy tại repository root. Mỗi `--check` là JSON gồm tên, nhóm và argv; argv được chạy trực tiếp với `shell=False`.
+Chạy từ root của **target project** (có thể là repository khác checkout Dev Kit). Mỗi `--check` là JSON gồm tên, nhóm và argv;
+argv được chạy trực tiếp với `shell=False`.
 
 ```powershell
-python tooling/lib/dev_kit.py start `
+devkit start `
   --change-id CR-042 `
   --kind feature `
   --summary "Add appointment search" `
@@ -60,10 +74,10 @@ Các đường dẫn baseline/check trong ví dụ là mẫu; thay bằng BA han
 Ví dụ docs, rename hoặc thay đổi cơ khí không làm đổi behavior:
 
 ```powershell
-python tooling/lib/dev_kit.py start --change-id DOCS-10 --kind docs --summary "Fix README typo" `
+devkit start --change-id DOCS-10 --kind docs --summary "Fix README typo" `
   --check '{"name":"docs","category":"static_checks","argv":["git","diff","--check"]}'
 # Make the requested edit in the active agent session, then:
-python tooling/lib/dev_kit.py finish-trivial
+devkit finish-trivial
 ```
 
 Đường đi trực tiếp chỉ hiểu yêu cầu, sửa và chạy deterministic check. Không cần Spec Kit; không tạo plan/tasks, full review, CBM hoặc specialist stage.
@@ -73,22 +87,26 @@ python tooling/lib/dev_kit.py finish-trivial
 Ví dụ feature hoặc bug thông thường:
 
 ```powershell
-specify workflow run kits/dev/plugin/workflows/dev-normal.workflow.yml
+specify workflow run (devkit workflow normal)
 ```
 
-Workflow chạy Spec Readiness, planning preflight/Impact, technical plan/tasks, implementation, focused checks, một full review, nhiều nhất một blocking fix wave, optional một scoped re-review, fresh verification và Dev Handoff. NORMAL không có Human plan approval gate bắt buộc. Bug phải có regression test trước fix; behavior change dùng TDD ở seam có ý nghĩa.
+Workflow chạy Spec Readiness, planning preflight/Impact, technical plan/tasks, deterministic plan gate, implementation, focused checks,
+một full review, nhiều nhất một blocking fix wave, optional một scoped re-review, fresh verification và Dev Handoff. NORMAL không có
+Human plan approval gate bắt buộc. Bug phải có regression test trước fix; behavior change dùng TDD ở seam có ý nghĩa. Mỗi plan/task
+file phải có one-line JSON `devkit-planning-metadata` header với `change_id`, `baseline_ref` copy chính xác từ `input.json`, và
+`business_ambiguity: CLEAR`, sau đó có nội dung kỹ thuật không rỗng.
 
 ### HIGH_RISK
 
 Ví dụ endpoint có auth hoặc thay đổi schema:
 
 ```powershell
-python tooling/lib/dev_kit.py start --change-id API-17 --kind feature `
+devkit start --change-id API-17 --kind feature `
   --summary "Add authenticated appointment endpoint" --signal auth --signal public_api `
   --baseline "docs/approved/engineering-handoff.yml" `
   --check '{"name":"build","category":"build","argv":["python","-m","compileall","src"]}' `
   --check '{"name":"unit","category":"tests","argv":["python","-m","unittest","discover","-s","tests"]}'
-specify workflow run kits/dev/plugin/workflows/dev-high-risk.workflow.yml
+specify workflow run (devkit workflow high-risk)
 ```
 
 Router kích hoạt `security-and-hardening` cho auth/security/sensitive data/PII và `api-and-interface-design` cho public API/event contract. HIGH_RISK có Human/Tech Lead plan gate. `codebase-memory-mcp` chỉ được dùng khi source reading chưa đủ xác định blast radius.
@@ -96,23 +114,23 @@ Router kích hoạt `security-and-hardening` cho auth/security/sensitive data/PI
 Bug thông thường ở NORMAL depth bắt đầu bằng regression test:
 
 ```powershell
-python tooling/lib/dev_kit.py start --change-id BUG-08 --kind bug `
+devkit start --change-id BUG-08 --kind bug `
   --summary "Prevent duplicate appointment creation" `
   --baseline "docs/approved/engineering-handoff.yml" `
   --check '{"name":"build","category":"build","argv":["python","-m","compileall","src"]}' `
   --check '{"name":"tests","category":"tests","argv":["python","-m","unittest","discover","-s","tests"]}'
-specify workflow run kits/dev/plugin/workflows/dev-normal.workflow.yml
+specify workflow run (devkit workflow normal)
 ```
 
 Cross-repository change route:
 
 ```powershell
-python tooling/lib/dev_kit.py start --change-id XREPO-4 --kind feature `
+devkit start --change-id XREPO-4 --kind feature `
   --summary "Update shared appointment event consumer" --signal cross_repo `
   --baseline "docs/approved/engineering-handoff.yml" `
   --check '{"name":"build","category":"build","argv":["python","-m","compileall","src"]}' `
   --check '{"name":"tests","category":"tests","argv":["python","-m","unittest","discover","-s","tests"]}'
-specify workflow run kits/dev/plugin/workflows/dev-high-risk.workflow.yml
+specify workflow run (devkit workflow high-risk)
 ```
 
 ## 5. Routing signals
@@ -122,6 +140,12 @@ specify workflow run kits/dev/plugin/workflows/dev-high-risk.workflow.yml
 `--kind config` mặc định là non-behavioral; nếu đổi config làm đổi behavior, thêm `--behavior-change` để route sang NORMAL.
 
 Conditional skills:
+
+Initial route là provisional. Nếu source inspection trong NORMAL phát hiện HIGH_RISK, `preflight` dừng với
+`HIGH_RISK_REENTRY_REQUIRED`; không thể tiếp tục run NORMAL vào implementation. Tạo run mới với cùng baseline và
+`--signal` tương ứng Impact reasons (ví dụ `public_api`, `database_migration`, `cross_repo`), rồi chạy HIGH_RISK
+workflow. Run mới áp dụng capability routing và Human/Tech Lead gate trước implementation. Impact không được hạ
+HIGH_RISK xuống NORMAL.
 
 - unexpected failure → `debugging-and-error-recovery`;
 - auth/security/trust boundary/sensitive data → `security-and-hardening`;
@@ -138,7 +162,7 @@ Installed capability không có nghĩa là workflow phải invoke capability đ�
 Nếu đã biết business decision còn thiếu, chặn trước khi tạo workflow:
 
 ```powershell
-python tooling/lib/dev_kit.py start --change-id CR-043 --kind feature `
+devkit start --change-id CR-043 --kind feature `
   --summary "Add cancellation" --business-ambiguity "refund timing is undecided"
 ```
 
@@ -170,6 +194,11 @@ Ví dụ consolidated review trả một BLOCKING finding và một FOLLOW_UP:
 
 REV-001 đi vào một fix wave. REV-002 được giữ ngoài scope. Nếu report chỉ có FOLLOW_UP, workflow ghi `performed=false` và không làm cleanup đó.
 
+High-risk approval step đọc `steps.human-tech-lead-plan-gate.output.choice` và workflow run ID từ Spec Kit context, sau đó
+đối chiếu verdict với `.specify/workflows/runs/<run_id>/state.json`. Handoff ghi choice, run ID, state path và hash plan/tasks.
+Đây là evidence/audit trail trong workspace; người có quyền sửa local files vẫn có thể thay đổi state, nên nó không phải chữ ký
+mật mã hay bảo đảm chống giả mạo.
+
 ## 8. Artifacts và state
 
 | Nội dung | Đường dẫn |
@@ -178,10 +207,21 @@ REV-001 đi vào một fix wave. REV-002 được giữ ngoài scope. Nếu repo
 | Dev run inputs, route, lifecycle, budget | `.devkit/runs/<change_id>/` |
 | Impact Manifest | `.devkit/runs/<change_id>/impact-manifest.json` |
 | Readiness result | `.devkit/runs/<change_id>/spec-readiness.json` |
-| Technical plan/tasks | `.devkit/runs/<change_id>/dev-plan.md`, `dev-tasks.md` |
+| Technical plan/tasks | `.devkit/runs/<change_id>/dev-plan.md`, `dev-tasks.md`; require one-line metadata header and non-empty content |
 | Full review/fix/re-review | `review.json`, `fix-result.json`, `scoped-rereview.json` trong cùng run dir |
 | Final handoff | `.devkit/runs/<change_id>/dev-handoff.json` |
-| JSON Schemas/templates | `kits/dev/schemas/`, `kits/dev/templates/` |
+| Installed JSON Schemas/templates | `devkit schema impact-manifest`, `devkit schema dev-handoff`; stored under `~/.devkit/runtime/v1/kits/dev/` |
+
+`dev-plan.md` và `dev-tasks.md` bắt đầu bằng comment metadata một dòng JSON; copy `change_id` và `baseline_ref` từ active
+`input.json`, đặt ambiguity thành CLEAR, rồi ghi phần kỹ thuật bên dưới:
+
+```markdown
+<!-- devkit-planning-metadata
+{"change_id":"CR-042","baseline_ref":{"path":"docs/approved/engineering-handoff.yml","revision":"ba-rev-7","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"business_ambiguity":"CLEAR"}
+-->
+
+# Technical plan or tasks
+```
 
 V1 chỉ cho phép một run Dev đang active per working tree; dùng worktree riêng nếu cần chạy changes đồng thời. `.devkit/` đã được git-ignore.
 
@@ -190,23 +230,24 @@ V1 chỉ cho phép một run Dev đang active per working tree; dùng worktree r
 Human-readable:
 
 ```powershell
-python tooling/lib/dev_kit.py doctor --mode daily
+python tooling/lib/dev_kit.py doctor --mode daily --project-root <target-project>
 python tooling/lib/dev_kit.py provenance
 ```
 
 Machine-readable:
 
 ```powershell
-python tooling/lib/dev_kit.py doctor --mode daily --json
-python tooling/lib/dev_kit.py doctor --mode benchmark --json
+python tooling/lib/dev_kit.py doctor --mode daily --project-root <target-project> --json
+python tooling/lib/dev_kit.py doctor --mode benchmark --project-root <target-project> --json
 ```
 
-Doctor kiểm tra composition/plugin marketplace, schemas/fixtures, Spec Kit runtime, shared skills, selected blobs/licenses/notices, planner patch, review budget, workflow exclusions và context purity. Nó quét Codex `.agents/skills`, `.codex/skills`, `.codex/plugins` và `.codex/config.toml` ở project/user scope. Daily contamination là WARN/DEGRADED. Benchmark mode trả FAIL khi có relevant methodology contamination. `CONTEXT_PURITY` là `CLEAN` hoặc `DEGRADED`.
+Doctor/provenance là maintenance commands trong Dev Kit source checkout; khi gọi Doctor cho target khác, `--project-root` trỏ vào target đó. Doctor kiểm tra composition/plugin marketplace, schemas/fixtures, Spec Kit runtime, shared skills, selected blobs/licenses/notices, planner patch, review budget, workflow exclusions và context purity. Nó quét Codex `.agents/skills`, `.codex/skills`, `.codex/plugins` và `.codex/config.toml` ở project/user scope. Daily contamination là WARN/DEGRADED. Benchmark mode trả FAIL khi có relevant methodology contamination. `CONTEXT_PURITY` là `CLEAN` hoặc `DEGRADED`.
 
 ## 10. Failure/recovery examples
 
 | Trường hợp | Kết quả / hành động |
 |---|---|
+| NORMAL Impact phát hiện public API/schema/cross-service risk | Dừng ở preflight; tạo run ID mới với HIGH_RISK `--signal` tương ứng và chạy high-risk gate trước implementation. |
 | Build/test đỏ sau implementation | Workflow dừng; giữ output trong lifecycle/run state, dùng debugging capability nếu cần, sửa nguyên nhân rồi resume step lỗi. |
 | Business behavior chưa rõ | `NEEDS_BA_CLARIFICATION`; quay lại BA, tạo run mới từ baseline được duyệt. |
 | Blocking review finding | Chạy một fix wave; nếu vẫn còn blocker, `NEEDS_REPLAN`/`HUMAN_TECH_LEAD_REVIEW`. |
@@ -217,6 +258,6 @@ Doctor kiểm tra composition/plugin marketplace, schemas/fixtures, Spec Kit run
 ## 11. Giới hạn và release state
 
 - Artifact format là JSON để validator chạy bằng Python standard library; schema files là JSON Schema.
-- Workflow shell commands được viết cho thao tác từ repository root; V1 chưa đóng gói helper thành standalone external-project installer.
+- Runtime installer cài helper/schema/workflow closure vào user scope `~/.devkit/runtime/v1`; target chỉ cần `devkit` trong PATH và ghi state vào `.devkit/` cùng `.specify/`.
 - Context Doctor quét các đường dẫn Codex chuẩn; custom `CODEX_HOME` hoặc marketplace/host registry ngoài các đường dẫn này có thể chưa được nhìn thấy.
 - Petclinic benchmark, fresh-session acceptance và Sol review chưa chạy trong phase này. Trạng thái là `READY_FOR_SOL_REVIEW`, không phải RC/release.

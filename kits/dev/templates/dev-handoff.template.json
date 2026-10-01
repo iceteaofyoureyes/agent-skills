@@ -12,7 +12,7 @@
   },
   "requirements_coverage": [],
   "verification": {
-    "build": { "status": "NOT_RUN", "command": ["build"], "exit_code": -1 },
+    "build": [],
     "tests": [],
     "static_checks": []
   },
@@ -24,7 +24,7 @@
     "followups": []
   },
   "business_ambiguity": { "status": "NEEDS_BA_CLARIFICATION", "items": ["Pending Spec Readiness"] },
-  "human_gate": { "required": false, "resolved": false },
+  "human_gate": { "required": false, "resolved": true },
   "known_risks": [],
   "state": "IN_PROGRESS"
 }

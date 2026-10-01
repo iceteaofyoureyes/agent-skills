@@ -40,7 +40,7 @@
       "additionalProperties": false,
       "required": ["build", "tests", "static_checks"],
       "properties": {
-        "build": { "$ref": "#/$defs/check" },
+        "build": { "type": "array", "items": { "$ref": "#/$defs/namedCheck" } },
         "tests": { "type": "array", "items": { "$ref": "#/$defs/namedCheck" } },
         "static_checks": { "type": "array", "items": { "$ref": "#/$defs/namedCheck" } }
       }
@@ -72,7 +72,19 @@
       "required": ["required", "resolved"],
       "properties": {
         "required": { "type": "boolean" },
-        "resolved": { "type": "boolean" }
+        "resolved": { "type": "boolean" },
+        "choice": { "enum": ["approve", "reject", null] },
+        "workflow_run_id": { "type": ["string", "null"], "minLength": 1 },
+        "workflow_state_path": { "type": ["string", "null"], "minLength": 1 },
+        "planning_artifacts_sha256": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["dev-plan.md", "dev-tasks.md"],
+          "properties": {
+            "dev-plan.md": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "dev-tasks.md": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+          }
+        }
       }
     },
     "known_risks": { "$ref": "#/$defs/stringList" },
@@ -89,16 +101,6 @@
         "path": { "$ref": "#/$defs/nonEmpty" },
         "revision": { "$ref": "#/$defs/nonEmpty" },
         "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
-      }
-    },
-    "check": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["status", "command", "exit_code"],
-      "properties": {
-        "status": { "enum": ["PASS", "FAIL", "NOT_RUN"] },
-        "command": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/nonEmpty" } },
-        "exit_code": { "type": "integer" }
       }
     },
     "namedCheck": {
@@ -132,7 +134,7 @@
         "properties": {
           "verification": {
             "properties": {
-              "build": { "properties": { "status": { "const": "PASS" }, "exit_code": { "const": 0 } } },
+              "build": { "minItems": 1, "items": { "properties": { "status": { "const": "PASS" }, "exit_code": { "const": 0 } } } },
               "tests": { "minItems": 1, "items": { "properties": { "status": { "const": "PASS" }, "exit_code": { "const": 0 } } } },
               "static_checks": { "items": { "properties": { "status": { "const": "PASS" }, "exit_code": { "const": 0 } } } }
             }
@@ -142,6 +144,22 @@
           "business_ambiguity": { "properties": { "status": { "const": "CLEAR" }, "items": { "maxItems": 0 } } },
           "human_gate": { "properties": { "resolved": { "const": true } } },
           "review": { "properties": { "full_reviews": { "const": 1 }, "blocking_findings": { "maxItems": 0 } } }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "human_gate": { "properties": { "required": { "const": true }, "resolved": { "const": true } } } } },
+      "then": {
+        "properties": {
+          "human_gate": {
+            "required": ["choice", "workflow_run_id", "workflow_state_path", "planning_artifacts_sha256"],
+            "properties": {
+              "choice": { "const": "approve" },
+              "workflow_run_id": { "type": "string", "minLength": 1 },
+              "workflow_state_path": { "type": "string", "minLength": 1 },
+              "planning_artifacts_sha256": { "type": "object" }
+            }
+          }
         }
       }
     }

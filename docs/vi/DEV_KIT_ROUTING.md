@@ -63,7 +63,9 @@ uncertain blast radius
   → verify important findings against source
 ```
 
-Route và capability list được kiểm tra bởi `tooling/lib/dev_kit.py route_change`; TRIVIAL chạy direct `start → edit → finish-trivial`, còn NORMAL/HIGH_RISK chọn workflow YAML tương ứng. NORMAL không có Human gate. Mỗi HIGH_RISK route hiện yêu cầu plan gate theo V1 policy.
+Route và capability list được kiểm tra bởi `devkit start`; TRIVIAL chạy direct `start → edit → finish-trivial`, còn NORMAL/HIGH_RISK chọn workflow YAML tương ứng. NORMAL không có Human gate. Mỗi HIGH_RISK route yêu cầu plan gate theo V1 policy.
+
+Initial route là provisional. Engineering Impact có thể nâng NORMAL lên HIGH_RISK, nhưng không được hạ HIGH_RISK xuống NORMAL. Vì Spec Kit workflows có gate khác nhau, escalation dừng run NORMAL với `HIGH_RISK_REENTRY_REQUIRED`; tạo run HIGH_RISK mới với cùng Approved BA Baseline và các `--signal` tương ứng trước implementation.
 
 ## Human gates
 

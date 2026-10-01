@@ -2,9 +2,9 @@
 
 ## Runtime files
 
-- Spec Kit definitions: `kits/dev/plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`.
+- Spec Kit workflow sources: `kits/dev/plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`; install the user-scope runtime with `tooling/install_dev_kit.py`, then locate workflows with `devkit workflow normal|high-risk`.
 - TRIVIAL: `start` → edit → `finish-trivial`; không dùng Spec Kit, plan, review hoặc gate.
-- Dev policy/state adapter: `tooling/lib/dev_kit.py`.
+- Dev policy/state adapter: installed `devkit` command, sourced from `tooling/lib/dev_kit.py`.
 - Change inputs/evidence: `.devkit/runs/<change_id>/`; Spec Kit pause/resume state: `.specify/workflows/runs/<run_id>/`.
 - Operator commands/examples: [DEV_KIT_USAGE_GUIDE.md](DEV_KIT_USAGE_GUIDE.md).
 
@@ -95,7 +95,7 @@ Spec Readiness
 → Dev Handoff
 ```
 
-Routing starts from `tooling/lib/dev_kit.py start`. It records the route and required deterministic commands in `.devkit/runs/<change_id>/input.json`; the matching workflow begins with `assert-workflow` and refuses a mismatched risk depth.
+Routing starts from `devkit start` in the target project root. It records the provisional route and required deterministic commands in `.devkit/runs/<change_id>/input.json`; the matching workflow begins with `assert-workflow` and refuses a mismatched risk depth. Engineering Impact may escalate NORMAL to HIGH_RISK; that run stops before planning/implementation with `HIGH_RISK_REENTRY_REQUIRED`. Re-enter with a new HIGH_RISK run using the Impact risk signals so the gate and triggered capabilities are applied.
 
 ## 4. Implementation discipline
 
@@ -110,6 +110,8 @@ Không spawn independent reviewer cho từng normal slice.
 ## 5. Stop conditions
 
 - Business ambiguity → `NEEDS_BA_CLARIFICATION`.
+- NORMAL Impact discovers a HIGH_RISK surface → `HIGH_RISK_REENTRY_REQUIRED`; create a new high-risk run before implementation.
+- Missing/empty plan or task artifact, wrong change/baseline metadata, or unresolved business ambiguity → planning gate fails before implementation.
 - Plan invalidated by implementation evidence → `NEEDS_REPLAN`.
 - Review budget exhausted with Critical/Important blocker → Human/Tech Lead decision, không review #3.
 - Verification red → không claim READY_FOR_TEST.

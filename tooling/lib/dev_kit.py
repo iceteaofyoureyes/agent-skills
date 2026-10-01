@@ -20,6 +20,7 @@ CURRENT_RUN = Path(".devkit/current.json")
 ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}\Z")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}\Z")
 REVIEW_LIMITS = {"full_reviews": 1, "blocking_fix_waves": 1, "scoped_rereviews": 1}
+RISK_LEVEL_ORDER = {"TRIVIAL": 0, "NORMAL": 1, "HIGH_RISK": 2}
 RISK_SIGNALS = {
     "auth", "security", "sensitive_data", "pii", "database_migration",
     "public_api", "event_contract", "cross_repo", "concurrency",
@@ -215,14 +216,13 @@ def validate_dev_handoff(data):
         errors.append("verification must be an object")
     else:
         _only_keys(verification, {"build", "tests", "static_checks"}, "verification", errors)
-        _check_record(verification.get("build"), "verification.build", errors, data.get("state") == "READY_FOR_TEST")
-        for field in ("tests", "static_checks"):
+        for field in ("build", "tests", "static_checks"):
             checks = verification.get(field)
             if not isinstance(checks, list):
                 errors.append(f"verification.{field} must be a list")
                 continue
-            if field == "tests" and data.get("state") == "READY_FOR_TEST" and not checks:
-                errors.append("verification.tests must not be empty for READY_FOR_TEST")
+            if data.get("state") == "READY_FOR_TEST" and field in ("build", "tests") and not checks:
+                errors.append(f"verification.{field} must not be empty for READY_FOR_TEST")
             for index, check in enumerate(checks):
                 prefix = f"verification.{field}[{index}]"
                 if not isinstance(check, dict) or not _is_string(check.get("name")):
@@ -260,7 +260,21 @@ def validate_dev_handoff(data):
     if not isinstance(gate, dict) or type(gate.get("required")) is not bool or type(gate.get("resolved")) is not bool:
         errors.append("human_gate requires boolean required and resolved fields")
     else:
-        _only_keys(gate, {"required", "resolved"}, "human_gate", errors)
+        _only_keys(gate, {"required", "resolved", "choice", "workflow_run_id", "workflow_state_path", "planning_artifacts_sha256"}, "human_gate", errors)
+        if "choice" in gate and gate["choice"] not in (None, "approve", "reject"):
+            errors.append("human_gate.choice must be approve, reject, or null")
+        if "workflow_run_id" in gate and gate["workflow_run_id"] is not None and not _is_string(gate["workflow_run_id"]):
+            errors.append("human_gate.workflow_run_id must be a non-empty string or null")
+        if "workflow_state_path" in gate and gate["workflow_state_path"] is not None and not _is_string(gate["workflow_state_path"]):
+            errors.append("human_gate.workflow_state_path must be a non-empty string or null")
+        hashes = gate.get("planning_artifacts_sha256")
+        if hashes is not None and (not isinstance(hashes, dict) or set(hashes) != {"dev-plan.md", "dev-tasks.md"} or any(not isinstance(value, str) or not SHA256_PATTERN.fullmatch(value) for value in hashes.values())):
+            errors.append("human_gate.planning_artifacts_sha256 must contain SHA-256 values for dev-plan.md and dev-tasks.md")
+        if gate.get("required") and gate.get("resolved") and (
+            gate.get("choice") != "approve" or not _is_string(gate.get("workflow_run_id"))
+            or not _is_string(gate.get("workflow_state_path")) or not isinstance(hashes, dict)
+        ):
+            errors.append("resolved Human/Tech Lead gate requires the Spec Kit approve choice and workflow evidence")
     _strings(data.get("known_risks"), "known_risks", errors)
     allowed_states = {"IN_PROGRESS", "NEEDS_BA_CLARIFICATION", "NEEDS_REPLAN", "HUMAN_TECH_LEAD_REVIEW", "READY_FOR_TEST"}
     if data.get("state") not in allowed_states:
@@ -272,6 +286,8 @@ def validate_dev_handoff(data):
             errors.append("READY_FOR_TEST is blocked by unresolved business ambiguity")
         if isinstance(gate, dict) and gate.get("required") and not gate.get("resolved"):
             errors.append("READY_FOR_TEST is blocked by unresolved Human/Tech Lead gate")
+        if isinstance(gate, dict) and gate.get("required") and gate.get("choice") != "approve":
+            errors.append("READY_FOR_TEST requires an approved Spec Kit Human/Tech Lead gate choice")
         if isinstance(blocking_findings, list) and blocking_findings:
             errors.append("READY_FOR_TEST is blocked by a blocking review finding")
         if isinstance(coverage, list) and any(item.get("status") != "COVERED" for item in coverage if isinstance(item, dict)):
@@ -818,7 +834,11 @@ def start_run(project_root, change_id, kind, summary, signals=(), baseline=None,
         "schema_version": 1, "change_id": change_id,
         "status": route["status"] if route["status"] == "NEEDS_BA_CLARIFICATION" else "RUNNING",
         "review_budget": {key: 0 for key in REVIEW_LIMITS},
-        "human_gate": {"required": route["human_gate_required"], "resolved": not route["human_gate_required"]},
+        "human_gate": {
+            "required": route["human_gate_required"], "resolved": not route["human_gate_required"],
+            "choice": None, "workflow_run_id": None, "workflow_state_path": None,
+            "planning_artifacts_sha256": None,
+        },
         "readiness": "UNKNOWN", "created_artifacts": [],
     }
     _write_run_json(run_dir, "input.json", inputs, snapshot)
@@ -843,6 +863,12 @@ def preflight(project_root):
     run_dir, inputs = _load_run(project_root)
     readiness = _read_json(run_dir / "spec-readiness.json")
     lifecycle = _read_json(run_dir / "lifecycle.json")
+    if lifecycle.get("status") == "HIGH_RISK_REENTRY_REQUIRED":
+        escalation = lifecycle.get("risk_escalation", {})
+        return {
+            "status": "HIGH_RISK_REENTRY_REQUIRED", "planning_allowed": False,
+            "reasons": escalation.get("reasons", []),
+        }
     status = readiness.get("status") if isinstance(readiness, dict) else None
     if status != "READY_FOR_PLANNING":
         lifecycle["status"] = "NEEDS_BA_CLARIFICATION"
@@ -867,8 +893,19 @@ def preflight(project_root):
         lifecycle["readiness"] = "NEEDS_BA_CLARIFICATION"
         _save_lifecycle(project_root, run_dir, inputs, lifecycle)
         return {"status": "NEEDS_BA_CLARIFICATION", "planning_allowed": False, "business_ambiguities": [item["description"] for item in business_blockers]}
-    if impact["risk"]["level"] != inputs["route"]["risk_level"]:
-        raise ValueError("Impact Manifest risk differs from deterministic routing")
+    routed_risk = inputs["route"]["risk_level"]
+    impact_risk = impact["risk"]["level"]
+    if RISK_LEVEL_ORDER[impact_risk] < RISK_LEVEL_ORDER[routed_risk]:
+        lifecycle["status"] = "RISK_DOWNGRADE_BLOCKED"
+        _save_lifecycle(project_root, run_dir, inputs, lifecycle)
+        raise ValueError(f"Impact Manifest cannot downgrade the initial {routed_risk} route to {impact_risk}")
+    if impact_risk == "HIGH_RISK" and routed_risk == "NORMAL":
+        lifecycle["status"] = "HIGH_RISK_REENTRY_REQUIRED"
+        lifecycle["risk_escalation"] = {"from": "NORMAL", "to": "HIGH_RISK", "reasons": impact["risk"]["reasons"]}
+        _save_lifecycle(project_root, run_dir, inputs, lifecycle)
+        return {"status": "HIGH_RISK_REENTRY_REQUIRED", "planning_allowed": False, "reasons": impact["risk"]["reasons"]}
+    if impact_risk != routed_risk:
+        raise ValueError("Impact Manifest risk is incompatible with the deterministic route")
     lifecycle["readiness"] = "READY_FOR_PLANNING"
     lifecycle["status"] = "RUNNING"
     _save_lifecycle(project_root, run_dir, inputs, lifecycle)
@@ -881,6 +918,95 @@ def assert_workflow(project_root, expected):
     if actual != expected:
         raise ValueError(f"active change routes to {actual!r}, not {expected!r}")
     return {"workflow": expected, "risk_level": inputs["route"]["risk_level"]}
+
+
+def _planning_artifact(run_dir, inputs, filename):
+    path = run_dir / filename
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise ValueError(f"required planning artifact is missing: {filename}") from error
+    if not text.strip():
+        raise ValueError(f"planning artifact is empty: {filename}")
+    match = re.match(r"\A<!-- devkit-planning-metadata\r?\n([^\r\n]+)\r?\n-->\s*", text)
+    if not match or not text[match.end():].strip():
+        raise ValueError(f"{filename} requires metadata and non-empty planning content")
+    try:
+        metadata = json.loads(match.group(1))
+    except json.JSONDecodeError as error:
+        raise ValueError(f"{filename} has invalid Dev Kit planning metadata: {error}") from error
+    if not isinstance(metadata, dict) or metadata.get("change_id") != inputs["change_id"]:
+        raise ValueError(f"{filename} does not belong to the active change")
+    if metadata.get("baseline_ref") != inputs.get("baseline_ref"):
+        raise ValueError(f"{filename} does not reference the active Approved BA Baseline")
+    if metadata.get("business_ambiguity") != "CLEAR":
+        raise ValueError(f"{filename} does not declare business ambiguity clear")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def validate_planning_artifacts(project_root):
+    run_dir, inputs = _load_run(project_root)
+    lifecycle = _read_json(run_dir / "lifecycle.json")
+    readiness = _read_json(run_dir / "spec-readiness.json")
+    impact = _read_json(run_dir / "impact-manifest.json")
+    if lifecycle.get("status") == "HIGH_RISK_REENTRY_REQUIRED":
+        raise ValueError("NORMAL implementation is blocked; start a new HIGH_RISK run with the Impact risk signals")
+    if (
+        not isinstance(readiness, dict) or readiness.get("status") != "READY_FOR_PLANNING"
+        or not isinstance(readiness.get("business_ambiguities"), list) or readiness["business_ambiguities"]
+    ):
+        raise ValueError("planning artifacts cannot pass with unresolved business ambiguity")
+    impact_errors = validate_impact_manifest(impact)
+    if impact_errors or impact.get("change_id") != inputs["change_id"] or impact.get("baseline_ref") != inputs.get("baseline_ref"):
+        raise ValueError("planning artifacts require a valid Impact Manifest for the active change and baseline")
+    if any(item["kind"] == "BUSINESS" and item["blocking"] for item in impact["unknowns"]):
+        raise ValueError("planning artifacts cannot pass with a blocking business-semantic unknown")
+    routed_risk = inputs["route"]["risk_level"]
+    impact_risk = impact["risk"]["level"]
+    if impact_risk != routed_risk:
+        if routed_risk == "NORMAL" and impact_risk == "HIGH_RISK":
+            raise ValueError("HIGH_RISK Impact escalation requires a new HIGH_RISK run before implementation")
+        raise ValueError(f"Impact risk cannot change from the initial {routed_risk} route to {impact_risk}")
+    hashes = {filename: _planning_artifact(run_dir, inputs, filename) for filename in ("dev-plan.md", "dev-tasks.md")}
+    lifecycle["planning_artifacts"] = {
+        "change_id": inputs["change_id"], "baseline_ref": inputs["baseline_ref"], "sha256": hashes,
+    }
+    _save_lifecycle(project_root, run_dir, inputs, lifecycle)
+    return {"planning_allowed": True, "artifacts": hashes}
+
+
+def assert_implementation_allowed(project_root, expected):
+    run_dir, inputs = _load_run(project_root)
+    lifecycle = _read_json(run_dir / "lifecycle.json")
+    if lifecycle.get("status") == "HIGH_RISK_REENTRY_REQUIRED":
+        raise ValueError("HIGH_RISK impact escalation blocks implementation; create a new HIGH_RISK run")
+    if inputs["route"].get("workflow") != expected:
+        raise ValueError(f"active route is {inputs['route'].get('workflow')!r}, not {expected!r}")
+    planning = lifecycle.get("planning_artifacts", {})
+    if not isinstance(planning, dict):
+        raise ValueError("planning artifacts have not passed the deterministic planning gate")
+    expected_hashes = planning.get("sha256", {})
+    actual_hashes = {filename: _planning_artifact(run_dir, inputs, filename) for filename in ("dev-plan.md", "dev-tasks.md")}
+    if (
+        planning.get("change_id") != inputs["change_id"]
+        or planning.get("baseline_ref") != inputs.get("baseline_ref")
+        or expected_hashes != actual_hashes
+    ):
+        raise ValueError("planning artifacts are not the validated artifacts for the active change and baseline")
+    current = validate_planning_artifacts(project_root)
+    if current["artifacts"] != expected_hashes:
+        raise ValueError("planning artifacts or readiness changed before implementation")
+    lifecycle = _read_json(run_dir / "lifecycle.json")
+    impact = _read_json(run_dir / "impact-manifest.json")
+    if impact["risk"]["level"] != inputs["route"]["risk_level"]:
+        raise ValueError("implementation cannot proceed with an unhandled Impact risk escalation")
+    if expected == "high-risk":
+        gate = lifecycle.get("human_gate", {})
+        if not gate.get("required") or not gate.get("resolved") or gate.get("choice") != "approve":
+            raise ValueError("HIGH_RISK implementation requires the approved Human/Tech Lead gate")
+        if gate.get("planning_artifacts_sha256") != actual_hashes:
+            raise ValueError("HIGH_RISK plan changed after the Human/Tech Lead gate")
+    return {"implementation_allowed": True, "artifacts": actual_hashes}
 
 
 def _check_artifact(project_root, filename):
@@ -976,12 +1102,35 @@ def record_scoped_rereview(project_root):
     return {"scoped_rereviews": lifecycle["review_budget"]["scoped_rereviews"]}
 
 
-def mark_gate_approved(project_root):
+def mark_gate_approved(project_root, choice, workflow_run_id):
     run_dir, inputs = _load_run(project_root)
-    lifecycle = _read_json(run_dir / "lifecycle.json")
     if not inputs["route"]["human_gate_required"]:
         raise ValueError("the active route does not require a Human/Tech Lead gate")
+    if choice != "approve":
+        raise ValueError("the Spec Kit Human/Tech Lead gate did not return approve")
+    if not isinstance(workflow_run_id, str) or not ID_PATTERN.fullmatch(workflow_run_id):
+        raise ValueError("gate approval requires a valid Spec Kit workflow run ID")
+    state_path = Path(project_root).resolve() / ".specify/workflows/runs" / workflow_run_id / "state.json"
+    workflow_state = _read_json(state_path)
+    if not isinstance(workflow_state, dict):
+        raise ValueError("Spec Kit workflow state must be a JSON object")
+    step_results = workflow_state.get("step_results", {})
+    if not isinstance(step_results, dict):
+        raise ValueError("Spec Kit workflow state has invalid step results")
+    gate_step = step_results.get("human-tech-lead-plan-gate", {})
+    gate_output = gate_step.get("output") if isinstance(gate_step, dict) else None
+    if (
+        workflow_state.get("run_id") != workflow_run_id or not isinstance(gate_step, dict)
+        or gate_step.get("status") != "completed" or not isinstance(gate_output, dict) or gate_output.get("choice") != choice
+    ):
+        raise ValueError("Spec Kit persisted gate evidence does not match an approved gate choice")
+    planning = validate_planning_artifacts(project_root)
+    lifecycle = _read_json(run_dir / "lifecycle.json")
     lifecycle["human_gate"]["resolved"] = True
+    lifecycle["human_gate"]["choice"] = choice
+    lifecycle["human_gate"]["workflow_run_id"] = workflow_run_id
+    lifecycle["human_gate"]["workflow_state_path"] = state_path.relative_to(Path(project_root).resolve()).as_posix()
+    lifecycle["human_gate"]["planning_artifacts_sha256"] = planning["artifacts"]
     _save_lifecycle(project_root, run_dir, inputs, lifecycle)
     return lifecycle["human_gate"]
 
@@ -1024,12 +1173,11 @@ def prepare_handoff(project_root):
     checks = {"build": [], "tests": [], "static_checks": []}
     for item in verification:
         checks[item["category"]].append({key: item[key] for key in ("name", "status", "command", "exit_code")})
-    build = next((item for item in checks["build"]), {"status": "NOT_RUN", "command": [], "exit_code": -1})
     handoff = {
         "schema_version": 1, "change_id": inputs["change_id"], "baseline_ref": inputs["baseline_ref"],
         "implementation": {"commits": [], "changed_components": impact["affected_components"]},
         "requirements_coverage": [],
-        "verification": {"build": build, "tests": checks["tests"], "static_checks": checks["static_checks"]},
+        "verification": {"build": checks["build"], "tests": checks["tests"], "static_checks": checks["static_checks"]},
         "review": {
             **lifecycle["review_budget"], "blocking_findings": review["blocking_findings"],
             "followups": review["followups"],
@@ -1051,10 +1199,10 @@ def finalize_handoff(project_root):
     run_dir, inputs = _load_run(project_root)
     handoff = _read_json(run_dir / "dev-handoff.json")
     handoff["state"] = _derive_handoff_state(handoff)
-    write_artifact(run_dir / "dev-handoff.json", handoff, [{"path": inputs["baseline_snapshot"]["path"]}, *inputs["baseline_snapshot"]["sources"]])
     errors = validate_dev_handoff(handoff)
     if errors:
         raise ValueError("invalid Dev Handoff: " + "; ".join(errors))
+    write_artifact(run_dir / "dev-handoff.json", handoff, [{"path": inputs["baseline_snapshot"]["path"]}, *inputs["baseline_snapshot"]["sources"]])
     lifecycle = _read_json(run_dir / "lifecycle.json")
     lifecycle["status"] = handoff["state"]
     _save_lifecycle(project_root, run_dir, inputs, lifecycle)
@@ -1067,12 +1215,20 @@ def _derive_handoff_state(handoff):
         return "NEEDS_BA_CLARIFICATION"
     gate = handoff.get("human_gate", {})
     review = handoff.get("review", {})
-    if gate.get("required") and not gate.get("resolved"):
+    if not gate.get("resolved"):
+        return "HUMAN_TECH_LEAD_REVIEW" if gate.get("required") else "IN_PROGRESS"
+    if gate.get("required") and (
+        gate.get("choice") != "approve" or not _is_string(gate.get("workflow_run_id"))
+        or not _is_string(gate.get("workflow_state_path")) or not isinstance(gate.get("planning_artifacts_sha256"), dict)
+    ):
         return "HUMAN_TECH_LEAD_REVIEW"
     if review.get("blocking_findings"):
         return "HUMAN_TECH_LEAD_REVIEW" if gate.get("required") else "NEEDS_REPLAN"
     verification = handoff.get("verification", {})
-    checks = [verification.get("build"), *verification.get("tests", []), *verification.get("static_checks", [])]
+    build = verification.get("build", [])
+    if not isinstance(build, list):
+        return "NEEDS_REPLAN"
+    checks = [*build, *verification.get("tests", []), *verification.get("static_checks", [])]
     if not checks or any(not isinstance(item, dict) or item.get("status") != "PASS" or item.get("exit_code") != 0 for item in checks):
         return "NEEDS_REPLAN"
     coverage = handoff.get("requirements_coverage", [])
@@ -1254,7 +1410,7 @@ def main(argv=None):
     for name in ("validate-impact", "validate-handoff"):
         sub = commands.add_parser(name)
         sub.add_argument("path", type=Path, nargs="?")
-    for name in ("preflight", "review-check", "fix-check", "rereview-check", "gate-approved", "prepare-handoff", "handoff", "finish-trivial"):
+    for name in ("preflight", "plan-check", "prepare-handoff", "review-check", "fix-check", "rereview-check", "handoff", "finish-trivial"):
         commands.add_parser(name)
     claim = commands.add_parser("claim")
     claim.add_argument("stage", choices=tuple(REVIEW_LIMITS))
@@ -1262,6 +1418,16 @@ def main(argv=None):
     verify.add_argument("phase", choices=("focused", "fresh"))
     workflow_parser = commands.add_parser("assert-workflow")
     workflow_parser.add_argument("depth", choices=("normal", "high-risk"))
+    implementation_parser = commands.add_parser("implementation-ready")
+    implementation_parser.add_argument("depth", choices=("normal", "high-risk"))
+    gate_parser = commands.add_parser("gate-approved")
+    gate_parser.add_argument("--choice", required=True)
+    gate_parser.add_argument("--workflow-run-id", required=True)
+    schema_parser = commands.add_parser("schema")
+    schema_parser.add_argument("name", choices=("impact-manifest", "dev-handoff"))
+    commands.add_parser("runtime-root")
+    workflow_path_parser = commands.add_parser("workflow")
+    workflow_path_parser.add_argument("depth", choices=("normal", "high-risk"))
     doctor_parser = commands.add_parser("doctor")
     doctor_parser.add_argument("--mode", choices=("daily", "benchmark"), default="daily")
     doctor_parser.add_argument("--root", type=Path, default=KIT_ROOT)
@@ -1306,6 +1472,26 @@ def main(argv=None):
             result = preflight(Path.cwd())
             print(json.dumps(result, indent=2))
             return 0 if result["planning_allowed"] else 12
+        if args.command in ("plan-check", "implementation-ready"):
+            result = (
+                validate_planning_artifacts(Path.cwd())
+                if args.command == "plan-check"
+                else assert_implementation_allowed(Path.cwd(), "high-risk" if args.depth == "high-risk" else "normal")
+            )
+            print(json.dumps(result, indent=2))
+            return 0
+        if args.command == "schema":
+            path = KIT_ROOT / "kits/dev/schemas" / f"{args.name}.schema.json"
+            print(path.read_text(encoding="utf-8"), end="")
+            return 0
+        if args.command == "runtime-root":
+            print(KIT_ROOT.resolve())
+            return 0
+        if args.command == "workflow":
+            suffix = "high-risk" if args.depth == "high-risk" else "normal"
+            path = KIT_ROOT / "kits/dev/plugin/workflows" / f"dev-{suffix}.workflow.yml"
+            print(path.resolve())
+            return 0
         if args.command == "claim":
             result = claim_action(Path.cwd(), args.stage)
         elif args.command == "assert-workflow":
@@ -1317,7 +1503,7 @@ def main(argv=None):
         elif args.command == "rereview-check":
             result = record_scoped_rereview(Path.cwd())
         elif args.command == "gate-approved":
-            result = mark_gate_approved(Path.cwd())
+            result = mark_gate_approved(Path.cwd(), args.choice, args.workflow_run_id)
         elif args.command == "verify":
             result = run_checks(Path.cwd(), args.phase)
         elif args.command == "handoff":

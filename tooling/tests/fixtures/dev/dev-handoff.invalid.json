@@ -4,7 +4,7 @@
   "baseline_ref": {"path": "approved/engineering-handoff.yml", "revision": "ba-rev-7", "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"},
   "implementation": {"commits": [], "changed_components": []},
   "requirements_coverage": [],
-  "verification": {"build": {"status": "FAIL", "command": ["build"], "exit_code": 1}, "tests": [], "static_checks": []},
+  "verification": {"build": [{"name": "build", "status": "FAIL", "command": ["build"], "exit_code": 1}], "tests": [], "static_checks": []},
   "review": {"full_reviews": 2, "blocking_fix_waves": 2, "scoped_rereviews": 2, "blocking_findings": [{"id": "R-1", "class": "BLOCKING", "description": "Incorrect authorization"}], "followups": []},
   "business_ambiguity": {"status": "NEEDS_BA_CLARIFICATION", "items": ["refund behavior unknown"]},
   "human_gate": {"required": true, "resolved": false},
