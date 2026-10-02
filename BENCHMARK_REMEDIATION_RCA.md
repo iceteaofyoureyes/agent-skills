@@ -72,3 +72,16 @@ This report was completed before implementation changes. The evidence is from Pr
 ## RCA conclusion
 
 The remediation has three separate targets: fix the TRIVIAL verification artifact writer's null-baseline handling; add a file-based structured start request to remove shell JSON quoting from the supported agent path; and make the canonical workflow instructions explicitly continue after a successful start. S3's stop is not attributed to the same parser error as S4–S6. Angular `spawn EPERM` remains an external host limitation unless new evidence locates a Dev Kit contribution.
+
+## Additional synthetic-smoke finding — Windows Spec Kit shell command
+
+This finding came from the remediation smoke setup, not Benchmark V1 evidence, and is recorded before changing the affected workflow command contract.
+
+- **Failure point:** Spec Kit `shell` steps `confirm-high-risk-route` and `enforce-readiness-and-impact` in a synthetic Windows HIGH_RISK run.
+- **Exact input:** The `devkit_command` workflow input was the installer-returned absolute `devkit.ps1` path, for example `D:\AI\dev-kit-v1-remediation-smoke-qualified\REG-S4-api-highrisk\.devkit\bin\devkit.ps1`.
+- **Expected:** The workflow shell invokes `assert-workflow high-risk` and `preflight`; successful preflight records `READY_FOR_PLANNING` and a fresh `spec-readiness.json`.
+- **Actual:** Spec Kit's pinned ShellStep uses `subprocess.run(..., shell=True)` on Windows, which routes this command through `cmd.exe`. The captured steps returned exit code 0 with empty stdout, while the Dev Kit lifecycle remained `readiness=UNKNOWN` and no `spec-readiness.json` existed. The workflow then advanced to planning without having run the Dev Kit checks.
+- **Root cause:** The installer creates both `devkit.ps1` and `devkit.cmd`, but returns the PowerShell launcher as its generic `launcher` field. That path works for PowerShell agent commands but is not the shell-compatible executable for Spec Kit's Windows workflow steps. The workflow input also interpolates the command without quoting, which is unsafe for install paths containing spaces.
+- **Classification:** `DEV_KIT_CLI_UX`.
+- **Minimal fix:** Expose a Windows workflow command pointing at `devkit.cmd`; quote the workflow command interpolation. Add a Windows `shell=True` regression that executes the workflow command and proves it returns Dev Kit output.
+- **Raw smoke evidence:** `D:\AI\dev-kit-v1-remediation-smoke-qualified\REG-S4-api-highrisk\.specify\workflows\runs\dc44cd09\state.json` (zero-exit/empty-output shell step), `.devkit/runs/SMOKE-S4/lifecycle.json` (`readiness=UNKNOWN`), and absence of `spec-readiness.json`.
