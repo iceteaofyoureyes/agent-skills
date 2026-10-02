@@ -2533,6 +2533,265 @@ Write the completed output with Python 3 pathlib so its UTF-8 bytes are preserve
 """
 
 
+
+def _load_persisted_design_authorization(
+    design_run_dir: str | Path,
+    baseline: foundation.ApprovedBaseline,
+) -> tuple[foundation.DesignSnapshot, DesignGateAuthorization, dict]:
+    """Trust only a previously persisted HUMAN_AUTHENTICATED Design approval."""
+    design_run = Path(design_run_dir).resolve()
+    design = foundation.load_persisted_design_snapshot(
+        design_run, require_state="APPROVED_DESIGN"
+    )
+    workflow_path = design_run / "workflow-state.json"
+    try:
+        workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        raise ValueError(f"approved Design workflow is unavailable: {error}") from error
+    if workflow.get("design_gate_receipt_mode") != "HUMAN_AUTHENTICATED":
+        raise ValueError("production testcase generation requires a persisted Human-authenticated Design approval")
+
+    receipt_path = design_run / "design-gate/revisions" / design.revision / "receipt.json"
+    try:
+        receipt_bytes = receipt_path.read_bytes()
+        receipt = json.loads(receipt_bytes.decode("utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError) as error:
+        raise ValueError(f"persisted Design Gate receipt is unavailable: {error}") from error
+    finding = _receipt_shape_finding(receipt, "DESIGN_REVIEW")
+    if finding or receipt.get("decision") != "APPROVE":
+        raise ValueError(finding.message if finding else "persisted Design Gate receipt is not APPROVE")
+    if str(receipt.get("actor_id", "")).startswith("TEST_ONLY:"):
+        raise ValueError("TEST_ONLY Design approval is not valid for production testcase generation")
+
+    expected_refs = tuple(
+        (ref["id"], ref["revision"], ref["sha256"])
+        for ref in foundation.design_gate_input_refs(baseline, design_run)
+    )
+    actual_refs = _receipt_refs(receipt)
+    receipt_ref = {
+        "path": str(receipt_path),
+        "sha256": hashlib.sha256(receipt_bytes).hexdigest(),
+    }
+    if (
+        receipt.get("artifact_id") != design.artifact_id
+        or receipt.get("artifact_revision") != design.revision
+        or str(receipt.get("artifact_sha256", "")).lower() != design.sha256
+        or actual_refs != expected_refs
+        or workflow.get("design_gate_receipt_evidence") != receipt_ref
+    ):
+        raise ValueError("persisted Design Gate approval is stale or not bound to the current Design/BA inputs")
+    validation = foundation.validate_design(design, baseline)
+    if validation.status != "PASS":
+        raise ValueError("persisted approved Design no longer passes the frozen validator")
+    authorization = DesignGateAuthorization(
+        design.artifact_id,
+        design.revision,
+        design.sha256,
+        actual_refs,
+        False,
+        str(receipt_path),
+        receipt_ref["sha256"],
+    )
+    return design, authorization, receipt_ref
+
+
+def prepare_same_session_cases(
+    handoff_path: str | Path,
+    design_run_dir: str | Path,
+    run_dir: str | Path,
+    *,
+    project_root: str | Path,
+    skill_dir: str | Path,
+    execution_oracle_refs: Iterable[dict] = (),
+) -> dict:
+    """Prepare approved Design inputs for same-session create-test-cases execution."""
+    run_dir = Path(run_dir).resolve()
+    project_root = Path(project_root).resolve()
+    skill_dir = Path(skill_dir).resolve()
+    expected_skill = (project_root / ".agents/skills" / KATALON_CAPABILITY).resolve()
+    if not expected_skill.is_dir() or not skill_dir.is_dir() or not expected_skill.samefile(skill_dir):
+        raise RuntimeError("same-session testcase generation must use the project-local pinned create-test-cases skill")
+    skill_files = _verify_pinned_skill(skill_dir)
+
+    baseline = foundation.load_approved_baseline(handoff_path)
+    design, authorization, receipt_ref = _load_persisted_design_authorization(
+        design_run_dir, baseline
+    )
+    execution_refs = tuple(execution_oracle_refs)
+    katalon_input = adapt_approved_design_to_katalon(
+        design,
+        authorization,
+        baseline,
+        execution_oracle_refs=execution_refs,
+    )
+    policy_context = foundation.persist_project_policy_context(
+        run_dir, project_root, "CASES"
+    )
+    if policy_context and policy_context["policy"]:
+        from .test_kit_policy import non_authoritative_policy_prompt, resolve_project_policy
+        katalon_input = replace(
+            katalon_input,
+            markdown=katalon_input.markdown + "\n" + non_authoritative_policy_prompt(
+                resolve_project_policy(project_root, "CASES"), policy_context["policy"]
+            ),
+        )
+
+    input_path = run_dir / "inputs/approved-test-design.md"
+    _write_if_same_or_absent(input_path, katalon_input.markdown.encode("utf-8"))
+    for source in (*baseline.source_paths.values(), baseline.handoff_path):
+        _write_if_same_or_absent(
+            run_dir / "inputs/baseline" / source.name, source.read_bytes()
+        )
+
+    raw_output = run_dir / "raw-output/test-cases.md"
+    instructions = run_dir / "raw-output/same-session-instructions.md"
+    prompt = f"""$create-test-cases
+
+Execute the installed project-local create-test-cases capability in this current agent session.
+Do not start codex, codexapi, another agent process, or a nested model invocation.
+Pinned skill: {skill_dir / 'SKILL.md'}
+Approved input: {input_path}
+Raw output: {raw_output}
+
+Use the approved canonical Test Design as the coverage oracle and the embedded BUSINESS ORACLE as business authority.
+Do not add, remove, merge, or reinterpret approved coverage. Preserve UNKNOWN/deferred semantics.
+Generate local manual testcase semantics only. Do not access external Katalon/TestOps services.
+Do not inspect application source to invent expected behavior.
+
+Use the pinned skill's manual testcase method and write only its completed raw testcase Markdown to the prepared raw output path.
+If the capability cannot complete from these prepared inputs, stop and report the blocker.
+"""
+    _write_if_same_or_absent(instructions, prompt.encode("utf-8"))
+
+    input_manifest = {
+        "design": {
+            "artifact_id": design.artifact_id,
+            "revision": design.revision,
+            "sha256": design.sha256,
+        },
+        "ba_input_refs": list(katalon_input.ba_refs),
+        "execution_contract_refs": list(katalon_input.execution_refs),
+        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "design_gate_receipt_evidence": receipt_ref,
+        "project_policy_context": policy_context,
+    }
+    _write_if_same_or_absent(
+        run_dir / "inputs/input-manifest.json",
+        (json.dumps(input_manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    manifest = {
+        "schema_version": 1,
+        "mode": "SAME_SESSION",
+        "stage": "CASES",
+        "status": "PREPARED",
+        "feature_id": baseline.feature_id,
+        "ba_revision": baseline.revision,
+        "handoff_path": str(baseline.handoff_path),
+        "handoff_sha256": baseline.handoff_sha256,
+        "design_run_dir": str(Path(design_run_dir).resolve()),
+        "design": input_manifest["design"],
+        "project_root": str(project_root),
+        "skill": {
+            "capability": KATALON_CAPABILITY,
+            "path": str(skill_dir),
+            "commit": KATALON_COMMIT,
+            "files": skill_files,
+        },
+        "project_policy_context": policy_context,
+        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "design_gate_receipt_evidence": receipt_ref,
+        "execution_contract_refs": list(execution_refs),
+        "input_path": str(input_path),
+        "instructions_path": str(instructions),
+        "raw_output_path": str(raw_output),
+    }
+    manifest_path = run_dir / "evidence/same-session-prepare.json"
+    _write_exclusive(
+        manifest_path,
+        (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return {**manifest, "manifest_path": str(manifest_path)}
+
+
+def finalize_same_session_cases(
+    handoff_path: str | Path,
+    run_dir: str | Path,
+    *,
+    raw_cases: str | Path | None = None,
+    artifact_id: str | None = None,
+    revision: str = "1",
+) -> CaseIntegrationResult:
+    """Normalize, validate and submit same-session testcase output to CASE_REVIEW."""
+    run_dir = Path(run_dir).resolve()
+    prepare_path = run_dir / "evidence/same-session-prepare.json"
+    if not prepare_path.is_file():
+        raise RuntimeError("same-session testcase preparation evidence is missing")
+    prepared = json.loads(prepare_path.read_text(encoding="utf-8"))
+    if prepared.get("mode") != "SAME_SESSION" or prepared.get("stage") != "CASES" or prepared.get("status") != "PREPARED":
+        raise RuntimeError("same-session testcase preparation evidence is invalid")
+
+    baseline = foundation.load_approved_baseline(handoff_path)
+    design, _, receipt_ref = _load_persisted_design_authorization(
+        prepared["design_run_dir"], baseline
+    )
+    if (
+        prepared.get("feature_id") != baseline.feature_id
+        or prepared.get("ba_revision") != baseline.revision
+        or prepared.get("handoff_sha256") != baseline.handoff_sha256
+        or prepared.get("design") != {
+            "artifact_id": design.artifact_id,
+            "revision": design.revision,
+            "sha256": design.sha256,
+        }
+        or prepared.get("design_gate_receipt_evidence") != receipt_ref
+    ):
+        raise RuntimeError("BA baseline or approved Design changed after testcase preparation")
+
+    raw_path = Path(raw_cases).resolve() if raw_cases else Path(prepared["raw_output_path"]).resolve()
+    expected_raw = Path(prepared["raw_output_path"]).resolve()
+    if raw_path != expected_raw or not raw_path.is_file():
+        raise RuntimeError(f"same-session testcase output is missing or not at the prepared path: {expected_raw}")
+    raw_hash = _hash_path(raw_path)
+    manifest = {
+        "mode": "SAME_SESSION",
+        "status": "ARTIFACT_COMPLETE",
+        "raw_output_path": str(raw_path),
+        "raw_output_sha256": raw_hash,
+        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "design_gate_receipt_evidence": receipt_ref,
+        "project_policy_context": prepared.get("project_policy_context"),
+    }
+    result = _finish_case_integration(
+        manifest,
+        design,
+        baseline,
+        run_dir,
+        execution_contract_refs=tuple(prepared.get("execution_contract_refs", [])),
+        artifact_id=artifact_id or f"{baseline.feature_id}-testcases",
+        revision=revision,
+    )
+    if result.status != "CASE_REVIEW":
+        raise RuntimeError(f"testcase finalize failed: {result.status}")
+    summary = {
+        "schema_version": 1,
+        "mode": "SAME_SESSION",
+        "stage": "CASES",
+        "status": result.status,
+        "feature_id": baseline.feature_id,
+        "artifact_id": result.workflow.artifact_id,
+        "artifact_revision": result.workflow.artifact_revision,
+        "artifact_sha256": result.workflow.artifact_sha256,
+        "review_status": result.workflow.review_status,
+        "validation_status": result.workflow.validation_status,
+        "raw_output_path": str(raw_path),
+    }
+    _write_exclusive(
+        run_dir / "evidence/same-session-finalize.json",
+        (json.dumps(summary, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return result
+
+
 def invoke_native_katalon(
     design: foundation.DesignSnapshot,
     receipt: dict,
@@ -2975,3 +3234,59 @@ def run_katalon_case_integration_test_only(
         execution_contract_refs=execution_refs, artifact_id=artifact_id, revision=revision,
         allow_test_only_execution_oracles=True,
     )
+
+
+def main(argv=None) -> int:
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="Test Kit same-session testcase workflow")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    prepare = subparsers.add_parser("prepare-cases")
+    prepare.add_argument("--handoff", type=Path, required=True)
+    prepare.add_argument("--design-run-dir", type=Path, required=True)
+    prepare.add_argument("--run-dir", type=Path, required=True)
+    prepare.add_argument("--project-root", type=Path, required=True)
+    prepare.add_argument("--skill-dir", type=Path, required=True)
+
+    finalize = subparsers.add_parser("finalize-cases")
+    finalize.add_argument("--handoff", type=Path, required=True)
+    finalize.add_argument("--run-dir", type=Path, required=True)
+    finalize.add_argument("--raw-cases", type=Path)
+    finalize.add_argument("--artifact-id")
+    finalize.add_argument("--revision", default="1")
+
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "prepare-cases":
+            result = prepare_same_session_cases(
+                args.handoff,
+                args.design_run_dir,
+                args.run_dir,
+                project_root=args.project_root,
+                skill_dir=args.skill_dir,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            result = finalize_same_session_cases(
+                args.handoff,
+                args.run_dir,
+                raw_cases=args.raw_cases,
+                artifact_id=args.artifact_id,
+                revision=args.revision,
+            )
+            print(json.dumps({
+                "status": result.status,
+                "artifact_id": result.workflow.artifact_id if result.workflow else None,
+                "artifact_revision": result.workflow.artifact_revision if result.workflow else None,
+                "artifact_sha256": result.workflow.artifact_sha256 if result.workflow else None,
+            }, ensure_ascii=False, indent=2))
+        return 0
+    except (RuntimeError, ValueError, OSError, json.JSONDecodeError) as error:
+        print(f"FAIL: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
