@@ -43,7 +43,7 @@ Repository: https://github.com/iceteaofyoureyes/agent-skills
 
 ## Điều kiện và cài đặt
 
-Test Kit V1 hỗ trợ Codex ở project scope. Core cần Python 3.10+ và project có `_bmad/tea/config.yaml` tương thích với TEA skill đã pin. TEA và Katalon skills đã được bundle; install không tải lại chúng. Production operator flow chạy các capability ngay trong agent session hiện tại; nested Codex launcher không còn là UX vận hành chuẩn.
+Test Kit V1 hỗ trợ Codex ở project scope. Core cần Python 3.10+ và project có `_bmad/tea/config.yaml` tương thích với TEA skill đã pin. TEA và Katalon skills đã được bundle; install không tải lại chúng. Production operator flow chạy các capability ngay trong agent session hiện tại; nested Codex launcher không còn là UX vận hành chuẩn. Project TEA config là stable team config; Test Kit sinh run-local resolved config và không được sửa project config theo CR/run.
 
 Từ project đích, chạy script từ Agent Skills checkout:
 
