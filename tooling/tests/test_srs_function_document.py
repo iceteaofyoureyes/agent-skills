@@ -14,35 +14,69 @@ BY_ID = {case["id"]: case for case in CASES}
 class SrsFunctionDocumentTests(unittest.TestCase):
     def test_unknown_maximum_stays_unresolved(self):
         case = BY_ID["unknown-maximum-preserved"]
-        self.assertIn("Keep UNKNOWN values explicitly unresolved", SKILL)
+        self.assertIn("`UNKNOWN` phải chuyển thành `TBD` hoặc câu hỏi cần xác nhận.", SKILL)
         self.assertTrue(any("remains explicitly UNKNOWN" in item for item in case["pass_if"]))
         self.assertTrue(any("No numeric maximum" in item for item in case["pass_if"]))
 
     def test_current_system_evidence_is_not_a_target_requirement(self):
         case = BY_ID["current-system-not-promoted"]
-        self.assertIn("Do not turn CURRENT_SYSTEM evidence into a target requirement.", SKILL)
+        self.assertIn("`CURRENT_SYSTEM` chỉ mô tả hiện trạng hoặc dùng làm context đối chiếu.", SKILL)
         self.assertTrue(any("does not make 255 characters a target" in item for item in case["pass_if"]))
 
     def test_confirmed_business_rule_has_traceability(self):
         case = BY_ID["confirmed-rule-traceability"]
-        self.assertIn("Business Rule → Functional Requirement → acceptance criteria or behavior", SKILL)
+        self.assertIn("giữ traceability đó", SKILL)
         self.assertTrue(any("traces to BR-053" in item for item in case["pass_if"]))
 
     def test_concurrency_outcome_does_not_choose_architecture(self):
         case = BY_ID["no-technical-architecture-invention"]
-        self.assertIn("locking, transaction implementation", SKILL)
+        self.assertIn("locking, transaction strategy", SKILL)
         self.assertTrue(any("Engineering decision" in item for item in case["pass_if"]))
         self.assertTrue(any("Redis lock" in item for item in case["fail_if"]))
 
     def test_srs_generation_does_not_approve_the_baseline(self):
         case = BY_ID["human-gate-separate"]
-        self.assertIn("Do not set or imply APPROVED_FOR_ENGINEERING.", SKILL)
+        self.assertIn("`APPROVED_FOR_ENGINEERING`", SKILL)
         self.assertTrue(any("Workflow approval remains unchanged" in item for item in case["pass_if"]))
 
     def test_update_mode_preserves_unaffected_confirmed_content(self):
         case = BY_ID["unrelated-update-preserves-confirmed-rule"]
-        self.assertIn("Preserve every confirmed, unaffected requirement and its identifiers.", SKILL)
+        self.assertIn("Giữ nguyên mọi nội dung `CONFIRMED` không bị tác động", SKILL)
         self.assertTrue(any("BR-031 behavior and its traceability remain" in item for item in case["pass_if"]))
+
+    def test_canonical_srs_format_contract_is_locked(self):
+        self.assertIn("## 5. Format đầu ra bắt buộc", SKILL)
+        self.assertIn("1. Thông tin chung về chức năng.", SKILL)
+        self.assertIn("2. Luồng nghiệp vụ.", SKILL)
+        self.assertIn("3. Mô tả chi tiết nghiệp vụ theo Business Rule.", SKILL)
+        self.assertIn("4. Thiết kế giao diện.", SKILL)
+        self.assertIn("5. Mô tả chi tiết thành phần giao diện.", SKILL)
+
+        self.assertIn("| Nội dung | Mô tả |", SKILL)
+        self.assertIn("| STT | Business Rule | Mô tả chi tiết |", SKILL)
+        self.assertIn(
+            "| STT | Tên | Kiểu dữ liệu<br>[Độ dài dữ liệu] | Bắt buộc<br>(Y/N) | Input/Output | Giá trị khởi tạo | Mô tả (Mapping với CSDL nếu có) |",
+            SKILL,
+        )
+
+        self.assertIn("## `<SỐ_MỤC>.1` Thông tin chung về chức năng", SKILL)
+        self.assertIn("## `<SỐ_MỤC>.2` Luồng nghiệp vụ", SKILL)
+        self.assertIn("## `<SỐ_MỤC>.3` Thiết kế giao diện (nếu có)", SKILL)
+        self.assertIn("### Nội dung cần xác nhận", SKILL)
+        self.assertIn("# 3.2.1.4 Chức năng xóa rule 4G", SKILL)
+
+    def test_generic_srs_structure_cannot_replace_internal_template(self):
+        self.assertIn(
+            "Scope / Functional Requirements / Acceptance Criteria / Traceability",
+            SKILL,
+        )
+        self.assertIn("Chỉ dùng format khác khi Human yêu cầu rõ ràng.", SKILL)
+
+    def test_ba_workflow_gate_remains_separate_from_srs_generation(self):
+        self.assertIn("không đồng nghĩa Human approval", SKILL)
+        self.assertIn("Không tạo `engineering-handoff.yml`", SKILL)
+        self.assertIn("`CONTINUE`", SKILL)
+        self.assertIn("validation PASS", SKILL)
 
     def test_cr001_regression_case_covers_all_required_semantics(self):
         semantic_contract = json.loads(
@@ -69,8 +103,8 @@ class SrsFunctionDocumentTests(unittest.TestCase):
         )
 
     def test_srs_contract_requires_semantic_preservation_and_blocks_invention(self):
-        self.assertIn("every CONFIRMED input semantic", SKILL)
-        self.assertIn("navigation, entry points, screens, user flows", SKILL)
+        self.assertIn("Chỉ `CONFIRMED` mới được viết thành requirement mới mà không cần qualifier.", SKILL)
+        self.assertIn("Không tự tạo quyền, message, API, bảng CSDL, điều kiện hoặc Business Rule chưa được cung cấp.", SKILL)
         self.assertIn("required, optional, nullable", (ROOT / "business-rule-extractor" / "SKILL.md").read_text(encoding="utf-8"))
 
     def test_cr001_fixture_drives_actual_artifact_evaluation(self):
