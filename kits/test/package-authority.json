@@ -1,17 +1,27 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "1.1.0",
+  "kit_version": "2.0.0-rc.1",
   "manifest_schema_version": 1,
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "7f2576684d6cb82de8504b603c3ea59eb0db435ef26a31a2097e6af338f14d29",
+      "sha256": "98864dcab27d661683c0b3a8e009bf841505db1ac1f9641d51383e54b9306744",
       "classification": "OPERATOR_DOCUMENTATION"
+    },
+    {
+      "path": ".test-kit/ba-workflow/scripts/approved_baseline.py",
+      "sha256": "e8612eb201cb8158e915bb68f0d8888b7f236ed2deb98cfe692ccd278e26e786",
+      "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/ba-workflow/scripts/contracts.py",
       "sha256": "0f66a8dd0be52d1efb80dbb565d22aaf23400e9a2ee1fd3b129a3ec1a97c2136",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/ba-workflow/scripts/delivery_manifest.py",
+      "sha256": "a4b06bf25438045b5b3a24167a311cf60226f9446db0d38f5ef85a5f5e9e21fd",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -61,12 +71,12 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "1ffabc165a04eaf3e35dff57e8319f17833a84a5f71b8cb51faf636df1f42cd1",
+      "sha256": "40c94a988a11bc960410c62204f6fa8124c5d9721d1281e7870d0a1526629175",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_cases.py",
-      "sha256": "6ca606264c80a384e229493ffa1f0c8fcd1e0a80fcecf6effb38a17f24624912",
+      "sha256": "d8d6f6f7922a8f87a0cdd973f9baf931f8f60ea5acd7d8a33e5a608b49e7a482",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -78,6 +88,11 @@
       "path": ".test-kit/tooling/lib/test_kit_v1_xmind.py",
       "sha256": "4f263f7d08d57f46e36eb8ec128000764bd9ac01cabd5f0419a94695f3b077ab",
       "classification": "OPTIONAL_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/testware_promotion.py",
+      "sha256": "0ce147af95079814b6d47bbfad0db4ba91a31305edfb2235233f4587a5e93d26",
+      "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/pins/katalon-create-test-cases-v1.json",
@@ -556,11 +571,11 @@
     },
     {
       "path": "test-kit/SKILL.md",
-      "sha256": "13771ee61f508f54b1a56429aa72b723973d4501b9755603ae680892f84c1fdb",
+      "sha256": "c405dd7aede0d848998d585ab943a18ed8381917ae8af8e7f00166c93b4a6363",
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 111,
+  "managed_file_count": 114,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "75756c2c36c32f9780ea377f43ab66cd8f9363ea0adfcf377b72141ceba82bba"
+  "payload_tree_sha256": "d96174985c2f2ac9cafdb4fade12b3b1372f897809c5c579b2ab3ff5f0328c02"
 }

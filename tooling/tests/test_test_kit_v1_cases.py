@@ -383,7 +383,7 @@ class TestKitV1CaseTests(unittest.TestCase):
         self.assertIn(self.design.records[0].expected_behavior, adapted.markdown)
         self.assertIn("BUSINESS ORACLE", adapted.markdown)
         self.assertIn("EXECUTION ORACLE", adapted.markdown)
-        self.assertIn("OPEN execution dependencies: <execution-only detail>", adapted.markdown)
+        self.assertIn("OPEN execution dependencies: [TYPE] <detail>", adapted.markdown)
         self.assertEqual(adapted.design_sha256, self.design.sha256)
         self.assertIn("FR-001", adapted.markdown)
         self.assertIn("BR-014", adapted.markdown)
@@ -396,7 +396,7 @@ class TestKitV1CaseTests(unittest.TestCase):
 
         self.assertIn("Every Test Design row with non-null expected behavior needs testcase coverage", prompt)
         self.assertIn("Do not prefix design IDs with TD", prompt)
-        self.assertIn("OPEN execution dependencies: <execution-only detail>", prompt)
+        self.assertIn("OPEN execution dependencies: [TYPE] <detail>", prompt)
         self.assertIn("Write the completed output with Python 3 pathlib", prompt)
 
     def test_null_outcome_design_row_is_deferred_and_cannot_be_asserted(self):
@@ -434,7 +434,7 @@ class TestKitV1CaseTests(unittest.TestCase):
         self.assertIn("TD-MAX", adapted.markdown)
         self.assertNotIn("## TD-MAX", adapted.markdown)
         execution_ref = self._execution_ref()
-        dependency = cases.ExecutionDependency("Maximum-duration execution fixture", True, "RESOLVED", execution_ref["id"])
+        dependency = cases.ExecutionDependency("Maximum-duration execution fixture", "SEMANTIC_ORACLE", "RESOLVED", execution_ref["id"])
         case = cases.CanonicalTestcase(
             "TC-999", "Check maximum duration", "Assert the maximum duration", "A maximum-duration oracle is available.", None,
             (cases.CaseStep("Create an appointment at the maximum", None, "Maximum duration is 60 minutes."),), "P1",
@@ -469,6 +469,14 @@ class TestKitV1CaseTests(unittest.TestCase):
 
         self.assertEqual(set(sources), set(cases.CASE_SEMANTIC_FIELDS))
         self.assertTrue(all(source.line is not None and source.line > 0 for source in sources.values()))
+
+    def test_trace_parser_accepts_domain_scoped_ba_ids(self):
+        refs = cases._parse_explicit_refs(
+            "FR-001; BR-WED-011; BR-AUTH-004",
+            case_id="TC-001",
+            field="Trace",
+        )
+        self.assertEqual(refs, ["FR-001", "BR-WED-011", "BR-AUTH-004"])
 
     def test_native_katalon_profile_is_accepted(self):
         normalized = cases.normalize_katalon_markdown(
@@ -1069,7 +1077,7 @@ class TestKitV1CaseTests(unittest.TestCase):
         record = normalized.snapshot.records[0]
 
         self.assertTrue(record.execution_dependencies)
-        self.assertTrue(record.execution_dependencies[0].material)
+        self.assertEqual(record.execution_dependencies[0].kind, "IMPLEMENTATION_LOCATOR")
         self.assertEqual(record.execution_dependencies[0].status, "OPEN")
         self.assertIn("editable field", record.execution_dependencies[0].need)
 
@@ -1082,7 +1090,7 @@ class TestKitV1CaseTests(unittest.TestCase):
         self.assertEqual(normalized.status, "NORMALIZED")
         dependency = normalized.snapshot.records[0].execution_dependencies[0]
         self.assertEqual(dependency.need, "route and persisted-state observation are not specified.")
-        self.assertTrue(dependency.material)
+        self.assertEqual(dependency.kind, "OBSERVABILITY")
         self.assertEqual(dependency.status, "OPEN")
 
     def test_open_execution_dependencies_marker_in_preconditions_is_parsed(self):
@@ -1107,7 +1115,7 @@ class TestKitV1CaseTests(unittest.TestCase):
         design = self.design
         active_design = tuple(row.design_id for row in design.records if row.expected_behavior is not None)
         ba_refs = tuple(sorted({ref for row in design.records if row.expected_behavior is not None for ref in row.requirement_refs}))
-        dependency = cases.ExecutionDependency("Approved interface action mapping is required", True, "OPEN", None)
+        dependency = cases.ExecutionDependency("Approved interface action mapping is required", "SEMANTIC_ORACLE", "OPEN", None)
         case = cases.CanonicalTestcase(
             "TC-001", "Create appointment", "Check creation", "A valid Pet exists.", "Pet A",
             (cases.CaseStep("Create an appointment", None, "Appointment is Scheduled."),), "P1",
@@ -1131,7 +1139,7 @@ class TestKitV1CaseTests(unittest.TestCase):
         self.assertEqual(validation.status, "PASS")
         self.assertEqual(workflow.state, "CASE_REVIEW")
         self.assertEqual(result.status, "FAIL")
-        self.assertEqual(result.finding.code, "MATERIAL_OPEN_EXECUTION_DEPENDENCY")
+        self.assertEqual(result.finding.code, "OPEN_SEMANTIC_ORACLE")
         self.assertNotEqual(workflow.review_status, "APPROVED")
 
     def test_validator_pass_submits_only_to_case_review(self):
@@ -1157,7 +1165,7 @@ class TestKitV1CaseTests(unittest.TestCase):
 
     def test_duplicate_case_ids_and_resolution_refs_are_blocking(self):
         design = self._design("TD-001", "Appointment is created in Scheduled.", ("FR-001",))
-        dependency = cases.ExecutionDependency("Approved execution mapping", True, "RESOLVED", "EXEC-1")
+        dependency = cases.ExecutionDependency("Approved execution mapping", "SEMANTIC_ORACLE", "RESOLVED", "EXEC-1")
         record = cases.CanonicalTestcase(
             "TC-001", "Create", "Check", "No setup required.", None,
             (cases.CaseStep("Create", None, "Appointment is Scheduled."),), "P1",
@@ -1408,7 +1416,7 @@ class TestKitV1CaseTests(unittest.TestCase):
         }
 
     def _resolved_snapshot(self, ref, *, dependency_need="Approved interface action mapping"):
-        dependency = cases.ExecutionDependency(dependency_need, True, "RESOLVED", ref["id"])
+        dependency = cases.ExecutionDependency(dependency_need, "OBSERVABILITY", "RESOLVED", ref["id"])
         record = cases.CanonicalTestcase(
             "TC-001", "Create appointment", "Check creation", "A valid Pet exists.", "Pet A",
             (cases.CaseStep("Create appointment", None, "Appointment is saved as Scheduled."),), "P1",

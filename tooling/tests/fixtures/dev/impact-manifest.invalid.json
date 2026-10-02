@@ -1,0 +1,10 @@
+{
+  "schema_version": true,
+  "change_id": "",
+  "baseline_ref": {},
+  "affected_repositories": "appointments",
+  "risk": {"level": "EXTREME", "reasons": []},
+  "unknowns": [
+    {"id": "BUS-001", "kind": "BUSINESS", "description": "Pick a cancellation penalty", "blocking": true}
+  ]
+}

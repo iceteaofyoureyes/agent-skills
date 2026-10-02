@@ -32,6 +32,40 @@ class TestKitV1Tests(unittest.TestCase):
     def setUp(self):
         self.baseline = test_kit.load_approved_baseline(HANDOFF)
 
+    def test_source_parser_accepts_current_ba_heading_format_and_domain_br_ids(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            srs = root / "srs.md"
+            rules = root / "rules.md"
+            srs.write_text(
+                "# SRS\n\n### FR-001 — Search title\n\nSearch theo title.\n\n"
+                "### FR-002 — Status\n\nStatus single-select.\n",
+                encoding="utf-8",
+            )
+            rules.write_text(
+                "# Rules\n\n### BR-WED-011 — Search scope\n\nKhông search slug.\n\n"
+                "### BR-AUTH-004 — Access\n\nChỉ dữ liệu actor được phép xem.\n",
+                encoding="utf-8",
+            )
+
+            fr = test_kit._parse_source_rows(srs, "FR", 3)
+            br = test_kit._parse_source_rows(rules, "BR", 3)
+
+            self.assertEqual([row.id for row in fr], ["FR-001", "FR-002"])
+            self.assertEqual([row.id for row in br], ["BR-WED-011", "BR-AUTH-004"])
+            self.assertIn("Search theo title.", fr[0].text)
+            self.assertIn("Không search slug.", br[0].text)
+
+    def test_trace_parser_accepts_domain_scoped_ba_ids(self):
+        refs = test_kit._parse_ref_cell(
+            "FR-001; BR-WED-011; BR-AUTH-004",
+            {"FR-001", "BR-WED-011", "BR-AUTH-004"},
+            path="tea.md",
+            line=10,
+            field="Truy vết",
+        )
+        self.assertEqual(refs, ["FR-001", "BR-WED-011", "BR-AUTH-004"])
+
     def test_ba_adapter_copies_fr_and_br_separately_and_keeps_supplemental_separate(self):
         supplemental = "Visit has date, description, and Pet; this is supplemental only."
         bundle = test_kit.adapt_ba_to_tea(HANDOFF, supplemental=supplemental)
@@ -120,6 +154,113 @@ class TestKitV1Tests(unittest.TestCase):
         self.assertEqual(result.status, "CANNOT_NORMALIZE")
         self.assertIsNone(result.snapshot)
         self.assertEqual(result.findings[0].field, "Test ID")
+
+    def test_same_session_prepare_and_finalize_reach_design_review_without_nested_codex(self):
+        manifest = json.loads(test_kit.TEA_PIN_MANIFEST.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory(prefix="same-session-test-kit-") as temp:
+            project = Path(temp) / "project"
+            project.mkdir()
+            handoff = self._copy_fixture(project)
+            skill = project / ".agents/skills" / test_kit.TEA_CAPABILITY
+            for relative in manifest["files"]:
+                target = skill / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((PINNED_TEA_FIXTURE / relative).read_bytes())
+            config = project / "_bmad/tea/config.yaml"
+            config.parent.mkdir(parents=True)
+            config.write_text(
+                "user_name: Tester\n"
+                "communication_language: Vietnamese\n"
+                "document_output_language: Vietnamese\n"
+                "output_folder: test-runs\n"
+                "test_artifacts: test-runs\n"
+                "test_stack_type: fullstack\n",
+                encoding="utf-8",
+            )
+            run_dir = project / "test-runs/CR-001/design-001"
+
+            original_config = config.read_bytes()
+            with mock.patch.object(test_kit, "resolve_codex_command") as resolver:
+                prepared = test_kit.prepare_same_session_design(
+                    handoff, run_dir, project_root=project, skill_dir=skill,
+                )
+                resolver.assert_not_called()
+                self.assertEqual(config.read_bytes(), original_config)
+                runtime_config = Path(prepared["runtime_config"]["path"])
+                self.assertTrue(runtime_config.is_file())
+                runtime_text = runtime_config.read_text(encoding="utf-8")
+                self.assertIn((run_dir / "raw-output").resolve().as_posix(), runtime_text)
+                self.assertNotEqual(runtime_config.resolve(), config.resolve())
+
+                raw = Path(prepared["raw_output_path"])
+                raw.parent.mkdir(parents=True, exist_ok=True)
+                raw.write_bytes(BENCHMARK.read_bytes())
+
+                result = test_kit.finalize_same_session_design(handoff, run_dir)
+                resolver.assert_not_called()
+                self.assertEqual(config.read_bytes(), original_config)
+
+            self.assertEqual(result["status"], "DESIGN_REVIEW")
+            self.assertEqual(result["review_status"], "IN_REVIEW")
+            self.assertEqual(result["validation_status"], "PASS")
+            self.assertTrue((run_dir / "canonical/canonical-test-design.json").is_file())
+            self.assertTrue((run_dir / "workflow-state.json").is_file())
+            self.assertTrue((run_dir / "evidence/same-session-prepare.json").is_file())
+            self.assertTrue((run_dir / "evidence/same-session-finalize.json").is_file())
+
+    def test_same_session_finalize_rejects_project_config_drift(self):
+        manifest = json.loads(test_kit.TEA_PIN_MANIFEST.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory(prefix="same-session-config-drift-") as temp:
+            project = Path(temp) / "project"
+            project.mkdir()
+            handoff = self._copy_fixture(project)
+            skill = project / ".agents/skills" / test_kit.TEA_CAPABILITY
+            for relative in manifest["files"]:
+                target = skill / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((PINNED_TEA_FIXTURE / relative).read_bytes())
+            config = project / "_bmad/tea/config.yaml"
+            config.parent.mkdir(parents=True)
+            config.write_text(
+                "user_name: Tester\n"
+                "communication_language: Vietnamese\n"
+                "document_output_language: Vietnamese\n"
+                "output_folder: .test-kit/runtime\n"
+                "test_artifacts: .test-kit/runtime\n"
+                "test_stack_type: fullstack\n",
+                encoding="utf-8",
+            )
+            run_dir = project / ".test-kit/runs/CR-001/design-001"
+            prepared = test_kit.prepare_same_session_design(
+                handoff, run_dir, project_root=project, skill_dir=skill,
+            )
+            raw = Path(prepared["raw_output_path"])
+            raw.parent.mkdir(parents=True, exist_ok=True)
+            raw.write_bytes(BENCHMARK.read_bytes())
+            config.write_text(config.read_text(encoding="utf-8") + "tea_execution_mode: sequential\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(RuntimeError, "PROJECT_TEA_CONFIG_DRIFT"):
+                test_kit.finalize_same_session_design(handoff, run_dir)
+
+    def test_same_session_prepare_fails_closed_on_unpinned_skill(self):
+        with tempfile.TemporaryDirectory(prefix="same-session-pin-") as temp:
+            project = Path(temp) / "project"
+            project.mkdir()
+            handoff = self._copy_fixture(project)
+            skill = project / ".agents/skills" / test_kit.TEA_CAPABILITY
+            skill.mkdir(parents=True)
+            (skill / "SKILL.md").write_text("wrong bytes", encoding="utf-8")
+            config = project / "_bmad/tea/config.yaml"
+            config.parent.mkdir(parents=True)
+            config.write_text("user_name: Tester\n", encoding="utf-8")
+
+            with mock.patch.object(test_kit, "resolve_codex_command") as resolver:
+                with self.assertRaisesRegex(RuntimeError, "PIN_INTEGRITY_FAILURE"):
+                    test_kit.prepare_same_session_design(
+                        handoff, project / "test-runs/run-1",
+                        project_root=project, skill_dir=skill,
+                    )
+                resolver.assert_not_called()
 
     def test_native_invocation_requests_only_the_frozen_raw_profile(self):
         prompt = test_kit._invocation_prompt(Path("epic.md"), Path("rules.md"), Path("unknowns.md"), Path("output.md"), None)
@@ -437,6 +578,11 @@ class TestKitV1Tests(unittest.TestCase):
                 )
                 self.assertNotIn("nvm4w", " ".join(resolved.argv_prefix).casefold())
                 self.assertEqual(command, resolved.argv(captured))
+                self.assertNotIn("--no-daemon", captured)
+                self.assertNotIn("--approve-for-me", captured)
+                self.assertIn("--ask-for-approval", captured)
+                self.assertEqual(captured[captured.index("--ask-for-approval") + 1], "never")
+                self.assertLess(captured.index("--ask-for-approval"), captured.index("exec"))
                 self.assertEqual(captured[captured.index("--model") + 1], "model name with spaces")
                 self.assertEqual(captured[captured.index("-C") + 1], str(root.resolve()))
                 self.assertEqual(captured[captured.index("--add-dir") + 1], str(run_dir.resolve()))
@@ -452,7 +598,12 @@ class TestKitV1Tests(unittest.TestCase):
     def test_duplicate_and_orphan_refs_are_blocking_validator_findings(self):
         raw = self._replace_benchmark_cell("TD-001", 1, "FR-001, FR-001, BR-999")
         result = test_kit.normalize_tea_markdown(raw, self.baseline, source_path="refs.md")
-        validation = test_kit.validate_design(result.snapshot, self.baseline)
+        self.assertEqual(result.status, "CANNOT_NORMALIZE")
+        from dataclasses import replace
+        good = test_kit.normalize_tea_output(BENCHMARK, self.baseline).snapshot
+        row = replace(good.records[0], requirement_refs=("FR-001", "FR-001", "BR-999"))
+        candidate = test_kit.DesignSnapshot.create((row, *good.records[1:]), artifact_id=good.artifact_id, revision=good.revision)
+        validation = test_kit.validate_design(candidate, self.baseline)
         codes = {finding.code for finding in validation.findings}
 
         self.assertIn("DUPLICATE_REQUIREMENT_REF", codes)

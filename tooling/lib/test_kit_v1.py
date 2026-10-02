@@ -33,6 +33,8 @@ def is_test_only_workspace_path(path: str | Path) -> bool:
 
 sys.path.insert(0, str(ROOT / "ba-workflow/scripts"))
 from contracts import _yaml_fields, validate_handoff_file  # noqa: E402
+from approved_baseline import (ApprovedBaseline, BaselineRow, BaselineError, _markdown_cells, _parse_source_rows, read_approved_baseline as load_approved_baseline)
+from delivery_manifest import load_delivery_manifest
 
 
 TEA_REPOSITORY = "bmad-code-org/bmad-method-test-architecture-enterprise"
@@ -56,7 +58,7 @@ BENCHMARK_HEADERS = (
 NATIVE_HEADERS = (
     "Test ID", "Kịch bản", "Mức kiểm thử", "Risk Link", "Truy vết", "Kết quả quan sát được",
 )
-ID_TOKEN = re.compile(r"\b(?P<prefix>FR|BR|TD)-(?P<number>\d+)\b")
+BA_ID_TOKEN = re.compile(r"\b(?P<id>(?:(?:FR|BR)-(?:[A-Za-z0-9]+-)*\d+|BAREF:(?:SRS|BR):\d+))\b", re.IGNORECASE)
 TEA_SCENARIO_TOKEN = re.compile(
     r"\b(?:TD-[A-Za-z0-9][A-Za-z0-9_-]*|\d+(?:\.\d+)?-(?:UNIT|INT|E2E|EXP)-\d+|TC-E\d+-\d+)\b",
     re.IGNORECASE,
@@ -66,15 +68,13 @@ RANGE_TOKEN = re.compile(
     r"(?:(?P<end_prefix>FR|BR)-)?(?P<end>\d+)\b",
     re.IGNORECASE,
 )
-BAD_ID_TOKEN = re.compile(r"\b(?:FR|BR|TD)-[A-Za-z0-9_-]+", re.IGNORECASE)
+BAD_BA_ID_TOKEN = re.compile(r"\b(?:FR|BR)-[A-Za-z0-9_-]+", re.IGNORECASE)
+SOURCE_HEADING = re.compile(
+    r"^(?P<marks>#{2,6})\s+(?P<id>(?:(?:FR|BR)-(?:[A-Za-z0-9]+-)*\d+|BAREF:(?:SRS|BR):\d+))\s*(?:[—–-]\s*)?(?P<title>.*?)\s*$",
+    re.IGNORECASE,
+)
 MARKDOWN_HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 TABLE_SEPARATOR = re.compile(r"^\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$")
-
-
-class BaselineError(ValueError):
-    def __init__(self, message: str, *, code: str = "INVALID_BA_BASELINE"):
-        super().__init__(message)
-        self.code = code
 
 
 class _NormalizationError(ValueError):
@@ -98,41 +98,6 @@ class RawEvidenceRef:
     sha256: str
     line: int | None = None
     field: str | None = None
-
-
-@dataclass(frozen=True)
-class BaselineRow:
-    id: str
-    text: str
-    path: str
-    line: int
-
-
-@dataclass(frozen=True)
-class ApprovedBaseline:
-    feature_id: str
-    feature_title: str
-    revision: str
-    handoff_path: Path
-    handoff_sha256: str
-    source_paths: dict[str, Path]
-    source_hashes: dict[str, str]
-    requirements: tuple[BaselineRow, ...]
-    business_rules: tuple[BaselineRow, ...]
-    open_items: tuple[str, ...]
-    unknown_clauses: dict[str, str]
-
-    @property
-    def requirement_ids(self) -> set[str]:
-        return {row.id for row in self.requirements}
-
-    @property
-    def business_rule_ids(self) -> set[str]:
-        return {row.id for row in self.business_rules}
-
-    @property
-    def ba_ids(self) -> set[str]:
-        return self.requirement_ids | self.business_rule_ids
 
 
 @dataclass(frozen=True)
@@ -317,100 +282,6 @@ def verify_pinned_tea_skill(skill_dir: str | Path) -> list[dict]:
     return inventory
 
 
-def _markdown_cells(line: str) -> list[str]:
-    return [cell.strip() for cell in line.strip().strip("|").split("|")]
-
-
-def _parse_source_table(path: Path, id_prefix: str, wanted_columns: int) -> tuple[BaselineRow, ...]:
-    rows: list[BaselineRow] = []
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-        if not raw.lstrip().startswith("|") or TABLE_SEPARATOR.fullmatch(raw.strip()):
-            continue
-        cells = _markdown_cells(raw)
-        if not cells or not re.fullmatch(rf"{id_prefix}-\d+", cells[0]):
-            continue
-        if len(cells) != wanted_columns:
-            raise BaselineError(f"{path}:{number}: expected {wanted_columns} source columns, found {len(cells)}")
-        if not cells[1]:
-            raise BaselineError(f"{path}:{number}: {cells[0]} has no source text")
-        rows.append(BaselineRow(cells[0], cells[1], str(path), number))
-    if not rows:
-        raise BaselineError(f"{path}: no {id_prefix}-* source rows found")
-    ids = [row.id for row in rows]
-    if len(ids) != len(set(ids)):
-        raise BaselineError(f"{path}: duplicate {id_prefix} source IDs")
-    return tuple(rows)
-
-
-def _parse_open_items(fields: dict, sequences: dict) -> tuple[str, ...]:
-    raw = _field(fields, "open_items.non_blocking")
-    if raw and raw.startswith("["):
-        try:
-            items = json.loads(raw)
-        except json.JSONDecodeError as error:
-            raise BaselineError(f"unsupported open_items.non_blocking list: {error}") from error
-        if not isinstance(items, list) or not all(isinstance(item, str) for item in items):
-            raise BaselineError("open_items.non_blocking must be a string list")
-        return tuple(items)
-    items = sequences.get(("open_items", "non_blocking"), [])
-    if not all(isinstance(item, str) for item in items):
-        raise BaselineError("open_items.non_blocking must be a string list")
-    return tuple(items)
-
-
-def _unknown_sentences(rows: Iterable[BaselineRow]) -> dict[str, str]:
-    result: dict[str, str] = {}
-    for row in rows:
-        for sentence in re.split(r"(?<=[.!?])\s+", row.text):
-            sentence = sentence.strip()
-            if re.search(r"\bUNKNOWN\b", sentence, re.IGNORECASE):
-                result[row.id] = sentence
-    return result
-
-
-def load_approved_baseline(handoff_path: str | Path) -> ApprovedBaseline:
-    handoff_path = Path(handoff_path).resolve()
-    errors = validate_handoff_file(handoff_path)
-    if errors:
-        raise BaselineError("; ".join(errors))
-    fields, _, sequences, parse_errors = _yaml_fields(handoff_path.read_text(encoding="utf-8"))
-    if parse_errors:
-        raise BaselineError("; ".join(parse_errors))
-    if _field(fields, "ba_baseline.status") != "APPROVED_FOR_ENGINEERING":
-        raise BaselineError("ba_baseline.status must be APPROVED_FOR_ENGINEERING")
-
-    source_paths: dict[str, Path] = {}
-    source_hashes: dict[str, str] = {}
-    for source in ("business_rules", "srs", "decisions"):
-        relative = _field(fields, f"authoritative_sources.{source}.path")
-        expected = (_field(fields, f"authoritative_sources.{source}.sha256") or "").lower()
-        path = Path(relative)
-        if not path.is_absolute():
-            path = handoff_path.parent / path
-        path = path.resolve()
-        if not path.is_file() or _source_hash(path) != expected:
-            raise BaselineError(f"authoritative source missing or SHA-256 mismatch: {source}: {path}")
-        source_paths[source] = path
-        source_hashes[source] = expected
-
-    requirements = _parse_source_table(source_paths["srs"], "FR", 3)
-    business_rules = _parse_source_table(source_paths["business_rules"], "BR", 3)
-    rows = (*requirements, *business_rules)
-    return ApprovedBaseline(
-        feature_id=_field(fields, "feature.id") or "",
-        feature_title=_field(fields, "feature.title") or "",
-        revision=_field(fields, "ba_baseline.revision") or "",
-        handoff_path=handoff_path,
-        handoff_sha256=_source_hash(handoff_path),
-        source_paths=source_paths,
-        source_hashes=source_hashes,
-        requirements=requirements,
-        business_rules=business_rules,
-        open_items=_parse_open_items(fields, sequences),
-        unknown_clauses=_unknown_sentences(rows),
-    )
-
-
 def _heading_markdown(title: str, rows: Iterable[BaselineRow]) -> str:
     lines = [title, ""]
     for row in rows:
@@ -426,7 +297,7 @@ def adapt_ba_to_tea(
 ) -> AdapterBundle:
     baseline = load_approved_baseline(handoff_path)
     epic = _heading_markdown(f"# Epic 1 — {baseline.feature_id} {baseline.feature_title}", baseline.requirements)
-    epic = epic.replace("\n### FR-", "\n## Acceptance criteria\n\n### FR-", 1)
+    epic = epic.replace("\n### ", "\n## Acceptance criteria\n\n### ", 1)
     business = _heading_markdown("# Separate approved business-rule context", baseline.business_rules)
     unknown_texts = tuple(baseline.unknown_clauses.values())
     open_lines = ["# BA open decisions — UNKNOWN", ""]
@@ -475,20 +346,25 @@ def _parse_ref_cell(value: str, inventory: set[str], *, path: str, line: int, fi
             raise _normalize_error(path, line, field, f"range member is absent from the approved BA inventory: {missing}")
         tokens.append((match.start(), match.end(), expanded))
         covered.append(match.span())
-    for match in ID_TOKEN.finditer(value):
+    inventory_by_fold = {item.casefold(): item for item in inventory}
+    for match in BA_ID_TOKEN.finditer(value):
         if any(start <= match.start() and match.end() <= end for start, end in covered):
             continue
-        tokens.append((match.start(), match.end(), [f"{match.group('prefix')}-{match.group('number')}"]))
+        raw_id = match.group("id")
+        canonical_id = inventory_by_fold.get(raw_id.casefold())
+        if canonical_id is None:
+            raise _normalize_error(path, line, field, f"BA ID is absent from the approved inventory: {raw_id}")
+        tokens.append((match.start(), match.end(), [canonical_id]))
         covered.append(match.span())
     tokens.sort(key=lambda item: item[0])
     if not tokens:
-        raise _normalize_error(path, line, field, "no explicit FR/BR IDs found")
+        raise _normalize_error(path, line, field, "no explicit approved-authority refs found")
     remainder = list(value)
     for start, end in covered:
         remainder[start:end] = " " * (end - start)
     leftovers = "".join(remainder)
-    if BAD_ID_TOKEN.search(leftovers):
-        bad = BAD_ID_TOKEN.search(leftovers).group(0)
+    if BAD_BA_ID_TOKEN.search(leftovers):
+        bad = BAD_BA_ID_TOKEN.search(leftovers).group(0)
         raise _normalize_error(path, line, field, f"ambiguous or malformed ID token: {bad}")
     if re.sub(r"\b(?:and|or|và|hoặc)\b", "", leftovers, flags=re.IGNORECASE).strip(" \t,;:/|&()[]·—–-"):
         raise _normalize_error(path, line, field, "unparsed text makes the trace ambiguous")
@@ -1155,6 +1031,61 @@ def _apply_design_decision(
         return DecisionAttempt(False, state, Finding("DESIGN_GATE_PERSISTENCE_FAILED", str(error)))
 
 
+def load_persisted_design_snapshot(
+    run_dir: str | Path, *, require_state: str | None = None,
+) -> DesignSnapshot:
+    """Rehydrate the exact canonical Design snapshot from persisted semantic bytes."""
+    run_dir = Path(run_dir).resolve()
+    workflow_path = run_dir / "workflow-state.json"
+    semantic_path = run_dir / "canonical/semantic-payload.json"
+    try:
+        workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
+        semantic_bytes = semantic_path.read_bytes()
+        payload = json.loads(semantic_bytes.decode("utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError) as error:
+        raise ValueError(f"persisted Test Design is unavailable: {error}") from error
+    if require_state is not None and workflow.get("state") != require_state:
+        raise ValueError(
+            f"persisted Test Design state must be {require_state}, found {workflow.get('state')}"
+        )
+    if not isinstance(payload, list):
+        raise ValueError("persisted Test Design semantic payload must be a list")
+    records = []
+    for index, row in enumerate(payload, 1):
+        if not isinstance(row, dict):
+            raise ValueError(f"persisted Test Design row {index} is invalid")
+        try:
+            questions = tuple(
+                OpenQuestion(
+                    source_ref=question["source_ref"],
+                    text=question["text"],
+                    status=question.get("status", "UNKNOWN"),
+                )
+                for question in row.get("open_questions", [])
+            )
+            records.append(CanonicalTestDesign(
+                design_id=row["design_id"],
+                hierarchy_path=tuple(row["hierarchy_path"]),
+                scenario_title=row["scenario_title"],
+                expected_behavior=row.get("expected_behavior"),
+                requirement_refs=tuple(row["requirement_refs"]),
+                open_questions=questions,
+            ))
+        except (KeyError, TypeError) as error:
+            raise ValueError(f"persisted Test Design row {index} is invalid: {error}") from error
+    snapshot = DesignSnapshot.create(
+        records,
+        artifact_id=workflow.get("artifact_id", ""),
+        revision=workflow.get("artifact_revision", ""),
+    )
+    if snapshot.payload_bytes != semantic_bytes or snapshot.sha256 != workflow.get("artifact_sha256"):
+        raise ValueError("persisted Test Design semantic bytes do not match workflow state")
+    review_status = workflow.get("review_status", "DRAFT")
+    if review_status in {"DRAFT", "IN_REVIEW", "CHANGES_REQUESTED", "APPROVED"}:
+        snapshot = snapshot.project(review_status)
+    return snapshot
+
+
 def baseline_receipt_refs(baseline: ApprovedBaseline) -> list[dict]:
     refs = []
     for name in ("business_rules", "srs", "decisions"):
@@ -1259,7 +1190,23 @@ def current_project_policy_ref(run_dir: str | Path, stage: str) -> dict | None:
 def design_gate_input_refs(baseline: ApprovedBaseline, run_dir: str | Path) -> list[dict]:
     refs = baseline_receipt_refs(baseline)
     policy_ref = current_project_policy_ref(run_dir, "DESIGN")
-    return refs + ([policy_ref] if policy_ref else [])
+    return refs + current_delivery_refs(run_dir) + ([policy_ref] if policy_ref else [])
+
+
+def current_delivery_refs(run_dir):
+    evidence = Path(run_dir) / "evidence/delivery-input.json"
+    if not evidence.is_file():
+        return []
+    frozen = json.loads(evidence.read_text(encoding="utf-8"))
+    delivery = load_delivery_manifest(frozen["path"])
+    if delivery["sha256"] != frozen["sha256"]:
+        raise ValueError("Delivery Manifest changed after run start")
+    data = delivery["data"]
+    refs = [{"id": data["feature"]["id"] + ":DELIVERY", "revision": data["delivery_revision"], "sha256": delivery["sha256"]}]
+    if data["ux"].get("contract"):
+        contract = data["ux"]["contract"]
+        refs.append({"id": data["feature"]["id"] + ":UX", "revision": contract["revision"], "sha256": contract["sha256"]})
+    return refs
 
 
 def _design_receipt_refs(receipt: dict) -> tuple[tuple[str, str, str], ...] | None:
@@ -1537,6 +1484,7 @@ def invoke_native_tea(
     petclinic_root: str | Path,
     skill_dir: str | Path,
     model: str = "gpt-6-luna",
+    timeout_seconds: float = 300.0,
 ) -> dict:
     run_dir = Path(run_dir).resolve()
     petclinic_root = Path(petclinic_root).resolve()
@@ -1561,6 +1509,11 @@ def invoke_native_tea(
         from .test_kit_policy import non_authoritative_policy_prompt, resolve_project_policy
         prompt += "\n" + non_authoritative_policy_prompt(resolve_project_policy(petclinic_root, "DESIGN"), policy_context["policy"])
         prompt += "\nLoad the project-owned TEA team customization via upstream workflow.persistent_facts in declared order; these facts remain testing guidance only.\n"
+    else:
+        prompt += """
+Test Kit preflight resolved NO_PROJECT_POLICY for this run.
+Compatibility rule for upstream activation: if {project-root}/_bmad/scripts/resolve_customization.py is absent, do not retry the missing resolver through uv or shell quoting. Resolve the workflow block directly from the installed skill's customize.toml; no team/user customization is present for this run. Use project-relative paths for skill files on Windows and do not rebuild absolute PowerShell command strings merely to read them. If a prerequisite command fails, apply the documented fallback once and continue; do not retry the same read/probe under alternate quoting.
+"""
     prompt_path = output_dir / "invocation-prompt.md"
     prompt_path.write_text(prompt, encoding="utf-8", newline="\n")
     stdout_path = output_dir / "invocation.jsonl"
@@ -1576,7 +1529,7 @@ def invoke_native_tea(
     if supplemental_path.is_file():
         input_files.append(supplemental_path)
     argv = codex_command.argv([
-        "--no-daemon", "--approve-for-me", "exec", "--json", "--ephemeral",
+        "--ask-for-approval", "never", "exec", "--json", "--ephemeral",
         "--skip-git-repo-check", "--sandbox", "workspace-write", "--model", model,
         "-C", str(petclinic_root), "--add-dir", str(run_dir), "-o", str(output), "-",
     ])
@@ -1614,6 +1567,8 @@ def invoke_native_tea(
             process.stdin.close()
         except BrokenPipeError:
             pass
+        deadline = time.monotonic() + timeout_seconds
+        timed_out = False
         while process.poll() is None:
             artifact_bytes = _completed_artifact_bytes(output, checkpoint_path)
             if artifact_bytes is not None:
@@ -1621,6 +1576,15 @@ def invoke_native_tea(
                 if digest == previous_digest and not completed_artifact.exists():
                     _write_exclusive(completed_artifact, artifact_bytes)
                 previous_digest = digest
+            if time.monotonic() >= deadline:
+                timed_out = True
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                break
             time.sleep(0.15)
         exit_code = process.wait()
         if not completed_artifact.exists():
@@ -1664,6 +1628,11 @@ def invoke_native_tea(
         }
     )
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if timed_out and not workflow_complete:
+        manifest["status"] = "TIMEOUT"
+        manifest["closeout_caveat"] = f"native TEA exceeded {timeout_seconds:g}s without a completed artifact"
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        raise RuntimeError(f"native TEA timed out after {timeout_seconds:g}s; see {manifest_path}")
     if not workflow_complete:
         raise RuntimeError(f"native TEA did not produce a completed artifact; see {manifest_path}")
     return manifest
@@ -1713,10 +1682,279 @@ def persist_adapter_bundle(
     return epic, rules, unknowns
 
 
+
+def _prepare_run_local_tea_config(project_config: Path, run_dir: Path) -> Path:
+    """Create a run-local resolved TEA config without mutating project-owned config."""
+    source = project_config.read_text(encoding="utf-8")
+    runtime_root = (run_dir / "raw-output").resolve().as_posix()
+    seen = set()
+    lines = []
+    for raw in source.splitlines():
+        stripped = raw.strip()
+        if stripped.startswith("output_folder:"):
+            lines.append(f"output_folder: {runtime_root}")
+            seen.add("output_folder")
+        elif stripped.startswith("test_artifacts:"):
+            lines.append(f"test_artifacts: {runtime_root}")
+            seen.add("test_artifacts")
+        else:
+            lines.append(raw)
+    missing = {"output_folder", "test_artifacts"} - seen
+    if missing:
+        raise RuntimeError(
+            "Test Kit project config is missing runtime path fields: " + ", ".join(sorted(missing))
+        )
+    path = run_dir / "inputs/tea-runtime-config.yaml"
+    _write_if_same_or_absent(path, ("\n".join(lines).rstrip() + "\n").encode("utf-8"))
+    return path
+
+
+def prepare_same_session_design(
+    handoff_path: str | Path,
+    run_dir: str | Path,
+    *,
+    project_root: str | Path,
+    skill_dir: str | Path,
+    supplemental_manifest: str | Path | None = None,
+    delivery_path: str | Path | None = None,
+) -> dict:
+    """Prepare immutable Test Design inputs for execution by the current agent session."""
+    run_dir = Path(run_dir).resolve()
+    project_root = Path(project_root).resolve()
+    skill_dir = Path(skill_dir).resolve()
+    expected_skill = (project_root / ".agents/skills" / TEA_CAPABILITY).resolve()
+    if not expected_skill.is_dir() or not skill_dir.is_dir() or not expected_skill.samefile(skill_dir):
+        raise RuntimeError("same-session TEA must use the project-local pinned skill")
+    skill_files = verify_pinned_tea_skill(skill_dir)
+    delivery = load_delivery_manifest(delivery_path) if delivery_path else None
+    if delivery:
+        if Path(handoff_path).resolve() != delivery["baseline"].handoff_path:
+            raise ValueError("Test BA input differs from Delivery Manifest")
+        _write_exclusive(run_dir / "evidence/delivery-input.json", json.dumps({"path": str(delivery["path"]), "sha256": delivery["sha256"]}).encode("utf-8"))
+    project_config = project_root / "_bmad/tea/config.yaml"
+    if not project_config.is_file():
+        raise RuntimeError(f"Test Kit project config is missing: {project_config}")
+    project_config_sha256 = _source_hash(project_config)
+    runtime_config = _prepare_run_local_tea_config(project_config, run_dir)
+
+    supplemental = read_supplemental_context(supplemental_manifest) if supplemental_manifest else None
+    supplemental_ref = None
+    if supplemental_manifest:
+        path = Path(supplemental_manifest).resolve()
+        line = next(
+            (number for number, row in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
+             if row == "## Supplemental CURRENT_SYSTEM evidence"),
+            None,
+        )
+        supplemental_ref = RawEvidenceRef(str(path), _source_hash(path), line, "CURRENT_SYSTEM / SUPPLEMENTAL")
+
+    bundle = adapt_ba_to_tea(
+        handoff_path, supplemental=supplemental, supplemental_source=supplemental_ref
+    )
+    policy_context = persist_project_policy_context(
+        run_dir, project_root, "DESIGN", bootstrap_tea=True
+    )
+    epic, rules, unknowns = persist_adapter_bundle(
+        bundle, run_dir, project_policy_context=policy_context
+    )
+    raw_output = run_dir / "raw-output/test-design-epic-1.md"
+    instructions = run_dir / "raw-output/same-session-instructions.md"
+    supplemental_path = run_dir / "inputs/adapter/current-system-supplemental.md"
+    prompt = _invocation_prompt(
+        epic, rules, unknowns, raw_output,
+        supplemental_path if supplemental_path.is_file() else None,
+    )
+    if delivery and delivery["data"]["ux"].get("contract"):
+        contract = delivery["path"].parent / delivery["data"]["ux"]["contract"]["path"]
+        ux_input = run_dir / "inputs/approved-ux-contract.md"
+        _write_if_same_or_absent(ux_input, contract.read_bytes())
+        prompt += f"\nApproved interaction/presentation authority: {ux_input}. BA owns business WHAT. Prototype is review evidence.\n"
+    prompt += """
+SAME_SESSION_EXECUTION:
+- Execute the installed bmad-testarch-test-design capability in this current agent session.
+- Do not start codex, codexapi, another agent process, or a nested model invocation.
+- Test Kit has already verified BA authority, pinned skill integrity, project policy, and adapter inputs.
+- For this run, use the prepared run-local TEA config recorded in the prepare manifest as the effective config source.
+- Never edit, rewrite, or retarget the project-owned _bmad/tea/config.yaml for a feature or run.
+- Write runtime/checkpoint/intermediate artifacts only under the prepared run directory.
+- Do not create compatibility shims or edit installed Test Kit/TEA runtime.
+- If the capability cannot complete from these prepared inputs, stop and report the blocker.
+"""
+    _write_if_same_or_absent(instructions, prompt.encode("utf-8"))
+    manifest = {
+        "schema_version": 1,
+        "mode": "SAME_SESSION",
+        "stage": "DESIGN",
+        "status": "PREPARED",
+        "feature_id": bundle.baseline.feature_id,
+        "ba_revision": bundle.baseline.revision,
+        "handoff_path": str(bundle.baseline.handoff_path),
+        "handoff_sha256": bundle.baseline.handoff_sha256,
+        "project_root": str(project_root),
+        "project_config": {"path": str(project_config), "sha256": project_config_sha256},
+        "runtime_config": {"path": str(runtime_config), "sha256": _source_hash(runtime_config)},
+        "skill": {
+            "capability": TEA_CAPABILITY,
+            "path": str(skill_dir),
+            "commit": TEA_COMMIT,
+            "files": skill_files,
+        },
+        "project_policy_context": policy_context,
+        "prepared_inputs": {
+            "epic": str(epic),
+            "business_rules": str(rules),
+            "open_decisions": str(unknowns),
+            "instructions": str(instructions),
+            "runtime_config": str(runtime_config),
+        },
+        "raw_output_path": str(raw_output),
+    }
+    manifest_path = run_dir / "evidence/same-session-prepare.json"
+    _write_exclusive(
+        manifest_path,
+        (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return {**manifest, "manifest_path": str(manifest_path)}
+
+
+def finalize_same_session_design(
+    handoff_path: str | Path,
+    run_dir: str | Path,
+    *,
+    raw_design: str | Path | None = None,
+) -> dict:
+    """Normalize, validate and submit same-session TEA output to Human Design Review."""
+    run_dir = Path(run_dir).resolve()
+    prepare_path = run_dir / "evidence/same-session-prepare.json"
+    if not prepare_path.is_file():
+        raise RuntimeError("same-session Design preparation evidence is missing")
+    prepared = json.loads(prepare_path.read_text(encoding="utf-8"))
+    current_delivery_refs(run_dir)
+    if prepared.get("mode") != "SAME_SESSION" or prepared.get("stage") != "DESIGN" or prepared.get("status") != "PREPARED":
+        raise RuntimeError("same-session Design preparation evidence is invalid")
+
+    project_config = prepared.get("project_config") or {}
+    project_config_path = Path(project_config.get("path", "")).resolve()
+    if not project_config_path.is_file():
+        raise RuntimeError("project-owned TEA config disappeared after prepare")
+    if _source_hash(project_config_path) != project_config.get("sha256"):
+        raise RuntimeError(
+            "PROJECT_TEA_CONFIG_DRIFT: _bmad/tea/config.yaml changed during the run; "
+            "project config must remain stable and run-local paths belong in Test Kit evidence"
+        )
+
+    bundle = adapt_ba_to_tea(handoff_path)
+    if (
+        prepared.get("feature_id") != bundle.baseline.feature_id
+        or prepared.get("ba_revision") != bundle.baseline.revision
+        or prepared.get("handoff_sha256") != bundle.baseline.handoff_sha256
+    ):
+        raise RuntimeError("BA baseline changed after same-session preparation")
+
+    raw_path = Path(raw_design).resolve() if raw_design else Path(prepared["raw_output_path"]).resolve()
+    expected_raw = Path(prepared["raw_output_path"]).resolve()
+    if raw_path != expected_raw or not raw_path.is_file():
+        raise RuntimeError(f"same-session TEA output is missing or not at the prepared path: {expected_raw}")
+
+    normalized = normalize_tea_output(raw_path, bundle.baseline)
+    if normalized.status != "NORMALIZED" or normalized.snapshot is None:
+        findings_path = run_dir / "evidence/normalization-findings.json"
+        _write_exclusive(
+            findings_path,
+            (json.dumps(
+                {"status": normalized.status, "findings": [finding.__dict__ for finding in normalized.findings]},
+                ensure_ascii=False, indent=2,
+            ) + "\n").encode("utf-8"),
+        )
+        raise RuntimeError(f"CANNOT_NORMALIZE: {normalized.findings}")
+
+    validation = validate_design(normalized.snapshot, bundle.baseline)
+    if validation.status != "PASS":
+        findings_path = run_dir / "evidence/validator-results.json"
+        _write_exclusive(
+            findings_path,
+            (json.dumps(
+                {"status": validation.status, "findings": [finding.__dict__ for finding in validation.findings]},
+                ensure_ascii=False, indent=2,
+            ) + "\n").encode("utf-8"),
+        )
+        raise RuntimeError(f"validator FAIL; no gate transition: {validation.findings}")
+
+    state = submit_design_for_review(
+        start_design_workflow(normalized.snapshot), normalized.snapshot, validation
+    )
+    persist_design_review(
+        run_dir, bundle, raw_path, normalized.snapshot, validation, state
+    )
+    result = {
+        "schema_version": 1,
+        "mode": "SAME_SESSION",
+        "stage": "DESIGN",
+        "status": state.state,
+        "feature_id": bundle.baseline.feature_id,
+        "artifact_id": state.artifact_id,
+        "artifact_revision": state.artifact_revision,
+        "artifact_sha256": state.artifact_sha256,
+        "review_status": state.review_status,
+        "validation_status": state.validation_status,
+        "record_count": len(normalized.snapshot.records),
+        "raw_output_path": str(raw_path),
+    }
+    _write_exclusive(
+        run_dir / "evidence/same-session-finalize.json",
+        (json.dumps(result, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return result
+
+
+def _same_session_main(argv: list[str]) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Test Kit same-session Design workflow")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    prepare = subparsers.add_parser("prepare-design")
+    prepare.add_argument("--handoff", type=Path, required=True)
+    prepare.add_argument("--run-dir", type=Path, required=True)
+    prepare.add_argument("--project-root", type=Path, required=True)
+    prepare.add_argument("--skill-dir", type=Path, required=True)
+    prepare.add_argument("--supplemental-manifest", type=Path)
+    prepare.add_argument("--delivery", type=Path)
+
+    finalize = subparsers.add_parser("finalize-design")
+    finalize.add_argument("--handoff", type=Path, required=True)
+    finalize.add_argument("--run-dir", type=Path, required=True)
+    finalize.add_argument("--raw-design", type=Path)
+
+    args = parser.parse_args(argv)
+    if args.command == "prepare-design":
+        result = prepare_same_session_design(
+            args.handoff, args.run_dir,
+            project_root=args.project_root,
+            skill_dir=args.skill_dir,
+            supplemental_manifest=args.supplemental_manifest,
+            delivery_path=args.delivery,
+        )
+    else:
+        result = finalize_same_session_design(
+            args.handoff, args.run_dir, raw_design=args.raw_design
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run the first Test Kit V1 scope through DESIGN_REVIEW")
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in {"prepare-design", "finalize-design"}:
+        try:
+            return _same_session_main(argv)
+        except (BaselineError, RuntimeError, ValueError, OSError, json.JSONDecodeError) as error:
+            print(f"FAIL: {error}", file=sys.stderr)
+            return 1
+
+    parser = argparse.ArgumentParser(description="Legacy nested-agent Test Kit Design runner")
     parser.add_argument("--handoff", type=Path, required=True)
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--petclinic-root", type=Path, required=True)

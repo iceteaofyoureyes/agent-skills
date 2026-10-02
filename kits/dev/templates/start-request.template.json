@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "change_id": "CHANGE-001",
+  "kind": "feature",
+  "summary": "Describe the approved technical change",
+  "signals": [],
+  "baseline": "docs/approved/engineering-handoff.yml",
+  "checks": [
+    {
+      "name": "build",
+      "category": "build",
+      "argv": ["python", "-m", "compileall", "src"]
+    },
+    {
+      "name": "tests",
+      "category": "tests",
+      "argv": ["python", "-m", "unittest", "discover", "-s", "tests"]
+    }
+  ]
+}

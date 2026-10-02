@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Dev Kit V1 start request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "change_id",
+    "kind",
+    "summary",
+    "signals",
+    "baseline",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "change_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$" },
+    "kind": { "enum": ["docs", "rename", "mechanical", "config", "feature", "bug", "behavior"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "signals": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "baseline": { "type": ["string", "null"], "minLength": 1 },
+    "checks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/check" }
+    },
+    "business_ambiguities": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "behavior_change": { "type": "boolean" }
+  },
+  "$defs": {
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "category", "argv"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "category": { "enum": ["build", "tests", "static_checks"] },
+        "argv": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

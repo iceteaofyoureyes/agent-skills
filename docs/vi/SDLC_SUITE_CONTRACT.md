@@ -1,0 +1,25 @@
+# Integration suite V1
+
+Đây là contract framework, không phải Golden evidence. Golden Run chỉ bắt đầu khi Human explicit GO.
+
+Authority: BA Handoff = business WHAT; approved UX Contract = interaction/presentation; prototype = REVIEW_EVIDENCE; target Git SHA = routing/reproducibility. `BAREF:*` là technical locator, không phải requirement/FR/BR mới. Dev và Test dùng chung `ba-workflow/scripts/approved_baseline.py` và `delivery_manifest.py`.
+
+Delivery Manifest: `features/<feature>/delivery-manifest.yml`, JSON hoặc YAML mapping/list subset (không alias/tag/multiline scalar). UX Markdown có `revision: <immutable revision>` và `status: APPROVED` sau Human gate. Validator chỉ kiểm tra declared approved snapshot; không tự cấp Human approval. Human receipt phải được workflow lưu trước khi tạo manifest.
+
+Test Kit `2.0.0-rc.1`: đổi gate/dependency contract nên bump major. Same-session prepare → current-session pinned capability → finalize là production path. `codex-cli` chỉ phục vụ legacy benchmark invocation, không là core dependency. `_bmad/tea/config.yaml` là team config ổn định, commit một lần; run config thuộc `.test-kit/runs/<feature>/<run>/inputs/`.
+
+Dependencies: `SEMANTIC_ORACLE` OPEN required chặn Design/Case approval. `ENVIRONMENT_ACCESS`, `TEST_DATA_FIXTURE`, `IMPLEMENTATION_LOCATOR`, `TOOLING`, `OBSERVABILITY` chỉ chặn execution. Thiếu expected behavior phải SEMANTIC_ORACLE; không gắn nhãn observation/locator để bỏ qua missing authority. States: OPEN, RESOLVED, NOT_REQUIRED. Không sửa approved testcase snapshot để resolve runtime bindings.
+
+Promotion: sau valid host-authenticated Human gate, gọi `testware_promotion.promote` vào `features/<feature>/test/design|cases`, copy exact semantic JSON, deterministic Markdown projection, exact approval receipt và source run/hash. Raw prompts/logs không được promote. Test Kit V1 vẫn STOP_V1 sau APPROVED_TESTWARE; execution extension là project layer riêng.
+
+Execution router dùng `execution_contract.begin` với exact approved testcase promotion, READY_FOR_TEST Dev handoff, Delivery Manifest và separate typed execution bindings. Tester resolve required execution deps → EXECUTION_READY → EXECUTING → PASS/FINDING. Failure không tự là defect. Tester classify DEFECT/SPEC_GAP/BUSINESS_DECISION_REQUIRED/TEST_ISSUE/ENVIRONMENT_ISSUE, rồi route. DEFECT chỉ khi approved expected behavior, reproducibility và loại trừ test/environment issues đã có evidence.
+
+Dev nhận DEFECT_READY_FOR_DEV, giữ nguyên original delivery/oracle, FIX_IMPLEMENTED với new commit + fresh verification → READY_FOR_RETEST. Tester RETESTING → VERIFIED/REOPENED. Dev API không được tự VERIFIED. Mọi observation giữ testcase ID, expected, actual, oracle hash, observation hash và exact implementation commit. Persist state trong internal project runtime; durable defect handoff ở `features/<feature>/defects/<defect>/`.
+
+Context profile: `python -m tooling.prepare_agent_profile --destination <fresh-profile>`. Set CODEX_HOME cho child process vào profile đó; register local marketplace bằng `codex plugin marketplace add <profile-root>` rồi `codex plugin add agent-skills-dev-kit@agent-skills-dev-kit`. Doctor nhận `--codex-home <profile>` và pinned Spec Kit `--spec-kit-cli`. Không copy auth/global hooks. Host cung cấp credentials theo cơ chế hiện hữu. Sources: https://developers.openai.com/codex/config-advanced ; https://developers.openai.com/codex/plugins/build .
+
+Runtime ignore contract: docs `.test-kit/runs/`, `.test-kit/runtime/`, legacy `test-runs/`; app `.devkit/`, `.specify/workflows/runs/`. Không ignore toàn `.specify/`. Clean baseline preparation patches được giữ ở audit branch; rehearsal không bị migrate.
+
+Lock generation: `python -m tooling.sdlc_suite lock`. `tooling/sdlc-suite-lock.json` là generated release artifact, ignored để tránh circular self-hash của commit chứa chính SHA của nó. Sau final source commit, generate deterministic lock bound exact HEAD + source tree; lưu bản lock và SHA trong workspace audit evidence. Doctor reject dirty tracked source, mismatched HEAD/version/contract/tree. Không amend source sau khi lock mà không regenerate.
+
+Test updates: installed smoke phải preserve TEA config do installer tạo (R3.2); typed marker replaces `material=true` (R2.3); fail-closed trace normalizer reject orphan refs, validator negative test vẫn giữ duplicate/orphan coverage bằng explicit invalid snapshot. Không giảm assertions để che lỗi.

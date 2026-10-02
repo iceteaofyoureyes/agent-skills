@@ -129,7 +129,7 @@ class TestKitV1CaseGateTests(unittest.TestCase):
             execution_contract_refs=execution_refs,
         )
 
-        self.assertEqual(result.finding.code, "MATERIAL_OPEN_EXECUTION_DEPENDENCY")
+        self.assertEqual(result.finding.code, "OPEN_SEMANTIC_ORACLE")
         self.assertEqual(result.workflow, state)
         self.assertEqual(result.state_history, ("CASE_REVIEW", "APPROVAL_REJECTED", "CASE_REVIEW"))
         self.assertIsNone(result.receipt_bytes)
@@ -550,9 +550,9 @@ class TestKitV1CaseGateTests(unittest.TestCase):
         execution_refs = tuple(execution_refs)
         dependencies = ()
         if open_dependency:
-            dependencies = (cases.ExecutionDependency("Approved UI/action mapping is required", True, "OPEN", None),)
+            dependencies = (cases.ExecutionDependency("Approved UI/action mapping is required", "SEMANTIC_ORACLE", "OPEN", None),)
         elif execution_refs:
-            dependencies = (cases.ExecutionDependency("Approved UI/action mapping is required", True, "RESOLVED", execution_refs[0]["id"]),)
+            dependencies = (cases.ExecutionDependency("Approved UI/action mapping is required", "SEMANTIC_ORACLE", "RESOLVED", execution_refs[0]["id"]),)
         record = cases.CanonicalTestcase(
             "TC-001", "Create appointment", "Check creation", "A valid Pet exists.", "Pet A",
             (cases.CaseStep("Create appointment", None, "Appointment is saved as Scheduled."),), "P1",

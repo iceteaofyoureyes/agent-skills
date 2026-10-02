@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "test",
   "name": "Test Kit",
-  "version": "1.1.0",
+  "version": "2.0.0-rc.1",
   "workflow": {
     "skill": "test-kit"
   },
@@ -187,12 +187,31 @@
       "destination": ".test-kit/tooling/xmind/serialize.js",
       "classification": "OPTIONAL_RUNTIME",
       "capability": "xmind_projection"
+    },
+    {
+      "source": "ba-workflow/scripts/approved_baseline.py",
+      "destination": ".test-kit/ba-workflow/scripts/approved_baseline.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "ba-workflow/scripts/delivery_manifest.py",
+      "destination": ".test-kit/ba-workflow/scripts/delivery_manifest.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/testware_promotion.py",
+      "destination": ".test-kit/tooling/lib/testware_promotion.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
     }
   ],
   "capabilities": {
     "core": "required",
     "xmind_projection": "optional",
-    "excel_projection": "optional"
+    "excel_projection": "optional",
+    "legacy_nested_invocation": "optional"
   },
   "prerequisites": {
     "python": [
@@ -213,13 +232,6 @@
       "required": true,
       "capability": "core",
       "source": "operator-managed"
-    },
-    {
-      "id": "codex-cli",
-      "version": "operator-managed",
-      "required": true,
-      "capability": "native TEA and Katalon invocation",
-      "source": "TEST_KIT_CODEX_COMMAND, then PATH"
     },
     {
       "id": "bmad-testarch-test-design",
@@ -278,11 +290,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "325bcf777c8483824e4425afd9290fe9883616067669dddcf9f59df051d62b90"
+      "sha256": "0d6972fa63372edc0e4d0b6761e439a04da8694ab1240bc687070a0e93298291"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "75756c2c36c32f9780ea377f43ab66cd8f9363ea0adfcf377b72141ceba82bba"
+      "sha256": "d96174985c2f2ac9cafdb4fade12b3b1372f897809c5c579b2ab3ff5f0328c02"
     }
   }
 }

@@ -20,6 +20,7 @@ from tooling.lib import test_kit_v1_excel as excel
 ROOT = Path(__file__).resolve().parents[2]
 BASELINE = ROOT / "kits/ba/examples/CR-001/vi/05-engineering-handoff.yml"
 TESTWARE = ROOT / "benchmark/test-kit/petclinic/fixtures/test-only-approved-testware-v1"
+ARCHIVED_TESTWARE = TESTWARE
 DESIGN = ROOT / "benchmark/test-kit/petclinic/fixtures/test-design-v1"
 TEMPORARY_ROOT = Path(tempfile.gettempdir())
 TEMPLATE = ROOT / "tooling/tests/fixtures/testcase-template-v1.xlsx"
@@ -28,6 +29,13 @@ TEMPLATE = ROOT / "tooling/tests/fixtures/testcase-template-v1.xlsx"
 class TestKitV1ExcelTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        global TESTWARE
+        from tooling.tests.current_excel_fixture import build
+        fixture_parent = ROOT / ".work/benchmark-runs"
+        fixture_parent.mkdir(parents=True, exist_ok=True)
+        cls.current_fixture = tempfile.TemporaryDirectory(prefix="testware-v2-projection-", dir=fixture_parent)
+        cls.addClassCleanup(cls.current_fixture.cleanup)
+        TESTWARE = build(Path(cls.current_fixture.name), TESTWARE, DESIGN, BASELINE)
         cls.baseline = core.load_approved_baseline(BASELINE)
         cls.design = excel._load_design(DESIGN)
         cls.root, cls.workflow, cls.approved, cls.snapshot, cls.receipt, cls.receipt_path, _ = excel._load_approved_collection(TESTWARE, test_only=True)
@@ -227,11 +235,11 @@ class TestKitV1ExcelTests(unittest.TestCase):
         cases_to_check = (
             (
                 "SOURCE",
-                TESTWARE / "execution-oracles/TC-001-001.json",
+                ARCHIVED_TESTWARE / "execution-oracles/TC-001-001.json",
             ),
             (
                 "APPROVAL",
-                TESTWARE / "execution-oracle-approvals/TC-001-001.json",
+                ARCHIVED_TESTWARE / "execution-oracle-approvals/TC-001-001.json",
             ),
             (
                 "DESIGN_RECEIPT",
@@ -331,8 +339,8 @@ class TestKitV1ExcelTests(unittest.TestCase):
                 )
 
     def test_missing_source_does_not_change_independent_approval_resolution(self):
-        source_fixture = TESTWARE / "execution-oracles/TC-001-001.json"
-        approval_fixture = TESTWARE / "execution-oracle-approvals/TC-001-001.json"
+        source_fixture = ARCHIVED_TESTWARE / "execution-oracles/TC-001-001.json"
+        approval_fixture = ARCHIVED_TESTWARE / "execution-oracle-approvals/TC-001-001.json"
         source_sha = hashlib.sha256(source_fixture.read_bytes()).hexdigest()
         approval_sha = hashlib.sha256(approval_fixture.read_bytes()).hexdigest()
         with tempfile.TemporaryDirectory(dir=ROOT / "benchmark/test-kit/petclinic/fixtures") as temp:
@@ -400,8 +408,8 @@ class TestKitV1ExcelTests(unittest.TestCase):
 
             pin = json.loads(cases.TEST_ONLY_PROVENANCE_PIN.read_text(encoding="utf-8"))
             relocations = dict(pin["references"])
-            source_fixture = TESTWARE / "execution-oracles/TC-001-001.json"
-            approval_fixture = TESTWARE / "execution-oracle-approvals/TC-001-001.json"
+            source_fixture = ARCHIVED_TESTWARE / "execution-oracles/TC-001-001.json"
+            approval_fixture = ARCHIVED_TESTWARE / "execution-oracle-approvals/TC-001-001.json"
             relocations[str(historical / "missing" / "TC-001-001.json")] = {
                 "path": source_fixture.relative_to(ROOT).as_posix(),
                 "sha256": ref["sha256"],
