@@ -43,7 +43,7 @@ Repository: https://github.com/iceteaofyoureyes/agent-skills
 
 ## Điều kiện và cài đặt
 
-Test Kit V1 hỗ trợ Codex ở project scope. Core cần Python 3.10+, Codex CLI và project có `_bmad/tea/config.yaml` tương thích với TEA skill đã pin. TEA và Katalon skills đã được bundle; install không tải lại chúng. Codex được resolve theo `TEST_KIT_CODEX_COMMAND`, sau đó `PATH`; explicit override không hợp lệ sẽ fail closed.
+Test Kit V1 hỗ trợ Codex ở project scope. Core cần Python 3.10+ và project có `_bmad/tea/config.yaml` tương thích với TEA skill đã pin. TEA và Katalon skills đã được bundle; install không tải lại chúng. Production operator flow chạy các capability ngay trong agent session hiện tại; nested Codex launcher không còn là UX vận hành chuẩn.
 
 Từ project đích, chạy script từ Agent Skills checkout:
 
@@ -61,7 +61,7 @@ Doctor kiểm tra integrity của package đã cài và phát hiện local drift
 
 ## Workflow và authority
 
-**TEA là analysis/advisory**, không phải Test Design authority. Adapter tạo và validate **Canonical Test Design**, sau đó dừng ở `DESIGN_REVIEW` để Human review. Chỉ approval hợp lệ cho đúng snapshot mới cho phép chuyển sang testcase generation.
+**TEA là analysis/advisory**, không phải Test Design authority. Test Kit chuẩn bị input, agent hiện tại chạy TEA cùng session, rồi runtime finalize/validate **Canonical Test Design** và dừng ở `DESIGN_REVIEW` để Human review. Chỉ approval hợp lệ cho đúng snapshot mới cho phép chuyển sang testcase generation.
 
 Pinned Katalon skill hỗ trợ sinh testcase; adapter validate **Canonical Testcases** rồi dừng ở `CASE_REVIEW`. Chỉ Human approval receipt hợp lệ cho đúng snapshot, đồng thời không còn material open execution dependency, mới tạo trạng thái `APPROVED_TESTWARE` và `STOP_V1`.
 
