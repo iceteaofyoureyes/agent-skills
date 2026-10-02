@@ -64,7 +64,11 @@ class BaKitTests(unittest.TestCase):
             for skill in required:
                 folder = target / skill
                 folder.mkdir(parents=True)
-                (folder / "SKILL.md").write_text(f"---\nname: {skill}\ndescription: test skill\n---\n", encoding="utf-8")
+                if skill == "srs-function-document":
+                    content = (ROOT / skill / "SKILL.md").read_text(encoding="utf-8")
+                else:
+                    content = f"---\nname: {skill}\ndescription: test skill\n---\n"
+                (folder / "SKILL.md").write_text(content, encoding="utf-8")
             self.assertEqual(ba_kit.doctor(ROOT, target)["status"], "DEGRADED")
             command = [sys.executable, str(ROOT / "tooling/lib/ba_kit.py"), "doctor", "ba", "--target", str(target)]
             result = subprocess.run(command, capture_output=True, text=True)
@@ -75,6 +79,35 @@ class BaKitTests(unittest.TestCase):
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertEqual(result.returncode, 1, result.stdout)
             self.assertIn("STATUS: FAIL", result.stdout)
+
+    def test_doctor_fails_when_canonical_srs_format_contract_is_missing(self):
+        manifest = ba_kit.load_manifest(ROOT)
+        required, _optional = ba_kit._skill_names(manifest)
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "skills"
+            for skill in required:
+                folder = target / skill
+                folder.mkdir(parents=True)
+                if skill == "srs-function-document":
+                    content = """---
+name: srs-function-document
+description: generic semantic-only SRS skill
+---
+
+# Functional SRS
+
+Include only sections needed for the feature.
+"""
+                else:
+                    content = f"---\nname: {skill}\ndescription: test skill\n---\n"
+                (folder / "SKILL.md").write_text(content, encoding="utf-8")
+
+            report = ba_kit.doctor(ROOT, target)
+            self.assertEqual(report["status"], "FAIL")
+            matching = [item for item in report["checks"] if item[0] == "srs-function-document format contract"]
+            self.assertEqual(len(matching), 1)
+            self.assertFalse(matching[0][1])
+            self.assertIn("canonical SRS", matching[0][3])
 
     def test_install_preflights_conflicts_before_copying(self):
         with tempfile.TemporaryDirectory() as temp:
