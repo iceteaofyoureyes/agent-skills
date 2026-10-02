@@ -1341,7 +1341,10 @@ def main(argv=None):
             if result["preserved"]:
                 print("Preserved modified or shared skills: " + ", ".join(result["preserved"]))
             return 0
-        report = doctor(ROOT, target, args.kit, project_root=args.project_root or Path.cwd())
+        doctor_project_root = args.project_root
+        if doctor_project_root is None and args.agent != "generic" and args.scope == "project":
+            doctor_project_root = Path.cwd()
+        report = doctor(ROOT, target, args.kit, project_root=doctor_project_root)
         _print_doctor(report)
         return 1 if report["status"] == "FAIL" else 0
     except (OSError, ValueError, json.JSONDecodeError) as error:
