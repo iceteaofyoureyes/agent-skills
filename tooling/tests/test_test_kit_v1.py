@@ -32,6 +32,40 @@ class TestKitV1Tests(unittest.TestCase):
     def setUp(self):
         self.baseline = test_kit.load_approved_baseline(HANDOFF)
 
+    def test_source_parser_accepts_current_ba_heading_format_and_domain_br_ids(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            srs = root / "srs.md"
+            rules = root / "rules.md"
+            srs.write_text(
+                "# SRS\n\n### FR-001 — Search title\n\nSearch theo title.\n\n"
+                "### FR-002 — Status\n\nStatus single-select.\n",
+                encoding="utf-8",
+            )
+            rules.write_text(
+                "# Rules\n\n### BR-WED-011 — Search scope\n\nKhông search slug.\n\n"
+                "### BR-AUTH-004 — Access\n\nChỉ dữ liệu actor được phép xem.\n",
+                encoding="utf-8",
+            )
+
+            fr = test_kit._parse_source_rows(srs, "FR", 3)
+            br = test_kit._parse_source_rows(rules, "BR", 3)
+
+            self.assertEqual([row.id for row in fr], ["FR-001", "FR-002"])
+            self.assertEqual([row.id for row in br], ["BR-WED-011", "BR-AUTH-004"])
+            self.assertIn("Search theo title.", fr[0].text)
+            self.assertIn("Không search slug.", br[0].text)
+
+    def test_trace_parser_accepts_domain_scoped_ba_ids(self):
+        refs = test_kit._parse_ref_cell(
+            "FR-001; BR-WED-011; BR-AUTH-004",
+            {"FR-001", "BR-WED-011", "BR-AUTH-004"},
+            path="tea.md",
+            line=10,
+            field="Truy vết",
+        )
+        self.assertEqual(refs, ["FR-001", "BR-WED-011", "BR-AUTH-004"])
+
     def test_ba_adapter_copies_fr_and_br_separately_and_keeps_supplemental_separate(self):
         supplemental = "Visit has date, description, and Pet; this is supplemental only."
         bundle = test_kit.adapt_ba_to_tea(HANDOFF, supplemental=supplemental)
@@ -437,6 +471,11 @@ class TestKitV1Tests(unittest.TestCase):
                 )
                 self.assertNotIn("nvm4w", " ".join(resolved.argv_prefix).casefold())
                 self.assertEqual(command, resolved.argv(captured))
+                self.assertNotIn("--no-daemon", captured)
+                self.assertNotIn("--approve-for-me", captured)
+                self.assertIn("--ask-for-approval", captured)
+                self.assertEqual(captured[captured.index("--ask-for-approval") + 1], "never")
+                self.assertLess(captured.index("--ask-for-approval"), captured.index("exec"))
                 self.assertEqual(captured[captured.index("--model") + 1], "model name with spaces")
                 self.assertEqual(captured[captured.index("-C") + 1], str(root.resolve()))
                 self.assertEqual(captured[captured.index("--add-dir") + 1], str(run_dir.resolve()))
