@@ -562,5 +562,5 @@
   ],
   "managed_file_count": 111,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "fe3c8440b891388905ab97a9cd989628c49345850645f5d74994b60afd39c66f"
+  "payload_tree_sha256": "8126ae61bbf5ebcb988b51f74bb110274c2f373e397b94757618813989cd6051"
 }
