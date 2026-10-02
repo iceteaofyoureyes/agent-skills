@@ -1101,6 +1101,33 @@ def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
             missing = [str(error)]
         checks.append(("source-authority contract", not missing, "contract", "missing: " + ", ".join(missing) if missing else ""))
 
+        srs_contract_path = target_dir / "srs-function-document" / "SKILL.md"
+        srs_contract_markers = (
+            "## 5. Format đầu ra bắt buộc",
+            "| Nội dung | Mô tả |",
+            "| STT | Business Rule | Mô tả chi tiết |",
+            "| STT | Tên | Kiểu dữ liệu<br>[Độ dài dữ liệu] | Bắt buộc<br>(Y/N) | Input/Output | Giá trị khởi tạo | Mô tả (Mapping với CSDL nếu có) |",
+            "## `<SỐ_MỤC>.1` Thông tin chung về chức năng",
+            "## `<SỐ_MỤC>.2` Luồng nghiệp vụ",
+            "## `<SỐ_MỤC>.3` Thiết kế giao diện (nếu có)",
+            "### Nội dung cần xác nhận",
+            "# 3.2.1.4 Chức năng xóa rule 4G",
+        )
+        try:
+            srs_contract_text = srs_contract_path.read_text(encoding="utf-8")
+            missing_srs_contract = [marker for marker in srs_contract_markers if marker not in srs_contract_text]
+            generic_replacement = "Include only sections needed for the feature" in srs_contract_text
+        except OSError as error:
+            missing_srs_contract = [str(error)]
+            generic_replacement = False
+        srs_contract_ok = not missing_srs_contract and not generic_replacement
+        srs_contract_detail = ""
+        if missing_srs_contract:
+            srs_contract_detail = "missing canonical SRS markers: " + "; ".join(missing_srs_contract)
+        elif generic_replacement:
+            srs_contract_detail = "generic SRS structure replaced the canonical internal template"
+        checks.append(("srs-function-document format contract", srs_contract_ok, "contract", srs_contract_detail))
+
         handoff_path = source_root / "ba-workflow/templates/engineering-handoff.yml"
         try:
             handoff_errors = validate_handoff_text(handoff_path.read_text(encoding="utf-8"), allow_placeholders=True)
