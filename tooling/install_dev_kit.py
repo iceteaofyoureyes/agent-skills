@@ -14,8 +14,10 @@ from pathlib import Path
 RUNTIME_FILES = (
     "tooling/lib/dev_kit.py",
     "ba-workflow/scripts/contracts.py",
+    "kits/dev/schemas/start-request.schema.json",
     "kits/dev/schemas/impact-manifest.schema.json",
     "kits/dev/schemas/dev-handoff.schema.json",
+    "kits/dev/templates/start-request.template.json",
     "kits/dev/templates/impact-manifest.template.json",
     "kits/dev/templates/dev-handoff.template.json",
     "kits/dev/plugin/workflows/dev-normal.workflow.yml",
@@ -72,6 +74,7 @@ def install(source_root, install_home):
         "runtime_root": str(runtime_root),
         "bin_dir": str(bin_dir),
         "launcher": str(bin_dir / "devkit.ps1" if os.name == "nt" else launcher),
+        "workflow_command": str(bin_dir / "devkit.cmd" if os.name == "nt" else launcher),
         "workflow_normal": str(runtime_root / "kits/dev/plugin/workflows/dev-normal.workflow.yml"),
         "workflow_high_risk": str(runtime_root / "kits/dev/plugin/workflows/dev-high-risk.workflow.yml"),
         "manifest": str(manifest_path),

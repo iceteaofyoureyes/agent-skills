@@ -15,11 +15,11 @@ inputs:
   devkit_command:
     type: string
     default: "devkit"
-    prompt: "Installed Dev Kit runtime command available on PATH"
+    prompt: "Shell-compatible Dev Kit runtime command; on Windows use the installed devkit.cmd, not devkit.ps1"
 steps:
   - id: confirm-high-risk-route
     type: shell
-    run: "{{ inputs.devkit_command }} assert-workflow high-risk"
+    run: '"{{ inputs.devkit_command }}" assert-workflow high-risk'
   - id: readiness-and-deep-impact
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -34,13 +34,15 @@ steps:
       facts and unknowns only. Never write into an Approved BA Baseline path.
   - id: enforce-readiness-and-impact
     type: shell
-    run: "{{ inputs.devkit_command }} preflight"
+    run: '"{{ inputs.devkit_command }}" preflight'
   - id: plan
     type: prompt
     integration: "{{ inputs.integration }}"
     prompt: |
-      Use planning-and-task-breakdown to create dev-plan.md and dev-tasks.md for the active run. Reference the
-      Approved BA Baseline; do not copy or reinterpret its business semantics. Cover technical scope, owners, impact,
+      Use planning-and-task-breakdown for the active run. Resolve its change_id from .devkit/current.json and write
+      dev-plan.md and dev-tasks.md at .devkit/runs/<change_id>/dev-plan.md and .devkit/runs/<change_id>/dev-tasks.md.
+      Do not write either file at the project root.
+      Reference the Approved BA Baseline; do not copy or reinterpret its business semantics. Cover technical scope, owners, impact,
       architecture/code decisions, data/interface/dependency constraints, implementation slices, tests, verification,
       and technical unknowns. Load only specialists whose capability triggers match the impact. A Human/Tech Lead
       approval gate follows before implementation. For bugs, design the regression test first. Do not edit the baseline.
@@ -49,7 +51,7 @@ steps:
       content after the metadata.
   - id: enforce-planning-artifacts
     type: shell
-    run: "{{ inputs.devkit_command }} plan-check"
+    run: '"{{ inputs.devkit_command }}" plan-check'
   - id: human-tech-lead-plan-gate
     type: gate
     message: "Review dev-plan.md, dev-tasks.md, and impact-manifest.json. Approve to proceed; reject to stop for replanning."
@@ -57,10 +59,10 @@ steps:
     on_reject: abort
   - id: record-human-plan-approval
     type: shell
-    run: '{{ inputs.devkit_command }} gate-approved --choice "{{ steps.human-tech-lead-plan-gate.output.choice }}" --workflow-run-id "{{ context.run_id }}"'
+    run: '"{{ inputs.devkit_command }}" gate-approved --choice "{{ steps.human-tech-lead-plan-gate.output.choice }}" --workflow-run-id "{{ context.run_id }}"'
   - id: authorize-high-risk-implementation
     type: shell
-    run: "{{ inputs.devkit_command }} implementation-ready high-risk"
+    run: '"{{ inputs.devkit_command }}" implementation-ready high-risk'
   - id: implementation
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -72,10 +74,10 @@ steps:
       Approved BA Baseline. Stop before review; the workflow owns the one consolidated review.
   - id: focused-checks
     type: shell
-    run: "{{ inputs.devkit_command }} verify focused"
+    run: '"{{ inputs.devkit_command }}" verify focused'
   - id: claim-one-full-review
     type: shell
-    run: "{{ inputs.devkit_command }} claim full_reviews"
+    run: '"{{ inputs.devkit_command }}" claim full_reviews'
   - id: consolidated-review
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -86,10 +88,10 @@ steps:
       scope. Do not start fixes or a second full review.
   - id: validate-review
     type: shell
-    run: "{{ inputs.devkit_command }} review-check"
+    run: '"{{ inputs.devkit_command }}" review-check'
   - id: claim-one-fix-wave
     type: shell
-    run: "{{ inputs.devkit_command }} claim blocking_fix_waves"
+    run: '"{{ inputs.devkit_command }}" claim blocking_fix_waves'
   - id: one-blocking-fix-wave
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -100,10 +102,10 @@ steps:
       blockers remain, stop for HUMAN_TECH_LEAD_REVIEW. Never edit the Approved BA Baseline.
   - id: enforce-fix-budget
     type: shell
-    run: "{{ inputs.devkit_command }} fix-check"
+    run: '"{{ inputs.devkit_command }}" fix-check'
   - id: claim-optional-scoped-rereview
     type: shell
-    run: "{{ inputs.devkit_command }} claim scoped_rereviews"
+    run: '"{{ inputs.devkit_command }}" claim scoped_rereviews'
   - id: optional-scoped-rereview
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -114,13 +116,13 @@ steps:
       another feature-wide review.
   - id: validate-scoped-rereview
     type: shell
-    run: "{{ inputs.devkit_command }} rereview-check"
+    run: '"{{ inputs.devkit_command }}" rereview-check'
   - id: fresh-verification
     type: shell
-    run: "{{ inputs.devkit_command }} verify fresh"
+    run: '"{{ inputs.devkit_command }}" verify fresh'
   - id: prepare-handoff
     type: shell
-    run: "{{ inputs.devkit_command }} prepare-handoff"
+    run: '"{{ inputs.devkit_command }}" prepare-handoff'
   - id: complete-handoff
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -131,4 +133,4 @@ steps:
       and do not modify the Approved BA Baseline. Invoke verification-before-completion before the success claim.
   - id: enforce-ready-for-test
     type: shell
-    run: "{{ inputs.devkit_command }} handoff"
+    run: '"{{ inputs.devkit_command }}" handoff'

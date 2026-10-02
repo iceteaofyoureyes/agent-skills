@@ -44,11 +44,17 @@ Nguyên tắc chính:
 
 - Codex local marketplace: [`.agents/plugins/marketplace.json`](../../.agents/plugins/marketplace.json)
 - NORMAL/HIGH_RISK workflows are installed at user scope and listed by `devkit workflow normal|high-risk`; their source is `plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`
-- TRIVIAL: direct `start` → edit → `finish-trivial` path; no Spec Kit workflow
+- Các bước shell của Spec Kit cần `devkit_command` tương thích với shell; trên Windows dùng launcher `.cmd` đã cài (`.ps1` dành cho lệnh PowerShell trực tiếp).
+- Entry path chuẩn cho agent: sao chép `templates/start-request.template.json` thành `.devkit/start-request.json`, chỉnh sửa, chạy `devkit validate-start-request .devkit/start-request.json`, rồi `devkit start --request .devkit/start-request.json`.
+- TRIVIAL: start trước khi sửa; chạy `finish-trivial` sau khi sửa. Lệnh chạy lại deterministic checks và kết thúc với `COMPLETED` hoặc `NEEDS_REPLAN`; không có Spec Kit workflow, formal plan hay full review.
+- NORMAL: sau `READY_FOR_PLANNING`, tiếp tục Spec Readiness → preflight/Impact → plan/tasks → `plan-check` → `implementation-ready normal` rồi mới sửa.
+- HIGH_RISK: tiếp tục qua readiness, impact, plan/tasks, `plan-check` và Human/Tech Lead gate thật của Spec Kit. Không tự approve.
 - External-project runtime installer: `../../tooling/install_dev_kit.py`; it installs only the runtime helper/BA contract parser, schemas, templates and workflow definitions under `~/.devkit/runtime/v1`
-- JSON schemas/templates: `schemas/`, `templates/`; the installed CLI prints their contracts using `devkit schema impact-manifest|dev-handoff`
+- JSON schemas/templates: `schemas/`, `templates/`; inspect them with `devkit schema start-request|impact-manifest|dev-handoff`
 - Run state/evidence: `.specify/workflows/runs/` and `.devkit/runs/`
 - Doctor/validators: `../../tooling/lib/dev_kit.py`
+
+Nếu request validation thất bại, sửa tệp JSON rồi xác thực lại; chưa có run nào được tạo. Nếu `start` thất bại trước khi trả về run directory, sửa request rồi thử lại. Sau khi start thành công, tiếp tục cùng run thay vì tạo thêm một active run. Lỗi Angular `spawn EPERM` trong worker là giới hạn bên ngoài của host; giữ nguyên bằng chứng và không làm yếu check đã cấu hình.
 
 Không vendor hoặc upgrade upstream component nếu chưa cập nhật provenance, license/notice và dependency closure trong cùng change.
 

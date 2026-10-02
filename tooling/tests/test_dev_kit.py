@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = ROOT / "tooling/tests/fixtures/dev"
 
 
-def _start_normal_run(project, signals=()):
+def _write_approved_baseline(project):
     project = Path(project)
     project.mkdir(parents=True, exist_ok=True)
     sources = {name: f"approved {name}" for name in ("rules.md", "srs.md", "decisions.md")}
@@ -36,6 +36,12 @@ def _start_normal_run(project, signals=()):
         "next_stage:\n  capability: engineering-impact-analysis\n",
         encoding="utf-8",
     )
+    return baseline
+
+
+def _start_normal_run(project, signals=()):
+    project = Path(project)
+    baseline = _write_approved_baseline(project)
     checks = [
         {"name": "build", "category": "build", "argv": [sys.executable, "-c", "pass"]},
         {"name": "tests", "category": "tests", "argv": [sys.executable, "-c", "pass"]},
@@ -45,6 +51,50 @@ def _start_normal_run(project, signals=()):
     dev_kit.write_artifact(run_dir / "spec-readiness.json", {"status": "READY_FOR_PLANNING", "business_ambiguities": []})
     dev_kit.preflight(project)
     return project, run_dir, dev_kit._read_json(run_dir / "input.json")
+
+
+def _run_cli(project, *args):
+    return subprocess.run(
+        [sys.executable, str(ROOT / "tooling/lib/dev_kit.py"), *map(str, args)],
+        cwd=project,
+        capture_output=True,
+        text=True,
+        shell=False,
+    )
+
+
+def _write_start_request(project, *, change_id, kind, summary, signals=(), baseline=None, checks=None):
+    request = {
+        "schema_version": 1,
+        "change_id": change_id,
+        "kind": kind,
+        "summary": summary,
+        "signals": list(signals),
+        "baseline": baseline,
+        "checks": checks if checks is not None else [
+            {"name": "build", "category": "build", "argv": [sys.executable, "-c", "pass"]},
+            {"name": "tests", "category": "tests", "argv": [sys.executable, "-c", "pass"]},
+        ],
+    }
+    path = Path(project) / "devkit-start-request.json"
+    path.write_text(json.dumps(request, indent=2), encoding="utf-8")
+    return path, request
+
+
+def _advance_high_risk_to_plan_gate(project, run_dir):
+    dev_kit.write_artifact(run_dir / "spec-readiness.json", {
+        "status": "READY_FOR_PLANNING", "business_ambiguities": []
+    })
+    preflight = _run_cli(project, "preflight")
+    if preflight.returncode != 0 or not json.loads(preflight.stdout)["planning_allowed"]:
+        raise AssertionError(preflight.stderr or preflight.stdout)
+    inputs = dev_kit._read_json(run_dir / "input.json")
+    for name in ("dev-plan.md", "dev-tasks.md"):
+        (run_dir / name).write_text(_planning_text(inputs), encoding="utf-8")
+    plan_check = _run_cli(project, "plan-check")
+    if plan_check.returncode != 0:
+        raise AssertionError(plan_check.stderr or plan_check.stdout)
+    return _run_cli(project, "implementation-ready", "high-risk")
 
 
 def _planning_text(inputs, variant="valid"):
@@ -268,32 +318,52 @@ class DevKitTests(unittest.TestCase):
     def test_sol_01_installed_runtime_operates_from_external_project(self):
         from tooling import install_dev_kit
 
-        with tempfile.TemporaryDirectory() as temp:
+        with tempfile.TemporaryDirectory(prefix="devkit shell ") as temp:
             root = Path(temp)
             target = root / "external-project"
             install_home = root / "developer-home"
             target.mkdir()
             installed = install_dev_kit.install(ROOT, install_home)
             runtime_root = Path(installed["runtime_root"]).resolve()
+            workflow_command = Path(installed["workflow_command"]).resolve()
             self.assertNotEqual(os.path.commonpath((str(runtime_root), str(target.resolve()))), str(target.resolve()))
             self.assertFalse((target / "tooling/lib/dev_kit.py").exists())
             self.assertFalse((runtime_root / "kits/dev/plugin/skills").exists())
+            self.assertTrue(workflow_command.is_file())
+            self.assertEqual(workflow_command.suffix.lower(), ".cmd" if os.name == "nt" else "")
+            self.assertTrue((runtime_root / "kits/dev/schemas/start-request.schema.json").is_file())
+            self.assertTrue((runtime_root / "kits/dev/templates/start-request.template.json").is_file())
             manifest = json.loads(Path(installed["manifest"]).read_text(encoding="utf-8"))
             self.assertEqual(len(manifest["files"]), installed["file_count"])
             for relative, digest in manifest["files"].items():
                 self.assertEqual(hashlib.sha256((runtime_root / relative).read_bytes()).hexdigest(), digest)
 
-            args = [
-                "start", "--change-id", "EXT-001", "--kind", "docs", "--summary", "External README edit",
-                "--check", json.dumps({"name": "docs", "category": "static_checks", "argv": [sys.executable, "-c", "pass"]}),
-            ]
-            command = [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), *args]
-            completed = subprocess.run(command, cwd=target, text=True, capture_output=True, check=False)
+            request_path = target / "devkit-start-request.json"
+            request_path.write_text(json.dumps({
+                "schema_version": 1, "change_id": "EXT-001", "kind": "docs",
+                "summary": "External README edit", "signals": [], "baseline": None,
+                "checks": [{"name": "docs", "category": "static_checks", "argv": [sys.executable, "-c", "pass"]}],
+            }), encoding="utf-8-sig")
+            validate = subprocess.run(
+                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "validate-start-request", str(request_path)],
+                cwd=target, text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(validate.returncode, 0, validate.stderr)
+            completed = subprocess.run(
+                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "start", "--request", str(request_path)],
+                cwd=target, text=True, capture_output=True, check=False,
+            )
             self.assertEqual(completed.returncode, 0, completed.stderr)
             state = json.loads((target / ".devkit/current.json").read_text(encoding="utf-8"))
             self.assertEqual(state["change_id"], "EXT-001")
             self.assertTrue((target / ".devkit/runs/EXT-001/input.json").is_file())
             self.assertTrue((target / ".devkit/runs/EXT-001/lifecycle.json").is_file())
+            finish = subprocess.run(
+                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "finish-trivial"],
+                cwd=target, text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(finish.returncode, 0, finish.stderr)
+            self.assertEqual(json.loads(finish.stdout)["status"], "COMPLETED")
             runtime = subprocess.run(
                 ["powershell", "-NoProfile", "-File", installed["launcher"], "runtime-root"] if os.name == "nt"
                 else [installed["launcher"], "runtime-root"],
@@ -301,6 +371,16 @@ class DevKitTests(unittest.TestCase):
             )
             self.assertEqual(runtime.returncode, 0, runtime.stderr)
             self.assertEqual(Path(runtime.stdout.strip()).resolve(), runtime_root)
+            shell_command = subprocess.run(
+                f'"{workflow_command}" runtime-root',
+                shell=True,
+                cwd=target,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(shell_command.returncode, 0, shell_command.stderr)
+            self.assertEqual(Path(shell_command.stdout.strip()).resolve(), runtime_root)
             schema = subprocess.run(
                 ["powershell", "-NoProfile", "-File", installed["launcher"], "schema", "impact-manifest"] if os.name == "nt"
                 else [installed["launcher"], "schema", "impact-manifest"],
@@ -308,6 +388,13 @@ class DevKitTests(unittest.TestCase):
             )
             self.assertEqual(schema.returncode, 0, schema.stderr)
             self.assertIn("affected_components", json.loads(schema.stdout)["required"])
+            start_schema = subprocess.run(
+                ["powershell", "-NoProfile", "-File", installed["launcher"], "schema", "start-request"] if os.name == "nt"
+                else [installed["launcher"], "schema", "start-request"],
+                cwd=target, text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(start_schema.returncode, 0, start_schema.stderr)
+            self.assertIn("change_id", json.loads(start_schema.stdout)["required"])
             workflow = subprocess.run(
                 ["powershell", "-NoProfile", "-File", installed["launcher"], "workflow", "normal"] if os.name == "nt"
                 else [installed["launcher"], "workflow", "normal"],
@@ -429,12 +516,19 @@ class DevKitTests(unittest.TestCase):
             self.assertEqual(workflow.count("id: optional-scoped-rereview"), 1)
         normal = (workflow_root / "dev-normal.workflow.yml").read_text(encoding="utf-8")
         high = (workflow_root / "dev-high-risk.workflow.yml").read_text(encoding="utf-8")
+        for workflow in (normal, high):
+            self.assertIn(".devkit/runs/<change_id>/dev-plan.md", workflow)
+            self.assertIn(".devkit/runs/<change_id>/dev-tasks.md", workflow)
+            self.assertIn("Do not write either file at the project root", workflow)
         self.assertNotIn("type: gate", normal)
         self.assertEqual(high.count("type: gate"), 1)
         for workflow in (normal, high):
             self.assertIn("{{ inputs.devkit_command }}", workflow)
             self.assertNotIn("tooling/lib/dev_kit.py", workflow)
             self.assertIn("id: enforce-planning-artifacts", workflow)
+            for line in workflow.splitlines():
+                if line.lstrip().startswith("run:") and "{{ inputs.devkit_command }}" in line:
+                    self.assertIn('"{{ inputs.devkit_command }}"', line)
         self.assertLess(normal.index("id: enforce-planning-artifacts"), normal.index("id: implementation"))
         self.assertLess(high.index("id: enforce-planning-artifacts"), high.index("id: human-tech-lead-plan-gate"))
         self.assertLess(high.index("id: authorize-high-risk-implementation"), high.index("id: implementation"))
@@ -467,6 +561,195 @@ class DevKitTests(unittest.TestCase):
                 if path:
                     self.assertTrue((document.parent / path).resolve().exists(), f"{document}: {target}")
 
+    def test_reg_s1_trivial_without_baseline_finishes_terminally(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / "trivial project"
+            project.mkdir()
+            checks = [
+                {"name": "check-one", "category": "static_checks", "argv": [sys.executable, "-c", "pass"]},
+                {"name": "check-two", "category": "tests", "argv": [sys.executable, "-c", "pass"]},
+            ]
+            started = dev_kit.start_run(project, "REG-S1", "mechanical", "copy", checks=checks)
+            run_dir = Path(started["run_dir"])
+
+            self.assertIsNone(dev_kit._read_json(run_dir / "input.json")["baseline_snapshot"])
+            self.assertEqual(dev_kit.finish_trivial(project), "COMPLETED")
+            self.assertEqual(dev_kit._read_json(run_dir / "lifecycle.json")["status"], "COMPLETED")
+            verification = dev_kit._read_json(run_dir / "verification-fresh.json")
+            self.assertEqual([item["name"] for item in verification["checks"]], ["check-one", "check-two"])
+            self.assertTrue(all(item["status"] == "PASS" for item in verification["checks"]))
+
+    def test_start_request_file_is_windows_safe_and_trivial_completes(self):
+        with tempfile.TemporaryDirectory(prefix="dev kit request ") as temp:
+            project = Path(temp) / "target project"
+            project.mkdir()
+            checks = [
+                {"name": "format", "category": "static_checks", "argv": [sys.executable, "-c", "pass"]},
+                {"name": "focused-tests", "category": "tests", "argv": [sys.executable, "-c", "pass"]},
+            ]
+            request_path, request = _write_start_request(
+                project,
+                change_id="REG-REQUEST",
+                kind="mechanical",
+                summary="Fix a copy string",
+                checks=checks,
+            )
+
+            validated = _run_cli(project, "validate-start-request", request_path)
+            self.assertEqual(validated.returncode, 0, validated.stderr)
+            self.assertIn("VALID", validated.stdout)
+            started = _run_cli(project, "start", "--request", request_path)
+            self.assertEqual(started.returncode, 0, started.stderr)
+            result = json.loads(started.stdout)
+            self.assertEqual(result["route"]["risk_level"], "TRIVIAL")
+            self.assertIn("finish-trivial", result["next_step"])
+            run_dir = Path(result["run_dir"])
+            persisted = dev_kit._read_json(run_dir / "input.json")
+            self.assertEqual(persisted["checks"], request["checks"])
+            self.assertEqual(len(persisted["checks"]), 2)
+
+            finished = _run_cli(project, "finish-trivial")
+            self.assertEqual(finished.returncode, 0, finished.stderr)
+            self.assertEqual(json.loads(finished.stdout)["status"], "COMPLETED")
+            self.assertEqual(dev_kit._read_json(run_dir / "lifecycle.json")["status"], "COMPLETED")
+
+    def test_start_request_schema_rejects_missing_fields_and_malformed_checks(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / "project"
+            project.mkdir()
+            path, request = _write_start_request(
+                project,
+                change_id="INVALID-REQUEST",
+                kind="mechanical",
+                summary="copy",
+            )
+            del request["checks"]
+            path.write_text(json.dumps(request), encoding="utf-8")
+            missing = _run_cli(project, "validate-start-request", path)
+            self.assertEqual(missing.returncode, 2)
+            self.assertIn("checks", missing.stderr)
+
+            request["checks"] = [{"name": "build", "category": "build", "argv": "python -m compileall"}]
+            path.write_text(json.dumps(request), encoding="utf-8")
+            malformed = _run_cli(project, "validate-start-request", path)
+            self.assertEqual(malformed.returncode, 2)
+            self.assertIn("argv", malformed.stderr)
+
+            request["checks"] = [{"name": "build", "category": "build", "argv": ["python"]}]
+            request["unexpected"] = True
+            path.write_text(json.dumps(request), encoding="utf-8")
+            extra = _run_cli(project, "validate-start-request", path)
+            self.assertEqual(extra.returncode, 2)
+            self.assertIn("unexpected", extra.stderr)
+
+    def test_legacy_start_flags_remain_compatible(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / "legacy project"
+            project.mkdir()
+            check = json.dumps({"name": "diff", "category": "static_checks", "argv": [sys.executable, "-c", "pass"]})
+            started = _run_cli(
+                project, "start", "--change-id", "LEGACY-START", "--kind", "mechanical",
+                "--summary", "copy correction", "--check", check,
+            )
+            self.assertEqual(started.returncode, 0, started.stderr)
+            self.assertEqual(json.loads(started.stdout)["route"]["risk_level"], "TRIVIAL")
+
+    def test_reg_s3_normal_request_reaches_implementation_boundary(self):
+        with tempfile.TemporaryDirectory(prefix="reg-s3-normal-") as temp:
+            project = Path(temp) / "target"
+            baseline = _write_approved_baseline(project)
+            baseline_bytes = baseline.read_bytes()
+            request_path, _ = _write_start_request(
+                project,
+                change_id="REG-S3",
+                kind="bug",
+                summary="Preserve literal search input",
+                baseline=baseline.name,
+            )
+            started = _run_cli(project, "start", "--request", request_path)
+            self.assertEqual(started.returncode, 0, started.stderr)
+            result = json.loads(started.stdout)
+            run_dir = Path(result["run_dir"])
+            self.assertEqual(result["route"]["risk_level"], "NORMAL")
+            self.assertIn("Continue the NORMAL workflow", result["next_step"])
+
+            with self.assertRaisesRegex(ValueError, "required planning artifact"):
+                dev_kit.assert_implementation_allowed(project, "normal")
+
+            dev_kit.write_artifact(run_dir / "spec-readiness.json", {
+                "status": "READY_FOR_PLANNING", "business_ambiguities": []
+            })
+            preflight = _run_cli(project, "preflight")
+            self.assertEqual(preflight.returncode, 0, preflight.stderr)
+            self.assertTrue(json.loads(preflight.stdout)["planning_allowed"])
+            impact = dev_kit._read_json(run_dir / "impact-manifest.json")
+            self.assertEqual(impact["risk"]["level"], "NORMAL")
+            self.assertEqual(impact["baseline_ref"], dev_kit._read_json(run_dir / "input.json")["baseline_ref"])
+
+            inputs = dev_kit._read_json(run_dir / "input.json")
+            for name in ("dev-plan.md", "dev-tasks.md"):
+                (run_dir / name).write_text(_planning_text(inputs), encoding="utf-8")
+            plan_check = _run_cli(project, "plan-check")
+            self.assertEqual(plan_check.returncode, 0, plan_check.stderr)
+            ready = _run_cli(project, "implementation-ready", "normal")
+            self.assertEqual(ready.returncode, 0, ready.stderr)
+            self.assertTrue(json.loads(ready.stdout)["implementation_allowed"])
+            self.assertEqual(baseline.read_bytes(), baseline_bytes)
+
+    def test_reg_s4_s5_high_risk_request_persists_unresolved_human_gate(self):
+        cases = (
+            ("REG-S4", "Add a public API endpoint", ["public_api"]),
+            ("REG-S5", "Enforce security ownership on nested writes", ["public_api", "security"]),
+        )
+        for change_id, summary, signals in cases:
+            with self.subTest(change_id=change_id), tempfile.TemporaryDirectory() as temp:
+                project = Path(temp) / "target"
+                baseline = _write_approved_baseline(project)
+                request_path, _ = _write_start_request(
+                    project, change_id=change_id, kind="feature", summary=summary,
+                    signals=signals, baseline=baseline.name,
+                )
+                self.assertEqual(_run_cli(project, "validate-start-request", request_path).returncode, 0)
+                started = _run_cli(project, "start", "--request", request_path)
+                self.assertEqual(started.returncode, 0, started.stderr)
+                result = json.loads(started.stdout)
+                self.assertEqual(result["route"]["risk_level"], "HIGH_RISK")
+                self.assertIn("Human/Tech Lead gate", result["next_step"])
+                lifecycle = dev_kit._read_json(Path(result["run_dir"]) / "lifecycle.json")
+                self.assertTrue(lifecycle["human_gate"]["required"])
+                self.assertFalse(lifecycle["human_gate"]["resolved"])
+                self.assertIsNone(lifecycle["human_gate"]["workflow_run_id"])
+                before_gate = _advance_high_risk_to_plan_gate(project, Path(result["run_dir"]))
+                self.assertEqual(before_gate.returncode, 2)
+                self.assertIn("Human/Tech Lead gate", before_gate.stderr)
+
+    def test_reg_s6_cross_component_request_starts_high_risk_without_approval(self):
+        with tempfile.TemporaryDirectory(prefix="reg-s6-cross-component-") as temp:
+            project = Path(temp) / "target"
+            baseline = _write_approved_baseline(project)
+            request_path, _ = _write_start_request(
+                project,
+                change_id="REG-S6",
+                kind="feature",
+                summary="Change REST and Angular owner search",
+                signals=["public_api", "cross_repo"],
+                baseline=baseline.name,
+            )
+            self.assertEqual(_run_cli(project, "validate-start-request", request_path).returncode, 0)
+            started = _run_cli(project, "start", "--request", request_path)
+            self.assertEqual(started.returncode, 0, started.stderr)
+            result = json.loads(started.stdout)
+            self.assertEqual(result["route"]["risk_level"], "HIGH_RISK")
+            self.assertIn("Human/Tech Lead gate", result["next_step"])
+            run_dir = Path(result["run_dir"])
+            self.assertTrue((run_dir / "impact-manifest.json").is_file())
+            lifecycle = dev_kit._read_json(run_dir / "lifecycle.json")
+            self.assertTrue(lifecycle["human_gate"]["required"])
+            self.assertFalse(lifecycle["human_gate"]["resolved"])
+            before_gate = _advance_high_risk_to_plan_gate(project, run_dir)
+            self.assertEqual(before_gate.returncode, 2)
+            self.assertIn("Human/Tech Lead gate", before_gate.stderr)
+
     def test_impact_manifest_fixtures(self):
         valid = json.loads((FIXTURES / "impact-manifest.valid.json").read_text(encoding="utf-8"))
         invalid = json.loads((FIXTURES / "impact-manifest.invalid.json").read_text(encoding="utf-8"))
@@ -496,10 +779,15 @@ class DevKitTests(unittest.TestCase):
     def test_json_schemas_match_fixture_contract_keys(self):
         impact_schema = json.loads((ROOT / "kits/dev/schemas/impact-manifest.schema.json").read_text(encoding="utf-8"))
         handoff_schema = json.loads((ROOT / "kits/dev/schemas/dev-handoff.schema.json").read_text(encoding="utf-8"))
+        start_schema = json.loads((ROOT / "kits/dev/schemas/start-request.schema.json").read_text(encoding="utf-8"))
         impact = json.loads((FIXTURES / "impact-manifest.valid.json").read_text(encoding="utf-8"))
         handoff = json.loads((FIXTURES / "dev-handoff.valid.json").read_text(encoding="utf-8"))
         self.assertEqual(set(impact_schema["required"]), set(impact))
         self.assertEqual(set(handoff_schema["required"]), set(handoff))
+        self.assertEqual(set(start_schema["required"]), {"schema_version", "change_id", "kind", "summary", "signals", "baseline", "checks"})
+        self.assertFalse(start_schema["additionalProperties"])
+        self.assertFalse(start_schema["$defs"]["check"]["additionalProperties"])
+        self.assertEqual(start_schema["$defs"]["check"]["properties"]["argv"]["items"]["minLength"], 1)
         ready = handoff_schema["allOf"][0]["then"]["properties"]
         self.assertFalse(handoff_schema["$defs"]["namedCheck"]["additionalProperties"])
         self.assertEqual(handoff_schema["properties"]["verification"]["properties"]["build"]["type"], "array")

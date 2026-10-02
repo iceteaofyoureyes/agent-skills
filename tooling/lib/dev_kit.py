@@ -21,6 +21,8 @@ ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}\Z")
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}\Z")
 REVIEW_LIMITS = {"full_reviews": 1, "blocking_fix_waves": 1, "scoped_rereviews": 1}
 RISK_LEVEL_ORDER = {"TRIVIAL": 0, "NORMAL": 1, "HIGH_RISK": 2}
+START_KINDS = {"docs", "rename", "mechanical", "config", "feature", "bug", "behavior"}
+CHECK_CATEGORIES = {"build", "tests", "static_checks"}
 RISK_SIGNALS = {
     "auth", "security", "sensitive_data", "pii", "database_migration",
     "public_api", "event_contract", "cross_repo", "concurrency",
@@ -300,7 +302,7 @@ def validate_dev_handoff(data):
 
 
 def route_change(kind, summary, signals=(), business_ambiguities=(), behavior_change=None):
-    if kind not in {"docs", "rename", "mechanical", "config", "feature", "bug", "behavior"}:
+    if kind not in START_KINDS:
         raise ValueError("kind must be docs, rename, mechanical, config, feature, bug, or behavior")
     text = f"{summary} {' '.join(signals)}".lower()
     found = set()
@@ -852,7 +854,71 @@ def start_run(project_root, change_id, kind, summary, signals=(), baseline=None,
     if snapshot:
         _write_run_json(run_dir, "impact-manifest.json", impact, snapshot)
     _write_run_json(project_root, str(CURRENT_RUN), {"change_id": change_id}, snapshot)
-    return {"run_dir": str(run_dir), "route": route, "baseline_ref": inputs["baseline_ref"]}
+    next_step = {
+        "NEEDS_BA_CLARIFICATION": "Stop for BA clarification; do not plan or implement.",
+        "TRIVIAL": "Edit only after this start; run finish-trivial and wait for a terminal result before reporting.",
+        "NORMAL": "Continue the NORMAL workflow now; complete readiness, preflight/impact, plan-check, and implementation-ready before editing.",
+        "HIGH_RISK": "Continue the HIGH_RISK workflow now; stop at the Human/Tech Lead gate before implementation.",
+    }[route["risk_level"] if route["status"] != "NEEDS_BA_CLARIFICATION" else route["status"]]
+    return {"run_dir": str(run_dir), "route": route, "baseline_ref": inputs["baseline_ref"], "next_step": next_step}
+
+
+def load_start_request(path):
+    try:
+        request = json.loads(Path(path).read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"cannot read start request {path}: {error}") from error
+    if not isinstance(request, dict):
+        raise ValueError("start request must be a JSON object")
+    required = {"schema_version", "change_id", "kind", "summary", "signals", "baseline", "checks"}
+    optional = {"business_ambiguities", "behavior_change"}
+    missing = sorted(required - set(request))
+    unexpected = sorted(set(request) - required - optional)
+    if missing:
+        raise ValueError("start request is missing required fields: " + ", ".join(missing))
+    if unexpected:
+        raise ValueError("start request has unexpected fields: " + ", ".join(unexpected))
+    if type(request["schema_version"]) is not int or request["schema_version"] != 1:
+        raise ValueError("start request schema_version must be 1")
+    if not _is_string(request["change_id"]) or not ID_PATTERN.fullmatch(request["change_id"]):
+        raise ValueError("start request change_id must use letters, numbers, '_' or '-' and be at most 80 characters")
+    if not _is_string(request["kind"]) or request["kind"] not in START_KINDS:
+        raise ValueError("start request kind must be one of: " + ", ".join(sorted(START_KINDS)))
+    if not _is_string(request["summary"]):
+        raise ValueError("start request summary must be a non-empty string")
+    for field in ("signals", "business_ambiguities"):
+        value = request.get(field, [])
+        if not isinstance(value, list) or any(not _is_string(item) for item in value):
+            raise ValueError(f"start request {field} must be a list of non-empty strings")
+    if type(request.get("behavior_change", False)) is not bool:
+        raise ValueError("start request behavior_change must be a boolean")
+    baseline = request["baseline"]
+    if baseline is not None and not _is_string(baseline):
+        raise ValueError("start request baseline must be a non-empty path string or null")
+    checks = request["checks"]
+    if not isinstance(checks, list):
+        raise ValueError("start request checks must be a list")
+    for index, check in enumerate(checks):
+        if not isinstance(check, dict):
+            raise ValueError(f"start request checks[{index}] must be an object")
+        if set(check) != {"name", "category", "argv"}:
+            raise ValueError(f"start request checks[{index}] must contain exactly name, category, and argv")
+        if not _is_string(check["name"]):
+            raise ValueError(f"start request checks[{index}].name must be a non-empty string")
+        if not _is_string(check["category"]) or check["category"] not in CHECK_CATEGORIES:
+            raise ValueError(f"start request checks[{index}].category must be build, tests, or static_checks")
+        if not isinstance(check["argv"], list) or not check["argv"] or any(not _is_string(arg) for arg in check["argv"]):
+            raise ValueError(f"start request checks[{index}].argv must be a non-empty list of non-empty strings")
+    return {
+        "change_id": request["change_id"],
+        "kind": request["kind"],
+        "summary": request["summary"],
+        "signals": request["signals"],
+        "baseline": baseline,
+        "checks": checks,
+        "business_ambiguities": request.get("business_ambiguities", []),
+        "behavior_change": request.get("behavior_change", False),
+    }
 
 
 def _save_lifecycle(project_root, run_dir, inputs, state):
@@ -1154,7 +1220,9 @@ def run_checks(project_root, phase):
         result = {"name": check["name"], "status": "PASS" if exit_code == 0 else "FAIL", "command": check["argv"], "exit_code": exit_code, "stdout": stdout, "stderr": stderr}
         results.append({**result, "category": check["category"]})
         failed |= exit_code != 0
-    write_artifact(run_dir / f"verification-{phase}.json", {"phase": phase, "checks": results}, inputs.get("baseline_snapshot") and [{"path": inputs["baseline_snapshot"]["path"]}, *inputs["baseline_snapshot"].get("sources", [])])
+    snapshot = inputs.get("baseline_snapshot")
+    protected = [{"path": snapshot["path"]}, *snapshot.get("sources", [])] if snapshot else ()
+    write_artifact(run_dir / f"verification-{phase}.json", {"phase": phase, "checks": results}, protected)
     if phase == "fresh":
         lifecycle = _read_json(run_dir / "lifecycle.json")
         lifecycle["verification"] = results
@@ -1399,14 +1467,17 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Dev Kit V1 runtime and contract checks")
     commands = parser.add_subparsers(dest="command", required=True)
     start = commands.add_parser("start")
-    start.add_argument("--change-id", required=True)
-    start.add_argument("--kind", required=True, choices=("docs", "rename", "mechanical", "config", "feature", "bug", "behavior"))
-    start.add_argument("--summary", required=True)
+    start.add_argument("--request", type=Path, help="Read and validate a structured start request JSON file")
+    start.add_argument("--change-id")
+    start.add_argument("--kind", choices=tuple(sorted(START_KINDS)))
+    start.add_argument("--summary")
     start.add_argument("--signal", action="append", default=[])
     start.add_argument("--business-ambiguity", action="append", default=[])
     start.add_argument("--behavior-change", action="store_true")
     start.add_argument("--baseline", type=Path)
     start.add_argument("--check", action="append", default=[], help="JSON object: {name,category,argv}")
+    request_validator = commands.add_parser("validate-start-request")
+    request_validator.add_argument("path", type=Path)
     for name in ("validate-impact", "validate-handoff"):
         sub = commands.add_parser(name)
         sub.add_argument("path", type=Path, nargs="?")
@@ -1424,7 +1495,7 @@ def main(argv=None):
     gate_parser.add_argument("--choice", required=True)
     gate_parser.add_argument("--workflow-run-id", required=True)
     schema_parser = commands.add_parser("schema")
-    schema_parser.add_argument("name", choices=("impact-manifest", "dev-handoff"))
+    schema_parser.add_argument("name", choices=("impact-manifest", "dev-handoff", "start-request"))
     commands.add_parser("runtime-root")
     workflow_path_parser = commands.add_parser("workflow")
     workflow_path_parser.add_argument("depth", choices=("normal", "high-risk"))
@@ -1439,10 +1510,31 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "start":
-            checks = [json.loads(item) for item in args.check]
-            result = start_run(Path.cwd(), args.change_id, args.kind, args.summary, args.signal, args.baseline, checks, args.business_ambiguity, args.behavior_change)
+            if args.request:
+                legacy_values = (args.change_id, args.kind, args.summary, args.signal, args.business_ambiguity, args.baseline, args.check, args.behavior_change)
+                if any(legacy_values):
+                    raise ValueError("--request cannot be combined with legacy start options")
+                request = load_start_request(args.request)
+            else:
+                missing = [name for name, value in (("--change-id", args.change_id), ("--kind", args.kind), ("--summary", args.summary)) if value is None]
+                if missing:
+                    raise ValueError("start requires --request or all of: " + ", ".join(missing))
+                request = {
+                    "change_id": args.change_id, "kind": args.kind, "summary": args.summary,
+                    "signals": args.signal, "baseline": args.baseline, "checks": [json.loads(item) for item in args.check],
+                    "business_ambiguities": args.business_ambiguity, "behavior_change": args.behavior_change,
+                }
+            result = start_run(
+                Path.cwd(), request["change_id"], request["kind"], request["summary"],
+                request["signals"], request["baseline"], request["checks"],
+                request["business_ambiguities"], request["behavior_change"],
+            )
             print(json.dumps(result, indent=2, ensure_ascii=False))
             return 0 if result["route"]["status"] != "NEEDS_BA_CLARIFICATION" else 12
+        if args.command == "validate-start-request":
+            request = load_start_request(args.path)
+            print(json.dumps({"status": "VALID", "change_id": request["change_id"], "check_count": len(request["checks"])}, indent=2))
+            return 0
         if args.command in ("validate-impact", "validate-handoff"):
             if args.path:
                 data = _read_json(args.path)
@@ -1481,7 +1573,8 @@ def main(argv=None):
             print(json.dumps(result, indent=2))
             return 0
         if args.command == "schema":
-            path = KIT_ROOT / "kits/dev/schemas" / f"{args.name}.schema.json"
+            filename = "start-request.schema.json" if args.name == "start-request" else f"{args.name}.schema.json"
+            path = KIT_ROOT / "kits/dev/schemas" / filename
             print(path.read_text(encoding="utf-8"), end="")
             return 0
         if args.command == "runtime-root":

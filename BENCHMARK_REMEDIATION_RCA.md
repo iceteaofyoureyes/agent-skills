@@ -71,7 +71,7 @@ This report was completed before implementation changes. The evidence is from Pr
 
 ## RCA conclusion
 
-The remediation has three separate targets: fix the TRIVIAL verification artifact writer's null-baseline handling; add a file-based structured start request to remove shell JSON quoting from the supported agent path; and make the canonical workflow instructions explicitly continue after a successful start. S3's stop is not attributed to the same parser error as S4–S6. Angular `spawn EPERM` remains an external host limitation unless new evidence locates a Dev Kit contribution.
+The remediation targets the TRIVIAL verification artifact writer's null-baseline handling; a file-based structured start request and mandatory continuation guidance; the Windows shell-compatible workflow command path; and explicit per-run planning artifact destinations. S3's stop is not attributed to the same parser error as S4–S6. Angular `spawn EPERM` remains an external host limitation unless new evidence locates a Dev Kit contribution.
 
 ## Additional synthetic-smoke finding — Windows Spec Kit shell command
 
@@ -85,3 +85,17 @@ This finding came from the remediation smoke setup, not Benchmark V1 evidence, a
 - **Classification:** `DEV_KIT_CLI_UX`.
 - **Minimal fix:** Expose a Windows workflow command pointing at `devkit.cmd`; quote the workflow command interpolation. Add a Windows `shell=True` regression that executes the workflow command and proves it returns Dev Kit output.
 - **Raw smoke evidence:** `D:\AI\dev-kit-v1-remediation-smoke-qualified\REG-S4-api-highrisk\.specify\workflows\runs\dc44cd09\state.json` (zero-exit/empty-output shell step), `.devkit/runs/SMOKE-S4/lifecycle.json` (`readiness=UNKNOWN`), and absence of `spec-readiness.json`.
+
+## Additional synthetic-smoke finding — planning artifact location
+
+This was discovered after the original RCA and initial remediation changes, during a separate synthetic high-risk smoke. It is not Benchmark V1 evidence.
+
+- **Failure point:** `plan-check` after a synthetic HIGH_RISK plan prompt completed.
+- **Exact input:** Spec Kit run `950ae0b8`, active Dev Kit run `SMOKE-S4`, workflow prompt asked for `dev-plan.md` and `dev-tasks.md` without naming their destination.
+- **Expected:** The planning artifacts are written under `.devkit/runs/SMOKE-S4/`, where `plan-check` reads them.
+- **Actual:** The workflow agent wrote both files at the project root; `devkit plan-check` returned `ERROR: required planning artifact is missing: dev-plan.md`.
+- **Root cause:** The HIGH_RISK workflow prompt named the artifact filenames but not the active run directory. The NORMAL prompt said only “in its .devkit/runs directory,” also leaving the exact run path implicit. This is separate from the original S3 early stop and the S4/S5/S6 JSON argument parser failure.
+- **Classification:** `DEV_KIT_WORKFLOW`.
+- **Reproduction:** In the disposable `REG-S4-api-highrisk-pause` workspace, run the HIGH_RISK prompt through Spec Kit, then execute `.devkit/bin/devkit.cmd plan-check`; the root files are ignored and the required artifact check fails.
+- **Minimal fix:** In both workflow prompts, resolve `change_id` from `.devkit/current.json`, write each artifact to `.devkit/runs/<change_id>/`, and explicitly prohibit writing them at the project root. Assert that contract in the workflow regression.
+- **Evidence:** `D:\AI\dev-kit-v1-remediation-smoke-qualified\REG-S4-api-highrisk-pause\.specify\workflows\runs\950ae0b8\state.json`, `dev-plan.md`, `dev-tasks.md`, and `.devkit/runs/SMOKE-S4/`.

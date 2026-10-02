@@ -15,11 +15,11 @@ inputs:
   devkit_command:
     type: string
     default: "devkit"
-    prompt: "Installed Dev Kit runtime command available on PATH"
+    prompt: "Shell-compatible Dev Kit runtime command; on Windows use the installed devkit.cmd, not devkit.ps1"
 steps:
   - id: confirm-normal-route
     type: shell
-    run: "{{ inputs.devkit_command }} assert-workflow normal"
+    run: '"{{ inputs.devkit_command }}" assert-workflow normal'
   - id: readiness-and-impact
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -35,13 +35,14 @@ steps:
       and technical unknowns. Do not decide WHAT. Never write into any Approved BA Baseline path.
   - id: enforce-readiness-and-impact
     type: shell
-    run: "{{ inputs.devkit_command }} preflight"
+    run: '"{{ inputs.devkit_command }}" preflight'
   - id: plan
     type: prompt
     integration: "{{ inputs.integration }}"
     prompt: |
-      For the active run, use planning-and-task-breakdown and create dev-plan.md and dev-tasks.md in its .devkit/runs
-      directory. Reference the Approved BA Baseline path/revision; do not copy or rewrite its business requirements.
+      For the active run, use planning-and-task-breakdown. Resolve its change_id from .devkit/current.json and write
+      the files at .devkit/runs/<change_id>/dev-plan.md and .devkit/runs/<change_id>/dev-tasks.md.
+      Do not write either file at the project root. Reference the Approved BA Baseline path/revision; do not copy or rewrite its business requirements.
       Cover technical scope, affected components, code/architecture decisions, dependencies, approach, risks, tests,
       vertical slices, acceptance criteria, verification, and technical unknowns. NORMAL work has no Human plan
       approval gate. For bug work, require a regression reproduction test before the fix. Do not edit the baseline.
@@ -50,10 +51,10 @@ steps:
       content after the metadata.
   - id: enforce-planning-artifacts
     type: shell
-    run: "{{ inputs.devkit_command }} plan-check"
+    run: '"{{ inputs.devkit_command }}" plan-check'
   - id: authorize-normal-implementation
     type: shell
-    run: "{{ inputs.devkit_command }} implementation-ready normal"
+    run: '"{{ inputs.devkit_command }}" implementation-ready normal'
   - id: implementation
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -65,10 +66,10 @@ steps:
       consolidated review; the workflow owns the single review stage.
   - id: focused-checks
     type: shell
-    run: "{{ inputs.devkit_command }} verify focused"
+    run: '"{{ inputs.devkit_command }}" verify focused'
   - id: claim-one-full-review
     type: shell
-    run: "{{ inputs.devkit_command }} claim full_reviews"
+    run: '"{{ inputs.devkit_command }}" claim full_reviews'
   - id: consolidated-review
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -80,10 +81,10 @@ steps:
       for optional cleanup or nits. A follow-up does not expand scope. Do not start a fix or a second review.
   - id: validate-review
     type: shell
-    run: "{{ inputs.devkit_command }} review-check"
+    run: '"{{ inputs.devkit_command }}" review-check'
   - id: claim-one-fix-wave
     type: shell
-    run: "{{ inputs.devkit_command }} claim blocking_fix_waves"
+    run: '"{{ inputs.devkit_command }}" claim blocking_fix_waves'
   - id: one-blocking-fix-wave
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -95,10 +96,10 @@ steps:
       full review. If major blockers remain, stop for NEEDS_REPLAN. Never alter the Approved BA Baseline.
   - id: enforce-fix-budget
     type: shell
-    run: "{{ inputs.devkit_command }} fix-check"
+    run: '"{{ inputs.devkit_command }}" fix-check'
   - id: claim-optional-scoped-rereview
     type: shell
-    run: "{{ inputs.devkit_command }} claim scoped_rereviews"
+    run: '"{{ inputs.devkit_command }}" claim scoped_rereviews'
   - id: optional-scoped-rereview
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -110,13 +111,13 @@ steps:
       review the feature again from scratch.
   - id: validate-scoped-rereview
     type: shell
-    run: "{{ inputs.devkit_command }} rereview-check"
+    run: '"{{ inputs.devkit_command }}" rereview-check'
   - id: fresh-verification
     type: shell
-    run: "{{ inputs.devkit_command }} verify fresh"
+    run: '"{{ inputs.devkit_command }}" verify fresh'
   - id: prepare-handoff
     type: shell
-    run: "{{ inputs.devkit_command }} prepare-handoff"
+    run: '"{{ inputs.devkit_command }}" prepare-handoff'
   - id: complete-handoff
     type: prompt
     integration: "{{ inputs.integration }}"
@@ -127,4 +128,4 @@ steps:
       not alter the Approved BA Baseline. Invoke verification-before-completion before the success claim. The validator derives the final state.
   - id: enforce-ready-for-test
     type: shell
-    run: "{{ inputs.devkit_command }} handoff"
+    run: '"{{ inputs.devkit_command }}" handoff'

@@ -50,22 +50,43 @@ specify init
 
 ## 3. Bắt đầu một change
 
-Chạy từ root của **target project** (có thể là repository khác checkout Dev Kit). Mỗi `--check` là JSON gồm tên, nhóm và argv;
-argv được chạy trực tiếp với `shell=False`.
+Chạy từ root của **target project**. Đây là đường bắt đầu canonical cho mọi agent trên Windows và Bash:
+
+1. Sao chép template đã cài đặt rồi chỉnh sửa như một tệp JSON thông thường. Mỗi check lưu lệnh dưới dạng mảng `argv`; không truyền JSON qua shell argument.
+
+PowerShell:
 
 ```powershell
-devkit start `
-  --change-id CR-042 `
-  --kind feature `
-  --summary "Add appointment search" `
-  --baseline "docs/approved/engineering-handoff.yml" `
-  --check '{"name":"build","category":"build","argv":["python","-m","compileall","src"]}' `
-  --check '{"name":"unit","category":"tests","argv":["python","-m","unittest","discover","-s","tooling/tests"]}'
+$devKitRoot = devkit runtime-root
+New-Item -ItemType Directory -Force .devkit | Out-Null
+Copy-Item (Join-Path $devKitRoot 'kits/dev/templates/start-request.template.json') '.devkit/start-request.json'
 ```
 
-NORMAL/HIGH_RISK phải khai báo một build check và một tests check. `start` kiểm tra baseline approval và SHA-256 nguồn của baseline trước khi ghi `.devkit/`; Dev artifacts không chứa bản sao requirements.
+Bash:
 
-Các đường dẫn baseline/check trong ví dụ là mẫu; thay bằng BA handoff đã duyệt, nguồn được hash trong handoff và lệnh build/test/static checks của repo.
+```bash
+mkdir -p .devkit
+cp "$(devkit runtime-root)/kits/dev/templates/start-request.template.json" .devkit/start-request.json
+```
+
+Chỉnh sửa `.devkit/start-request.json` để đặt `schema_version`, `change_id`, `kind`, `summary`, `signals`, `baseline` và `checks`.
+2. Xác thực tệp mà chưa tạo run:
+
+```text
+devkit validate-start-request .devkit/start-request.json
+```
+
+3. Khởi chạy run và ghi lại route/run directory được trả về:
+
+```text
+devkit start --request .devkit/start-request.json
+```
+
+Xem hợp đồng request bằng `devkit schema start-request`. Validator báo lỗi cụ thể khi thiếu field, có field không hỗ trợ, category không hợp lệ, `argv` rỗng hoặc giá trị sai định dạng. Trước khi tạo artifact trong `.devkit/`, `start` cũng kiểm tra baseline đã được duyệt và SHA-256 đã ghi nhận. NORMAL và HIGH_RISK cần build check cùng test check; TRIVIAL cần ít nhất một deterministic check. Các lệnh trong `argv` chạy trực tiếp với `shell=False`.
+
+Trình đọc chấp nhận cả UTF-8 và UTF-8 có BOM, bao gồm đầu ra mặc định của PowerShell `Set-Content -Encoding utf8`.
+
+Dạng `start` dùng flags cũ vẫn được hỗ trợ để tương thích; agent nên dùng request file để dữ liệu có cấu trúc không phải đi qua ranh giới quoting của shell.
 
 ## 4. Chạy theo risk depth
 
@@ -73,24 +94,23 @@ Các đường dẫn baseline/check trong ví dụ là mẫu; thay bằng BA han
 
 Ví dụ docs, rename hoặc thay đổi cơ khí không làm đổi behavior:
 
-```powershell
-devkit start --change-id DOCS-10 --kind docs --summary "Fix README typo" `
-  --check '{"name":"docs","category":"static_checks","argv":["git","diff","--check"]}'
-# Make the requested edit in the active agent session, then:
+Tạo request file với `kind=docs`, `baseline=null` và static check `git diff --check`. Xác thực rồi khởi chạy trước khi sửa. Sau đó chỉ thực hiện thay đổi được yêu cầu và chạy:
+
+```text
 devkit finish-trivial
 ```
 
-Đường đi trực tiếp chỉ hiểu yêu cầu, sửa và chạy deterministic check. Không cần Spec Kit; không tạo plan/tasks, full review, CBM hoặc specialist stage.
+Không báo hoàn tất cho đến khi `finish-trivial` trả về `COMPLETED`. Check thất bại sẽ trả về `NEEDS_REPLAN`. Đường đi này chạy lại deterministic checks; không thêm formal plan, full review, Spec Kit, CBM hoặc specialist stage.
 
 ### NORMAL
 
 Ví dụ feature hoặc bug thông thường:
 
-```powershell
-specify workflow run (devkit workflow normal)
-```
+Trước tiên xác thực và khởi chạy request file. Sau đó chạy workflow `dev-normal` đã cài từ target project bằng Spec Kit integration đã khởi tạo.
 
-Workflow chạy Spec Readiness, planning preflight/Impact, technical plan/tasks, deterministic plan gate, implementation, focused checks,
+Đặt workflow input `devkit_command` thành `devkit` nếu thư mục `bin` của runtime đã có trong `PATH`. Nếu truyền đường dẫn Windows tường minh, dùng `devkit.cmd`; Spec Kit chạy các bước `shell` qua Windows command shell nên `devkit.ps1` chỉ dùng cho lệnh PowerShell trực tiếp.
+
+Tiếp tục sau `start`; `READY_FOR_PLANNING` là trạng thái bắt đầu workflow, không phải hoàn tất implementation. Workflow chạy Spec Readiness, planning preflight/Impact, technical plan/tasks, deterministic plan gate, implementation, focused checks,
 một full review, nhiều nhất một blocking fix wave, optional một scoped re-review, fresh verification và Dev Handoff. NORMAL không có
 Human plan approval gate bắt buộc. Bug phải có regression test trước fix; behavior change dùng TDD ở seam có ý nghĩa. Mỗi plan/task
 file phải có one-line JSON `devkit-planning-metadata` header với `change_id`, `baseline_ref` copy chính xác từ `input.json`, và
@@ -100,38 +120,17 @@ file phải có one-line JSON `devkit-planning-metadata` header với `change_id
 
 Ví dụ endpoint có auth hoặc thay đổi schema:
 
-```powershell
-devkit start --change-id API-17 --kind feature `
-  --summary "Add authenticated appointment endpoint" --signal auth --signal public_api `
-  --baseline "docs/approved/engineering-handoff.yml" `
-  --check '{"name":"build","category":"build","argv":["python","-m","compileall","src"]}' `
-  --check '{"name":"unit","category":"tests","argv":["python","-m","unittest","discover","-s","tests"]}'
-specify workflow run (devkit workflow high-risk)
-```
+Đặt `public_api` và/hoặc risk signal phù hợp trong request file, xác thực rồi chạy `devkit start --request`. Xác nhận route trả về là `HIGH_RISK`, sau đó chạy workflow `dev-high-risk` đã cài. Workflow thực hiện readiness và deep impact, xác thực plan/tasks rồi dừng tại Human/Tech Lead gate của Spec Kit. Không implementation trước gate và không tự động approve.
 
 Router kích hoạt `security-and-hardening` cho auth/security/sensitive data/PII và `api-and-interface-design` cho public API/event contract. HIGH_RISK có Human/Tech Lead plan gate. `codebase-memory-mcp` chỉ được dùng khi source reading chưa đủ xác định blast radius.
 
 Bug thông thường ở NORMAL depth bắt đầu bằng regression test:
 
-```powershell
-devkit start --change-id BUG-08 --kind bug `
-  --summary "Prevent duplicate appointment creation" `
-  --baseline "docs/approved/engineering-handoff.yml" `
-  --check '{"name":"build","category":"build","argv":["python","-m","compileall","src"]}' `
-  --check '{"name":"tests","category":"tests","argv":["python","-m","unittest","discover","-s","tests"]}'
-specify workflow run (devkit workflow normal)
-```
+Với bug thông thường, tạo request file với `kind=bug`, đường dẫn Approved BA Baseline và các mảng `argv` cho build/tests. Xác thực và khởi chạy, sau đó tiếp tục NORMAL workflow qua `preflight`, plan/tasks, `plan-check` và `implementation-ready normal` trước khi sửa code.
 
-Cross-repository change route:
+Route cho thay đổi nhiều repository:
 
-```powershell
-devkit start --change-id XREPO-4 --kind feature `
-  --summary "Update shared appointment event consumer" --signal cross_repo `
-  --baseline "docs/approved/engineering-handoff.yml" `
-  --check '{"name":"build","category":"build","argv":["python","-m","compileall","src"]}' `
-  --check '{"name":"tests","category":"tests","argv":["python","-m","unittest","discover","-s","tests"]}'
-specify workflow run (devkit workflow high-risk)
-```
+Với thay đổi nhiều repository, thêm `cross_repo` vào `signals`, cùng các check và Approved BA Baseline trong request file. Xác thực và khởi chạy request, xác nhận HIGH_RISK rồi làm theo HIGH_RISK workflow đến Human Gate.
 
 ## 5. Routing signals
 
@@ -161,10 +160,7 @@ Installed capability không có nghĩa là workflow phải invoke capability đ�
 
 Nếu đã biết business decision còn thiếu, chặn trước khi tạo workflow:
 
-```powershell
-devkit start --change-id CR-043 --kind feature `
-  --summary "Add cancellation" --business-ambiguity "refund timing is undecided"
-```
+Trong request file, đặt `business_ambiguities` thành danh sách gồm `refund timing is undecided`; đặt `baseline` thành `null` nếu chưa có Approved BA Baseline. Sau đó chạy `devkit validate-start-request .devkit/start-request.json` và `devkit start --request .devkit/start-request.json`.
 
 Lệnh trả `NEEDS_BA_CLARIFICATION` và exit code 12. Nếu gap auditor phát hiện ambiguity trong Spec Readiness, preflight lưu `NEEDS_BA_CLARIFICATION` rồi dừng trước planning. Sau khi BA cập nhật/duyệt baseline, tạo run mới với baseline revision mới; không tiếp tục run dựa trên baseline cũ.
 
