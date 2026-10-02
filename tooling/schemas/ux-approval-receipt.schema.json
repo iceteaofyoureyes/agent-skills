@@ -1,14 +1,24 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "UX Human Approval Receipt V1",
+  "title": "Canonical Human UX Approval Receipt V1 (Golden workflow)",
   "type": "object",
   "additionalProperties": false,
   "required": [
     "schema_version",
     "feature_id",
-    "source",
-    "approver",
-    "decision"
+    "decision",
+    "decision_type",
+    "approved_by",
+    "recorded_at_utc",
+    "revision",
+    "immutable",
+    "semantic_snapshot_sha256",
+    "semantic_snapshot_sha256_method",
+    "sources",
+    "source_commit",
+    "source_branch",
+    "prototype_authority",
+    "reapproval_required_if_source_bytes_change"
   ],
   "properties": {
     "schema_version": {
@@ -18,48 +28,65 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
     },
-    "source": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "path",
-        "revision",
-        "sha256"
-      ],
-      "properties": {
-        "path": {
-          "type": "string",
-          "minLength": 1
-        },
-        "revision": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
-        },
-        "sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
-        }
-      }
-    },
-    "approver": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "role",
-        "identity"
-      ],
-      "properties": {
-        "role": {
-          "const": "HUMAN"
-        },
-        "identity": {
-          "type": "string",
-          "pattern": "\\S"
-        }
-      }
-    },
     "decision": {
       "const": "APPROVE"
+    },
+    "decision_type": {
+      "const": "HUMAN_EXPLICIT_EXACT_SNAPSHOT_APPROVAL"
+    },
+    "approved_by": {
+      "const": "Human"
+    },
+    "recorded_at_utc": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "immutable": {
+      "const": true
+    },
+    "semantic_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "semantic_snapshot_sha256_method": {
+      "const": "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators."
+    },
+    "sources": {
+      "type": "object",
+      "minProperties": 2,
+      "maxProperties": 2,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "source_branch": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "prototype_authority": {
+      "const": "REVIEW_EVIDENCE"
+    },
+    "formal_browser_AT_WCAG_testing": {
+      "type": "string"
+    },
+    "conformance_PASS_claimed": {
+      "type": "boolean"
+    },
+    "reapproval_required_if_source_bytes_change": {
+      "const": true
     }
   }
 }

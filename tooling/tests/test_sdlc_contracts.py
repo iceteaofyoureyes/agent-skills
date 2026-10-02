@@ -2,6 +2,9 @@
 import hashlib
 import json
 import tempfile
+import shutil
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 from dataclasses import replace
@@ -10,25 +13,26 @@ from tooling.lib import ba_kit, dev_kit, test_kit_v1 as test, test_kit_v1_cases 
 from approved_baseline import read_approved_baseline
 from delivery_manifest import load_delivery_manifest
 from tooling.tests.test_dev_kit import _write_approved_baseline
+from tooling.install_dev_kit import install as install_dev
 
 
 def delivery_fixture(root, ux=True):
     root = Path(root)
     handoff = _write_approved_baseline(root)
-    contract = root / "ux-contract.md"
-    contract.write_text("# Synthetic UX semantics\nThe submit control confirms the user's selection.\n", encoding="utf-8")
+    fixture = Path(__file__).parent / 'fixtures/delivery-ux-canonical/ux'
+    shutil.copytree(fixture, root / 'ux', dirs_exist_ok=True)
+    contract = root / 'ux/ux-contract.md'
+    receipt = root / 'ux/approval-receipt.json'
+    prototype = root / 'ux/prototype.html'
     digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest()
-    receipt = root / "ux-approval.json"
-    receipt.write_text(json.dumps({"schema_version": 1, "feature_id": "CR-001",
-        "source": {"path": contract.name, "revision": "UX-001", "sha256": digest(contract)},
-        "approver": {"role": "HUMAN", "identity": "synthetic-human"}, "decision": "APPROVE"}), encoding="utf-8")
     data = {"schema_version": 2, "feature": {"id": "CR-001"}, "delivery_revision": "CR-001-DELIVERY-001",
             "ba": {"handoff": {"path": handoff.name, "revision": "ba-rev-test", "sha256": digest(handoff)}},
             "ux": {"required": ux}, "targets": [{"repository": "fixture/app", "module": "app", "base_revision": "a" * 40}],
             "open_items": {"blocking": []}}
     if ux:
-        data["ux"]["contract"] = {"path": contract.name, "revision": "UX-001", "sha256": digest(contract)}
-        data["ux"]["approval_receipt"] = {"path": receipt.name, "sha256": digest(receipt)}
+        data["ux"]["contract"] = {"path": "ux/ux-contract.md", "revision": "UX-001", "sha256": digest(contract)}
+        data["ux"]["approval_receipt"] = {"path": "ux/approval-receipt.json", "sha256": digest(receipt)}
+        data["ux"]["prototype"] = {"path": "ux/prototype.html", "sha256": digest(prototype), "authority": "REVIEW_EVIDENCE"}
     path = root / "delivery-manifest.yml"
     path.write_text(json.dumps(data), encoding="utf-8")
     return path, data
@@ -99,6 +103,40 @@ class SharedBaselineTests(unittest.TestCase):
 
 
 class DeliveryTests(unittest.TestCase):
+    def test_distributed_ba_dev_test_validate_canonical_receipt(self):
+        source = Path(__file__).resolve().parents[2]
+        versions = {"ba": "2.0.0-rc.1", "dev": "0.3.0-rc.1", "test": "2.0.0-rc.2"}
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            feature = root / "feature"
+            feature.mkdir()
+            manifest, data = delivery_fixture(feature)
+            digest = hashlib.sha256((source / "ba-workflow/scripts/delivery_manifest.py").read_bytes()).hexdigest()
+            for kit, version in versions.items():
+                with self.subTest(kit=kit):
+                    self.assertEqual(json.loads((source / f"kits/{kit}/kit.yaml").read_text())["version"], version)
+                    target = root / kit
+                    if kit == "dev":
+                        installed = install_dev(source, target)
+                        record = json.loads(Path(installed["manifest"]).read_text())
+                        self.assertEqual(record["kit_version"], version)
+                        scripts = Path(installed["runtime_root"]) / "ba-workflow/scripts"
+                    else:
+                        ba_kit.install(source, target, kit)
+                        scripts = target / ("ba-workflow/scripts" if kit == "ba" else ".test-kit/ba-workflow/scripts")
+                    self.assertEqual(hashlib.sha256((scripts / "delivery_manifest.py").read_bytes()).hexdigest(), digest)
+                    code = "import sys; sys.path.insert(0,sys.argv[1]); from delivery_manifest import load_delivery_manifest; load_delivery_manifest(sys.argv[2])"
+                    run = lambda: subprocess.run([sys.executable, "-I", "-c", code, str(scripts), str(manifest)], capture_output=True, text=True)
+                    manifest.write_text(json.dumps(data), encoding="utf-8")
+                    result = run()
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    changed = json.loads(json.dumps(data))
+                    changed["ux"]["approval_receipt"]["sha256"] = "0" * 64
+                    manifest.write_text(json.dumps(changed), encoding="utf-8")
+                    result = run()
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("SHA-256 mismatch", result.stderr)
+
     def test_GR_DWC_DEMO_001_20261002_01_immutable_semantics_external_approval(self):
         with tempfile.TemporaryDirectory() as temp:
             path, data = delivery_fixture(temp)
@@ -109,23 +147,65 @@ class DeliveryTests(unittest.TestCase):
             load_delivery_manifest(path)
             self.assertEqual(source.read_bytes(), approved_bytes)
 
+    def test_aggregate_is_recomputed_from_sorted_sources_even_without_manifest_prototype(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path, data = delivery_fixture(temp)
+            receipt_path = Path(temp) / data["ux"]["approval_receipt"]["path"]
+            receipt = json.loads(receipt_path.read_text())
+            receipt["sources"] = dict(reversed(list(receipt["sources"].items())))
+            data["ux"].pop("prototype")
+            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+            data["ux"]["approval_receipt"]["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+            path.write_text(json.dumps(data), encoding="utf-8")
+            load_delivery_manifest(path)
+            prototype = Path(temp) / "ux/prototype.html"
+            prototype.write_text("Changed review evidence", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
+                load_delivery_manifest(path)
+            # Rebinding individual hashes cannot bypass the originally approved aggregate.
+            receipt["sources"]["ux/prototype.html"] = hashlib.sha256(prototype.read_bytes()).hexdigest()
+            receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+            data["ux"]["approval_receipt"]["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+            path.write_text(json.dumps(data), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "semantic snapshot SHA-256 mismatch"):
+                load_delivery_manifest(path)
+
     def test_external_receipt_binding_rejects_invalid_authority(self):
         mutations = ("source_hash", "receipt_source_hash", "receipt_revision", "receipt_decision",
                      "missing_receipt", "missing_receipt_file", "tampered_receipt", "receipt_hash",
-                     "receipt_feature", "receipt_role", "receipt_identity", "receipt_path", "v1")
+                     "receipt_feature", "receipt_role", "receipt_identity", "receipt_path", "v1",
+                     "receipt_snapshot", "receipt_method", "receipt_immutable", "receipt_reapproval",
+                     "receipt_prototype_hash", "receipt_prototype_authority", "receipt_commit",
+                     "receipt_branch", "receipt_timestamp", "receipt_missing_source", "receipt_extra_source",
+                     "prototype_hash", "prototype_bytes", "source_bytes", "receipt_alias_path")
         for mutation in mutations:
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temp:
                 path, data = delivery_fixture(temp)
                 receipt_path = Path(temp) / data["ux"]["approval_receipt"]["path"]
                 receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
                 if mutation == "source_hash": data["ux"]["contract"]["sha256"] = "0" * 64
-                if mutation == "receipt_source_hash": receipt["source"]["sha256"] = "0" * 64
-                if mutation == "receipt_revision": receipt["source"]["revision"] = "UX-002"
+                if mutation == "receipt_source_hash": receipt["sources"]["ux/ux-contract.md"] = "0" * 64
+                if mutation == "receipt_revision": receipt["revision"] = "UX-002"
                 if mutation == "receipt_decision": receipt["decision"] = "REJECT"
                 if mutation == "receipt_feature": receipt["feature_id"] = "CR-002"
-                if mutation == "receipt_role": receipt["approver"]["role"] = "AI"
-                if mutation == "receipt_identity": receipt["approver"]["identity"] = ""
-                if mutation == "receipt_path": receipt["source"]["path"] = "other.md"
+                if mutation == "receipt_role": receipt["approved_by"] = "AI"
+                if mutation == "receipt_identity": receipt["decision_type"] = ""
+                if mutation == "receipt_path": receipt["sources"]["other.md"] = receipt["sources"].pop("ux/ux-contract.md")
+                if mutation == "receipt_snapshot": receipt["semantic_snapshot_sha256"] = "0" * 64
+                if mutation == "receipt_method": receipt["semantic_snapshot_sha256_method"] = "trust-me"
+                if mutation == "receipt_immutable": receipt["immutable"] = False
+                if mutation == "receipt_reapproval": receipt["reapproval_required_if_source_bytes_change"] = False
+                if mutation == "receipt_prototype_hash": receipt["sources"]["ux/prototype.html"] = "0" * 64
+                if mutation == "receipt_prototype_authority": receipt["prototype_authority"] = "SEMANTIC_AUTHORITY"
+                if mutation == "receipt_commit": receipt["source_commit"] = "main"
+                if mutation == "receipt_branch": receipt["source_branch"] = ""
+                if mutation == "receipt_timestamp": receipt["recorded_at_utc"] = "2026-99-02T17:04:17Z"
+                if mutation == "receipt_missing_source": receipt["sources"].pop("ux/prototype.html")
+                if mutation == "receipt_extra_source": receipt["sources"]["extra.md"] = "0" * 64
+                if mutation == "receipt_alias_path": receipt["sources"]["ux/./prototype.html"] = receipt["sources"].pop("ux/prototype.html")
+                if mutation == "prototype_hash": data["ux"]["prototype"]["sha256"] = "0" * 64
+                if mutation == "prototype_bytes": (Path(temp) / "ux/prototype.html").write_text("Changed", encoding="utf-8")
+                if mutation == "source_bytes": (Path(temp) / "ux/ux-contract.md").write_text("Changed", encoding="utf-8")
                 if mutation.startswith("receipt_") and mutation != "receipt_hash":
                     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
                     data["ux"]["approval_receipt"]["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
@@ -152,10 +232,6 @@ class DeliveryTests(unittest.TestCase):
     def test_prototype_is_only_review_evidence(self):
         with tempfile.TemporaryDirectory() as temp:
             path, data = delivery_fixture(temp)
-            prototype = Path(temp) / "prototype.html"
-            prototype.write_text("<button>Confirm</button>", encoding="utf-8")
-            data["ux"]["prototype"] = {"path": prototype.name,
-                "sha256": hashlib.sha256(prototype.read_bytes()).hexdigest(), "authority": "REVIEW_EVIDENCE"}
             path.write_text(json.dumps(data), encoding="utf-8")
             load_delivery_manifest(path)
             original = dict(data["ux"]["prototype"])

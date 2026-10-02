@@ -174,7 +174,7 @@ class FreshSyntheticAcceptance(unittest.TestCase):
             git(docs, "commit", "-m", "Synthetic approved testware promotion")
             self.assertEqual(git(docs, "status", "--short"), "")
             # Exact old receipts and approved bytes cannot make drift healthy.
-            (feature / "ux-contract.md").write_text("Changed UX", encoding="utf-8")
+            (feature / "ux/ux-contract.md").write_text("Changed UX", encoding="utf-8")
             with self.assertRaises(ValueError):
                 design.current_delivery_refs(run)
 

@@ -44,7 +44,8 @@ def install(source_root, install_home):
     install_home = Path(install_home).expanduser().resolve()
     runtime_root = install_home / "runtime" / "v1"
     bin_dir = install_home / "bin"
-    manifest = {"schema_version": 1, "runtime": "dev-kit-v1", "files": {}}
+    kit_version = json.loads((source_root / "kits/dev/kit.yaml").read_text(encoding="utf-8"))["version"]
+    manifest = {"schema_version": 1, "runtime": "dev-kit-v1", "kit_version": kit_version, "files": {}}
 
     source_files = list(RUNTIME_FILES)
     for directory in ("kits/dev/plugin", "requirements-gap-auditor", "verification-before-completion", "dev-kit"):

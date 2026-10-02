@@ -41,3 +41,6 @@ benchmark/test-kit/**/*.md text eol=lf
 benchmark/test-kit/**/*.json text eol=lf
 benchmark/test-kit/**/*.yml text eol=lf
 benchmark/test-kit/**/*.yaml text eol=lf
+
+# Canonical UX receipt fixture hashes bind these exact source bytes.
+tooling/tests/fixtures/delivery-ux-canonical/** text eol=lf

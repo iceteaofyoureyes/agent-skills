@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.1",
+  "kit_version": "2.0.0-rc.2",
   "manifest_schema_version": 1,
   "managed_files": [
     {
@@ -21,7 +21,7 @@
     },
     {
       "path": ".test-kit/ba-workflow/scripts/delivery_manifest.py",
-      "sha256": "ebe0f5bd40f91e74bc45206fe638f874ce442bab0d945128bca801b795737c6c",
+      "sha256": "a07daa4399313576020d2dd3d538e6cf813dbc813aea3ccef19bea025df9d50b",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -577,5 +577,5 @@
   ],
   "managed_file_count": 114,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "f9315f7e93b275a03fb024d17d49aadef4ca3667c9be402ad1f7c34cd466bbc1"
+  "payload_tree_sha256": "f15dd8700db47e35e8db2c25d99125ed18655b816394becc03e813e477ff2cf0"
 }

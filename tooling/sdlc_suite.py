@@ -10,7 +10,7 @@ from tooling.lib import ba_kit, dev_kit
 from tooling.lib.package import validate_source_package_integrity
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACTS = {"ba_handoff": 1, "delivery_manifest": 2, "testware_gate": 2, "golden_provenance": 1}
+CONTRACTS = {"ba_handoff": 1, "delivery_manifest": 2, "ux_approval_receipt": 1, "testware_gate": 2, "golden_provenance": 1}
 
 
 def lock_data(root=ROOT):
@@ -84,8 +84,9 @@ def doctor(root=ROOT, *, spec_kit_cli, codex_home, docs_project=None, app_projec
                 seen[name] = digest
         from approved_baseline import CONTRACT_VERSION as ba_version
         from delivery_manifest import CONTRACT_VERSION as delivery_version
+        from delivery_manifest import UX_RECEIPT_VERSION as ux_receipt_version
         from tooling.lib.test_kit_v1_cases import DEPENDENCY_TYPES
-        if ba_version != 1 or delivery_version != 2 or len(DEPENDENCY_TYPES) != 6: raise ValueError("contract compatibility mismatch")
+        if ba_version != CONTRACTS["ba_handoff"] or delivery_version != CONTRACTS["delivery_manifest"] or ux_receipt_version != CONTRACTS["ux_approval_receipt"] or len(DEPENDENCY_TYPES) != 6: raise ValueError("contract compatibility mismatch")
         return "COMPATIBLE"
     check("routers/shared contract compatibility", routers)
     def ignore_contract():

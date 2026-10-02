@@ -1,4 +1,6 @@
-# BA Kit 1.0.0-rc.1
+# BA Kit 2.0.0-rc.1
+
+This candidate distributes Delivery Manifest V2 with the canonical immutable Human UX receipt. See [the V2 contract and package version provenance](../../docs/DELIVERY_MANIFEST_V2.md). Earlier RC1 acceptance evidence below remains historical.
 
 **BA Kit** hỗ trợ BA làm phần **WHAT**: review đầu bài, discover current system, tìm gap, làm rõ requirement, tổng hợp Business Rules, tạo/update SRS, tạo Draw.io/DOCX/optional prototype và tạo Engineering Handoff sau Human approval.
 

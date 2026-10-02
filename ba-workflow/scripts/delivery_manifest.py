@@ -3,11 +3,14 @@ import ast
 import hashlib
 import json
 import re
+from datetime import datetime
 from pathlib import Path
 
 from approved_baseline import read_approved_baseline
 
 CONTRACT_VERSION = 2
+UX_RECEIPT_VERSION = 1
+UX_SNAPSHOT_METHOD = "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators."
 
 
 def read_mapping(path):
@@ -80,7 +83,7 @@ def _reference(root, ref, *, revision=False):
     if not isinstance(ref, dict) or not isinstance(ref.get("path"), str):
         raise ValueError("artifact reference requires path")
     relative = ref["path"]
-    if "\\" in relative or ":" in relative or Path(relative).is_absolute() or ".." in Path(relative).parts:
+    if "\\" in relative or ":" in relative or Path(relative).is_absolute() or any(part in ("", ".", "..") for part in relative.split("/")):
         raise ValueError("artifact path must be portable and feature-relative")
     path = root / relative
     if not path.resolve().is_relative_to(root.resolve()) or path.is_symlink() or not path.is_file():
@@ -131,21 +134,60 @@ def load_delivery_manifest(path):
         if receipt_path.resolve() == contract.resolve():
             raise ValueError("UX approval receipt must be external to the semantic source")
         receipt = read_mapping(receipt_path)
-        keys(receipt, ("schema_version", "feature_id", "source", "approver", "decision"))
-        if type(receipt["schema_version"]) is not int or receipt["schema_version"] != 1:
+        keys(receipt, ("schema_version", "feature_id", "decision", "decision_type", "approved_by",
+                       "recorded_at_utc", "revision", "immutable", "semantic_snapshot_sha256",
+                       "semantic_snapshot_sha256_method", "sources", "source_commit", "source_branch",
+                       "prototype_authority", "reapproval_required_if_source_bytes_change"),
+             ("formal_browser_AT_WCAG_testing", "conformance_PASS_claimed"))
+        if type(receipt["schema_version"]) is not int or receipt["schema_version"] != UX_RECEIPT_VERSION:
             raise ValueError("UX approval receipt schema_version must be 1")
-        keys(receipt["source"], ("path", "revision", "sha256"))
         if receipt["feature_id"] != feature:
             raise ValueError("UX approval receipt feature mismatch")
-        if receipt["source"] != ux["contract"]:
-            raise ValueError("UX approval receipt source path/revision/SHA-256 mismatch")
-        keys(receipt["approver"], ("role", "identity"))
-        if (receipt["approver"]["role"] != "HUMAN"
-                or not isinstance(receipt["approver"]["identity"], str)
-                or not receipt["approver"]["identity"].strip()):
+        if receipt["revision"] != ux["contract"]["revision"]:
+            raise ValueError("UX approval receipt revision mismatch")
+        if receipt["approved_by"] != "Human" or receipt["decision_type"] != "HUMAN_EXPLICIT_EXACT_SNAPSHOT_APPROVAL":
             raise ValueError("UX approval receipt requires an explicit Human approver")
         if receipt["decision"] != "APPROVE":
             raise ValueError("UX approval receipt decision must be APPROVE")
+        if receipt["immutable"] is not True or receipt["reapproval_required_if_source_bytes_change"] is not True:
+            raise ValueError("UX approval receipt must bind an immutable snapshot requiring reapproval")
+        if receipt["prototype_authority"] != "REVIEW_EVIDENCE":
+            raise ValueError("UX receipt prototype authority must be REVIEW_EVIDENCE")
+        if (not isinstance(receipt["source_commit"], str) or not re.fullmatch(r"[0-9a-f]{40}", receipt["source_commit"])
+                or not isinstance(receipt["source_branch"], str) or not receipt["source_branch"].strip()):
+            raise ValueError("UX approval receipt requires source provenance")
+        recorded = receipt["recorded_at_utc"]
+        if not isinstance(recorded, str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", recorded):
+            raise ValueError("UX approval receipt requires a UTC timestamp")
+        datetime.fromisoformat(recorded[:-1] + "+00:00")
+        if "formal_browser_AT_WCAG_testing" in receipt and not isinstance(receipt["formal_browser_AT_WCAG_testing"], str):
+            raise ValueError("invalid UX testing provenance")
+        if "conformance_PASS_claimed" in receipt and type(receipt["conformance_PASS_claimed"]) is not bool:
+            raise ValueError("invalid UX conformance provenance")
+        sources = receipt["sources"]
+        if not isinstance(sources, dict) or len(sources) != 2:
+            raise ValueError("canonical UX receipt requires exactly two source paths")
+        if sources.get(ux["contract"]["path"]) != ux["contract"]["sha256"]:
+            raise ValueError("UX contract path/SHA-256 missing or mismatched in receipt sources")
+        resolved_sources = set()
+        for relative, digest in sources.items():
+            source = _reference(path.parent, {"path": relative, "sha256": digest})
+            if source.resolve() == receipt_path.resolve():
+                raise ValueError("UX receipt cannot be a source")
+            resolved_sources.add(source.resolve())
+        if len(resolved_sources) != 2:
+            raise ValueError("UX semantic source and prototype must be distinct")
+        if "prototype" in ux:
+            keys(ux["prototype"], ("path", "sha256", "authority"))
+            if ux["prototype"]["path"] == ux["contract"]["path"]:
+                raise ValueError("prototype cannot also be the UX semantic source")
+            if sources.get(ux["prototype"]["path"]) != ux["prototype"]["sha256"]:
+                raise ValueError("UX prototype path/SHA-256 missing or mismatched in receipt sources")
+        if receipt["semantic_snapshot_sha256_method"] != UX_SNAPSHOT_METHOD:
+            raise ValueError("unsupported UX semantic snapshot method")
+        snapshot = hashlib.sha256(json.dumps(sources, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")).hexdigest()
+        if receipt["semantic_snapshot_sha256"] != snapshot:
+            raise ValueError("UX semantic snapshot SHA-256 mismatch")
     elif "approval_receipt" in ux:
         raise ValueError("UX approval receipt requires a semantic source contract")
     if "prototype" in ux:

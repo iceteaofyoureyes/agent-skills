@@ -37,7 +37,7 @@ class TestKitPackagingTests(unittest.TestCase):
     def test_test_manifest_resolves_explicit_runtime_only_closure(self):
         manifest = ba_kit.load_manifest(ROOT, "test")
         self.assertEqual(manifest["id"], "test")
-        self.assertEqual(manifest["version"], "2.0.0-rc.1")
+        self.assertEqual(manifest["version"], "2.0.0-rc.2")
         self.assertEqual(manifest["capabilities"]["core"], "required")
         self.assertEqual(manifest["capabilities"]["xmind_projection"], "optional")
         self.assertEqual(manifest["capabilities"]["excel_projection"], "optional")
