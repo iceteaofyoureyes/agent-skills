@@ -6,7 +6,7 @@
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "0aba8f7ea20b53ed359763d87decb3996b5c01ee0cb7fb80ae85bb6628a017b6",
+      "sha256": "22d4e419217d4a24c8a87dbe134509bc5a6a1af80ff70cb9e738e596dfa5de25",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
@@ -61,7 +61,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "d1d1bf6b182c9a84ca16dd9a3180b63b41e0bac639f6639706b5ef93ac8cdd78",
+      "sha256": "bf059bf435bc977ad1b88369260a9f89aa00f4de20f9e6575c23a1173eca00ca",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -556,11 +556,11 @@
     },
     {
       "path": "test-kit/SKILL.md",
-      "sha256": "bb9c387f3cbdd8152ab52d06e415059106b595358cc3dc577c89c004331570b6",
+      "sha256": "7ce1a26d6956c7f08d1a38131cfebaa289c9d0a731110d86f98edd71cd3532b7",
       "classification": "REQUIRED_SKILL"
     }
   ],
   "managed_file_count": 111,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "8126ae61bbf5ebcb988b51f74bb110274c2f373e397b94757618813989cd6051"
+  "payload_tree_sha256": "5fafeb17c8f5186007cdb561946eceeda4fd017ad7609f151aa049cecdd0620c"
 }
