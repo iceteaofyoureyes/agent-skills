@@ -179,11 +179,18 @@ class TestKitV1Tests(unittest.TestCase):
             )
             run_dir = project / "test-runs/CR-001/design-001"
 
+            original_config = config.read_bytes()
             with mock.patch.object(test_kit, "resolve_codex_command") as resolver:
                 prepared = test_kit.prepare_same_session_design(
                     handoff, run_dir, project_root=project, skill_dir=skill,
                 )
                 resolver.assert_not_called()
+                self.assertEqual(config.read_bytes(), original_config)
+                runtime_config = Path(prepared["runtime_config"]["path"])
+                self.assertTrue(runtime_config.is_file())
+                runtime_text = runtime_config.read_text(encoding="utf-8")
+                self.assertIn((run_dir / "raw-output").resolve().as_posix(), runtime_text)
+                self.assertNotEqual(runtime_config.resolve(), config.resolve())
 
                 raw = Path(prepared["raw_output_path"])
                 raw.parent.mkdir(parents=True, exist_ok=True)
@@ -191,6 +198,7 @@ class TestKitV1Tests(unittest.TestCase):
 
                 result = test_kit.finalize_same_session_design(handoff, run_dir)
                 resolver.assert_not_called()
+                self.assertEqual(config.read_bytes(), original_config)
 
             self.assertEqual(result["status"], "DESIGN_REVIEW")
             self.assertEqual(result["review_status"], "IN_REVIEW")
@@ -199,6 +207,40 @@ class TestKitV1Tests(unittest.TestCase):
             self.assertTrue((run_dir / "workflow-state.json").is_file())
             self.assertTrue((run_dir / "evidence/same-session-prepare.json").is_file())
             self.assertTrue((run_dir / "evidence/same-session-finalize.json").is_file())
+
+    def test_same_session_finalize_rejects_project_config_drift(self):
+        manifest = json.loads(test_kit.TEA_PIN_MANIFEST.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory(prefix="same-session-config-drift-") as temp:
+            project = Path(temp) / "project"
+            project.mkdir()
+            handoff = self._copy_fixture(project)
+            skill = project / ".agents/skills" / test_kit.TEA_CAPABILITY
+            for relative in manifest["files"]:
+                target = skill / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((PINNED_TEA_FIXTURE / relative).read_bytes())
+            config = project / "_bmad/tea/config.yaml"
+            config.parent.mkdir(parents=True)
+            config.write_text(
+                "user_name: Tester\n"
+                "communication_language: Vietnamese\n"
+                "document_output_language: Vietnamese\n"
+                "output_folder: .test-kit/runtime\n"
+                "test_artifacts: .test-kit/runtime\n"
+                "test_stack_type: fullstack\n",
+                encoding="utf-8",
+            )
+            run_dir = project / ".test-kit/runs/CR-001/design-001"
+            prepared = test_kit.prepare_same_session_design(
+                handoff, run_dir, project_root=project, skill_dir=skill,
+            )
+            raw = Path(prepared["raw_output_path"])
+            raw.parent.mkdir(parents=True, exist_ok=True)
+            raw.write_bytes(BENCHMARK.read_bytes())
+            config.write_text(config.read_text(encoding="utf-8") + "tea_execution_mode: sequential\n", encoding="utf-8")
+
+            with self.assertRaisesRegex(RuntimeError, "PROJECT_TEA_CONFIG_DRIFT"):
+                test_kit.finalize_same_session_design(handoff, run_dir)
 
     def test_same_session_prepare_fails_closed_on_unpinned_skill(self):
         with tempfile.TemporaryDirectory(prefix="same-session-pin-") as temp:
