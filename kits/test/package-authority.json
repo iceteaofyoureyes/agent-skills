@@ -11,7 +11,7 @@
     },
     {
       "path": ".test-kit/ba-workflow/scripts/approved_baseline.py",
-      "sha256": "e8612eb201cb8158e915bb68f0d8888b7f236ed2deb98cfe692ccd278e26e786",
+      "sha256": "de34a7bb8b0b0a830266c44d4a651ea6d245081dc252377d89323b721629968e",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -21,7 +21,7 @@
     },
     {
       "path": ".test-kit/ba-workflow/scripts/delivery_manifest.py",
-      "sha256": "a4b06bf25438045b5b3a24167a311cf60226f9446db0d38f5ef85a5f5e9e21fd",
+      "sha256": "e6dc60652e3550acdc2a0f56465603181905406d9929b9eeb9d08b5b848d7396",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -91,7 +91,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/testware_promotion.py",
-      "sha256": "0ce147af95079814b6d47bbfad0db4ba91a31305edfb2235233f4587a5e93d26",
+      "sha256": "4d33326523db638a5aa3af49949368d287856cf358cd2e9c0aa921bd01df23c8",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -577,5 +577,5 @@
   ],
   "managed_file_count": 114,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "d96174985c2f2ac9cafdb4fade12b3b1372f897809c5c579b2ab3ff5f0328c02"
+  "payload_tree_sha256": "791c6c71bdf8bb7f33e430a1b2bdbfe381354a14007a6235850b27b61928aecb"
 }

@@ -277,13 +277,17 @@ def _valid_skill(directory, skill):
     return False
 
 
+def is_skill_payload(path):
+    return "__pycache__" not in Path(path).parts and Path(path).suffix != ".pyc"
+
+
 def tree_hash(directory):
     directory = Path(directory)
     digest = hashlib.sha256()
     for path in sorted(directory.rglob("*")):
         if path.is_symlink():
             raise ValueError(f"refusing to hash symlink: {path}")
-        if path.is_file():
+        if path.is_file() and is_skill_payload(path):
             digest.update(path.relative_to(directory).as_posix().encode("utf-8"))
             digest.update(b"\0")
             with path.open("rb") as stream:
@@ -318,7 +322,7 @@ def _managed_skill_files(source, skill, classification):
     for path in sorted(source.rglob("*"), key=lambda item: item.relative_to(source).as_posix().encode("utf-8")):
         if path.is_symlink():
             raise ValueError(f"refusing to record symlink: {path}")
-        if path.is_file():
+        if path.is_file() and is_skill_payload(path):
             relative = path.relative_to(source).as_posix()
             result[f"{skill}/{relative}"] = {"sha256": _content_hash(path), "classification": classification}
     return result
@@ -496,7 +500,7 @@ def _apply_plan(target_dir, plan, record_path, record):
             stage_path = staged / str(index)
             stage_path.parent.mkdir(parents=True, exist_ok=True)
             if item["kind"] == "skill":
-                shutil.copytree(item["source"], stage_path)
+                shutil.copytree(item["source"], stage_path, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
                 actual = tree_hash(stage_path)
             else:
                 shutil.copyfile(item["source"], stage_path)

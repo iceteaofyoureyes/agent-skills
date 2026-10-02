@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Project defect handoff V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "defect_id",
+    "feature_id",
+    "classification",
+    "state",
+    "delivery_manifest",
+    "targets",
+    "implementation_commit",
+    "testcase",
+    "expected",
+    "actual",
+    "observation_sha256",
+    "verification_owner"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "defect_id": {
+      "type": "string"
+    },
+    "feature_id": {
+      "type": "string"
+    },
+    "classification": {
+      "const": "DEFECT"
+    },
+    "state": {
+      "const": "DEFECT_READY_FOR_DEV"
+    },
+    "delivery_manifest": {
+      "type": "object",
+      "required": [
+        "path",
+        "revision",
+        "sha256"
+      ]
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1
+    },
+    "implementation_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "testcase": {
+      "type": "object",
+      "required": [
+        "id",
+        "oracle_sha256"
+      ]
+    },
+    "expected": {
+      "type": "string",
+      "minLength": 1
+    },
+    "actual": {
+      "type": "string",
+      "minLength": 1
+    },
+    "observation_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "verification_owner": {
+      "const": "TESTER"
+    }
+  }
+}

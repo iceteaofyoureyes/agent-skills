@@ -87,7 +87,7 @@ def _source_id_matches(value: str, id_prefix: str) -> bool:
     return bool(re.fullmatch(rf"{id_prefix}-(?:[A-Za-z0-9]+-)*\d+", value, re.IGNORECASE))
 
 
-def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int) -> tuple[BaselineRow, ...]:
+def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int, *, source_path=None) -> tuple[BaselineRow, ...]:
     """Accept legacy source tables and current BA Kit heading-based artifacts."""
     lines = path.read_text(encoding="utf-8").splitlines()
     rows: list[BaselineRow] = []
@@ -98,8 +98,8 @@ def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int) -> tuple
         cells = _markdown_cells(raw)
         if not cells or not _source_id_matches(cells[0], id_prefix):
             continue
-        if len(cells) != wanted_columns:
-            raise BaselineError(f"{path}:{number}: expected {wanted_columns} source columns, found {len(cells)}")
+        if len(cells) < 2:
+            raise BaselineError(f"{path}:{number}: source ID requires source text")
         if not cells[1]:
             raise BaselineError(f"{path}:{number}: {cells[0]} has no source text")
         rows.append(BaselineRow(cells[0], cells[1], str(path), number))
@@ -125,6 +125,11 @@ def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int) -> tuple
             raise BaselineError(f"{path}:{index + 1}: {source_id} has no source text")
         rows.append(BaselineRow(source_id, text, str(path), index + 1))
 
+    for number, raw in enumerate(lines, 1):
+        match = re.match(rf"^\s*(?:[-*+]\s+|\d+[.)]\s+)?(?P<id>{id_prefix}-(?:[A-Za-z0-9]+-)*\d+)\s*[:—–-]\s*(?P<text>.+)$", raw)
+        if match:
+            rows.append(BaselineRow(match.group("id"), match.group("text"), str(path), number))
+
     if not rows:
         # Structural sections preserve authority text without asserting new business IDs.
         starts = [i for i, line in enumerate(lines) if MARKDOWN_HEADING.match(line)]
@@ -142,7 +147,7 @@ def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int) -> tuple
     digest = _source_hash(path)
     bound = []
     for ordinal, row in enumerate(rows, 1):
-        binding = json.dumps([role, str(path), digest, row.line, ordinal, row.text], ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        binding = json.dumps([role, source_path or path.name, digest, row.line, ordinal, row.text], ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         bound.append(BaselineRow(row.id, row.text, row.path, row.line, role, digest, ordinal, hashlib.sha256(binding).hexdigest()))
     return tuple(bound)
 
@@ -197,8 +202,8 @@ def read_approved_baseline(handoff_path: str | Path) -> ApprovedBaseline:
         source_paths[source] = path
         source_hashes[source] = expected
 
-    requirements = _parse_source_rows(source_paths["srs"], "FR", 3)
-    business_rules = _parse_source_rows(source_paths["business_rules"], "BR", 3)
+    requirements = _parse_source_rows(source_paths["srs"], "FR", 3, source_path=_field(fields, "authoritative_sources.srs.path"))
+    business_rules = _parse_source_rows(source_paths["business_rules"], "BR", 3, source_path=_field(fields, "authoritative_sources.business_rules.path"))
     rows = (*requirements, *business_rules)
     return ApprovedBaseline(
         feature_id=_field(fields, "feature.id") or "",
@@ -231,5 +236,3 @@ def verify_baseline_snapshot(snapshot):
         if actual != item["sha256"]:
             errors.append(f"SHA-256 changed: {item['path']}")
     return errors
-
-

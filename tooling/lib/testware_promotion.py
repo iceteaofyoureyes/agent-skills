@@ -82,6 +82,9 @@ def promote(run_dir, feature_root, baseline, *, stage, human_actor_authenticator
               "semantic_sha256": digest, "markdown_sha256": hashlib.sha256(markdown).hexdigest(),
               "approval_receipt": receipt_name, "approval_receipt_sha256": hashlib.sha256(receipt_bytes).hexdigest(),
               "approval_mode": "HUMAN_AUTHENTICATED"}
+    # Portable durable refs; execution resolves them from the promotion record directory.
+    record["semantic_path"] = f"../{stage}/{name}.json"
+    record["approval_path"] = receipt_name
     _copy_exact(target / (name + ".json"), semantic)
     _copy_exact(target / (name + ".md"), markdown)
     _copy_exact(feature_root / "test/approvals" / receipt_name, receipt_bytes)

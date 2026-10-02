@@ -446,10 +446,8 @@ def inspect_context_purity(project_root, user_home, mode="daily", codex_home=Non
     for root in plugin_roots:
         if not root.is_dir():
             continue
-        for plugin in root.iterdir():
-            manifest = plugin / "plugin.json"
-            if not manifest.is_file():
-                continue
+        for manifest in root.rglob("plugin.json"):
+            plugin = manifest.parent
             try:
                 data = json.loads(manifest.read_text(encoding="utf-8"))
             except (OSError, json.JSONDecodeError):
@@ -459,6 +457,8 @@ def inspect_context_purity(project_root, user_home, mode="daily", codex_home=Non
             relevant = bool(RELEVANT_CONTEXT.search(name))
             record = {"kind": "plugin", "name": name, "path": str(manifest), "relevant": relevant}
             records.append(record)
+            if data.get("hooks") or data.get("extensions", {}).get("com.openai", {}).get("hooks"):
+                contamination.append({**record, "relevant": True, "reason": "plugin hooks affect agent context"})
             if not dev_plugin:
                 contamination.append({**record, "reason": "methodology plugin overlaps Dev Kit" if relevant else "unrelated plugin is present in project/user context"})
             plugin_skills = plugin / "skills"
@@ -1447,6 +1447,9 @@ def _print_doctor(report, as_json=False):
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Dev Kit V1 runtime and contract checks")
     commands = parser.add_subparsers(dest="command", required=True)
+    router = commands.add_parser("route", help="Internal natural-intent delivery router")
+    router.add_argument("--delivery", type=Path, required=True)
+    router.add_argument("--summary", required=True)
     start = commands.add_parser("start")
     start.add_argument("--request", type=Path, help="Read and validate a structured start request JSON file")
     start.add_argument("--change-id")
@@ -1491,6 +1494,11 @@ def main(argv=None):
     commands.add_parser("provenance")
     args = parser.parse_args(argv)
     try:
+        if args.command == "route":
+            sys.path.insert(0, str(KIT_ROOT))
+            from tooling.lib.dev_router import start_from_delivery
+            print(json.dumps(start_from_delivery(Path.cwd(), args.delivery, args.summary), indent=2, ensure_ascii=False))
+            return 0
         if args.command == "start":
             if args.request:
                 legacy_values = (args.change_id, args.kind, args.summary, args.signal, args.business_ambiguity, args.baseline, args.check, args.behavior_change)

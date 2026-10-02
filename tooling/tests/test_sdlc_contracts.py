@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 from dataclasses import replace
 
-from tooling.lib import dev_kit, test_kit_v1 as test, test_kit_v1_cases as cases
+from tooling.lib import ba_kit, dev_kit, test_kit_v1 as test, test_kit_v1_cases as cases
 from approved_baseline import read_approved_baseline
 from delivery_manifest import load_delivery_manifest
 from tooling.tests.test_dev_kit import _write_approved_baseline
@@ -30,6 +30,25 @@ def delivery_fixture(root, ux=True):
 
 
 class SharedBaselineTests(unittest.TestCase):
+    def test_skill_payload_excludes_generated_bytecode(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp) / "source"
+            skill = root / "demo"
+            skill.mkdir(parents=True)
+            (skill / "SKILL.md").write_text("---\nname: demo\ndescription: Fixture\n---\n", encoding="utf-8")
+            original = ba_kit.tree_hash(skill)
+            (skill / "__pycache__").mkdir()
+            (skill / "__pycache__/generated.pyc").write_bytes(b"ephemeral cache")
+            self.assertEqual(ba_kit.tree_hash(skill), original)
+            manifest = root / "kits/fixture/kit.yaml"
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text(json.dumps({"schema_version": 1, "id": "fixture", "name": "Fixture", "version": "1.0.0",
+                "workflow": {"skill": "demo"}, "core": [], "skills": {"required": [], "optional": []}, "outputs": []}), encoding="utf-8")
+            target = Path(temp) / "installed"
+            ba_kit.install(root, target, "fixture")
+            self.assertFalse(list(target.rglob("*.pyc")))
+            self.assertEqual(ba_kit.doctor(root, target, "fixture")["status"], "READY")
+
     def test_no_business_ids_deterministic_and_same_dev_test_identity(self):
         with tempfile.TemporaryDirectory() as temp:
             handoff = _write_approved_baseline(temp)
@@ -53,6 +72,16 @@ class SharedBaselineTests(unittest.TestCase):
             self.assertEqual(test._parse_source_rows(p, "BR", 3)[0].id, "BR-WED-011")
             p.write_text("| ID | Text | Status |\n|---|---|---|\n| FR-001 | Save | CONFIRMED |\n", encoding="utf-8")
             self.assertEqual(test._parse_source_rows(p, "FR", 3)[0].id, "FR-001")
+            p.write_text("- BR-AUTH-004: Only the owner can edit.\n", encoding="utf-8")
+            self.assertEqual(test._parse_source_rows(p, "BR", 3)[0].id, "BR-AUTH-004")
+            p.write_text("| ID | Rule |\n|---|---|\n| BR-WED-011 | Access |\n", encoding="utf-8")
+            self.assertEqual(test._parse_source_rows(p, "BR", 3)[0].id, "BR-WED-011")
+
+    def test_locator_binding_is_portable_across_same_declared_bytes(self):
+        with tempfile.TemporaryDirectory() as first, tempfile.TemporaryDirectory() as second:
+            a = read_approved_baseline(_write_approved_baseline(first))
+            b = read_approved_baseline(_write_approved_baseline(second))
+            self.assertEqual([(row.id, row.locator_sha256) for row in a.requirements], [(row.id, row.locator_sha256) for row in b.requirements])
 
     def test_hash_mismatch_and_post_start_drift_rejected(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -74,7 +103,7 @@ class DeliveryTests(unittest.TestCase):
     def test_missing_ux_hash_revision_and_blocking_rejected(self):
         with tempfile.TemporaryDirectory() as temp:
             path, data = delivery_fixture(temp)
-            for mutation in ("missing", "hash", "revision", "blocking", "base", "unsafe"):
+            for mutation in ("missing", "hash", "revision", "blocking", "base", "unsafe", "credential"):
                 candidate = json.loads(json.dumps(data))
                 if mutation == "missing": del candidate["ux"]["contract"]
                 if mutation == "hash": candidate["ba"]["handoff"]["sha256"] = "0" * 64
@@ -82,6 +111,7 @@ class DeliveryTests(unittest.TestCase):
                 if mutation == "blocking": candidate["open_items"]["blocking"] = ["OPEN"]
                 if mutation == "base": candidate["targets"][0]["base_revision"] = "main"
                 if mutation == "unsafe": candidate["ux"]["contract"]["path"] = "../outside.md"
+                if mutation == "credential": candidate["ba"]["credentials"] = "forbidden synthetic field"
                 path.write_text(json.dumps(candidate), encoding="utf-8")
                 with self.subTest(mutation=mutation), self.assertRaises(ValueError):
                     load_delivery_manifest(path)

@@ -2,6 +2,12 @@
 
 Dev Kit nhận **Approved BA Baseline** làm WHAT authority, rồi xác định phạm vi kỹ thuật, ownership, cách triển khai và evidence. Dev Kit không sửa hoặc diễn giải lại business semantics.
 
+## Operator flow của integration candidate 0.2.0-rc.1
+
+Human chỉ nói: `Implement <feature> từ delivery manifest đã approve.` Dùng router `dev-kit`; agent đọc governance, resolve approved BA/UX/delivery, inspect target và quality gate, tự tạo/validate request rồi start/resume run. Human chỉ thấy material ambiguity, HIGH_RISK plan gate, blocking review, NEEDS_REPLAN hoặc terminal handoff.
+
+Các lệnh bên dưới là internal API/reference cho agent và maintainer. Human không copy/edit start-request JSON, signals/checks hoặc chọn run paths. Setup tự động profile: `python -m tooling.prepare_agent_profile --destination <fresh-profile> --register`; host dùng CODEX_HOME riêng. Xem [suite contract](SDLC_SUITE_CONTRACT.md).
+
 ## 1. Yêu cầu môi trường
 
 - Python 3.8+ và Git cho Dev Kit CLI/direct TRIVIAL path.
@@ -26,8 +32,7 @@ Gỡ plugin trong Plugins Directory của ChatGPT desktop app, sau đó gỡ mar
 codex plugin marketplace remove agent-skills-dev-kit
 ```
 
-Cài runtime helper một lần từ checkout Dev Kit. Runtime nằm ngoài target project và installer chỉ chép helper,
-BA contract reader dùng chung, schemas/templates và hai workflow vào user scope; không chép skill methodology:
+Cài runtime helper một lần từ checkout Dev Kit. Runtime nằm ngoài target project; installer chép shared BA/delivery reader, router, schemas/templates, workflows và pinned package sources đủ cho installed Doctor:
 
 ```powershell
 # Chạy trong checkout agent-skills
@@ -50,7 +55,7 @@ specify init
 
 ## 3. Bắt đầu một change
 
-Chạy từ root của **target project**. Đây là đường bắt đầu canonical cho mọi agent trên Windows và Bash:
+Chạy từ root của **target project**. Đây là structured internal API trên Windows và Bash; ordinary Human flow dùng natural router ở trên:
 
 1. Sao chép template đã cài đặt rồi chỉnh sửa như một tệp JSON thông thường. Mỗi check lưu lệnh dưới dạng mảng `argv`; không truyền JSON qua shell argument.
 

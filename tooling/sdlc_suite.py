@@ -59,6 +59,17 @@ def doctor(root=ROOT, *, spec_kit_cli, codex_home, docs_project=None, app_projec
         return "MATCH"
     if require_lock:
         check("suite lock", lock_check)
+    def profile_check():
+        profile = Path(codex_home)
+        record = json.loads((profile / "profile-lock.json").read_text(encoding="utf-8"))
+        if record.get("agent_skills_commit") != lock_data(root)["agent_skills_commit"] or record.get("native_plugin_registration") != "INSTALLED":
+            raise ValueError("agent profile is not pinned/installed from this integration commit")
+        for relative, expected in record["files"].items():
+            path = profile / relative
+            if not path.resolve().is_relative_to(profile.resolve()) or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != expected:
+                raise ValueError("pinned agent profile drift: " + relative)
+        return "PINNED"
+    check("dedicated profile provenance", profile_check)
     check("Test package authority", lambda: validate_source_package_integrity(root, ba_kit.load_manifest(root, "test"))[2])
     def routers():
         for path in (root / "ba-workflow/SKILL.md", root / "dev-kit/SKILL.md", root / "kits/test/skills/test-kit/SKILL.md"):
@@ -77,6 +88,16 @@ def doctor(root=ROOT, *, spec_kit_cli, codex_home, docs_project=None, app_projec
         if ba_version != 1 or delivery_version != 1 or len(DEPENDENCY_TYPES) != 6: raise ValueError("contract compatibility mismatch")
         return "COMPATIBLE"
     check("routers/shared contract compatibility", routers)
+    def ignore_contract():
+        with tempfile.TemporaryDirectory(prefix="sdlc-ignore-doctor-") as temp:
+            for lane in ("docs", "app"):
+                project = Path(temp) / lane
+                project.mkdir()
+                subprocess.run(["git", "-C", str(project), "init", "-q"], check=True)
+                (project / ".gitignore").write_bytes((root / "tooling/fixtures/readiness" / (lane + ".gitignore")).read_bytes())
+                check_runtime_ignores(project, lane)
+        return "PASS"
+    check("runtime ignore contract", ignore_contract)
     with tempfile.TemporaryDirectory(prefix="sdlc-suite-doctor-") as temp:
         project = Path(temp) / "docs"
         skills = project / ".agents/skills"

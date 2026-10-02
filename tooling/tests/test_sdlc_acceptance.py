@@ -54,6 +54,67 @@ def fixture_actor(actor_id, _receipt):
 
 
 class FreshSyntheticAcceptance(unittest.TestCase):
+    def check_preparation_patches_preserve_authority_and_ignore_runtime(self):
+        workspace = ROOT.parent / "digital-wedding-workspace"
+        patches = workspace / "audits/golden-run-readiness-2026-10-02/preparation"
+        if not patches.is_dir():
+            raise AssertionError("readiness preparation patches must be supplied with suite acceptance")
+        with tempfile.TemporaryDirectory(prefix="sdlc-preparation-") as temp:
+            root = Path(temp)
+            app = root / "app"
+            init(app, "app")
+            original = workspace / "digital-wedding-card-app"
+            for name in ("AGENTS.md", ".gitignore"):
+                (app / name).write_bytes((original / name).read_bytes())
+            git(app, "apply", str(patches / "application-preparation.patch"))
+            text = (app / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("Dev Agent (Feature Builder)", text)
+            self.assertIn("Tester", text)
+            self.assertNotIn("Gemini (Feature Builder)", text)
+            for rule in ("npm run qa:gate", "No Direct Merging", "No Silent Business Decisions", "Supabase", "Human"):
+                self.assertIn(rule, text)
+            self.assertEqual(check_runtime_ignores(app, "app"), "PASS")
+            docs = root / "docs"
+            init(docs, "docs")
+            (docs / ".gitignore").unlink()
+            git(docs, "apply", str(patches / "docs-runtime-preparation.patch"))
+            self.assertEqual(check_runtime_ignores(docs, "docs"), "PASS")
+
+    def test_canonical_srs_without_ids_and_ba_gate_fixture(self):
+        from contracts import validate_handoff_file, validate_state_data
+        with tempfile.TemporaryDirectory(prefix="sdlc-synthetic-ba-") as temp:
+            root = Path(temp)
+            manifest, data = delivery_fixture(root, False)
+            srs = root / "srs.md"
+            srs.write_text("# 1 Cộng hai số nguyên — SYNTHETIC ONLY\n\n"
+                "## 1.1 Thông tin chung về chức năng\n| Nội dung | Mô tả |\n|---|---|\n"
+                "| Mô tả | Chức năng cho phép người dùng cộng hai số nguyên. |\n| Tác nhân | Người dùng fixture. |\n"
+                "| Trigger | Gửi hai số nguyên. |\n| Điều kiện trước | Hai giá trị là số nguyên. |\n"
+                "| Điều kiện sau | Trả tổng của hai số. |\n| Luồng ngoại lệ | Không áp dụng trong fixture này. |\n"
+                "| Luồng thay thế | Không áp dụng. |\n\n## 1.2 Luồng nghiệp vụ\n"
+                "### Biểu đồ luồng nghiệp vụ\nNgười dùng gửi hai số → hệ thống trả tổng.\n"
+                "### Mô tả chi tiết nghiệp vụ\n| STT | Business Rule | Mô tả chi tiết |\n|---|---|---|\n"
+                "| 1 | Quy tắc cộng | Kết quả bằng tổng hai số nguyên được gửi. |\n\n"
+                "## 1.3 Thiết kế giao diện (nếu có)\nN/A: fixture không có UX lane.\n"
+                "### Mô tả chi tiết thành phần theo giao diện\nN/A.\n", encoding="utf-8")
+            rules = root / "rules.md"
+            rules.write_text("# Quy tắc fixture\nKết quả bằng tổng hai số nguyên được gửi.\n", encoding="utf-8")
+            handoff = root / "engineering-handoff.yml"
+            text = handoff.read_text(encoding="utf-8")
+            fields, _, _, _ = dev._yaml_fields(text)
+            for role, path in (("srs", srs), ("business_rules", rules)):
+                text = text.replace(fields[("authoritative_sources", role, "sha256")], ref(path)["sha256"])
+            handoff.write_text(text, encoding="utf-8")
+            data["ba"]["handoff"]["sha256"] = ref(handoff)["sha256"]
+            write_json(manifest, data)
+            self.assertEqual(validate_handoff_file(handoff), [])
+            baseline = design.load_approved_baseline(handoff)
+            self.assertTrue(all(unit.id.startswith("BAREF:") for unit in (*baseline.requirements, *baseline.business_rules)))
+            state = {"schema_version": 1, "feature": {"id": "CR-001"}, "operation": "synthetic_acceptance", "stage": "HANDOFF",
+                     "artifacts": {"srs": ref(srs)}, "gates": {"ba": {"fixture": "SYNTHETIC_ONLY", "decision": "APPROVE", "sha256": ref(srs)["sha256"]}},
+                     "pending": [], "source_of_truth": {"handoff": ref(handoff)}, "history": []}
+            self.assertEqual(validate_state_data(state), [])
+
     def test_same_session_no_ids_gates_promotion_and_clean_docs(self):
         with tempfile.TemporaryDirectory(prefix="sdlc-synthetic-test-") as temp:
             docs = Path(temp) / "docs"
@@ -144,7 +205,21 @@ class FreshSyntheticAcceptance(unittest.TestCase):
                 (run / filename).write_text(_planning_text(inputs), encoding="utf-8")
             dev.validate_planning_artifacts(app)
             dev.assert_implementation_allowed(app, "normal")
+            (app / "selfcheck.py").write_text("def summarize(values):\n    return sum(values)\nassert summarize([1, 2, 3]) == 6\n", encoding="utf-8")
+            git(app, "add", "selfcheck.py"); git(app, "commit", "-m", "Implement synthetic local summary")
+            self.assertEqual(dev.run_checks(app, "focused")["status"], "PASS")
+            dev.claim_action(app, "full_reviews")
+            dev.write_artifact(run / "review.json", {"change_id": inputs["change_id"], "baseline_ref": inputs["baseline_ref"],
+                "full_review_performed": True, "blocking_findings": [], "followups": [], "fixture": "SYNTHETIC_REVIEW_CONTRACT_ONLY"})
+            dev.record_review(app)
+            with self.assertRaises(ValueError): dev.claim_action(app, "full_reviews")
             self.assertEqual(dev.run_checks(app, "fresh")["status"], "PASS")
+            handoff_record = dev.prepare_handoff(app)
+            handoff_record["implementation"] = {"commits": [git(app, "rev-parse", "HEAD")], "changed_components": ["selfcheck.py"]}
+            handoff_record["requirements_coverage"] = [{"requirement_id": key, "status": "COVERED", "evidence": ["selfcheck.py"]}
+                for key in design.load_approved_baseline(docs / "engineering-handoff.yml").ba_ids]
+            dev.write_artifact(run / "dev-handoff.json", handoff_record)
+            self.assertEqual(dev.finalize_handoff(app)["state"], "READY_FOR_TEST")
             self.assertEqual(check_runtime_ignores(app, "app"), "PASS")
             self.assertEqual(git(app, "status", "--short"), "")
             data["delivery_revision"] = "CR-001-DELIVERY-002"
@@ -165,10 +240,11 @@ class FreshSyntheticAcceptance(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="sdlc-synthetic-execution-") as temp:
             root = Path(temp)
             manifest, _ = delivery_fixture(root, False)
-            testcase = write_json(root / "testcases.json", [{"testcase_id": "TC-SYNTHETIC", "expected": "3"}])
-            receipt_ref = write_json(root / "receipt.json", {"fixture": "SYNTHETIC_ONLY"})
-            approved = write_json(root / "promotion.json", {"stage": "cases", "approval_mode": "HUMAN_AUTHENTICATED",
-                                  "semantic_sha256": testcase["sha256"], "approval_receipt_sha256": receipt_ref["sha256"]})
+            testcase = write_json(root / "test/cases/testcases.json", [{"test_case_id": "TC-SYNTHETIC", "steps": [{"expected_result": "3"}]}])
+            receipt_ref = write_json(root / "test/approvals/receipt.json", {"fixture": "SYNTHETIC_ONLY", "decision": "APPROVE", "artifact_sha256": testcase["sha256"]})
+            approved = write_json(root / "test/approvals/promotion.json", {"stage": "cases", "approval_mode": "HUMAN_AUTHENTICATED",
+                                  "semantic_sha256": testcase["sha256"], "approval_receipt_sha256": receipt_ref["sha256"],
+                                  "semantic_path": "../cases/testcases.json", "approval_path": "receipt.json"})
             handoff = write_json(root / "handoff.json", {"state": "READY_FOR_TEST", "implementation": {"commits": ["a" * 40]}})
             for kind in execution.DEPENDENCY_TYPES:
                 state = execution.begin(approved, handoff, ref(manifest), [{"kind": kind, "status": "OPEN", "required": True}])
@@ -189,10 +265,12 @@ class FreshSyntheticAcceptance(unittest.TestCase):
                 self.assertEqual(execution.transition(classified, "ROUTE", actor_role="TESTER")["state"], expected)
             state = execution.transition(state, "CLASSIFY", actor_role="TESTER", evidence=classify, classification="DEFECT")
             state = execution.transition(state, "ROUTE", actor_role="TESTER")
+            self.assertEqual(execution.validate_defect_handoff(state["defect_handoff"], state), [])
+            defect_ref = write_json(root / "defect-handoff.yml", state["defect_handoff"])
             fixed_add = lambda a, b: a + b
             self.assertEqual(fixed_add(1, 2), 3)
-            verified = write_json(root / "fresh-verification.json", {"actual": fixed_add(1, 2), "status": "PASS"})
-            fix = write_json(root / "fix.json", {"implementation_commit": "b" * 40, "verification": "PASS", "verification_ref": verified})
+            verified = write_json(root / "fresh-verification.json", {"actual": fixed_add(1, 2), "status": "PASS", "implementation_commit": "b" * 40})
+            fix = write_json(root / "fix.json", {"implementation_commit": "b" * 40, "verification": "PASS", "verification_ref": verified, "defect_handoff_ref": defect_ref})
             state = execution.transition(state, "FIX", actor_role="DEV", evidence=fix)
             ready = write_json(root / "retest-handoff.json", {"implementation_commit": "b" * 40, "state": "READY_FOR_RETEST"})
             state = execution.transition(state, "HANDOFF", actor_role="DEV", evidence=ready)
@@ -213,6 +291,7 @@ class FreshSyntheticAcceptance(unittest.TestCase):
             root = Path(temp)
             profile = root / "codex-home"
             prepare_agent_profile.prepare(ROOT, profile)
+            prepare_agent_profile.register(profile)
             app = root / "app"
             init(app, "app")
             purity = dev.inspect_context_purity(app, root, "benchmark", codex_home=profile)
