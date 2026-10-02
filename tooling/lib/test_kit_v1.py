@@ -1828,6 +1828,32 @@ def persist_adapter_bundle(
 
 
 
+def _prepare_run_local_tea_config(project_config: Path, run_dir: Path) -> Path:
+    """Create a run-local resolved TEA config without mutating project-owned config."""
+    source = project_config.read_text(encoding="utf-8")
+    runtime_root = (run_dir / "raw-output").resolve().as_posix()
+    seen = set()
+    lines = []
+    for raw in source.splitlines():
+        stripped = raw.strip()
+        if stripped.startswith("output_folder:"):
+            lines.append(f"output_folder: {runtime_root}")
+            seen.add("output_folder")
+        elif stripped.startswith("test_artifacts:"):
+            lines.append(f"test_artifacts: {runtime_root}")
+            seen.add("test_artifacts")
+        else:
+            lines.append(raw)
+    missing = {"output_folder", "test_artifacts"} - seen
+    if missing:
+        raise RuntimeError(
+            "Test Kit project config is missing runtime path fields: " + ", ".join(sorted(missing))
+        )
+    path = run_dir / "inputs/tea-runtime-config.yaml"
+    _write_if_same_or_absent(path, ("\n".join(lines).rstrip() + "\n").encode("utf-8"))
+    return path
+
+
 def prepare_same_session_design(
     handoff_path: str | Path,
     run_dir: str | Path,
@@ -1847,6 +1873,8 @@ def prepare_same_session_design(
     project_config = project_root / "_bmad/tea/config.yaml"
     if not project_config.is_file():
         raise RuntimeError(f"Test Kit project config is missing: {project_config}")
+    project_config_sha256 = _source_hash(project_config)
+    runtime_config = _prepare_run_local_tea_config(project_config, run_dir)
 
     supplemental = read_supplemental_context(supplemental_manifest) if supplemental_manifest else None
     supplemental_ref = None
@@ -1880,6 +1908,9 @@ SAME_SESSION_EXECUTION:
 - Execute the installed bmad-testarch-test-design capability in this current agent session.
 - Do not start codex, codexapi, another agent process, or a nested model invocation.
 - Test Kit has already verified BA authority, pinned skill integrity, project policy, and adapter inputs.
+- For this run, use the prepared run-local TEA config recorded in the prepare manifest as the effective config source.
+- Never edit, rewrite, or retarget the project-owned _bmad/tea/config.yaml for a feature or run.
+- Write runtime/checkpoint/intermediate artifacts only under the prepared run directory.
 - Do not create compatibility shims or edit installed Test Kit/TEA runtime.
 - If the capability cannot complete from these prepared inputs, stop and report the blocker.
 """
@@ -1894,7 +1925,8 @@ SAME_SESSION_EXECUTION:
         "handoff_path": str(bundle.baseline.handoff_path),
         "handoff_sha256": bundle.baseline.handoff_sha256,
         "project_root": str(project_root),
-        "project_config": {"path": str(project_config), "sha256": _source_hash(project_config)},
+        "project_config": {"path": str(project_config), "sha256": project_config_sha256},
+        "runtime_config": {"path": str(runtime_config), "sha256": _source_hash(runtime_config)},
         "skill": {
             "capability": TEA_CAPABILITY,
             "path": str(skill_dir),
@@ -1907,6 +1939,7 @@ SAME_SESSION_EXECUTION:
             "business_rules": str(rules),
             "open_decisions": str(unknowns),
             "instructions": str(instructions),
+            "runtime_config": str(runtime_config),
         },
         "raw_output_path": str(raw_output),
     }
@@ -1932,6 +1965,16 @@ def finalize_same_session_design(
     prepared = json.loads(prepare_path.read_text(encoding="utf-8"))
     if prepared.get("mode") != "SAME_SESSION" or prepared.get("stage") != "DESIGN" or prepared.get("status") != "PREPARED":
         raise RuntimeError("same-session Design preparation evidence is invalid")
+
+    project_config = prepared.get("project_config") or {}
+    project_config_path = Path(project_config.get("path", "")).resolve()
+    if not project_config_path.is_file():
+        raise RuntimeError("project-owned TEA config disappeared after prepare")
+    if _source_hash(project_config_path) != project_config.get("sha256"):
+        raise RuntimeError(
+            "PROJECT_TEA_CONFIG_DRIFT: _bmad/tea/config.yaml changed during the run; "
+            "project config must remain stable and run-local paths belong in Test Kit evidence"
+        )
 
     bundle = adapt_ba_to_tea(handoff_path)
     if (
