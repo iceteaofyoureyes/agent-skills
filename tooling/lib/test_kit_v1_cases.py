@@ -825,8 +825,6 @@ def _parse_explicit_refs(
     field: str,
     allowed_design_ids: Iterable[str] = (),
 ) -> list[str]:
-    if INVALID_REF.search(value):
-        raise ValueError(f"{case_id}: malformed reference in {field}: {value}")
     matches = {(match.start(), match.end()): match.group(0) for match in REF_TOKEN.finditer(value)}
     for design_id in set(allowed_design_ids):
         if isinstance(design_id, str) and design_id:
