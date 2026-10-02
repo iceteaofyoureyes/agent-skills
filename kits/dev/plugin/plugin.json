@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-skills-dev-kit",
-  "version": "0.3.0-rc.1",
+  "version": "0.3.0-rc.2",
   "description": "Curated engineering capabilities, natural intent router and bounded Spec Kit workflows. Synthetic acceptance required.",
   "author": {
     "name": "iceteaofyoureyes",

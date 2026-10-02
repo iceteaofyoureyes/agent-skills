@@ -38,6 +38,24 @@ def delivery_fixture(root, ux=True):
     return path, data
 
 
+def generalized_delivery_fixture(root, prototype=True):
+    path, data = delivery_fixture(root)
+    receipt_path = Path(root) / data["ux"]["approval_receipt"]["path"]
+    receipt = json.loads(receipt_path.read_text())
+    receipt["schema_version"] = 2
+    receipt["semantic_snapshot_sha256_method"] = "UX_APPROVED_SOURCES_CANONICAL_JSON_SHA256_V2"
+    if not prototype:
+        data["ux"].pop("prototype")
+        receipt["sources"].pop("ux/prototype.html")
+        receipt.pop("prototype_authority")
+        (Path(root) / "ux/prototype.html").unlink()
+    receipt["semantic_snapshot_sha256"] = hashlib.sha256(json.dumps(receipt["sources"], sort_keys=True, separators=(",", ":")).encode()).hexdigest()
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    data["ux"]["approval_receipt"]["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+    path.write_text(json.dumps(data), encoding="utf-8")
+    return path, data
+
+
 class SharedBaselineTests(unittest.TestCase):
     def test_skill_payload_excludes_generated_bytecode(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -103,9 +121,59 @@ class SharedBaselineTests(unittest.TestCase):
 
 
 class DeliveryTests(unittest.TestCase):
+    def test_generalized_approval_with_and_without_optional_prototype(self):
+        for prototype in (False, True):
+            with self.subTest(prototype=prototype), tempfile.TemporaryDirectory() as temp:
+                path, _ = generalized_delivery_fixture(temp, prototype)
+                load_delivery_manifest(path)
+
+    def test_generalized_version_method_and_unapproved_prototype_rejected(self):
+        for mutation in ("legacy_method", "unknown_version", "unapproved_prototype", "prototype_authority"):
+            with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temp:
+                path, data = generalized_delivery_fixture(temp, False)
+                receipt_path = Path(temp) / data["ux"]["approval_receipt"]["path"]
+                receipt = json.loads(receipt_path.read_text())
+                if mutation == "legacy_method":
+                    receipt["semantic_snapshot_sha256_method"] = json.loads((Path(__file__).parent / "fixtures/delivery-ux-canonical/ux/approval-receipt.json").read_text())["semantic_snapshot_sha256_method"]
+                if mutation == "unknown_version": receipt["schema_version"] = 3
+                if mutation == "prototype_authority": receipt["prototype_authority"] = "SEMANTIC_AUTHORITY"
+                if mutation == "unapproved_prototype":
+                    prototype = Path(temp) / "ux/prototype.html"
+                    prototype.write_text("Unapproved", encoding="utf-8")
+                    data["ux"]["prototype"] = {"path": "ux/prototype.html", "sha256": hashlib.sha256(prototype.read_bytes()).hexdigest(), "authority": "REVIEW_EVIDENCE"}
+                receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+                data["ux"]["approval_receipt"]["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+                path.write_text(json.dumps(data), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_delivery_manifest(path)
+
+    def test_declared_optional_prototype_missing_or_tampered_fails_closed(self):
+        for version in (1, 2):
+            for manifest_prototype in (False, True):
+                for missing in (False, True):
+                    with self.subTest(version=version, manifest=manifest_prototype, missing=missing), tempfile.TemporaryDirectory() as temp:
+                        path, data = delivery_fixture(temp)
+                        receipt_path = Path(temp) / data["ux"]["approval_receipt"]["path"]
+                        receipt = json.loads(receipt_path.read_text())
+                        if version == 2:
+                            receipt["schema_version"] = 2
+                            receipt["semantic_snapshot_sha256_method"] = "UX_APPROVED_SOURCES_CANONICAL_JSON_SHA256_V2"
+                        receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+                        data["ux"]["approval_receipt"]["sha256"] = hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+                        if not manifest_prototype:
+                            data["ux"].pop("prototype")
+                        path.write_text(json.dumps(data), encoding="utf-8")
+                        prototype = Path(temp) / "ux/prototype.html"
+                        if missing:
+                            prototype.unlink()
+                        else:
+                            prototype.write_text("Tampered", encoding="utf-8")
+                        with self.assertRaises(ValueError):
+                            load_delivery_manifest(path)
+
     def test_distributed_ba_dev_test_validate_canonical_receipt(self):
         source = Path(__file__).resolve().parents[2]
-        versions = {"ba": "2.0.0-rc.1", "dev": "0.3.0-rc.1", "test": "2.0.0-rc.2"}
+        versions = {"ba": "2.0.0-rc.2", "dev": "0.3.0-rc.2", "test": "2.0.0-rc.3"}
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             feature = root / "feature"
@@ -136,6 +204,11 @@ class DeliveryTests(unittest.TestCase):
                     result = run()
                     self.assertNotEqual(result.returncode, 0)
                     self.assertIn("SHA-256 mismatch", result.stderr)
+                    for prototype in (False, True):
+                        generalized_delivery_fixture(feature, prototype)
+                        result = run()
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                    delivery_fixture(feature)
 
     def test_GR_DWC_DEMO_001_20261002_01_immutable_semantics_external_approval(self):
         with tempfile.TemporaryDirectory() as temp:

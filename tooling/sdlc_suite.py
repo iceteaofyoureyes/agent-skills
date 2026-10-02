@@ -10,7 +10,7 @@ from tooling.lib import ba_kit, dev_kit
 from tooling.lib.package import validate_source_package_integrity
 
 ROOT = Path(__file__).resolve().parents[1]
-CONTRACTS = {"ba_handoff": 1, "delivery_manifest": 2, "ux_approval_receipt": 1, "testware_gate": 2, "golden_provenance": 1}
+CONTRACTS = {"ba_handoff": 1, "delivery_manifest": 2, "ux_approval_receipt": 2, "testware_gate": 2, "golden_provenance": 1}
 
 
 def lock_data(root=ROOT):

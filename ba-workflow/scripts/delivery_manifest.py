@@ -9,8 +9,9 @@ from pathlib import Path
 from approved_baseline import read_approved_baseline
 
 CONTRACT_VERSION = 2
-UX_RECEIPT_VERSION = 1
+UX_RECEIPT_VERSION = 2
 UX_SNAPSHOT_METHOD = "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators."
+UX_SNAPSHOT_METHOD_V2 = "UX_APPROVED_SOURCES_CANONICAL_JSON_SHA256_V2"
 
 
 def read_mapping(path):
@@ -137,10 +138,11 @@ def load_delivery_manifest(path):
         keys(receipt, ("schema_version", "feature_id", "decision", "decision_type", "approved_by",
                        "recorded_at_utc", "revision", "immutable", "semantic_snapshot_sha256",
                        "semantic_snapshot_sha256_method", "sources", "source_commit", "source_branch",
-                       "prototype_authority", "reapproval_required_if_source_bytes_change"),
-             ("formal_browser_AT_WCAG_testing", "conformance_PASS_claimed"))
-        if type(receipt["schema_version"]) is not int or receipt["schema_version"] != UX_RECEIPT_VERSION:
-            raise ValueError("UX approval receipt schema_version must be 1")
+                       "reapproval_required_if_source_bytes_change"),
+             ("prototype_authority", "formal_browser_AT_WCAG_testing", "conformance_PASS_claimed"))
+        version = receipt["schema_version"]
+        if type(version) is not int or version not in (1, UX_RECEIPT_VERSION):
+            raise ValueError("UX approval receipt schema_version must be 1 or 2")
         if receipt["feature_id"] != feature:
             raise ValueError("UX approval receipt feature mismatch")
         if receipt["revision"] != ux["contract"]["revision"]:
@@ -151,7 +153,7 @@ def load_delivery_manifest(path):
             raise ValueError("UX approval receipt decision must be APPROVE")
         if receipt["immutable"] is not True or receipt["reapproval_required_if_source_bytes_change"] is not True:
             raise ValueError("UX approval receipt must bind an immutable snapshot requiring reapproval")
-        if receipt["prototype_authority"] != "REVIEW_EVIDENCE":
+        if "prototype_authority" in receipt and receipt["prototype_authority"] != "REVIEW_EVIDENCE":
             raise ValueError("UX receipt prototype authority must be REVIEW_EVIDENCE")
         if (not isinstance(receipt["source_commit"], str) or not re.fullmatch(r"[0-9a-f]{40}", receipt["source_commit"])
                 or not isinstance(receipt["source_branch"], str) or not receipt["source_branch"].strip()):
@@ -165,8 +167,10 @@ def load_delivery_manifest(path):
         if "conformance_PASS_claimed" in receipt and type(receipt["conformance_PASS_claimed"]) is not bool:
             raise ValueError("invalid UX conformance provenance")
         sources = receipt["sources"]
-        if not isinstance(sources, dict) or len(sources) != 2:
-            raise ValueError("canonical UX receipt requires exactly two source paths")
+        if not isinstance(sources, dict) or not sources or (version == 1 and len(sources) != 2):
+            raise ValueError("UX receipt requires approved sources; legacy V1 requires two paths")
+        if len(sources) > 1 and receipt.get("prototype_authority") != "REVIEW_EVIDENCE":
+            raise ValueError("UX receipt review evidence requires prototype authority REVIEW_EVIDENCE")
         if sources.get(ux["contract"]["path"]) != ux["contract"]["sha256"]:
             raise ValueError("UX contract path/SHA-256 missing or mismatched in receipt sources")
         resolved_sources = set()
@@ -175,7 +179,7 @@ def load_delivery_manifest(path):
             if source.resolve() == receipt_path.resolve():
                 raise ValueError("UX receipt cannot be a source")
             resolved_sources.add(source.resolve())
-        if len(resolved_sources) != 2:
+        if len(resolved_sources) != len(sources):
             raise ValueError("UX semantic source and prototype must be distinct")
         if "prototype" in ux:
             keys(ux["prototype"], ("path", "sha256", "authority"))
@@ -183,7 +187,8 @@ def load_delivery_manifest(path):
                 raise ValueError("prototype cannot also be the UX semantic source")
             if sources.get(ux["prototype"]["path"]) != ux["prototype"]["sha256"]:
                 raise ValueError("UX prototype path/SHA-256 missing or mismatched in receipt sources")
-        if receipt["semantic_snapshot_sha256_method"] != UX_SNAPSHOT_METHOD:
+        method = UX_SNAPSHOT_METHOD if version == 1 else UX_SNAPSHOT_METHOD_V2
+        if receipt["semantic_snapshot_sha256_method"] != method:
             raise ValueError("unsupported UX semantic snapshot method")
         snapshot = hashlib.sha256(json.dumps(sources, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")).hexdigest()
         if receipt["semantic_snapshot_sha256"] != snapshot:

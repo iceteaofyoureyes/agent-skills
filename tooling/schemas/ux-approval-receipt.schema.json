@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Canonical Human UX Approval Receipt V1 (Golden workflow)",
+  "title": "Canonical Human UX Approval Receipt V1/V2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,12 +17,14 @@
     "sources",
     "source_commit",
     "source_branch",
-    "prototype_authority",
     "reapproval_required_if_source_bytes_change"
   ],
   "properties": {
     "schema_version": {
-      "const": 1
+      "enum": [
+        1,
+        2
+      ]
     },
     "feature_id": {
       "type": "string",
@@ -54,12 +56,14 @@
       "pattern": "^[0-9a-f]{64}$"
     },
     "semantic_snapshot_sha256_method": {
-      "const": "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators."
+      "enum": [
+        "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators.",
+        "UX_APPROVED_SOURCES_CANONICAL_JSON_SHA256_V2"
+      ]
     },
     "sources": {
       "type": "object",
-      "minProperties": 2,
-      "maxProperties": 2,
+      "minProperties": 1,
       "propertyNames": {
         "minLength": 1
       },
@@ -88,5 +92,51 @@
     "reapproval_required_if_source_bytes_change": {
       "const": true
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": 1
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "prototype_authority"
+        ],
+        "properties": {
+          "sources": {
+            "minProperties": 2,
+            "maxProperties": 2
+          },
+          "semantic_snapshot_sha256_method": {
+            "const": "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators."
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "semantic_snapshot_sha256_method": {
+            "const": "UX_APPROVED_SOURCES_CANONICAL_JSON_SHA256_V2"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sources": {
+            "minProperties": 2
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "prototype_authority"
+        ]
+      }
+    }
+  ]
 }
