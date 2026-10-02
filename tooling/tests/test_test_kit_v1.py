@@ -155,6 +155,71 @@ class TestKitV1Tests(unittest.TestCase):
         self.assertIsNone(result.snapshot)
         self.assertEqual(result.findings[0].field, "Test ID")
 
+    def test_same_session_prepare_and_finalize_reach_design_review_without_nested_codex(self):
+        manifest = json.loads(test_kit.TEA_PIN_MANIFEST.read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory(prefix="same-session-test-kit-") as temp:
+            project = Path(temp) / "project"
+            project.mkdir()
+            handoff = self._copy_fixture(project)
+            skill = project / ".agents/skills" / test_kit.TEA_CAPABILITY
+            for relative in manifest["files"]:
+                target = skill / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes((PINNED_TEA_FIXTURE / relative).read_bytes())
+            config = project / "_bmad/tea/config.yaml"
+            config.parent.mkdir(parents=True)
+            config.write_text(
+                "user_name: Tester\n"
+                "communication_language: Vietnamese\n"
+                "document_output_language: Vietnamese\n"
+                "output_folder: test-runs\n"
+                "test_artifacts: test-runs\n"
+                "test_stack_type: fullstack\n",
+                encoding="utf-8",
+            )
+            run_dir = project / "test-runs/CR-001/design-001"
+
+            with mock.patch.object(test_kit, "resolve_codex_command") as resolver:
+                prepared = test_kit.prepare_same_session_design(
+                    handoff, run_dir, project_root=project, skill_dir=skill,
+                )
+                resolver.assert_not_called()
+
+                raw = Path(prepared["raw_output_path"])
+                raw.parent.mkdir(parents=True, exist_ok=True)
+                raw.write_bytes(BENCHMARK.read_bytes())
+
+                result = test_kit.finalize_same_session_design(handoff, run_dir)
+                resolver.assert_not_called()
+
+            self.assertEqual(result["status"], "DESIGN_REVIEW")
+            self.assertEqual(result["review_status"], "IN_REVIEW")
+            self.assertEqual(result["validation_status"], "PASS")
+            self.assertTrue((run_dir / "canonical/canonical-test-design.json").is_file())
+            self.assertTrue((run_dir / "workflow-state.json").is_file())
+            self.assertTrue((run_dir / "evidence/same-session-prepare.json").is_file())
+            self.assertTrue((run_dir / "evidence/same-session-finalize.json").is_file())
+
+    def test_same_session_prepare_fails_closed_on_unpinned_skill(self):
+        with tempfile.TemporaryDirectory(prefix="same-session-pin-") as temp:
+            project = Path(temp) / "project"
+            project.mkdir()
+            handoff = self._copy_fixture(project)
+            skill = project / ".agents/skills" / test_kit.TEA_CAPABILITY
+            skill.mkdir(parents=True)
+            (skill / "SKILL.md").write_text("wrong bytes", encoding="utf-8")
+            config = project / "_bmad/tea/config.yaml"
+            config.parent.mkdir(parents=True)
+            config.write_text("user_name: Tester\n", encoding="utf-8")
+
+            with mock.patch.object(test_kit, "resolve_codex_command") as resolver:
+                with self.assertRaisesRegex(RuntimeError, "PIN_INTEGRITY_FAILURE"):
+                    test_kit.prepare_same_session_design(
+                        handoff, project / "test-runs/run-1",
+                        project_root=project, skill_dir=skill,
+                    )
+                resolver.assert_not_called()
+
     def test_native_invocation_requests_only_the_frozen_raw_profile(self):
         prompt = test_kit._invocation_prompt(Path("epic.md"), Path("rules.md"), Path("unknowns.md"), Path("output.md"), None)
 
