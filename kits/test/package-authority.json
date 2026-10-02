@@ -61,7 +61,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "1ffabc165a04eaf3e35dff57e8319f17833a84a5f71b8cb51faf636df1f42cd1",
+      "sha256": "35d2ae72a30cfac35cbf9c2fe2c21fd765feba98ca1ff2ca0aa6c6875df94c17",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -562,5 +562,5 @@
   ],
   "managed_file_count": 111,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "75756c2c36c32f9780ea377f43ab66cd8f9363ea0adfcf377b72141ceba82bba"
+  "payload_tree_sha256": "dcb259561d4b50b93989eadd06463b311803e54efa727616d67c7c2fb26575e4"
 }
