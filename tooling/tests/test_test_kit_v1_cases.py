@@ -470,6 +470,14 @@ class TestKitV1CaseTests(unittest.TestCase):
         self.assertEqual(set(sources), set(cases.CASE_SEMANTIC_FIELDS))
         self.assertTrue(all(source.line is not None and source.line > 0 for source in sources.values()))
 
+    def test_trace_parser_accepts_domain_scoped_ba_ids(self):
+        refs = cases._parse_explicit_refs(
+            "FR-001; BR-WED-011; BR-AUTH-004",
+            case_id="TC-001",
+            field="Trace",
+        )
+        self.assertEqual(refs, ["FR-001", "BR-WED-011", "BR-AUTH-004"])
+
     def test_native_katalon_profile_is_accepted(self):
         normalized = cases.normalize_katalon_markdown(
             self._native_case(), DESIGN, self.baseline, source_path="native.md"
