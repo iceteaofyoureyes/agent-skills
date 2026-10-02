@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import ntpath
 import os
 import re
 import shutil
@@ -15,6 +16,7 @@ from pathlib import Path
 
 
 KIT_ROOT = Path(__file__).resolve().parents[2]
+_WINDOWS = os.name == "nt"
 RUNS_DIR = Path(".devkit/runs")
 CURRENT_RUN = Path(".devkit/current.json")
 ID_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}\Z")
@@ -546,6 +548,21 @@ def validate_provenance(root):
     except (OSError, json.JSONDecodeError) as error:
         return [f"cannot load Dev Kit provenance inputs: {error}"]
     components = lock.get("components", {})
+    payload = lock.get('runtime_payload')
+    if payload is not None:
+        try:
+            files = payload['files']
+            actual = {}
+            for relative in files:
+                path = (root / relative).resolve()
+                if not path.is_relative_to(root.resolve()) or path.is_symlink():
+                    raise ValueError('unsafe runtime provenance path')
+                actual[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
+            digest = hashlib.sha256(json.dumps(actual, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+            if payload['algorithm'] != 'DEV_RUNTIME_CORE_SHA256_V1' or actual != files or digest != payload['sha256']:
+                raise ValueError('Dev installed payload digest mismatch')
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            errors.append(f'Dev runtime payload provenance invalid: {error}')
     if lock.get("schema_version") != 1 or lock.get("status") != "ASSEMBLED_WITH_ONE_MINIMAL_UPSTREAM_ADAPTATION":
         errors.append("provenance lock schema/status differs from the frozen assembly")
     if set(kit.get("runtime_dependencies", {})) != {"spec_kit", "codebase_memory_mcp"}:
@@ -1182,6 +1199,23 @@ def mark_gate_approved(project_root, choice, workflow_run_id):
     return lifecycle["human_gate"]
 
 
+def resolve_executable_argv(argv):
+    """Resolve Windows bare names without shell parsing or changing arguments.
+
+    CreateProcess does not apply PATHEXT like shutil.which does. Preserve
+    explicit caller paths, including drive-relative paths, and POSIX behavior.
+    The returned copy is execution-only; evidence retains declared argv.
+    """
+    executable = argv[0]
+    resolved = list(argv)
+    if _WINDOWS and not ntpath.dirname(executable) and not ntpath.splitdrive(executable)[0]:
+        found = shutil.which(executable)
+        if found is None:
+            raise FileNotFoundError(f"EXECUTABLE_NOT_FOUND: {executable}")
+        resolved[0] = found
+    return resolved
+
+
 def run_checks(project_root, phase):
     if phase not in ("focused", "fresh"):
         raise ValueError("phase must be focused or fresh")
@@ -1193,9 +1227,11 @@ def run_checks(project_root, phase):
     failed = False
     for check in checks:
         try:
-            proc = subprocess.run(check["argv"], cwd=project_root, capture_output=True, text=True, timeout=1800, shell=False)
+            proc = subprocess.run(resolve_executable_argv(check["argv"]), cwd=project_root, capture_output=True, text=True, timeout=1800, shell=False)
             exit_code = proc.returncode
             stdout, stderr = proc.stdout[-4000:], proc.stderr[-4000:]
+        except FileNotFoundError as error:
+            exit_code, stdout, stderr = -1, "", f"EXECUTABLE_NOT_FOUND: {check['argv'][0]} ({error})"
         except (OSError, subprocess.TimeoutExpired) as error:
             exit_code, stdout, stderr = -1, "", str(error)
         result = {"name": check["name"], "status": "PASS" if exit_code == 0 else "FAIL", "command": check["argv"], "exit_code": exit_code, "stdout": stdout, "stderr": stderr}

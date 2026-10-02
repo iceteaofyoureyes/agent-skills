@@ -47,6 +47,18 @@ If `prepare-design`, TEA execution, normalization, or validation fails, report t
 - `APPROVE` is valid only for the exact current `DESIGN_REVIEW` artifact and must be persisted through Test Kit's gate logic.
 - Never infer approval from `OK`, `continue`, validator `PASS`, or a generated artifact.
 
+### Persistence recovery
+
+Human decisions are immutable transactions. Validate all transition destinations before consumption.
+On an internal persistence failure, retain the exact receipt and transaction evidence; the host may
+resume the same authenticated receipt through the public gate API without another Human decision.
+An exact completed replay validates outputs and returns idempotent success; different receipt bytes
+or conflicting immutable artifacts fail closed. Never delete receipts, overwrite evidence, edit
+workflow state, or apply candidate recovery to a frozen historical Golden run.
+
+Runtime path preflight reports `WINDOWS_PATH_BUDGET_EXCEEDED` before consuming a receipt on default
+Windows. New internal projections use compact names; existing legacy evidence is read in place.
+
 ## Testcase route — same session only
 
 After the exact Canonical Test Design is `APPROVED_DESIGN`:

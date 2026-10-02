@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import Callable, Iterable
 
 from . import test_kit_v1 as foundation
+from . import gate_persistence
+from .runtime_paths import preflight_paths, preflight_runtime_layout, revision_component, internal_artifact
 from .codex_cli import CodexCommand, resolve_codex_command
 
 
@@ -350,6 +352,8 @@ def load_design_snapshot(
     canonical_path, workflow_path, semantic_payload_path = map(
         lambda path: Path(path).resolve(), (canonical_path, workflow_path, semantic_payload_path)
     )
+    canonical_path = internal_artifact(canonical_path.parent, 'design.json', canonical_path.name)
+    semantic_payload_path = internal_artifact(semantic_payload_path.parent, 'semantic.json', semantic_payload_path.name)
     workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
     raw_records = json.loads(canonical_path.read_text(encoding="utf-8"))
     if not isinstance(raw_records, list) or any(not isinstance(row, dict) or set(row) != set(foundation.RECORD_FIELDS) for row in raw_records):
@@ -386,11 +390,14 @@ def load_case_review_snapshot(
     semantic_payload_path: str | Path,
     *,
     input_manifest_path: str | Path | None = None,
+    _review_workflow: dict | None = None,
 ) -> tuple[CaseSnapshot, CaseWorkflowState]:
     canonical_path, workflow_path, semantic_payload_path = map(
         lambda path: Path(path).resolve(), (canonical_path, workflow_path, semantic_payload_path)
     )
-    workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
+    canonical_path = internal_artifact(canonical_path.parent, 'cases.json', canonical_path.name)
+    semantic_payload_path = internal_artifact(semantic_payload_path.parent, 'semantic.json', semantic_payload_path.name)
+    workflow = _review_workflow if _review_workflow is not None else json.loads(workflow_path.read_text(encoding="utf-8"))
     raw_records = json.loads(canonical_path.read_text(encoding="utf-8"))
     if not isinstance(raw_records, list) or any(not isinstance(row, dict) or set(row) != set(CASE_RECORD_FIELDS) for row in raw_records):
         raise ValueError("canonical Testcases do not match the frozen schema")
@@ -1991,10 +1998,11 @@ def apply_case_gate_decision(
     next_revision: str | None = None,
 ) -> CaseGateDecisionResult:
     workflow_dir = Path(workflow_dir).resolve()
+    receipt_bytes = json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
     try:
-        persisted_workflow = json.loads((workflow_dir / "workflow-state.json").read_text(encoding="utf-8"))
+        persisted_workflow = gate_persistence.review_state(workflow_dir, workflow_dir / 'case-gate/receipt.json', receipt_bytes)
     except (OSError, ValueError) as error:
-        finding = foundation.Finding("CASE_WORKFLOW_UNAVAILABLE", str(error))
+        finding = foundation.Finding(getattr(error, 'code', 'CASE_WORKFLOW_UNAVAILABLE'), str(error))
         return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot)
     if persisted_workflow.get("state") != "CASE_REVIEW":
         code = "RECEIPT_REPLAY" if (workflow_dir / "case-gate/receipt.json").is_file() else "INVALID_CASE_GATE_TRANSITION"
@@ -2005,6 +2013,7 @@ def apply_case_gate_decision(
             workflow_dir / "canonical/canonical-testcases.json",
             workflow_dir / "workflow-state.json",
             workflow_dir / "canonical/semantic-payload.json",
+            _review_workflow=persisted_workflow,
         )
     except (OSError, ValueError, KeyError, TypeError, RawOutputIntegrityError) as error:
         code = "RAW_OUTPUT_INTEGRITY_FAILURE" if isinstance(error, RawOutputIntegrityError) else "CASE_WORKFLOW_UNAVAILABLE"
@@ -2020,9 +2029,6 @@ def apply_case_gate_decision(
         != (snapshot.artifact_id, snapshot.revision, snapshot.sha256)
     ):
         finding = foundation.Finding("CASE_RECEIPT_BINDING_MISMATCH", "caller snapshot is not the authoritative persisted CASE_REVIEW artifact")
-        return CaseGateDecisionResult("REJECTED", finding, (finding,), persisted_state, persisted_snapshot)
-    if (workflow_dir / "case-gate/receipt.json").exists():
-        finding = foundation.Finding("RECEIPT_REPLAY", "a Case Gate receipt was already consumed for this review")
         return CaseGateDecisionResult("REJECTED", finding, (finding,), persisted_state, persisted_snapshot)
     state = persisted_state
     snapshot = persisted_snapshot
@@ -2040,8 +2046,8 @@ def apply_case_gate_decision(
     if decision_result.status != "REJECTED":
         try:
             persist_case_gate_decision(workflow_dir, decision_result)
-        except FileExistsError:
-            finding = foundation.Finding("RECEIPT_REPLAY", "another decision already consumed a Case Gate receipt")
+        except (OSError, ValueError) as error:
+            finding = foundation.Finding(getattr(error, 'code', 'CASE_GATE_PERSISTENCE_FAILED'), str(error))
             return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot)
     return decision_result
 
@@ -2060,19 +2066,17 @@ def apply_test_only_case_gate_decision(
 ) -> CaseGateDecisionResult:
     workflow_dir = Path(workflow_dir).resolve()
     try:
-        persisted_workflow = json.loads((workflow_dir / "workflow-state.json").read_text(encoding="utf-8"))
+        receipt = json.loads(Path(fixture_path).read_text(encoding='utf-8'))['receipt']
+        receipt_bytes = json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        persisted_workflow = gate_persistence.review_state(workflow_dir, workflow_dir / 'case-gate/receipt.json', receipt_bytes)
     except (OSError, ValueError) as error:
-        finding = foundation.Finding("CASE_WORKFLOW_UNAVAILABLE", str(error))
+        finding = foundation.Finding(getattr(error, "code", "CASE_WORKFLOW_UNAVAILABLE"), str(error))
         return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot, test_only=True)
     if persisted_workflow.get("state") != "CASE_REVIEW":
         code = "RECEIPT_REPLAY" if (workflow_dir / "case-gate/receipt.json").is_file() else "INVALID_CASE_GATE_TRANSITION"
         finding = foundation.Finding(code, "authoritative persisted state is not CASE_REVIEW")
         return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot, test_only=True)
     execution_refs = tuple(execution_contract_refs)
-    checked = validate_test_only_case_gate_fixture(
-        fixture_path, snapshot, design, baseline, state, workflow_dir=workflow_dir,
-        validation=validation, execution_contract_refs=execution_refs,
-    )
     try:
         fixture = json.loads(Path(fixture_path).read_text(encoding="utf-8"))
         receipt = fixture["receipt"]
@@ -2083,6 +2087,7 @@ def apply_test_only_case_gate_decision(
             workflow_dir / "canonical/canonical-testcases.json",
             workflow_dir / "workflow-state.json",
             workflow_dir / "canonical/semantic-payload.json",
+            _review_workflow=persisted_workflow,
         )
     except (OSError, ValueError, KeyError, TypeError, RawOutputIntegrityError) as error:
         code = "RAW_OUTPUT_INTEGRITY_FAILURE" if isinstance(error, RawOutputIntegrityError) else "CASE_WORKFLOW_UNAVAILABLE"
@@ -2093,6 +2098,11 @@ def apply_test_only_case_gate_decision(
         finding = foundation.Finding(code, "authoritative persisted state is not the unconsumed TEST_ONLY CASE_REVIEW")
         return CaseGateDecisionResult("REJECTED", finding, (finding,), persisted_state, persisted_snapshot, test_only=True)
     state, snapshot = persisted_state, persisted_snapshot
+    checked = validate_test_only_case_gate_fixture(
+        fixture_path, snapshot, design, baseline, state, workflow_dir=workflow_dir,
+        validation=validation, execution_contract_refs=execution_refs,
+    )
+
     decision_result = _case_gate_transition(
         receipt, snapshot, design, baseline, state, checked,
         execution_contract_refs=execution_refs, next_revision=next_revision, test_only=True,
@@ -2100,8 +2110,8 @@ def apply_test_only_case_gate_decision(
     if decision_result.status != "REJECTED":
         try:
             persist_case_gate_decision(workflow_dir, decision_result)
-        except FileExistsError:
-            finding = foundation.Finding("RECEIPT_REPLAY", "another decision already consumed a TEST_ONLY Case Gate receipt")
+        except (OSError, ValueError) as error:
+            finding = foundation.Finding(getattr(error, "code", "CASE_GATE_PERSISTENCE_FAILED"), str(error))
             return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot, test_only=True)
     return decision_result
 
@@ -2118,14 +2128,22 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
     evidence_dir = Path(evidence_dir).resolve()
     root_workflow_path = evidence_dir / "workflow-state.json"
     try:
-        root_workflow = json.loads(root_workflow_path.read_text(encoding="utf-8"))
+        root_workflow = gate_persistence.review_state(evidence_dir, evidence_dir / 'case-gate/receipt.json', decision.receipt_bytes)
+        before = json.loads(json.dumps(root_workflow))
     except (OSError, ValueError) as error:
         raise ValueError(f"authoritative Case Review workflow is unavailable: {error}") from error
     if root_workflow.get("state") != "CASE_REVIEW" or root_workflow.get("artifact_sha256") != decision.reviewed_snapshot.sha256:
         raise ValueError("authoritative Case Review state changed before receipt persistence")
     if decision.test_only and not foundation.is_test_only_workspace_path(evidence_dir):
         raise ValueError("TEST_ONLY Case Gate evidence must use a temporary directory or .work/benchmark-runs")
-    _write_exclusive(evidence_dir / "case-gate/receipt.json", decision.receipt_bytes)
+    artifacts = []
+    def add_artifact(path, content):
+        artifacts.append((path, content))
+    human_history = [*before.get('human_gate_history', []), {
+        'event': 'HUMAN_APPROVE' if decision.status == 'STOP_V1' else 'HUMAN_REQUEST_CHANGES',
+        'artifact_revision': decision.reviewed_snapshot.revision,
+        'artifact_sha256': decision.reviewed_snapshot.sha256,
+        'receipt_sha256': decision.receipt_sha256}]
     if decision.status == "STOP_V1":
         approved_record = decision.approved_testware.to_dict()
         if decision.test_only:
@@ -2134,29 +2152,30 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
                 "not_for_production": True,
                 "approved_testware": approved_record,
             }
-        _write_exclusive(
+        add_artifact(
             evidence_dir / "approved-testware.json",
             (json.dumps(approved_record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
         projection = [record.to_dict() for record in decision.reviewed_snapshot.records]
-        _write_exclusive(
-            evidence_dir / "canonical-testcases-approved-projection.json",
+        add_artifact(
+            internal_artifact(evidence_dir, 'approved.json', 'canonical-testcases-approved-projection.json'),
             (json.dumps(projection, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
     else:
         old_projection = [record.to_dict() for record in decision.reviewed_snapshot.records]
-        _write_exclusive(
-            evidence_dir / "case-gate/old-snapshot-projection.json",
+        add_artifact(
+            internal_artifact(evidence_dir / 'case-gate', 'changes.json', 'old-snapshot-projection.json'),
             (json.dumps(old_projection, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
+        revision_component(decision.next_snapshot.revision)
         revision_dir = evidence_dir / "revisions" / decision.next_snapshot.revision
         draft = decision.next_snapshot.project("DRAFT")
-        _write_exclusive(
-            revision_dir / "canonical/canonical-testcases.json",
+        add_artifact(
+            internal_artifact(revision_dir / 'canonical', 'cases.json', 'canonical-testcases.json'),
             (json.dumps([record.to_dict() for record in draft.records], ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
-        _write_exclusive(revision_dir / "canonical/semantic-payload.json", draft.payload_bytes)
-        _write_exclusive(
+        add_artifact(internal_artifact(revision_dir / 'canonical', 'semantic.json', 'semantic-payload.json'), draft.payload_bytes)
+        add_artifact(
             revision_dir / "workflow-state.json",
             (json.dumps({
                 "state": "DRAFT_CASES",
@@ -2168,7 +2187,7 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
                 "derived_from": {"artifact_id": decision.reviewed_snapshot.artifact_id, "revision": decision.reviewed_snapshot.revision, "sha256": decision.reviewed_snapshot.sha256},
             }, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
-    _write_exclusive(
+    add_artifact(
         evidence_dir / "case-gate/workflow-state.json",
         (json.dumps({
             "state": decision.workflow.state,
@@ -2189,6 +2208,7 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
                 for ref in decision.workflow.input_refs
             ],
             "history": list(decision.state_history),
+            "human_gate_history": human_history,
             "test_only": decision.test_only,
             "project_policy_context": decision.workflow.project_policy_context,
         }, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
@@ -2201,14 +2221,22 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
         "review_status": decision.workflow.review_status,
         "validation_status": decision.workflow.validation_status,
         "history": list(decision.state_history),
+        "human_gate_history": human_history,
         "test_only": decision.test_only,
         "case_gate_receipt_mode": "TEST_ONLY" if decision.test_only else "HUMAN_AUTHENTICATED",
         "case_gate_receipt_evidence": {"path": str(evidence_dir / "case-gate/receipt.json"), "sha256": decision.receipt_sha256},
     })
-    foundation._write_workflow_state_atomic(root_workflow_path, root_workflow, list(decision.state_history))
+    if decision.next_snapshot is not None:
+        root_workflow['derived_from'] = {'artifact_id': decision.reviewed_snapshot.artifact_id,
+                                        'revision': decision.reviewed_snapshot.revision,
+                                        'sha256': decision.reviewed_snapshot.sha256}
+    gate_persistence.commit_gate(evidence_dir, evidence_dir / 'case-gate/receipt.json',
+                                 decision.receipt_bytes, artifacts, before, root_workflow,
+                                 stage='CASE_GATE', transition='APPROVE' if decision.status == 'STOP_V1' else 'REQUEST_CHANGES')
 
 
 def _write_exclusive(path: Path, content: bytes) -> None:
+    preflight_paths([path], stage='CASES', transition='WRITE')
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("xb") as file:
         file.write(content)
@@ -2339,8 +2367,16 @@ def persist_case_review(
         raise ValueError("CASE_REVIEW persistence requires validators bound to the exact testcase snapshot")
     if state.state != "CASE_REVIEW" or (state.artifact_id, state.artifact_revision, state.artifact_sha256) != (snapshot.artifact_id, snapshot.revision, snapshot.sha256):
         raise ValueError("CASE_REVIEW state is not bound to the exact testcase snapshot")
-    run_dir = Path(run_dir)
+    run_dir = Path(run_dir).resolve()
     created_paths: list[Path] = []
+    preflight_runtime_layout(run_dir, 'CASES', 'FINALIZE')
+    policy_path = run_dir / 'inputs/project-policy-context.json'
+    if policy_path.is_file():
+        policy_context = json.loads(policy_path.read_text(encoding='utf-8'))
+        foundation.current_project_policy_ref(run_dir, 'CASES')
+        if state.project_policy_context is not None and state.project_policy_context != policy_context:
+            raise foundation.ProjectPolicyBindingError('Case Review policy context differs from the recorded invocation')
+        state = replace(state, project_policy_context=policy_context)
     authoritative_raw_evidence: tuple[Path, str] | None = None
     raw_evidence_refs = [ref for ref in snapshot.evidence if ref.field == "katalon_raw_output"]
     if raw_evidence_refs:
@@ -2634,6 +2670,7 @@ def prepare_same_session_cases(
 ) -> dict:
     """Prepare approved Design inputs for same-session create-test-cases execution."""
     run_dir = Path(run_dir).resolve()
+    preflight_runtime_layout(run_dir, 'CASES', 'PREPARE')
     project_root = Path(project_root).resolve()
     skill_dir = Path(skill_dir).resolve()
     expected_skill = (project_root / ".agents/skills" / KATALON_CAPABILITY).resolve()
@@ -2760,6 +2797,7 @@ def finalize_same_session_cases(
 ) -> CaseIntegrationResult:
     """Normalize, validate and submit same-session testcase output to CASE_REVIEW."""
     run_dir = Path(run_dir).resolve()
+    preflight_runtime_layout(run_dir, 'CASES', 'FINALIZE')
     prepare_path = run_dir / "evidence/same-session-prepare.json"
     if not prepare_path.is_file():
         raise RuntimeError("same-session testcase preparation evidence is missing")

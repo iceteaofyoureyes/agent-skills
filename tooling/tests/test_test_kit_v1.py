@@ -697,7 +697,7 @@ class TestKitV1Tests(unittest.TestCase):
             )
             root = Path(temp)
             workflow = json.loads((root / "workflow-state.json").read_text(encoding="utf-8"))
-            projection = json.loads((root / "canonical/canonical-test-design-approved-projection.json").read_text(encoding="utf-8"))
+            projection = json.loads((root / "canonical/approved.json").read_text(encoding="utf-8"))
 
             self.assertTrue(decision.accepted)
             self.assertEqual(decision.state.state, "APPROVED_DESIGN")
@@ -737,9 +737,9 @@ class TestKitV1Tests(unittest.TestCase):
             self.assertEqual(decision.next_snapshot.records[0].review_status, "DRAFT")
             self.assertEqual(decision.next_snapshot.sha256, result.snapshot.sha256)
             self.assertTrue((root / "design-gate/revisions/1/receipt.json").is_file())
-            self.assertTrue((root / "revisions/2/canonical/semantic-payload.json").is_file())
+            self.assertTrue((root / "revisions/2/canonical/semantic.json").is_file())
 
-    def test_design_gate_replay_is_rejected_after_approval(self):
+    def test_design_gate_exact_replay_is_idempotent_after_approval(self):
         result = test_kit.normalize_tea_output(BENCHMARK, self.baseline)
         validation = test_kit.validate_design(result.snapshot, self.baseline)
         state = test_kit.submit_design_for_review(
@@ -763,8 +763,8 @@ class TestKitV1Tests(unittest.TestCase):
             )
 
         self.assertTrue(first.accepted)
-        self.assertFalse(replay.accepted)
-        self.assertEqual(replay.finding.code, "INVALID_REVIEW_TRANSITION")
+        self.assertTrue(replay.accepted)
+        self.assertEqual(replay.state, first.state)
 
     def test_design_gate_rechecks_source_bytes_after_baseline_load(self):
         with tempfile.TemporaryDirectory() as temp:

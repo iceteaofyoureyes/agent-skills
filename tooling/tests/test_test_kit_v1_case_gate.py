@@ -249,10 +249,10 @@ class TestKitV1CaseGateTests(unittest.TestCase):
         )
 
         self.assertEqual(first.workflow.state, "DRAFT_CASES")
-        self.assertEqual(replay.finding.code, "RECEIPT_REPLAY")
+        self.assertEqual(replay.finding.code, "CASE_RECEIPT_BINDING_MISMATCH")
         self.assertIsNone(replay.receipt_bytes)
 
-    def test_same_approve_receipt_and_stale_case_review_object_cannot_replay(self):
+    def test_exact_approve_receipt_recovers_original_case_review(self):
         snapshot, state, validation, execution_refs = self._case_review()
         receipt = self._receipt(snapshot, decision="APPROVE")
         first = cases.apply_case_gate_decision(
@@ -269,8 +269,8 @@ class TestKitV1CaseGateTests(unittest.TestCase):
         )
 
         self.assertEqual(first.status, "STOP_V1")
-        self.assertEqual(replay.status, "REJECTED")
-        self.assertEqual(replay.finding.code, "RECEIPT_REPLAY")
+        self.assertEqual(replay.status, "STOP_V1")
+        self.assertEqual(replay.workflow, first.workflow)
 
     def test_validator_failure_blocks_case_gate(self):
         snapshot, state, _, execution_refs = self._case_review()
@@ -352,8 +352,8 @@ class TestKitV1CaseGateTests(unittest.TestCase):
         )
         root = self.case_review_dir
         self.assertTrue((root / "case-gate/receipt.json").is_file())
-        self.assertTrue((root / "case-gate/old-snapshot-projection.json").is_file())
-        self.assertTrue((root / "revisions/2/canonical/canonical-testcases.json").is_file())
+        self.assertTrue((root / "case-gate/changes.json").is_file())
+        self.assertTrue((root / "revisions/2/canonical/cases.json").is_file())
         self.assertFalse((root / "approved-testware.json").exists())
         self.assertEqual(json.loads((root / "workflow-state.json").read_text(encoding="utf-8"))["state"], "DRAFT_CASES")
 
@@ -544,7 +544,8 @@ class TestKitV1CaseGateTests(unittest.TestCase):
         )
 
         self.assertEqual(approved.workflow.state, "STOP_V1")
-        self.assertEqual(follow_up.finding.code, "RECEIPT_REPLAY")
+        self.assertEqual(follow_up.status, "STOP_V1")
+        self.assertEqual(follow_up.workflow, approved.workflow)
 
     def _case_review(self, *, open_dependency=False, execution_refs=(), test_only_design=False):
         execution_refs = tuple(execution_refs)

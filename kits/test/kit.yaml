@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "test",
   "name": "Test Kit",
-  "version": "2.0.0-rc.3",
+  "version": "2.0.0-rc.4",
   "workflow": {
     "skill": "test-kit"
   },
@@ -205,6 +205,18 @@
       "destination": ".test-kit/tooling/lib/testware_promotion.py",
       "classification": "CORE_RUNTIME",
       "capability": "core"
+    },
+    {
+      "source": "tooling/lib/gate_persistence.py",
+      "destination": ".test-kit/tooling/lib/gate_persistence.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/runtime_paths.py",
+      "destination": ".test-kit/tooling/lib/runtime_paths.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
     }
   ],
   "capabilities": {
@@ -290,11 +302,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "5259a43cc3c76a3ede9cd39eeed10a9b702cc5dbb8556f1f7b15ee7601745443"
+      "sha256": "766f8008b4580459b9f577ca16663d75b0ac50f4bea7f22b7e562f66a0fc38d6"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "977b534dd862f1cd293bc6cca22e6def752ed1fd5ffb795d2a1e5c7cc2b3b63f"
+      "sha256": "76320406cf3b289fb2e0091b15c8a316926cd0de6313d0cc12e7c3380096350c"
     }
   }
 }

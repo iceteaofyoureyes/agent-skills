@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 
 from . import test_kit_v1 as design, test_kit_v1_cases as cases
+from .gate_persistence import write_if_same_or_absent
+from .runtime_paths import preflight_paths, revision_component
 
 
 def render_testware(rows, stage):
@@ -15,16 +17,7 @@ def render_testware(rows, stage):
 
 
 def _copy_exact(path, content):
-    path = Path(path)
-    if path.is_symlink():
-        raise ValueError("promotion target must not be symlink")
-    if path.exists():
-        if path.read_bytes() != content:
-            raise ValueError("promotion cannot overwrite a different approved snapshot")
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("xb") as stream:
-        stream.write(content)
+    write_if_same_or_absent(path, content)
 
 
 def promote(run_dir, feature_root, baseline, *, stage, human_actor_authenticator):
@@ -76,6 +69,7 @@ def promote(run_dir, feature_root, baseline, *, stage, human_actor_authenticator
         if directory.is_symlink():
             raise ValueError("unsafe promotion directory")
     receipt_bytes = receipt_path.read_bytes()
+    revision_component(workflow['artifact_revision'])
     receipt_name = f"{stage}-{workflow['artifact_revision']}-receipt.json"
     record = {"schema_version": 1, "source_run_id": run_dir.name, "stage": stage,
               "artifact_id": workflow["artifact_id"], "revision": workflow["artifact_revision"],
@@ -85,8 +79,14 @@ def promote(run_dir, feature_root, baseline, *, stage, human_actor_authenticator
     # Portable durable refs; execution resolves them from the promotion record directory.
     record["semantic_path"] = f"../{stage}/{name}.json"
     record["approval_path"] = receipt_name
-    _copy_exact(target / (name + ".json"), semantic)
-    _copy_exact(target / (name + ".md"), markdown)
-    _copy_exact(feature_root / "test/approvals" / receipt_name, receipt_bytes)
-    _copy_exact(feature_root / "test/approvals" / (stage + "-promotion.json"), (json.dumps(record, indent=2) + "\n").encode())
+    writes = [(target / (name + '.json'), semantic), (target / (name + '.md'), markdown),
+              (feature_root / 'test/approvals' / receipt_name, receipt_bytes),
+              (feature_root / 'test/approvals' / (stage + '-promotion.json'),
+               (json.dumps(record, indent=2) + '\n').encode())]
+    preflight_paths([path for path, _ in writes], stage='TESTWARE_PROMOTION', transition=stage)
+    for path, content in writes:
+        if path.exists() and path.read_bytes() != content:
+            raise ValueError('promotion cannot overwrite a different approved snapshot')
+    for path, content in writes:
+        _copy_exact(path, content)
     return record

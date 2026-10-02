@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.3",
+  "kit_version": "2.0.0-rc.4",
   "manifest_schema_version": 1,
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "98864dcab27d661683c0b3a8e009bf841505db1ac1f9641d51383e54b9306744",
+      "sha256": "a8517c3c69ae332887c45292443376caa5a31e0fb1cda807a465ee0ecdbf18ef",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
@@ -65,23 +65,33 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/tooling/lib/gate_persistence.py",
+      "sha256": "80bfbf8baba46439f6d7f849bd6ff39b7d93794d57a45ec747dc013ef4bf11ca",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/runtime_paths.py",
+      "sha256": "fb11940cf87a88616636af476bc148fcb028c27e84547accf470bf445ca22a5e",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/tooling/lib/test_kit_policy.py",
       "sha256": "f686cb7f7c5fb3060e48f90163b86506c5c3ebfbcb46dbe1e6e31341016b057c",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "40c94a988a11bc960410c62204f6fa8124c5d9721d1281e7870d0a1526629175",
+      "sha256": "a60982a090d360005c4dfdbd75f4ddda16faf642b974fd74a3dfc9c00b1940db",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_cases.py",
-      "sha256": "d8d6f6f7922a8f87a0cdd973f9baf931f8f60ea5acd7d8a33e5a608b49e7a482",
+      "sha256": "3f71dad5029a8b624569a1a6c916b2ba5626a9e7dd8c6df0940201b305c21f7f",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_excel.py",
-      "sha256": "1ad62f3093b0c01ac5791dcbc59ee43d3071203b7e69bd12d55004f9a6a997bc",
+      "sha256": "76252b82510ace7ed5a0ae53308cee7e3f723d9a9405ec2e0ea8600c34fcd5fd",
       "classification": "OPTIONAL_RUNTIME"
     },
     {
@@ -91,7 +101,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/testware_promotion.py",
-      "sha256": "4d33326523db638a5aa3af49949368d287856cf358cd2e9c0aa921bd01df23c8",
+      "sha256": "3a2e206ebd17e604cd25400140883c7d7acae0a20cb3694203fc1bcc7da9fbe2",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -571,11 +581,11 @@
     },
     {
       "path": "test-kit/SKILL.md",
-      "sha256": "c405dd7aede0d848998d585ab943a18ed8381917ae8af8e7f00166c93b4a6363",
+      "sha256": "2e2ac3a3b63d5fc2752f26609dfb5840a75be72c25aaaddc8ea48ed87dc48b96",
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 114,
+  "managed_file_count": 116,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "977b534dd862f1cd293bc6cca22e6def752ed1fd5ffb795d2a1e5c7cc2b3b63f"
+  "payload_tree_sha256": "76320406cf3b289fb2e0091b15c8a316926cd0de6313d0cc12e7c3380096350c"
 }

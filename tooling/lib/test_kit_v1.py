@@ -16,6 +16,8 @@ from pathlib import Path
 from typing import Iterable
 
 from .codex_cli import resolve_codex_command
+from . import gate_persistence
+from .runtime_paths import preflight_paths, preflight_runtime_layout, revision_component, internal_artifact
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -888,11 +890,17 @@ def _apply_design_decision(
     test_only_fixture_path: Path | None = None,
 ) -> DecisionAttempt:
     run_dir = Path(run_dir).resolve()
-    workflow_path = run_dir / "workflow-state.json"
+    finding = _design_receipt_shape_finding(receipt)
+    if finding:
+        return _design_decision_rejected(snapshot, finding.code, finding.message)
+    receipt_bytes = json.dumps(receipt, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     try:
-        workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as error:
-        return _design_decision_rejected(snapshot, "DESIGN_WORKFLOW_UNAVAILABLE", str(error))
+        revision_component(snapshot.revision)
+        receipt_path = run_dir / "design-gate/revisions" / snapshot.revision / "receipt.json"
+        workflow = gate_persistence.review_state(run_dir, receipt_path, receipt_bytes)
+    except (OSError, ValueError, KeyError) as error:
+        return _design_decision_rejected(snapshot, getattr(error, 'code', 'DESIGN_WORKFLOW_UNAVAILABLE'), str(error))
+    before = json.loads(json.dumps(workflow))
     state = _design_state_from_workflow(workflow)
     if state.state != "DESIGN_REVIEW":
         return DecisionAttempt(False, state, Finding("INVALID_REVIEW_TRANSITION", "authoritative persisted state must be DESIGN_REVIEW"))
@@ -960,19 +968,13 @@ def _apply_design_decision(
     receipt_bytes = json.dumps(receipt, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     receipt_sha256 = hashlib.sha256(receipt_bytes).hexdigest()
     receipt_path = run_dir / "design-gate" / "revisions" / snapshot.revision / "receipt.json"
-    if receipt_path.exists():
-        return DecisionAttempt(False, state, Finding("RECEIPT_REPLAY", "a receipt was already consumed for this design revision"))
     try:
-        _write_exclusive(receipt_path, receipt_bytes)
         receipt_ref = {"path": str(receipt_path), "sha256": receipt_sha256}
         history = list(workflow.get("history", []))
         if receipt["decision"] == "APPROVE":
             approved_projection = snapshot.project("APPROVED")
-            projection_path = run_dir / "canonical/canonical-test-design-approved-projection.json"
-            _write_exclusive(
-                projection_path,
-                (json.dumps([row.to_dict() for row in approved_projection.records], ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
-            )
+            projection_path = internal_artifact(run_dir / 'canonical', 'approved.json', 'canonical-test-design-approved-projection.json')
+            artifacts = [(projection_path, gate_persistence.json_bytes([row.to_dict() for row in approved_projection.records]))]
             next_state = DesignWorkflowState(
                 "APPROVED_DESIGN", snapshot.artifact_id, snapshot.revision, snapshot.sha256,
                 "APPROVED", "PASS",
@@ -988,25 +990,24 @@ def _apply_design_decision(
                     if test_only_fixture_path else None
                 ),
             })
-            _write_workflow_state_atomic(workflow_path, workflow, history)
+            workflow['history'] = history
+            gate_persistence.commit_gate(run_dir, receipt_path, receipt_bytes, artifacts, before, workflow,
+                                         stage='DESIGN_GATE', transition='APPROVE')
             return DecisionAttempt(True, next_state, reviewed_snapshot=approved_projection, receipt_bytes=receipt_bytes, receipt_sha256=receipt_sha256)
 
         changed_projection = snapshot.project("CHANGES_REQUESTED")
-        _write_exclusive(
-            run_dir / "design-gate/revisions" / snapshot.revision / "canonical-test-design-changes-requested.json",
-            (json.dumps([row.to_dict() for row in changed_projection.records], ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
-        )
+        revision_component(next_revision)
+        artifacts = [(internal_artifact(receipt_path.parent, 'changes.json', 'canonical-test-design-changes-requested.json'),
+                      gate_persistence.json_bytes([row.to_dict() for row in changed_projection.records]))]
         next_snapshot = DesignSnapshot.create(
             snapshot.records, artifact_id=snapshot.artifact_id, revision=next_revision,
             evidence=snapshot.evidence, field_sources=snapshot.field_sources,
         )
         next_snapshot = next_snapshot.project("DRAFT")
         next_dir = run_dir / "revisions" / next_revision / "canonical"
-        _write_exclusive(next_dir / "semantic-payload.json", next_snapshot.payload_bytes)
-        _write_exclusive(
-            next_dir / "canonical-test-design.json",
-            (json.dumps([row.to_dict() for row in next_snapshot.records], ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
-        )
+        artifacts.extend([(internal_artifact(next_dir, 'semantic.json', 'semantic-payload.json'), next_snapshot.payload_bytes),
+                          (internal_artifact(next_dir, 'design.json', 'canonical-test-design.json'),
+                           gate_persistence.json_bytes([row.to_dict() for row in next_snapshot.records]))])
         next_state = DesignWorkflowState(
             "DRAFT_DESIGN", next_snapshot.artifact_id, next_snapshot.revision,
             next_snapshot.sha256, "DRAFT", "NOT_RUN",
@@ -1022,13 +1023,19 @@ def _apply_design_decision(
             "design_gate_receipt_mode": None, "design_gate_receipt_evidence": None,
             "derived_from": {"artifact_id": snapshot.artifact_id, "revision": snapshot.revision, "sha256": snapshot.sha256},
         })
-        _write_workflow_state_atomic(workflow_path, workflow, history)
+        artifacts.append((next_dir.parent / 'workflow-state.json', gate_persistence.json_bytes({
+            'state': next_state.state, 'artifact_id': next_state.artifact_id,
+            'artifact_revision': next_state.artifact_revision, 'artifact_sha256': next_state.artifact_sha256,
+            'review_status': 'DRAFT', 'validation_status': 'NOT_RUN', 'derived_from': workflow['derived_from']})))
+        workflow['history'] = history
+        gate_persistence.commit_gate(run_dir, receipt_path, receipt_bytes, artifacts, before, workflow,
+                                     stage='DESIGN_GATE', transition='REQUEST_CHANGES')
         return DecisionAttempt(
             True, next_state, reviewed_snapshot=changed_projection,
             next_snapshot=next_snapshot, receipt_bytes=receipt_bytes, receipt_sha256=receipt_sha256,
         )
-    except OSError as error:
-        return DecisionAttempt(False, state, Finding("DESIGN_GATE_PERSISTENCE_FAILED", str(error)))
+    except (OSError, ValueError) as error:
+        return DecisionAttempt(False, state, Finding(getattr(error, 'code', 'DESIGN_GATE_PERSISTENCE_FAILED'), str(error)))
 
 
 def load_persisted_design_snapshot(
@@ -1037,7 +1044,7 @@ def load_persisted_design_snapshot(
     """Rehydrate the exact canonical Design snapshot from persisted semantic bytes."""
     run_dir = Path(run_dir).resolve()
     workflow_path = run_dir / "workflow-state.json"
-    semantic_path = run_dir / "canonical/semantic-payload.json"
+    semantic_path = internal_artifact(run_dir / 'canonical', 'semantic.json', 'semantic-payload.json')
     try:
         workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
         semantic_bytes = semantic_path.read_bytes()
@@ -1268,21 +1275,13 @@ def _design_decision_rejected(snapshot: DesignSnapshot, code: str, message: str)
 
 def _write_workflow_state_atomic(path: Path, workflow: dict, history: list) -> None:
     workflow["history"] = history
-    content = (json.dumps(workflow, ensure_ascii=False, indent=2) + "\n").encode("utf-8")
     path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(prefix="workflow-state-", dir=path.parent)
-    try:
-        with os.fdopen(descriptor, "wb") as handle:
-            handle.write(content)
-            handle.flush()
-            os.fsync(handle.fileno())
-        os.replace(temporary_name, path)
-    finally:
-        if os.path.exists(temporary_name):
-            os.unlink(temporary_name)
+    preflight_paths([path], stage='WORKFLOW', transition='COMMIT')
+    gate_persistence.atomic_workflow(path, workflow)
 
 
 def _write_exclusive(path: Path, content: bytes) -> None:
+    preflight_paths([path], stage='DESIGN', transition='WRITE')
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("xb") as handle:
         handle.write(content)
@@ -1325,6 +1324,7 @@ def persist_design_review(
     project_root: str | Path | None = None,
 ) -> None:
     run_dir = Path(run_dir).resolve()
+    preflight_runtime_layout(run_dir, 'DESIGN', 'FINALIZE')
     context_path = run_dir / "inputs/project-policy-context.json"
     if project_root is not None and not context_path.exists():
         persist_project_policy_context(run_dir, project_root, "DESIGN", bootstrap_tea=True)
@@ -1652,6 +1652,9 @@ def persist_adapter_bundle(
 ) -> tuple[Path, Path, Path]:
     """Write only fresh evidence paths; existing files are never overwritten."""
     run_dir = Path(run_dir)
+    preflight_runtime_layout(run_dir, 'DESIGN', 'ADAPTER_INPUTS',
+                             extra=tuple('inputs/baseline/' + path.name for path in
+                                         (*bundle.baseline.source_paths.values(), bundle.baseline.handoff_path)))
     epic, rules, unknowns = _write_adapter_inputs(bundle, run_dir)
     input_dir = run_dir / "inputs"
     adapter_dir = input_dir / "adapter"
@@ -1720,6 +1723,7 @@ def prepare_same_session_design(
 ) -> dict:
     """Prepare immutable Test Design inputs for execution by the current agent session."""
     run_dir = Path(run_dir).resolve()
+    preflight_runtime_layout(run_dir, 'DESIGN', 'PREPARE')
     project_root = Path(project_root).resolve()
     skill_dir = Path(skill_dir).resolve()
     expected_skill = (project_root / ".agents/skills" / TEA_CAPABILITY).resolve()
@@ -1825,6 +1829,7 @@ def finalize_same_session_design(
 ) -> dict:
     """Normalize, validate and submit same-session TEA output to Human Design Review."""
     run_dir = Path(run_dir).resolve()
+    preflight_runtime_layout(run_dir, 'DESIGN', 'FINALIZE')
     prepare_path = run_dir / "evidence/same-session-prepare.json"
     if not prepare_path.is_file():
         raise RuntimeError("same-session Design preparation evidence is missing")

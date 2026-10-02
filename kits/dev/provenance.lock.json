@@ -171,5 +171,15 @@
     "exact_third_party_blob_checks": 17,
     "result": "PASS",
     "planning_patch_commit": "4521f7ffc5ecd0b2ade3d73835cb7ecfb715f37f"
+  },
+  "runtime_payload": {
+    "algorithm": "DEV_RUNTIME_CORE_SHA256_V1",
+    "files": {
+      "tooling/lib/dev_kit.py": "d91328d54c92b36ba7bf29016aeb08b086eff3bd8c6a321982234ed66e75831b",
+      "tooling/lib/dev_router.py": "8f62e3b359b0b4646038ffa77cd15b71651e8baf6164b93088f82a9bf861407d",
+      "kits/dev/kit.yaml": "2f514611aa9d76f618c8d5515c03a19076996a51e4b66b979592c5d0cbc56cd0",
+      "kits/dev/plugin/plugin.json": "e26aba235b58778c9481917946bf4b071e90c1f53333372cc83d475c73facee7"
+    },
+    "sha256": "a047c3ae56ee1cc49303371ea1338aad2cdf7af4ecfac422715b5fee804b0bb8"
   }
 }

@@ -69,6 +69,19 @@ Pinned Katalon skill hỗ trợ sinh testcase; adapter validate **Canonical Test
 
 Nếu BA baseline còn behavior chưa được quyết định, Test Kit giữ `UNKNOWN`/open question; không invent expected behavior để làm testcase trông hoàn chỉnh.
 
+## Human Gate persistence trên Windows
+
+Design/Case APPROVE và REQUEST_CHANGES preflight toàn bộ output trước receipt. Persistence dùng
+immutable transaction journal, write-if-same-or-absent và atomic workflow commit. Host có thể
+resume exact authenticated receipt sau internal failure; không cần Human submit decision lần hai.
+Exact completed replay chỉ success sau khi xác minh artifacts/state; receipt khác hoặc byte conflict
+bị reject. Không xóa receipt hay hand-edit state để recover.
+
+Path budget mặc định Windows là 259 UTF-16 code units cho file, 247 cho parent directory; preflight
+không yêu cầu bật registry LongPaths. Projection nội bộ mới dùng approved.json/changes.json và
+draft revisions dùng semantic.json/design.json/cases.json. Existing legacy files được đọc/resume
+in-place; tên canonical promoted artifacts không đổi. Không chạy recovery trên frozen Golden cũ.
+
 ## XMind và Excel
 
 XMind là projection một chiều từ Canonical Test Design. V1 dùng pinned presentation profile và **không nhận Human-supplied XMind template**; mapping/grouping mơ hồ trả `CANNOT_PROJECT_HUMAN_PROFILE`.
