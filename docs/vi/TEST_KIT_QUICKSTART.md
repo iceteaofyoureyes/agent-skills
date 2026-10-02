@@ -9,7 +9,7 @@ Approved BA Baseline → TEA → Canonical Test Design → Human Design Gate
 
 ## 1. Cài vào project Codex
 
-Cần Python 3.10+, Codex CLI và project có `_bmad/tea/config.yaml` phù hợp với TEA đã pin. Installer không tự cài dependency qua mạng. Chạy trong thư mục project cần test:
+Cần Python 3.10+ và Codex CLI. Khi cài ở project scope, installer tự tạo `_bmad/tea/config.yaml` starter nếu project chưa có và giữ nguyên config hiện hữu nếu đã có; tester không cần tạo file này bằng tay. Installer không tự cài dependency qua mạng. Chạy trong thư mục project cần test:
 
 ```powershell
 git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
@@ -27,7 +27,7 @@ cd /path/to/your-project
 ~/src/agent-skills/tooling/doctor.sh test --agent codex --scope project
 ```
 
-Test Kit V1.1 chỉ hỗ trợ **Codex project scope**; ba skill nằm dưới `.agents/skills/`, runtime và pin nằm dưới `.agents/skills/.test-kit/`. BA Kit có thể cài cùng project, nhưng không bắt buộc nếu project đã có BA handoff hợp lệ. `TEST_KIT_CODEX_COMMAND` là override tường minh; nếu không đặt, resolver tìm `codex` trên `PATH`. Override sai sẽ báo lỗi, không tự tìm đường cài đặt riêng của máy.
+Test Kit V1.1 chỉ hỗ trợ **Codex project scope**; ba skill nằm dưới `.agents/skills/`, runtime và pin nằm dưới `.agents/skills/.test-kit/`. `_bmad/tea/config.yaml` là project-owned runtime config, không thuộc package inventory và không bị uninstall/reinstall ghi đè. BA Kit có thể cài cùng project, nhưng không bắt buộc nếu project đã có BA handoff hợp lệ. `TEST_KIT_CODEX_COMMAND` là override tường minh; nếu không đặt, resolver tìm `codex` trên `PATH`. Override sai sẽ báo lỗi, không tự tìm đường cài đặt riêng của máy.
 
 Nếu cần rule/template riêng của project, bootstrap `.test-kit/project.yaml` và rule files theo [Project Customization & Policy](TEST_KIT_CUSTOMIZATION.md). Policy chỉ là testing guidance, không thay BA/Design/execution authority. Doctor `READY` nghĩa package bắt buộc và các hợp đồng đã kiểm tra còn khớp; `DEGRADED` nghĩa có capability tùy chọn thiếu; `FAIL` nghĩa phần bắt buộc hoặc tính toàn vẹn lỗi. Doctor có thể liệt kê `DEPENDENCY_MISSING` cho XMind/Excel tùy chọn trong khi core vẫn dùng được. Xem [cài đặt và xử lý lỗi](INSTALLATION.md).
 
