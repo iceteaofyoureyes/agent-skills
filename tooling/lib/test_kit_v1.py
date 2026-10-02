@@ -1192,6 +1192,61 @@ def _apply_design_decision(
         return DecisionAttempt(False, state, Finding("DESIGN_GATE_PERSISTENCE_FAILED", str(error)))
 
 
+def load_persisted_design_snapshot(
+    run_dir: str | Path, *, require_state: str | None = None,
+) -> DesignSnapshot:
+    """Rehydrate the exact canonical Design snapshot from persisted semantic bytes."""
+    run_dir = Path(run_dir).resolve()
+    workflow_path = run_dir / "workflow-state.json"
+    semantic_path = run_dir / "canonical/semantic-payload.json"
+    try:
+        workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
+        semantic_bytes = semantic_path.read_bytes()
+        payload = json.loads(semantic_bytes.decode("utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError) as error:
+        raise ValueError(f"persisted Test Design is unavailable: {error}") from error
+    if require_state is not None and workflow.get("state") != require_state:
+        raise ValueError(
+            f"persisted Test Design state must be {require_state}, found {workflow.get('state')}"
+        )
+    if not isinstance(payload, list):
+        raise ValueError("persisted Test Design semantic payload must be a list")
+    records = []
+    for index, row in enumerate(payload, 1):
+        if not isinstance(row, dict):
+            raise ValueError(f"persisted Test Design row {index} is invalid")
+        try:
+            questions = tuple(
+                OpenQuestion(
+                    source_ref=question["source_ref"],
+                    text=question["text"],
+                    status=question.get("status", "UNKNOWN"),
+                )
+                for question in row.get("open_questions", [])
+            )
+            records.append(CanonicalTestDesign(
+                design_id=row["design_id"],
+                hierarchy_path=tuple(row["hierarchy_path"]),
+                scenario_title=row["scenario_title"],
+                expected_behavior=row.get("expected_behavior"),
+                requirement_refs=tuple(row["requirement_refs"]),
+                open_questions=questions,
+            ))
+        except (KeyError, TypeError) as error:
+            raise ValueError(f"persisted Test Design row {index} is invalid: {error}") from error
+    snapshot = DesignSnapshot.create(
+        records,
+        artifact_id=workflow.get("artifact_id", ""),
+        revision=workflow.get("artifact_revision", ""),
+    )
+    if snapshot.payload_bytes != semantic_bytes or snapshot.sha256 != workflow.get("artifact_sha256"):
+        raise ValueError("persisted Test Design semantic bytes do not match workflow state")
+    review_status = workflow.get("review_status", "DRAFT")
+    if review_status in {"DRAFT", "IN_REVIEW", "CHANGES_REQUESTED", "APPROVED"}:
+        snapshot = snapshot.project(review_status)
+    return snapshot
+
+
 def baseline_receipt_refs(baseline: ApprovedBaseline) -> list[dict]:
     refs = []
     for name in ("business_rules", "srs", "decisions"):
