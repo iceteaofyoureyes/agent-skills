@@ -69,7 +69,7 @@ cd /path/to/your-project
 ~/src/agent-skills/tooling/doctor.sh test --agent codex --scope project
 ~~~
 
-`_bmad/tea/config.yaml` là project-owned runtime config: installer chỉ tạo khi thiếu, Doctor kiểm tra các field TEA bắt buộc, và uninstall không xóa file này.\n\nBA Kit có thể cài trước hoặc sau Test Kit bằng lệnh `ba` phía trên. Cả hai dùng `.agents/skills/` nhưng ownership tách biệt. Test Kit cài `test-kit`, `bmad-testarch-test-design`, `create-test-cases`; runtime, pin, license, root definition và package authority nằm dưới `.agents/skills/.test-kit/`. Cài Test không tự cài npm/pip package qua mạng.
+`_bmad/tea/config.yaml` là project-owned runtime config: installer chỉ tạo khi thiếu, Doctor kiểm tra các field TEA bắt buộc, và uninstall không xóa file này. Starter dùng path tương đối (`test-runs`) để có thể commit cùng repository. Với project dùng Git, nên review và commit config này để tránh drift giữa các tester.\n\nBA Kit có thể cài trước hoặc sau Test Kit bằng lệnh `ba` phía trên. Cả hai dùng `.agents/skills/` nhưng ownership tách biệt. Test Kit cài `test-kit`, `bmad-testarch-test-design`, `create-test-cases`; runtime, pin, license, root definition và package authority nằm dưới `.agents/skills/.test-kit/`. Cài Test không tự cài npm/pip package qua mạng.
 
 `TEST_KIT_CODEX_COMMAND` là command/path override của Codex CLI. Nếu không đặt, resolver tìm Codex trên `PATH`. Override sai là lỗi rõ ràng, không fallback sang cài đặt riêng của máy. Windows npm shim `.cmd`/`.ps1` được resolver xử lý bằng argv rời, không nối shell command string.
 
