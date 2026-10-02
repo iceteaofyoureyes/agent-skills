@@ -221,9 +221,9 @@ class TestKitPackagingTests(unittest.TestCase):
             text = config.read_text(encoding="utf-8")
             self.assertIn("communication_language: Vietnamese", text)
             self.assertIn("document_output_language: Vietnamese", text)
-            self.assertIn("output_folder: test-runs", text)
-            self.assertIn("test_artifacts: test-runs", text)
-            self.assertTrue((project / "test-runs").is_dir())
+            self.assertIn("output_folder: .test-kit/runtime", text)
+            self.assertIn("test_artifacts: .test-kit/runtime", text)
+            self.assertTrue((project / ".test-kit/runtime").is_dir())
             self.assertNotIn(str(project.resolve()).replace("\\\\", "/"), text)
 
             custom = text.replace("user_name: Tester", "user_name: Project Tester")
@@ -232,6 +232,27 @@ class TestKitPackagingTests(unittest.TestCase):
 
             self.assertEqual(second["tea_project_config"]["status"], "PRESERVED")
             self.assertEqual(config.read_text(encoding="utf-8"), custom)
+
+    def test_doctor_rejects_run_bound_project_tea_paths(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / "project"
+            target = project / ".agents/skills"
+            ba_kit.install(ROOT, target, "test")
+            config = project / "_bmad/tea/config.yaml"
+            text = config.read_text(encoding="utf-8").replace(
+                ".test-kit/runtime",
+                "test-runs/CR-DEMO-001/design-20261002-02/raw-output",
+            )
+            config.write_text(text, encoding="utf-8")
+
+            report = self._doctor_with_stub(target)
+            self.assertEqual(report["status"], "FAIL", report["checks"])
+            self.assertTrue(
+                any(
+                    name == "TEA_PROJECT_CONFIG" and not ok and "TEA_PROJECT_CONFIG_RUN_BOUND" in detail
+                    for name, ok, _, detail in report["checks"]
+                )
+            )
 
     def test_doctor_fails_when_project_tea_config_is_missing_or_invalid(self):
         with tempfile.TemporaryDirectory() as temp:
