@@ -290,11 +290,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "618a80541b8bbe39552a75725ef566c9147f6d2453571976c79ebaea19ef654d"
+      "sha256": "68fef37e59cf99944f6be35d1590602e9d53931e6bb78a66d1d4c95aedbfcabc"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "791c6c71bdf8bb7f33e430a1b2bdbfe381354a14007a6235850b27b61928aecb"
+      "sha256": "f9315f7e93b275a03fb024d17d49aadef4ca3667c9be402ad1f7c34cd466bbc1"
     }
   }
 }

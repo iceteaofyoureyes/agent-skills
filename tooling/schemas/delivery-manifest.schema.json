@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Project Delivery Manifest V1",
+  "title": "Project Delivery Manifest V2",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": 1
+      "const": 2
     },
     "feature": {
       "type": "object",
@@ -23,9 +23,11 @@
       ],
       "properties": {
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
         }
-      }
+      },
+      "additionalProperties": false
     },
     "delivery_revision": {
       "type": "string"
@@ -34,7 +36,33 @@
       "type": "object",
       "required": [
         "handoff"
-      ]
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "handoff": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "revision",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        }
+      }
     },
     "ux": {
       "type": "object",
@@ -46,24 +74,111 @@
           "type": "boolean"
         },
         "contract": {
-          "type": "object"
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "revision",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revision": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
         },
         "prototype": {
-          "type": "object"
-        }
-      },
-      "if": {
-        "properties": {
-          "required": {
-            "const": true
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256",
+            "authority"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "authority": {
+              "const": "REVIEW_EVIDENCE"
+            }
+          }
+        },
+        "approval_receipt": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "sha256"
+          ],
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
           }
         }
       },
-      "then": {
-        "required": [
-          "contract"
-        ]
-      }
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "anyOf": [
+              {
+                "properties": {
+                  "required": {
+                    "const": true
+                  }
+                },
+                "required": [
+                  "required"
+                ]
+              },
+              {
+                "required": [
+                  "contract"
+                ]
+              }
+            ]
+          },
+          "then": {
+            "required": [
+              "contract",
+              "approval_receipt"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "approval_receipt"
+            ]
+          },
+          "then": {
+            "required": [
+              "contract"
+            ]
+          }
+        }
+      ]
     },
     "targets": {
       "type": "array",
@@ -78,10 +193,12 @@
         ],
         "properties": {
           "repository": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
           },
           "module": {
-            "type": "string"
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_./-]*$"
           },
           "base_revision": {
             "type": "string",
@@ -99,8 +216,12 @@
         "blocking": {
           "type": "array",
           "maxItems": 0
+        },
+        "non_blocking": {
+          "type": "array"
         }
-      }
+      },
+      "additionalProperties": false
     }
   }
 }

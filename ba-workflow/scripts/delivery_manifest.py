@@ -7,7 +7,7 @@ from pathlib import Path
 
 from approved_baseline import read_approved_baseline
 
-CONTRACT_VERSION = 1
+CONTRACT_VERSION = 2
 
 
 def read_mapping(path):
@@ -98,15 +98,15 @@ def load_delivery_manifest(path):
     data = read_mapping(path)
     if set(data) != {"schema_version", "feature", "delivery_revision", "ba", "ux", "targets", "open_items"}:
         raise ValueError("unsupported or missing delivery fields")
-    if type(data["schema_version"]) is not int or data["schema_version"] != 1:
-        raise ValueError("Delivery Manifest schema_version must be 1")
+    if type(data["schema_version"]) is not int or data["schema_version"] != CONTRACT_VERSION:
+        raise ValueError("Delivery Manifest schema_version must be 2")
     def keys(value, required, optional=()):
         if not isinstance(value, dict) or not set(required).issubset(value) or set(value) - set(required) - set(optional):
             raise ValueError("unsupported/missing delivery fields; credentials are forbidden")
     keys(data["feature"], ("id",))
     keys(data["ba"], ("handoff",))
     keys(data["ba"]["handoff"], ("path", "revision", "sha256"))
-    keys(data["ux"], ("required",), ("contract", "prototype"))
+    keys(data["ux"], ("required",), ("contract", "approval_receipt", "prototype"))
     keys(data["open_items"], ("blocking",), ("non_blocking",))
     feature = data["feature"].get("id", "")
     if not isinstance(feature, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,79}", feature):
@@ -125,15 +125,34 @@ def load_delivery_manifest(path):
         raise ValueError("ux.required must be boolean")
     if ux["required"] or "contract" in ux:
         keys(ux.get("contract"), ("path", "revision", "sha256"))
-        contract = _reference(path.parent, ux.get("contract"), revision=True)
-        text = contract.read_text(encoding="utf-8")
-        if not re.search(r"(?m)^revision:\s*" + re.escape(ux["contract"]["revision"]) + r"\s*$", text):
-            raise ValueError("UX revision mismatch")
-        if not re.search(r"(?m)^status:\s*APPROVED\s*$", text):
-            raise ValueError("UX contract must declare its approved snapshot status")
+        contract = _reference(path.parent, ux["contract"], revision=True)
+        keys(ux.get("approval_receipt"), ("path", "sha256"))
+        receipt_path = _reference(path.parent, ux["approval_receipt"])
+        if receipt_path.resolve() == contract.resolve():
+            raise ValueError("UX approval receipt must be external to the semantic source")
+        receipt = read_mapping(receipt_path)
+        keys(receipt, ("schema_version", "feature_id", "source", "approver", "decision"))
+        if type(receipt["schema_version"]) is not int or receipt["schema_version"] != 1:
+            raise ValueError("UX approval receipt schema_version must be 1")
+        keys(receipt["source"], ("path", "revision", "sha256"))
+        if receipt["feature_id"] != feature:
+            raise ValueError("UX approval receipt feature mismatch")
+        if receipt["source"] != ux["contract"]:
+            raise ValueError("UX approval receipt source path/revision/SHA-256 mismatch")
+        keys(receipt["approver"], ("role", "identity"))
+        if (receipt["approver"]["role"] != "HUMAN"
+                or not isinstance(receipt["approver"]["identity"], str)
+                or not receipt["approver"]["identity"].strip()):
+            raise ValueError("UX approval receipt requires an explicit Human approver")
+        if receipt["decision"] != "APPROVE":
+            raise ValueError("UX approval receipt decision must be APPROVE")
+    elif "approval_receipt" in ux:
+        raise ValueError("UX approval receipt requires a semantic source contract")
     if "prototype" in ux:
         keys(ux["prototype"], ("path", "sha256", "authority"))
-        _reference(path.parent, ux["prototype"])
+        prototype = _reference(path.parent, ux["prototype"])
+        if "contract" in ux and prototype.resolve() == contract.resolve():
+            raise ValueError("prototype cannot also be the UX semantic source")
         if ux["prototype"].get("authority") != "REVIEW_EVIDENCE":
             raise ValueError("prototype promotion requires a separate approved contract")
     targets = data["targets"]
