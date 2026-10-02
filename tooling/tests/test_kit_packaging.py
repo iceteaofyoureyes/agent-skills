@@ -221,8 +221,10 @@ class TestKitPackagingTests(unittest.TestCase):
             text = config.read_text(encoding="utf-8")
             self.assertIn("communication_language: Vietnamese", text)
             self.assertIn("document_output_language: Vietnamese", text)
-            self.assertIn("test_artifacts:", text)
+            self.assertIn("output_folder: test-runs", text)
+            self.assertIn("test_artifacts: test-runs", text)
             self.assertTrue((project / "test-runs").is_dir())
+            self.assertNotIn(str(project.resolve()).replace("\\\\", "/"), text)
 
             custom = text.replace("user_name: Tester", "user_name: Project Tester")
             config.write_text(custom, encoding="utf-8")
