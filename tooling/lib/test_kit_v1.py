@@ -1772,10 +1772,222 @@ def persist_adapter_bundle(
     return epic, rules, unknowns
 
 
+
+def prepare_same_session_design(
+    handoff_path: str | Path,
+    run_dir: str | Path,
+    *,
+    project_root: str | Path,
+    skill_dir: str | Path,
+    supplemental_manifest: str | Path | None = None,
+) -> dict:
+    """Prepare immutable Test Design inputs for execution by the current agent session."""
+    run_dir = Path(run_dir).resolve()
+    project_root = Path(project_root).resolve()
+    skill_dir = Path(skill_dir).resolve()
+    expected_skill = (project_root / ".agents/skills" / TEA_CAPABILITY).resolve()
+    if not expected_skill.is_dir() or not skill_dir.is_dir() or not expected_skill.samefile(skill_dir):
+        raise RuntimeError("same-session TEA must use the project-local pinned skill")
+    skill_files = verify_pinned_tea_skill(skill_dir)
+    project_config = project_root / "_bmad/tea/config.yaml"
+    if not project_config.is_file():
+        raise RuntimeError(f"Test Kit project config is missing: {project_config}")
+
+    supplemental = read_supplemental_context(supplemental_manifest) if supplemental_manifest else None
+    supplemental_ref = None
+    if supplemental_manifest:
+        path = Path(supplemental_manifest).resolve()
+        line = next(
+            (number for number, row in enumerate(path.read_text(encoding="utf-8").splitlines(), 1)
+             if row == "## Supplemental CURRENT_SYSTEM evidence"),
+            None,
+        )
+        supplemental_ref = RawEvidenceRef(str(path), _source_hash(path), line, "CURRENT_SYSTEM / SUPPLEMENTAL")
+
+    bundle = adapt_ba_to_tea(
+        handoff_path, supplemental=supplemental, supplemental_source=supplemental_ref
+    )
+    policy_context = persist_project_policy_context(
+        run_dir, project_root, "DESIGN", bootstrap_tea=True
+    )
+    epic, rules, unknowns = persist_adapter_bundle(
+        bundle, run_dir, project_policy_context=policy_context
+    )
+    raw_output = run_dir / "raw-output/test-design-epic-1.md"
+    instructions = run_dir / "raw-output/same-session-instructions.md"
+    supplemental_path = run_dir / "inputs/adapter/current-system-supplemental.md"
+    prompt = _invocation_prompt(
+        epic, rules, unknowns, raw_output,
+        supplemental_path if supplemental_path.is_file() else None,
+    )
+    prompt += """
+SAME_SESSION_EXECUTION:
+- Execute the installed bmad-testarch-test-design capability in this current agent session.
+- Do not start codex, codexapi, another agent process, or a nested model invocation.
+- Test Kit has already verified BA authority, pinned skill integrity, project policy, and adapter inputs.
+- Do not create compatibility shims or edit installed Test Kit/TEA runtime.
+- If the capability cannot complete from these prepared inputs, stop and report the blocker.
+"""
+    _write_if_same_or_absent(instructions, prompt.encode("utf-8"))
+    manifest = {
+        "schema_version": 1,
+        "mode": "SAME_SESSION",
+        "stage": "DESIGN",
+        "status": "PREPARED",
+        "feature_id": bundle.baseline.feature_id,
+        "ba_revision": bundle.baseline.revision,
+        "handoff_path": str(bundle.baseline.handoff_path),
+        "handoff_sha256": bundle.baseline.handoff_sha256,
+        "project_root": str(project_root),
+        "project_config": {"path": str(project_config), "sha256": _source_hash(project_config)},
+        "skill": {
+            "capability": TEA_CAPABILITY,
+            "path": str(skill_dir),
+            "commit": TEA_COMMIT,
+            "files": skill_files,
+        },
+        "project_policy_context": policy_context,
+        "prepared_inputs": {
+            "epic": str(epic),
+            "business_rules": str(rules),
+            "open_decisions": str(unknowns),
+            "instructions": str(instructions),
+        },
+        "raw_output_path": str(raw_output),
+    }
+    manifest_path = run_dir / "evidence/same-session-prepare.json"
+    _write_exclusive(
+        manifest_path,
+        (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return {**manifest, "manifest_path": str(manifest_path)}
+
+
+def finalize_same_session_design(
+    handoff_path: str | Path,
+    run_dir: str | Path,
+    *,
+    raw_design: str | Path | None = None,
+) -> dict:
+    """Normalize, validate and submit same-session TEA output to Human Design Review."""
+    run_dir = Path(run_dir).resolve()
+    prepare_path = run_dir / "evidence/same-session-prepare.json"
+    if not prepare_path.is_file():
+        raise RuntimeError("same-session Design preparation evidence is missing")
+    prepared = json.loads(prepare_path.read_text(encoding="utf-8"))
+    if prepared.get("mode") != "SAME_SESSION" or prepared.get("stage") != "DESIGN" or prepared.get("status") != "PREPARED":
+        raise RuntimeError("same-session Design preparation evidence is invalid")
+
+    bundle = adapt_ba_to_tea(handoff_path)
+    if (
+        prepared.get("feature_id") != bundle.baseline.feature_id
+        or prepared.get("ba_revision") != bundle.baseline.revision
+        or prepared.get("handoff_sha256") != bundle.baseline.handoff_sha256
+    ):
+        raise RuntimeError("BA baseline changed after same-session preparation")
+
+    raw_path = Path(raw_design).resolve() if raw_design else Path(prepared["raw_output_path"]).resolve()
+    expected_raw = Path(prepared["raw_output_path"]).resolve()
+    if raw_path != expected_raw or not raw_path.is_file():
+        raise RuntimeError(f"same-session TEA output is missing or not at the prepared path: {expected_raw}")
+
+    normalized = normalize_tea_output(raw_path, bundle.baseline)
+    if normalized.status != "NORMALIZED" or normalized.snapshot is None:
+        findings_path = run_dir / "evidence/normalization-findings.json"
+        _write_exclusive(
+            findings_path,
+            (json.dumps(
+                {"status": normalized.status, "findings": [finding.__dict__ for finding in normalized.findings]},
+                ensure_ascii=False, indent=2,
+            ) + "\n").encode("utf-8"),
+        )
+        raise RuntimeError(f"CANNOT_NORMALIZE: {normalized.findings}")
+
+    validation = validate_design(normalized.snapshot, bundle.baseline)
+    if validation.status != "PASS":
+        findings_path = run_dir / "evidence/validator-results.json"
+        _write_exclusive(
+            findings_path,
+            (json.dumps(
+                {"status": validation.status, "findings": [finding.__dict__ for finding in validation.findings]},
+                ensure_ascii=False, indent=2,
+            ) + "\n").encode("utf-8"),
+        )
+        raise RuntimeError(f"validator FAIL; no gate transition: {validation.findings}")
+
+    state = submit_design_for_review(
+        start_design_workflow(normalized.snapshot), normalized.snapshot, validation
+    )
+    persist_design_review(
+        run_dir, bundle, raw_path, normalized.snapshot, validation, state
+    )
+    result = {
+        "schema_version": 1,
+        "mode": "SAME_SESSION",
+        "stage": "DESIGN",
+        "status": state.state,
+        "feature_id": bundle.baseline.feature_id,
+        "artifact_id": state.artifact_id,
+        "artifact_revision": state.artifact_revision,
+        "artifact_sha256": state.artifact_sha256,
+        "review_status": state.review_status,
+        "validation_status": state.validation_status,
+        "record_count": len(normalized.snapshot.records),
+        "raw_output_path": str(raw_path),
+    }
+    _write_exclusive(
+        run_dir / "evidence/same-session-finalize.json",
+        (json.dumps(result, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return result
+
+
+def _same_session_main(argv: list[str]) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Test Kit same-session Design workflow")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    prepare = subparsers.add_parser("prepare-design")
+    prepare.add_argument("--handoff", type=Path, required=True)
+    prepare.add_argument("--run-dir", type=Path, required=True)
+    prepare.add_argument("--project-root", type=Path, required=True)
+    prepare.add_argument("--skill-dir", type=Path, required=True)
+    prepare.add_argument("--supplemental-manifest", type=Path)
+
+    finalize = subparsers.add_parser("finalize-design")
+    finalize.add_argument("--handoff", type=Path, required=True)
+    finalize.add_argument("--run-dir", type=Path, required=True)
+    finalize.add_argument("--raw-design", type=Path)
+
+    args = parser.parse_args(argv)
+    if args.command == "prepare-design":
+        result = prepare_same_session_design(
+            args.handoff, args.run_dir,
+            project_root=args.project_root,
+            skill_dir=args.skill_dir,
+            supplemental_manifest=args.supplemental_manifest,
+        )
+    else:
+        result = finalize_same_session_design(
+            args.handoff, args.run_dir, raw_design=args.raw_design
+        )
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
-    parser = argparse.ArgumentParser(description="Run the first Test Kit V1 scope through DESIGN_REVIEW")
+    argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in {"prepare-design", "finalize-design"}:
+        try:
+            return _same_session_main(argv)
+        except (BaselineError, RuntimeError, ValueError, OSError, json.JSONDecodeError) as error:
+            print(f"FAIL: {error}", file=sys.stderr)
+            return 1
+
+    parser = argparse.ArgumentParser(description="Legacy nested-agent Test Kit Design runner")
     parser.add_argument("--handoff", type=Path, required=True)
     parser.add_argument("--run-dir", type=Path, required=True)
     parser.add_argument("--petclinic-root", type=Path, required=True)
