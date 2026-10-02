@@ -51,15 +51,15 @@ If `prepare-design`, TEA execution, normalization, or validation fails, report t
 
 After the exact Canonical Test Design is `APPROVED_DESIGN`:
 
-1. Validate the persisted Human Design Gate receipt against the current Design and BA baseline.
-2. Use `tooling.lib.test_kit_v1_cases` to adapt the approved Design into the pinned `create-test-cases` input.
-3. Execute the installed `create-test-cases` capability **inside this current agent session**. Do not spawn Codex or another agent process.
-4. Preserve exact BA refs and exact approved Test Design IDs. Do not expand coverage beyond the approved Design.
-5. Normalize and validate the raw testcase output through Test Kit runtime.
-6. Transition only to `CASE_REVIEW`, present the exact Canonical Testcases, then stop for the Human Case Gate.
-7. Only an explicit valid Human `APPROVE` for that exact snapshot may produce `APPROVED_TESTWARE` and `STOP_V1`.
-
-Until the testcase runtime exposes the same `prepare/finalize` convenience commands as Design, call its existing library functions in-process from the current session. **Never use its nested Codex invocation functions for production operator flow.**
+1. Run the installed testcase runtime's `prepare-cases` command with the approved BA handoff, approved Design run, a fresh testcase run directory, project root, and project-local `create-test-cases` skill.
+2. `prepare-cases` validates the persisted Human Design Gate receipt, current BA hashes, pinned Katalon skill, and project policy; it writes the approved testcase input and same-session instructions.
+3. Read those prepared instructions and the installed `create-test-cases/SKILL.md`. Execute that capability **inside this current agent session**.
+4. Do not invoke `codex`, `codexapi`, another agent process, nested model session, or the legacy native Katalon invocation path.
+5. Preserve exact BA refs and exact approved Test Design IDs. Do not expand coverage beyond the approved Design.
+6. Write the raw completed testcase Markdown exactly to the path prepared by Test Kit, then run `finalize-cases`.
+7. `finalize-cases` normalizes and validates the testcase output and transitions only to `CASE_REVIEW`.
+8. Present the exact Canonical Testcases and stop for the Human Case Gate.
+9. Only an explicit valid Human `APPROVE` for that exact snapshot may produce `APPROVED_TESTWARE` and `STOP_V1`.
 
 ## Authority model
 
