@@ -208,6 +208,57 @@ class TestKitPackagingTests(unittest.TestCase):
                 )
             )
 
+    def test_project_install_bootstraps_tea_config_and_preserves_existing(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / "project"
+            target = project / ".agents/skills"
+
+            first = ba_kit.install(ROOT, target, "test")
+            config = project / "_bmad/tea/config.yaml"
+
+            self.assertEqual(first["tea_project_config"]["status"], "CREATED")
+            self.assertTrue(config.is_file())
+            text = config.read_text(encoding="utf-8")
+            self.assertIn("communication_language: Vietnamese", text)
+            self.assertIn("document_output_language: Vietnamese", text)
+            self.assertIn("test_artifacts:", text)
+            self.assertTrue((project / "test-runs").is_dir())
+
+            custom = text.replace("user_name: Tester", "user_name: Project Tester")
+            config.write_text(custom, encoding="utf-8")
+            second = ba_kit.install(ROOT, target, "test")
+
+            self.assertEqual(second["tea_project_config"]["status"], "PRESERVED")
+            self.assertEqual(config.read_text(encoding="utf-8"), custom)
+
+    def test_doctor_fails_when_project_tea_config_is_missing_or_invalid(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / "project"
+            target = project / ".agents/skills"
+            ba_kit.install(ROOT, target, "test")
+            config = project / "_bmad/tea/config.yaml"
+            config.unlink()
+
+            report = self._doctor_with_stub(target)
+            self.assertEqual(report["status"], "FAIL", report["checks"])
+            self.assertTrue(
+                any(
+                    name == "TEA_PROJECT_CONFIG" and not ok and "TEA_PROJECT_CONFIG_MISSING" in detail
+                    for name, ok, _, detail in report["checks"]
+                )
+            )
+
+            config.parent.mkdir(parents=True, exist_ok=True)
+            config.write_text("user_name: Tester\n", encoding="utf-8")
+            report = self._doctor_with_stub(target)
+            self.assertEqual(report["status"], "FAIL", report["checks"])
+            self.assertTrue(
+                any(
+                    name == "TEA_PROJECT_CONFIG" and not ok and "TEA_PROJECT_CONFIG_INVALID" in detail
+                    for name, ok, _, detail in report["checks"]
+                )
+            )
+
     def test_test_install_records_every_skill_and_runtime_file_hash(self):
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "skills"
