@@ -850,7 +850,7 @@ def _tea_project_config_text(project_root):
     # Keep starter paths portable so this project-owned config can be committed
     # and shared by every tester regardless of checkout location.
     Path(project_root).resolve()
-    test_artifacts = "test-runs"
+    test_artifacts = ".test-kit/runtime"
     return (
         "user_name: Tester\n"
         "communication_language: Vietnamese\n"
@@ -882,12 +882,12 @@ def _ensure_test_tea_project_config(project_root):
         else:
             directory.mkdir()
 
-    test_runs = project_root / "test-runs"
-    if test_runs.exists() or test_runs.is_symlink():
-        if test_runs.is_symlink() or not test_runs.is_dir():
-            raise ValueError(f"Test Kit output path exists but is not a directory: {test_runs}")
+    runtime_dir = project_root / ".test-kit/runtime"
+    if runtime_dir.exists() or runtime_dir.is_symlink():
+        if runtime_dir.is_symlink() or not runtime_dir.is_dir():
+            raise ValueError(f"Test Kit runtime path exists but is not a directory: {runtime_dir}")
     else:
-        test_runs.mkdir()
+        runtime_dir.mkdir(parents=True)
 
     path.write_text(_tea_project_config_text(project_root), encoding="utf-8", newline="\n")
     return {"status": "CREATED", "path": str(path)}
@@ -923,6 +923,12 @@ def _check_test_tea_project_config(project_root):
     missing = [key for key in TEST_TEA_REQUIRED_CONFIG_FIELDS if not fields.get(key)]
     if missing:
         return False, "TEA_PROJECT_CONFIG_INVALID: missing/non-empty fields: " + ", ".join(missing)
+    for key in ("output_folder", "test_artifacts"):
+        value = fields[key]
+        if "\\" in value or re.match(r"^[A-Za-z]:", value) or value.startswith("/") or ".." in PurePosixPath(value).parts:
+            return False, f"TEA_PROJECT_CONFIG_INVALID: {key} must be a portable project-relative path"
+        if re.search(r"(?:^|/)(?:design|cases)-\d{8}-\d+(?:/|$)", value):
+            return False, f"TEA_PROJECT_CONFIG_RUN_BOUND: {key} must not point at a specific Test Kit run"
     return True, str(path)
 
 
