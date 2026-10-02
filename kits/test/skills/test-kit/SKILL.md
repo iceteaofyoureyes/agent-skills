@@ -24,7 +24,7 @@ You own routing, authority checks, canonicalization, and Human Gate safety. The 
 
 For a new Test Design:
 
-1. Choose a fresh project-owned run directory under the project's test artifact area. Do not ask the Human to choose a run directory unless project rules make the destination ambiguous.
+1. Choose a fresh internal run directory under `.test-kit/runs/<feature-id>/design-<run-id>/`. This directory is harness evidence, not canonical project documentation; do not ask the Human to choose it.
 2. Add `.agents/skills/.test-kit` to Python import path and run the installed runtime's `prepare-design` command with:
    - approved engineering handoff;
    - run directory;
@@ -33,7 +33,7 @@ For a new Test Design:
 3. `prepare-design` is the authority/integrity boundary. It verifies the BA baseline, pinned TEA skill, project config/policy, freezes adapter inputs, and writes `same-session-instructions.md`.
 4. Read the prepared instructions and the installed `bmad-testarch-test-design/SKILL.md`. Execute the TEA workflow **directly in this current session** using the prepared adapter inputs.
 5. Do **not** invoke `codex`, `codexapi`, another agent process, nested model session, or the legacy `invoke_native_tea` path.
-6. In same-session mode, Test Kit has already resolved project policy. Do not retry missing customization resolvers through `uv` or shell wrappers. Use the prepared policy context and the installed skill files directly.
+6. In same-session mode, Test Kit has already resolved project policy and created a run-local TEA runtime config. Use that prepared config as the effective config source for this run. Never edit `_bmad/tea/config.yaml` to point at a CR/run directory.
 7. Write TEA's raw completed Test Design exactly to the path prepared by Test Kit.
 8. Run `finalize-design`. It must normalize, validate, create the Canonical Test Design, and transition only to `DESIGN_REVIEW`.
 9. Present the canonical Design to the Human and stop. Do not create testcases until an explicit valid Human Design Gate decision has been persisted.
@@ -51,7 +51,7 @@ If `prepare-design`, TEA execution, normalization, or validation fails, report t
 
 After the exact Canonical Test Design is `APPROVED_DESIGN`:
 
-1. Run the installed testcase runtime's `prepare-cases` command with the approved BA handoff, approved Design run, a fresh testcase run directory, project root, and project-local `create-test-cases` skill.
+1. Run the installed testcase runtime's `prepare-cases` command with the approved BA handoff, approved Design run, a fresh internal run directory under `.test-kit/runs/<feature-id>/cases-<run-id>/`, project root, and project-local `create-test-cases` skill.
 2. `prepare-cases` validates the persisted Human Design Gate receipt, current BA hashes, pinned Katalon skill, and project policy; it writes the approved testcase input and same-session instructions.
 3. Read those prepared instructions and the installed `create-test-cases/SKILL.md`. Execute that capability **inside this current agent session**.
 4. Do not invoke `codex`, `codexapi`, another agent process, nested model session, or the legacy native Katalon invocation path.
@@ -84,7 +84,7 @@ The Human-facing interface should look like BA Kit. Typical requests are enough:
 
 `Tiếp tục tạo testcases.`
 
-Do not ask the Human to manage Python modules, run directories, TEA/Katalon CLI flags, nested agent launchers, adapter shims, or internal manifests.
+Do not ask the Human to manage Python modules, run directories, TEA/Katalon CLI flags, nested agent launchers, adapter shims, internal manifests, or project config retargeting. `_bmad/tea/config.yaml` is stable project configuration; per-run paths live only under `.test-kit/runs/`.
 
 ## Optional projections
 
