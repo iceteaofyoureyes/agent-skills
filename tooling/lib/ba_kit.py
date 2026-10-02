@@ -847,8 +847,10 @@ def _infer_project_root_from_target(target_dir):
 
 
 def _tea_project_config_text(project_root):
-    project_root = Path(project_root).resolve()
-    test_artifacts = (project_root / "test-runs").resolve().as_posix()
+    # Keep starter paths portable so this project-owned config can be committed
+    # and shared by every tester regardless of checkout location.
+    Path(project_root).resolve()
+    test_artifacts = "test-runs"
     return (
         "user_name: Tester\n"
         "communication_language: Vietnamese\n"
