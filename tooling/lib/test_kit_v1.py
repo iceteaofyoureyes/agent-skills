@@ -56,7 +56,7 @@ BENCHMARK_HEADERS = (
 NATIVE_HEADERS = (
     "Test ID", "Kịch bản", "Mức kiểm thử", "Risk Link", "Truy vết", "Kết quả quan sát được",
 )
-ID_TOKEN = re.compile(r"\b(?P<prefix>FR|BR|TD)-(?P<number>\d+)\b")
+BA_ID_TOKEN = re.compile(r"\b(?P<id>(?:FR|BR)-(?:[A-Za-z0-9]+-)*\d+)\b", re.IGNORECASE)
 TEA_SCENARIO_TOKEN = re.compile(
     r"\b(?:TD-[A-Za-z0-9][A-Za-z0-9_-]*|\d+(?:\.\d+)?-(?:UNIT|INT|E2E|EXP)-\d+|TC-E\d+-\d+)\b",
     re.IGNORECASE,
@@ -66,7 +66,11 @@ RANGE_TOKEN = re.compile(
     r"(?:(?P<end_prefix>FR|BR)-)?(?P<end>\d+)\b",
     re.IGNORECASE,
 )
-BAD_ID_TOKEN = re.compile(r"\b(?:FR|BR|TD)-[A-Za-z0-9_-]+", re.IGNORECASE)
+BAD_BA_ID_TOKEN = re.compile(r"\b(?:FR|BR)-[A-Za-z0-9_-]+", re.IGNORECASE)
+SOURCE_HEADING = re.compile(
+    r"^(?P<marks>#{2,6})\s+(?P<id>(?:FR|BR)-(?:[A-Za-z0-9]+-)*\d+)\s*(?:[—–-]\s*)?(?P<title>.*?)\s*$",
+    re.IGNORECASE,
+)
 MARKDOWN_HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 TABLE_SEPARATOR = re.compile(r"^\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$")
 
@@ -321,26 +325,54 @@ def _markdown_cells(line: str) -> list[str]:
     return [cell.strip() for cell in line.strip().strip("|").split("|")]
 
 
-def _parse_source_table(path: Path, id_prefix: str, wanted_columns: int) -> tuple[BaselineRow, ...]:
+def _source_id_matches(value: str, id_prefix: str) -> bool:
+    return bool(re.fullmatch(rf"{id_prefix}-(?:[A-Za-z0-9]+-)*\d+", value, re.IGNORECASE))
+
+
+def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int) -> tuple[BaselineRow, ...]:
+    """Accept legacy source tables and current BA Kit heading-based artifacts."""
+    lines = path.read_text(encoding="utf-8").splitlines()
     rows: list[BaselineRow] = []
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+
+    for number, raw in enumerate(lines, 1):
         if not raw.lstrip().startswith("|") or TABLE_SEPARATOR.fullmatch(raw.strip()):
             continue
         cells = _markdown_cells(raw)
-        if not cells or not re.fullmatch(rf"{id_prefix}-\d+", cells[0]):
+        if not cells or not _source_id_matches(cells[0], id_prefix):
             continue
         if len(cells) != wanted_columns:
             raise BaselineError(f"{path}:{number}: expected {wanted_columns} source columns, found {len(cells)}")
         if not cells[1]:
             raise BaselineError(f"{path}:{number}: {cells[0]} has no source text")
         rows.append(BaselineRow(cells[0], cells[1], str(path), number))
+
+    for index, raw in enumerate(lines):
+        match = SOURCE_HEADING.match(raw)
+        if not match or not _source_id_matches(match.group("id"), id_prefix):
+            continue
+        source_id = match.group("id")
+        heading_depth = len(match.group("marks"))
+        body: list[str] = []
+        cursor = index + 1
+        while cursor < len(lines):
+            next_heading = MARKDOWN_HEADING.match(lines[cursor])
+            if next_heading and len(next_heading.group(1)) <= heading_depth:
+                break
+            body.append(lines[cursor])
+            cursor += 1
+        title = match.group("title").strip()
+        section = "\n".join(body).strip()
+        text = "\n\n".join(part for part in (title, section) if part).strip()
+        if not text:
+            raise BaselineError(f"{path}:{index + 1}: {source_id} has no source text")
+        rows.append(BaselineRow(source_id, text, str(path), index + 1))
+
     if not rows:
         raise BaselineError(f"{path}: no {id_prefix}-* source rows found")
-    ids = [row.id for row in rows]
-    if len(ids) != len(set(ids)):
+    folded = [row.id.casefold() for row in rows]
+    if len(folded) != len(set(folded)):
         raise BaselineError(f"{path}: duplicate {id_prefix} source IDs")
     return tuple(rows)
-
 
 def _parse_open_items(fields: dict, sequences: dict) -> tuple[str, ...]:
     raw = _field(fields, "open_items.non_blocking")
@@ -393,8 +425,8 @@ def load_approved_baseline(handoff_path: str | Path) -> ApprovedBaseline:
         source_paths[source] = path
         source_hashes[source] = expected
 
-    requirements = _parse_source_table(source_paths["srs"], "FR", 3)
-    business_rules = _parse_source_table(source_paths["business_rules"], "BR", 3)
+    requirements = _parse_source_rows(source_paths["srs"], "FR", 3)
+    business_rules = _parse_source_rows(source_paths["business_rules"], "BR", 3)
     rows = (*requirements, *business_rules)
     return ApprovedBaseline(
         feature_id=_field(fields, "feature.id") or "",
@@ -475,10 +507,15 @@ def _parse_ref_cell(value: str, inventory: set[str], *, path: str, line: int, fi
             raise _normalize_error(path, line, field, f"range member is absent from the approved BA inventory: {missing}")
         tokens.append((match.start(), match.end(), expanded))
         covered.append(match.span())
-    for match in ID_TOKEN.finditer(value):
+    inventory_by_fold = {item.casefold(): item for item in inventory}
+    for match in BA_ID_TOKEN.finditer(value):
         if any(start <= match.start() and match.end() <= end for start, end in covered):
             continue
-        tokens.append((match.start(), match.end(), [f"{match.group('prefix')}-{match.group('number')}"]))
+        raw_id = match.group("id")
+        canonical_id = inventory_by_fold.get(raw_id.casefold())
+        if canonical_id is None:
+            raise _normalize_error(path, line, field, f"BA ID is absent from the approved inventory: {raw_id}")
+        tokens.append((match.start(), match.end(), [canonical_id]))
         covered.append(match.span())
     tokens.sort(key=lambda item: item[0])
     if not tokens:
@@ -487,8 +524,8 @@ def _parse_ref_cell(value: str, inventory: set[str], *, path: str, line: int, fi
     for start, end in covered:
         remainder[start:end] = " " * (end - start)
     leftovers = "".join(remainder)
-    if BAD_ID_TOKEN.search(leftovers):
-        bad = BAD_ID_TOKEN.search(leftovers).group(0)
+    if BAD_BA_ID_TOKEN.search(leftovers):
+        bad = BAD_BA_ID_TOKEN.search(leftovers).group(0)
         raise _normalize_error(path, line, field, f"ambiguous or malformed ID token: {bad}")
     if re.sub(r"\b(?:and|or|và|hoặc)\b", "", leftovers, flags=re.IGNORECASE).strip(" \t,;:/|&()[]·—–-"):
         raise _normalize_error(path, line, field, "unparsed text makes the trace ambiguous")
@@ -1537,6 +1574,7 @@ def invoke_native_tea(
     petclinic_root: str | Path,
     skill_dir: str | Path,
     model: str = "gpt-6-luna",
+    timeout_seconds: float = 300.0,
 ) -> dict:
     run_dir = Path(run_dir).resolve()
     petclinic_root = Path(petclinic_root).resolve()
@@ -1561,6 +1599,11 @@ def invoke_native_tea(
         from .test_kit_policy import non_authoritative_policy_prompt, resolve_project_policy
         prompt += "\n" + non_authoritative_policy_prompt(resolve_project_policy(petclinic_root, "DESIGN"), policy_context["policy"])
         prompt += "\nLoad the project-owned TEA team customization via upstream workflow.persistent_facts in declared order; these facts remain testing guidance only.\n"
+    else:
+        prompt += """
+Test Kit preflight resolved NO_PROJECT_POLICY for this run.
+Compatibility rule for upstream activation: if {project-root}/_bmad/scripts/resolve_customization.py is absent, do not retry the missing resolver through uv or shell quoting. Resolve the workflow block directly from the installed skill's customize.toml; no team/user customization is present for this run. Use project-relative paths for skill files on Windows and do not rebuild absolute PowerShell command strings merely to read them. If a prerequisite command fails, apply the documented fallback once and continue; do not retry the same read/probe under alternate quoting.
+"""
     prompt_path = output_dir / "invocation-prompt.md"
     prompt_path.write_text(prompt, encoding="utf-8", newline="\n")
     stdout_path = output_dir / "invocation.jsonl"
@@ -1576,7 +1619,7 @@ def invoke_native_tea(
     if supplemental_path.is_file():
         input_files.append(supplemental_path)
     argv = codex_command.argv([
-        "--no-daemon", "--approve-for-me", "exec", "--json", "--ephemeral",
+        "--ask-for-approval", "never", "exec", "--json", "--ephemeral",
         "--skip-git-repo-check", "--sandbox", "workspace-write", "--model", model,
         "-C", str(petclinic_root), "--add-dir", str(run_dir), "-o", str(output), "-",
     ])
@@ -1614,6 +1657,8 @@ def invoke_native_tea(
             process.stdin.close()
         except BrokenPipeError:
             pass
+        deadline = time.monotonic() + timeout_seconds
+        timed_out = False
         while process.poll() is None:
             artifact_bytes = _completed_artifact_bytes(output, checkpoint_path)
             if artifact_bytes is not None:
@@ -1621,6 +1666,15 @@ def invoke_native_tea(
                 if digest == previous_digest and not completed_artifact.exists():
                     _write_exclusive(completed_artifact, artifact_bytes)
                 previous_digest = digest
+            if time.monotonic() >= deadline:
+                timed_out = True
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                break
             time.sleep(0.15)
         exit_code = process.wait()
         if not completed_artifact.exists():
@@ -1664,6 +1718,11 @@ def invoke_native_tea(
         }
     )
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if timed_out and not workflow_complete:
+        manifest["status"] = "TIMEOUT"
+        manifest["closeout_caveat"] = f"native TEA exceeded {timeout_seconds:g}s without a completed artifact"
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        raise RuntimeError(f"native TEA timed out after {timeout_seconds:g}s; see {manifest_path}")
     if not workflow_complete:
         raise RuntimeError(f"native TEA did not produce a completed artifact; see {manifest_path}")
     return manifest
