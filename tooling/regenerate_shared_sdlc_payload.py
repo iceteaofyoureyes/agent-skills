@@ -25,6 +25,10 @@ def regenerate(root):
             entry.create_system = 3
             entry.external_attr = 0o100644 << 16
             output.writestr(entry, path.read_bytes())
+    # Each skill owns its derived installation payload; shared/** owns semantics.
+    foundation_scripts = root / 'project-foundation/scripts'
+    if foundation_scripts.is_dir():
+        (foundation_scripts / 'shared-sdlc-core.zip').write_bytes(archive.read_bytes())
     return archive
 
 

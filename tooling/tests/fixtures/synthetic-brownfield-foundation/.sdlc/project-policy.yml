@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "project": {
+    "language": "en"
+  },
+  "foundation": {
+    "profile": "arc42-standard-v1"
+  },
+  "authority": {
+    "product": "docs/product.md",
+    "domain": "docs/domain.md",
+    "architecture": "docs/architecture.md",
+    "testing": "docs/testing.md",
+    "features": "docs/features.md"
+  },
+  "workflow": {
+    "feature_root": "docs/features",
+    "branch_convention": "feature/{feature_id}"
+  },
+  "testing": {
+    "automation_repository_role": "project_test_automation"
+  },
+  "artifacts": {
+    "optional": [
+      "docs/foundation/R1.json",
+      "docs/foundation/R1.provenance.json",
+      "docs/foundation/R2.json",
+      "docs/foundation/R2.provenance.json"
+    ]
+  }
+}

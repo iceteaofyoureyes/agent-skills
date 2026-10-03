@@ -8,12 +8,15 @@ import subprocess
 from pathlib import Path
 
 
-def prepare(source, destination):
+def prepare(source, destination, *, foundation=False):
     source, destination = Path(source).resolve(), Path(destination).resolve()
     if destination.exists():
         raise ValueError("profile destination must be fresh")
     destination.mkdir(parents=True)
-    for name in ("requirements-gap-auditor", "verification-before-completion", "dev-kit"):
+    names = ("requirements-gap-auditor", "verification-before-completion", "dev-kit")
+    if foundation:
+        names += ("project-foundation",)
+    for name in names:
         shutil.copytree(source / name, destination / "skills" / name)
     shutil.copytree(source / "kits/dev/plugin", destination / "pinned-source/agent-skills-dev-kit")
     market = destination / ".agents/plugins/marketplace.json"
@@ -54,8 +57,9 @@ if __name__ == "__main__":
     parser.add_argument("--source", type=Path, default=Path(__file__).resolve().parents[1])
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--register", action="store_true")
+    parser.add_argument("--foundation", action="store_true", help="Include Project Foundation in this explicitly expanded profile")
     args = parser.parse_args()
-    record = prepare(args.source, args.destination)
+    record = prepare(args.source, args.destination, foundation=args.foundation)
     if args.register:
         record = register(args.destination)
     print(json.dumps(record, indent=2))

@@ -1,0 +1,43 @@
+{
+  "sections": {
+    "introduction_goals": {
+      "status": "PARTIAL",
+      "owner": "BA",
+      "evidence": "PROPOSED",
+      "blocking": false,
+      "references": [
+        {
+          "path": "docs/product.md",
+          "revision": "R1",
+          "sha256": "ed6859e36f1bda300395b21ebc5e0659e8a31d06ca20560c98d37bfd8e627d2b"
+        }
+      ]
+    },
+    "solution_strategy": {
+      "status": "COMPLETE",
+      "owner": "ENGINEERING",
+      "evidence": "PROPOSED",
+      "blocking": true,
+      "references": [
+        {
+          "path": "docs/architecture.md",
+          "revision": "R1",
+          "sha256": "e1bfbe99743e2d8de4859cba52ef82c620401a1f9fd919aa47db24e8d9545ec8"
+        }
+      ]
+    },
+    "deployment_view": {
+      "status": "DEFERRED",
+      "owner": "ENGINEERING",
+      "evidence": "DEFERRED",
+      "blocking": false,
+      "references": [
+        {
+          "path": "docs/constraints.md",
+          "revision": "R1",
+          "sha256": "9f25e2890da740cca6585cbad689e076d1d4cabe3b900f22f839a699c3836cc8"
+        }
+      ]
+    }
+  }
+}

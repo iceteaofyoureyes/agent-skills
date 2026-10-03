@@ -43,6 +43,10 @@ RUNTIME_FILES = (
     'shared/sdlc/foundation/__init__.py',
     'shared/sdlc/foundation/contract.py',
     'shared/sdlc/foundation/profiles.py',
+    'shared/sdlc/foundation/inventory.py',
+    'shared/sdlc/foundation/impact.py',
+    'shared/sdlc/foundation/workflow.py',
+    'shared/sdlc/foundation/cli.py',
 
     "tooling/__init__.py",
     "tooling/lib/__init__.py",
@@ -80,7 +84,7 @@ def install(source_root, install_home):
     manifest = {"schema_version": 1, "runtime": "dev-kit-v1", "kit_version": kit_version, "files": {}}
 
     source_files = list(RUNTIME_FILES)
-    for directory in ("kits/dev/plugin", "requirements-gap-auditor", "verification-before-completion", "dev-kit"):
+    for directory in ("kits/dev/plugin", "requirements-gap-auditor", "verification-before-completion", "dev-kit", "project-foundation"):
         source_files.extend(p.relative_to(source_root).as_posix() for p in (source_root / directory).rglob("*") if p.is_file() and "__pycache__" not in p.parts)
     source_files = sorted(set(source_files))
     for relative in source_files:

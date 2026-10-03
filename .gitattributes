@@ -46,3 +46,9 @@ benchmark/test-kit/**/*.yaml text eol=lf
 
 # Canonical UX receipt fixture hashes bind these exact source bytes.
 tooling/tests/fixtures/delivery-ux-canonical/** text eol=lf
+
+# Shared payloads and synthetic exact references are stable across clean checkouts.
+shared/** text eol=lf
+project-foundation/** text eol=lf
+project-foundation/scripts/*.zip binary
+tooling/tests/fixtures/synthetic-*-foundation/** text eol=lf
