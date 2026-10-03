@@ -133,6 +133,12 @@ BA glossary feeds section 12; TEST foundation feeds section 10. Section 1 links
 authenticated product-goal sources. Business-rule candidates stay outside arc42;
 product requirements are not copied into another authority.
 
+Section 3 Context & Scope / System Context is ENGINEERING-owned. Its CONFIRMED
+manifest evidence authenticates the architecture Policy authority; refresh
+changes route to architecture. BA actor/entity/domain records remain BA-owned
+inputs when projected into this section. Section ownership is explicit in both
+the structured projection and Markdown; it does not reassign record ownership.
+
 The artifact is DERIVED. Generation does not approve it or change evidence labels.
 Architecture governance/promotion uses existing owner/Foundation workflows;
 mechanical connections remain Wave 2B work.

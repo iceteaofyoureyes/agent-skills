@@ -212,13 +212,13 @@
       "shared/sdlc/foundation/profiles.py": "ec1233b6c5f7c89d1128f51379ba437885f683bc45426a6daf064b23526b235d",
       "shared/sdlc/foundation/inventory.py": "5334e09c71ae6feed0f869ad763887dfdad93041bcf49a617201f07184774c40",
       "shared/sdlc/foundation/impact.py": "d33355bf1c26c47860a1d9a477ed6e4a034d88282c3656caaeb5ee1fb3c895e7",
-      "shared/sdlc/foundation/workflow.py": "6d6264ddf09cff6c1d4d4edc5be4ce3fe806ee0cb6fe29d19b61efb2132b8792",
-      "shared/sdlc/foundation/producers.py": "c577639ebcbafe0ce8e01d9289caaca2f9972b3dd6719d2c2eeb95efd48e9ccf",
+      "shared/sdlc/foundation/workflow.py": "cef5bbe168af3b08eccaae636f6ea0065050082d2b4eb020fce642a8e5fdff47",
+      "shared/sdlc/foundation/producers.py": "2d5659d780264d7b3adc7ff014204ab0fe93056a98d48df2d280a92ec7ce31ff",
       "shared/sdlc/foundation/cli.py": "a9da481654927c47c52d4e23aea3ce82436a5ed6c9e2168ce72711235e9b879f",
       "ba-workflow/scripts/contracts.py": "00898f7bcbec77ce61af1b1a507a901775ee9304cb43c2036afca889a4f69fa7",
       "ba-workflow/scripts/approved_baseline.py": "40396dd4cb01e997eb19b48d7ba9ab2fd3f674b70b83e0e3eb0828d38af3b3c3",
       "ba-workflow/scripts/delivery_manifest.py": "764105aba6a48e349b1818a3dce77474f286a35353899630b37507b76fb11193"
     },
-    "sha256": "db6e86bbbeaebccd7d30cf060ff9cf0ea338e8dc3e3cff6d0131b066f5aff44d"
+    "sha256": "ae25efa7f40274d96e9d4b9f81a7859dd1e382acda2a37f29a0a8484a6e708ae"
   }
 }

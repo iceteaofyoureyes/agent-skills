@@ -26,7 +26,7 @@ STATES = ('ANALYSIS', 'REVIEW_REQUIRED', 'ACCEPTED_BASELINE', 'APPROVED_BASELINE
 SEMANTIC_OWNERS = {'product': 'BA', 'domain': 'BA', 'architecture': 'ENGINEERING',
                    'testing': 'TEST', 'features': 'BA'}
 SECTION_DOMAINS = {name: 'architecture' for name in PROFILE['sections']}
-SECTION_DOMAINS.update(introduction_goals='product', context_scope='domain', glossary='domain',
+SECTION_DOMAINS.update(introduction_goals='product', glossary='domain',
                       quality_requirements='testing')
 RUN_STATE_V1 = object_schema({
     'schema_version': VERSION, 'run_id': STRING, 'project_id': STRING,

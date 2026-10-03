@@ -181,6 +181,36 @@ class ProducerTests(unittest.TestCase):
         self.assertIn('rationale', view['content'])
         self.assertEqual(view, p.arc42(list(reversed(artifacts)), self.root, self.topology, self.policy))
 
+    def test_architecture_context_scope_integrates_with_foundation_manifest(self):
+        artifact = self.produce('architecture-discovery', [self.observation('context_scope')])
+        record = next(row for row in artifact['records'] if row['topic'] == 'context_scope')
+        section = {'status': record['status'], 'owner': record['owner'], 'evidence': record['evidence_label'],
+                   'blocking': False, 'references': record['references']}
+        state = {'mode': self.mode, 'foundation_profile': {'id': 'arc42-standard-v1', 'level': 'MINIMAL'}}
+        manifest = w.candidate_manifest(self.root, state, self.topology, self.policy, 'foundation', 'R1',
+                                       sections={'context_scope': section})
+        view = p.arc42([artifact], self.root, self.topology, self.policy, manifest=manifest)
+        context = view['sections']['context_scope']
+        self.assertEqual(manifest['sections']['context_scope']['owner'], 'ENGINEERING')
+        self.assertEqual(context['owner'], 'ENGINEERING')
+        self.assertIn(record['id'], [row['id'] for row in context['records']])
+
+    def test_ba_actor_entity_inputs_keep_ba_owner_in_engineering_context_projection(self):
+        artifact = self.produce('domain-discovery', [self.observation('actors', 'AUTHORITY', 'docs/domain.md'),
+                                                  self.observation('entities', 'AUTHORITY', 'docs/domain.md')],
+                                authority_authenticator=lambda domain, ref: domain == 'domain' and ref == self.ref('docs/domain.md'))
+        auth = lambda domain, ref: domain == 'domain' and ref == self.ref('docs/domain.md')
+        state = {'mode': self.mode, 'foundation_profile': {'id': 'arc42-standard-v1', 'level': 'MINIMAL'}}
+        manifest = w.candidate_manifest(self.root, state, self.topology, self.policy, 'foundation', 'R1')
+        for supplied_manifest in (None, manifest):
+            with self.subTest(manifest=supplied_manifest is not None):
+                context = p.arc42([artifact], self.root, self.topology, self.policy,
+                                  manifest=supplied_manifest, authority_authenticator=auth)['sections']['context_scope']
+                self.assertEqual(context['owner'], 'ENGINEERING')
+                inputs = [row for row in context['records'] if row['topic'] in ('actors', 'entities')]
+                self.assertEqual({row['topic'] for row in inputs}, {'actors', 'entities'})
+                self.assertTrue(all(row['owner'] == 'BA' and row['evidence_label'] == 'CONFIRMED' for row in inputs))
+
     def test_cross_owner_and_same_owner_conflicts_stay_explicit(self):
         domain = self.produce('domain-discovery', [self.observation('entities', 'AUTHORITY', 'docs/domain.md', statement='Canonical collection meaning.')],
                               authority_authenticator=lambda *_: True)

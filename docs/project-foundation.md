@@ -6,6 +6,11 @@ BA owns product/domain/glossary; ENGINEERING owns architecture/runtime/deploymen
 ADR; TEST owns testing/automation/quality. It is not another Kit or a semantic
 authority. Shared schemas, profiles, exact approvals and promotion own semantics.
 
+arc42 Context & Scope / System Context is ENGINEERING-owned and uses the
+architecture Policy authority for CONFIRMED evidence and architecture impact
+routing on refresh. BA-owned actors/entities can contribute projection inputs
+without changing their BA ownership or the section's ENGINEERING ownership.
+
 ## Modes
 
 | Mode | Evidence | Purpose |

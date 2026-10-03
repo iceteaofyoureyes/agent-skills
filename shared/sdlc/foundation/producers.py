@@ -357,7 +357,8 @@ def arc42(artifacts, root, topology, policy, *, manifest=None, configuration_rev
     if manifest is not None: validate_manifest(manifest)
     revision = manifest['revision'] if manifest is not None else ordered[0]['revision'] if ordered else configuration_revision
     config_refs = _configuration_refs(root, topology, policy, revision)
-    sections = {name: {'status': 'UNKNOWN', 'records': [], 'references': []} for name in PROFILE['sections']}
+    sections = {name: {'owner': SEMANTIC_OWNERS[SECTION_DOMAINS[name]], 'status': 'UNKNOWN',
+                       'records': [], 'references': []} for name in PROFILE['sections']}
     if manifest is not None:
         validate_manifest(manifest)
         if manifest['authority'] != SEMANTIC_OWNERS: raise ValueError('Foundation semantic ownership drift')
@@ -397,7 +398,7 @@ def arc42(artifacts, root, topology, policy, *, manifest=None, configuration_rev
         rows = section['records']
         if manifest is None and rows:
             section['status'] = 'UNKNOWN' if all(row['evidence_label'] == 'UNKNOWN' for row in rows) else 'PARTIAL'
-        lines.extend(['## ' + title, '', 'Status: ' + section['status'], ''])
+        lines.extend(['## ' + title, '', 'Owner: ' + section['owner'], 'Status: ' + section['status'], ''])
         if section['references']: lines.extend(['Manifest references: ' + json.dumps(section['references'], sort_keys=True), ''])
         if not rows: lines.extend(['UNKNOWN: no validated semantic content supplied.', ''])
         # JSON fenced records keep evidence labels, owner and open questions visible.

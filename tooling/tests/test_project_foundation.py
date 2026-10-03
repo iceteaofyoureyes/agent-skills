@@ -288,6 +288,55 @@ class FoundationTests(unittest.TestCase):
         w.prepare(self.root,'run-1','foundation','R1',sections=sections,authority_authenticator=lambda domain,actual: domain=='architecture' and actual==ref)
         self.assertEqual(self.candidate()['sections']['runtime_view']['evidence'],'CONFIRMED')
 
+    def test_context_scope_defaults_to_engineering_preserving_other_owners(self):
+        state = self.start()
+        data = w.candidate_manifest(self.root, state, *self.config(), 'foundation', 'R1')
+        self.assertEqual(data['sections']['context_scope']['owner'], 'ENGINEERING')
+        for name, owner in [('introduction_goals', 'BA'), ('glossary', 'BA'), ('quality_requirements', 'TEST')]:
+            self.assertEqual(data['sections'][name]['owner'], owner)
+
+    def test_context_scope_rejects_ba_section_owner(self):
+        state = self.start()
+        row = {'status': 'UNKNOWN', 'owner': 'BA', 'evidence': 'UNKNOWN', 'blocking': False, 'references': []}
+        with self.assertRaisesRegex(ValueError, 'ownership'):
+            w.candidate_manifest(self.root, state, *self.config(), 'foundation', 'R1', sections={'context_scope': row})
+
+    def test_confirmed_context_scope_requires_exact_architecture_authority(self):
+        state = self.start()
+        topology, policy = self.config()
+        architecture = w.exact_ref(self.root, policy['authority']['architecture'], 'R1')
+        domain = w.exact_ref(self.root, policy['authority']['domain'], 'R1')
+        row = {'status': 'PARTIAL', 'owner': 'ENGINEERING', 'evidence': 'CONFIRMED',
+               'blocking': False, 'references': [architecture]}
+        def candidate(auth):
+            return w.candidate_manifest(self.root, state, topology, policy, 'foundation', 'R1',
+                sections={'context_scope': row}, authority_authenticator=auth)
+        with self.assertRaises(ValueError): candidate(None)
+        with self.assertRaises(ValueError): candidate(lambda area, ref: area == 'domain' and ref == domain)
+        calls = []
+        def authenticate(area, ref):
+            calls.append((area, ref))
+            return area == 'architecture' and ref == architecture
+        data = candidate(authenticate)
+        self.assertEqual(data['sections']['context_scope']['evidence'], 'CONFIRMED')
+        self.assertEqual(calls, [('architecture', architecture)])
+        row['references'] = [domain]
+        # Even a trusted callback approving every ref cannot substitute domain bytes.
+        with self.assertRaises(ValueError): candidate(lambda *_: True)
+
+    def test_refresh_context_scope_changes_route_only_to_architecture(self):
+        self.promoted()
+        previous = w.exact_ref(self.root, 'docs/foundation/R1.json', 'R1')
+        self.start('context-refresh', mode='FOUNDATION_REFRESH')
+        row = {'status': 'PARTIAL', 'owner': 'ENGINEERING', 'evidence': 'CURRENT_SYSTEM',
+               'blocking': False, 'references': [w.exact_ref(self.root, 'module/config.json', 'R1')]}
+        review = w.prepare(self.root, 'context-refresh', 'foundation', 'R2', previous_ref=previous,
+                           sections={'context_scope': row})
+        self.assertEqual(review['refresh_outcome'], 'FOUNDATION_UPDATE_REQUIRED')
+        self.assertTrue(review['knowledge_impact']['areas']['architecture']['affected'])
+        self.assertFalse(review['knowledge_impact']['areas']['domain']['affected'])
+        self.assertEqual(review['routes'], [{'area': 'architecture', 'owner': 'ENGINEERING', 'targets': []}])
+
     def test_historical_adr_inference_and_owner_reassignment_rejected(self):
         for name, owner in [('architecture_decisions','ENGINEERING'),('runtime_view','BA')]:
             self.start(name)
