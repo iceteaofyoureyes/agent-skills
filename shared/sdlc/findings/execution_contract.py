@@ -1,12 +1,13 @@
 """Thin project orchestration above Test Kit. Trusted host supplies lane identity."""
 from shared.sdlc.compatibility import retain_legacy_identity as _retain_legacy_identity
-_retain_legacy_identity(__name__, 'tooling.lib.execution_contract')
-
 import copy
 import hashlib
 import json
 import re
 from pathlib import Path
+from shared.sdlc.provenance.references import checked_ref
+
+_retain_legacy_identity(__name__, 'tooling.lib.execution_contract')
 
 DEPENDENCY_TYPES = {"SEMANTIC_ORACLE", "ENVIRONMENT_ACCESS", "TEST_DATA_FIXTURE", "IMPLEMENTATION_LOCATOR", "TOOLING", "OBSERVABILITY"}
 CLASSIFICATIONS = {"DEFECT": "DEFECT_READY_FOR_DEV", "SPEC_GAP": "BA_DECISION_REQUIRED",
@@ -24,9 +25,6 @@ TRANSITIONS = {
     "RETESTING": {"PASS": "VERIFIED", "FAIL": "REOPENED"},
     "REOPENED": {"FIX": "FIX_IMPLEMENTED"},
 }
-
-
-from shared.sdlc.provenance.references import checked_ref
 
 
 def execution_blockers(dependencies):

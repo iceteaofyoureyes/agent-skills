@@ -1,7 +1,5 @@
 """Promote authenticated approved testware into durable feature documentation."""
 from shared.sdlc.compatibility import retain_legacy_identity as _retain_legacy_identity
-_retain_legacy_identity(__name__, 'tooling.lib.testware_promotion')
-
 import hashlib
 import json
 from pathlib import Path
@@ -9,6 +7,8 @@ from pathlib import Path
 from tooling.lib import test_kit_v1 as design, test_kit_v1_cases as cases
 from shared.sdlc.approvals.gate_persistence import write_if_same_or_absent
 from shared.sdlc.provenance.runtime_paths import preflight_paths, revision_component
+
+_retain_legacy_identity(__name__, 'tooling.lib.testware_promotion')
 
 
 def render_testware(rows, stage):

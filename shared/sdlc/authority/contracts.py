@@ -1,9 +1,9 @@
 from shared.sdlc.compatibility import retain_legacy_identity as _retain_legacy_identity
-_retain_legacy_identity(__name__, 'contracts')
-
 import hashlib
 import re
 from pathlib import Path
+
+_retain_legacy_identity(__name__, 'contracts')
 
 
 SHA256 = re.compile(r"[0-9a-fA-F]{64}\Z")

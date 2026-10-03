@@ -63,6 +63,59 @@ class SharedVocabularyTests(unittest.TestCase):
 
 
 class SharedCompatibilityTests(unittest.TestCase):
+    def test_failed_dependency_import_publishes_no_alias_and_recovers(self):
+        dependencies = {
+            'contracts': 'hashlib',
+            'approved_baseline': 'shared.sdlc.authority.contracts',
+            'delivery_manifest': 'shared.sdlc.authority.approved_baseline',
+            'tooling.lib.runtime_paths': 'tempfile',
+            'tooling.lib.gate_persistence': 'shared.sdlc.provenance.runtime_paths',
+            'tooling.lib.testware_promotion': 'tooling.lib:test_kit_v1',
+            'tooling.lib.execution_contract': 'shared.sdlc.provenance.references',
+        }
+        code = '''import builtins, importlib, sys
+sys.path.insert(0, sys.argv[1])
+sys.path.insert(0, sys.argv[1] + '/ba-workflow/scripts')
+legacy, core, dependency, symbol, order = sys.argv[2:]
+parent_name, separator, child = legacy.rpartition('.')
+parent = importlib.import_module(parent_name) if separator else None
+original_import = builtins.__import__
+def fail_dependency(name, globals=None, locals=None, fromlist=(), level=0):
+    blocked_name, _, blocked_symbol = dependency.partition(':')
+    if name == blocked_name and (not blocked_symbol or blocked_symbol in fromlist):
+        raise ImportError('injected dependency failure: ' + dependency)
+    return original_import(name, globals, locals, fromlist, level)
+builtins.__import__ = fail_dependency
+try:
+    try:
+        importlib.import_module(legacy if order == 'legacy' else core)
+    except ImportError as error:
+        assert 'injected dependency failure' in str(error), str(error)
+    else:
+        raise AssertionError('injected dependency import did not fail')
+    assert core not in sys.modules, 'failed canonical import remained cached'
+    assert legacy not in sys.modules, 'failed import leaked a legacy alias'
+    if parent is not None:
+        assert not hasattr(parent, child), 'failed import leaked a legacy parent attribute'
+finally:
+    builtins.__import__ = original_import
+a = importlib.import_module(core)
+b = importlib.import_module(legacy)
+assert a is b and hasattr(a, symbol), 'recovery returned a partial module'
+assert a.__name__ == legacy
+exec('import ' + legacy + ' as historical')
+assert historical is a
+if parent is not None:
+    assert getattr(parent, child) is a
+'''
+        for legacy, core, symbol in OWNERS:
+            for order in ('core', 'legacy'):
+                with self.subTest(owner=legacy, first=order):
+                    result = subprocess.run([sys.executable, '-I', '-c', code, str(ROOT),
+                                             legacy, core, dependencies[legacy], symbol, order],
+                                            cwd=ROOT.parent, capture_output=True, text=True, timeout=60)
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_module_symbol_and_pickle_identity_in_both_import_orders(self):
         # A new process is required to genuinely exercise both first imports.
         code = '''import importlib, pathlib, pickle, sys

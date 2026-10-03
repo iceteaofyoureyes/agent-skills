@@ -1,15 +1,16 @@
 """Project delivery authority. JSON or the documented mapping/list YAML subset."""
 from shared.sdlc.compatibility import retain_legacy_identity as _retain_legacy_identity
-_retain_legacy_identity(__name__, 'delivery_manifest')
-
 import ast
 import hashlib
 import json
 import re
 from datetime import datetime
 from pathlib import Path
+from shared.sdlc.provenance.references import delivery_reference as _reference
 
 from shared.sdlc.authority.approved_baseline import read_approved_baseline
+
+_retain_legacy_identity(__name__, 'delivery_manifest')
 
 CONTRACT_VERSION = 2
 UX_RECEIPT_VERSION = 2
@@ -81,9 +82,6 @@ def read_mapping(path):
     if consumed != len(rows) or not isinstance(result, dict):
         raise ValueError("invalid YAML structure")
     return result
-
-
-from shared.sdlc.provenance.references import delivery_reference as _reference
 
 
 def load_delivery_manifest(path):

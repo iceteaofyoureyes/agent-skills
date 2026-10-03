@@ -1,7 +1,5 @@
 """Approved BA authority reader shared by downstream lanes. BAREF is a locator, never a business ID."""
 from shared.sdlc.compatibility import retain_legacy_identity as _retain_legacy_identity
-_retain_legacy_identity(__name__, 'approved_baseline')
-
 import hashlib
 import json
 import re
@@ -9,6 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 from shared.sdlc.authority.contracts import _yaml_fields, validate_handoff_file
+
+_retain_legacy_identity(__name__, 'approved_baseline')
 
 CONTRACT_VERSION = 1
 TABLE_SEPARATOR = re.compile(r"^\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$")

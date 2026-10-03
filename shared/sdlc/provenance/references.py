@@ -28,5 +28,3 @@ def checked_ref(ref):
     if path.is_symlink() or not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != ref["sha256"]:
         raise ValueError("artifact missing or hash drift")
     return path
-
-

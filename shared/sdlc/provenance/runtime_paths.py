@@ -1,13 +1,13 @@
 """Portable runtime paths: reject impossible writes before consuming decisions."""
 from shared.sdlc.compatibility import retain_legacy_identity as _retain_legacy_identity
-_retain_legacy_identity(__name__, 'tooling.lib.runtime_paths')
-
 import json
 import os
 from pathlib import Path
 import re
 import sys
 import tempfile
+
+_retain_legacy_identity(__name__, 'tooling.lib.runtime_paths')
 
 
 class RuntimePathError(ValueError):

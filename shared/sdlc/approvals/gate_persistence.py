@@ -1,7 +1,5 @@
 """Recoverable Human Gate writes. Immutable journal; workflow is the final commit."""
 from shared.sdlc.compatibility import retain_legacy_identity as _retain_legacy_identity
-_retain_legacy_identity(__name__, 'tooling.lib.gate_persistence')
-
 import hashlib
 import json
 import os
@@ -10,6 +8,8 @@ import re
 import tempfile
 
 from shared.sdlc.provenance.runtime_paths import preflight_paths
+
+_retain_legacy_identity(__name__, 'tooling.lib.gate_persistence')
 
 
 class GateConflict(ValueError):
