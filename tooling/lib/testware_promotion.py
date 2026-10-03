@@ -1,4 +1,4 @@
-"""Compatibility adapter; implementation owner: shared.sdlc.promotion.testware_promotion."""
+"""Compatibility adapter; Test-specific owner: tooling.lib.test_promotion."""
 import importlib as _importlib
 from pathlib import Path as _Path
 import sys as _sys
@@ -9,5 +9,5 @@ if not (_core_root / "shared/sdlc/compatibility/__init__.py").is_file():
     raise ImportError("Shared SDLC Core payload is missing from this kit installation")
 if str(_core_root) not in _sys.path:
     _sys.path.insert(0, str(_core_root))
-_core = _importlib.import_module('shared.sdlc.promotion.testware_promotion')
+_core = _importlib.import_module('tooling.lib.test_promotion')
 _sys.modules[__name__] = _core

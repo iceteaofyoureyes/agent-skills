@@ -23,7 +23,7 @@ OWNERS = (
     ('delivery_manifest', 'shared.sdlc.artifacts.delivery_manifest', 'load_delivery_manifest'),
     ('tooling.lib.runtime_paths', 'shared.sdlc.provenance.runtime_paths', 'RuntimePathError'),
     ('tooling.lib.gate_persistence', 'shared.sdlc.approvals.gate_persistence', 'GateConflict'),
-    ('tooling.lib.testware_promotion', 'shared.sdlc.promotion.testware_promotion', 'promote'),
+    ('tooling.lib.testware_promotion', 'tooling.lib.test_promotion', 'promote'),
     ('tooling.lib.execution_contract', 'shared.sdlc.findings.execution_contract', 'transition'),
 )
 
@@ -134,7 +134,8 @@ for legacy, core, symbol in owners:
     assert a is b, (first, second)
     assert a.__name__ == legacy
     assert getattr(a, symbol) is getattr(b, symbol)
-    assert pathlib.Path(a.__file__).is_relative_to(root / 'shared')
+    owner_root = root / 'tooling/lib' if core == 'tooling.lib.test_promotion' else root / 'shared'
+    assert pathlib.Path(a.__file__).is_relative_to(owner_root)
     assert a.__spec__.name == core
 from approved_baseline import BaselineRow, BaselineError
 row = BaselineRow('FR-001', 'Rule', 'source.md', 1)
@@ -232,6 +233,38 @@ assert revision_component('R1') == 'R1'
 assert json_bytes({'decision':'ANSWER'}) == b'{\\n  "decision": "ANSWER"\\n}\\n'
 from shared.sdlc.findings.execution_contract import CLASSIFICATIONS
 assert CLASSIFICATIONS['DEFECT'] == 'DEFECT_READY_FOR_DEV'
+from shared.sdlc.topology.contract import validate_topology
+from shared.sdlc.policy.contract import validate_policy
+from shared.sdlc.foundation.contract import foundation_readiness
+from shared.sdlc.foundation.profiles import PROJECT_FOUNDATION_PROFILE_ARC42_V1 as profile
+from shared.sdlc.readiness.compatibility import normalize_doctor
+from shared.sdlc.promotion.immutable import promotion_record
+assert normalize_doctor('READY')['human_approval'] is False
+assert validate_topology({'schema_version':1,'project':{'id':'example'},'repositories':[
+    {'id':'app','path':'app','repository':'owner/app','role':'implementation'}]})['project']['id'] == 'example'
+domains = ('product','domain','architecture','testing','features')
+assert validate_policy({'schema_version':1,'project':{'language':'vi'},
+    'foundation':{'profile':'arc42-standard-v1'},'authority':{k:'foundation.md' for k in domains},
+    'workflow':{'feature_root':'features','branch_convention':'feature/{feature_id}'},
+    'testing':{'automation_repository_role':'project_test_automation'},
+    'artifacts':{'optional':[]}})['schema_version'] == 1
+import hashlib, tempfile
+with tempfile.TemporaryDirectory() as scratch:
+    project = pathlib.Path(scratch); (project/'foundation.md').write_bytes(b'foundation')
+    ref = {'path':'foundation.md','revision':'R1','sha256':hashlib.sha256(b'foundation').hexdigest()}
+    manifest = {'schema_version':1,'id':'foundation','revision':'R1',
+        'profile':{'id':profile['id'],'level':'STANDARD'},'mode':'BROWNFIELD_RECOVERY',
+        'authority':{k:k.upper() for k in domains},'entry_points':{k:dict(ref) for k in domains},
+        'sections':{k:{'status':'UNKNOWN','owner':'ARCHITECTURE','evidence':'UNKNOWN',
+                       'blocking':False,'references':[]} for k in profile['sections']},'blockers':[]}
+    result = foundation_readiness(manifest,project)
+    assert result['status'] == 'PROJECT_FOUNDATION_READY' and result['human_approval'] is False
+    record = promotion_record({'id':'foundation','revision':'R1','sha256':ref['sha256']},
+                              b'foundation',ref,b'foundation')
+    assert record['source']['sha256'] == ref['sha256'] and record['human_approval'] is False
+for name in ('schema','topology.contract','policy.contract','foundation.contract','foundation.profiles',
+             'readiness.compatibility','promotion.immutable'):
+    assert pathlib.Path(importlib.import_module('shared.sdlc.'+name).__file__).is_relative_to(core)
 '''
         result = subprocess.run([sys.executable, '-I', '-c', code, str(runtime_root), str(ba_scripts), str(core_root)],
                                 cwd=runtime_root, capture_output=True, text=True, timeout=60)
@@ -268,7 +301,8 @@ for legacy, core, symbol in %r:
         exec('import ' + legacy + ' as historical')
         assert historical is a
         assert a is b and getattr(a, symbol) is getattr(b, symbol)
-        assert pathlib.Path(a.__file__).is_relative_to(root/'shared')
+        owner_root = root/'tooling/lib' if core == 'tooling.lib.test_promotion' else root/'shared'
+        assert pathlib.Path(a.__file__).is_relative_to(owner_root)
 ''' % (OWNERS,)
             result = subprocess.run([sys.executable, '-I', '-c', code, str(runtime)], cwd=runtime,
                                     capture_output=True, text=True, timeout=60)

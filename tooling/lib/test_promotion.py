@@ -1,4 +1,4 @@
-"""Promote authenticated approved testware into durable feature documentation."""
+"""Test-specific gate validation and rendering above Shared promotion primitives."""
 from shared.sdlc.compatibility import retain_legacy_identity as _retain_legacy_identity
 import hashlib
 import json
@@ -7,6 +7,7 @@ from pathlib import Path
 from tooling.lib import test_kit_v1 as design, test_kit_v1_cases as cases
 from shared.sdlc.approvals.gate_persistence import write_if_same_or_absent
 from shared.sdlc.provenance.runtime_paths import preflight_paths, revision_component
+from shared.sdlc.promotion.immutable import publish_immutable
 
 _retain_legacy_identity(__name__, 'tooling.lib.testware_promotion')
 
@@ -86,10 +87,7 @@ def promote(run_dir, feature_root, baseline, *, stage, human_actor_authenticator
               (feature_root / 'test/approvals' / receipt_name, receipt_bytes),
               (feature_root / 'test/approvals' / (stage + '-promotion.json'),
                (json.dumps(record, indent=2) + '\n').encode())]
+    # Keep the historical patched globals effective through explicit adapter hooks.
     preflight_paths([path for path, _ in writes], stage='TESTWARE_PROMOTION', transition=stage)
-    for path, content in writes:
-        if path.exists() and path.read_bytes() != content:
-            raise ValueError('promotion cannot overwrite a different approved snapshot')
-    for path, content in writes:
-        _copy_exact(path, content)
+    publish_immutable(writes, stage='TESTWARE_PROMOTION', transition=stage, writer=_copy_exact)
     return record

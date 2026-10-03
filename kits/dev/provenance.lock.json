@@ -195,16 +195,25 @@
       "shared/sdlc/findings/execution_contract.py": "189c9345d1e2b6f3dedaced9da849c0bc2546c3aed20c251cf31864b2e6107b0",
       "shared/sdlc/findings/taxonomy.py": "bbe4d10b377a4476978bbb59a419546a2dce49f58aca954add87a907b88a4459",
       "shared/sdlc/promotion/__init__.py": "6e62371c51ca7c332b7ee389ffb6ed243568af71d2b8768eb1d95f4d61d4eb4a",
-      "shared/sdlc/promotion/testware_promotion.py": "927bb4d0ebd1a72386dcce66d2c8325f6942601320799ec156569bf7af56e699",
+      "shared/sdlc/promotion/immutable.py": "cab2993b8217660356afc6d9e07ece15ac7ad0e1a2b06906e32136aca35f119d",
       "shared/sdlc/provenance/__init__.py": "aa2ec05ff32382fd173823d3d246e03006b77d9e87e168fddfadf561d8247599",
       "shared/sdlc/provenance/references.py": "c586a861a7dc57f5a5c103fdc8f7aa9b4107bc814bcd559dc5c7599e4ef6c219",
       "shared/sdlc/provenance/runtime_paths.py": "d903d518431c4ca3e5f26b58fd377cf1f1128b407f2007753f2a3314b93f087a",
       "shared/sdlc/readiness/__init__.py": "4c8b6a8f71ebb04a802ef443ca8c739357fea151f3610a9f36c64faebb410316",
       "shared/sdlc/readiness/vocabulary.py": "1acf0d1c4cdaed5609d2a30ef714a532addb5f72e8f9b00ddafb15d376b9373c",
+      "shared/sdlc/readiness/compatibility.py": "010cc01f6e0a5676bc263c710058cb82d8b0221f06acd33a8725e7573bf57d04",
+      "shared/sdlc/schema.py": "774570f765bf3330cf37bcaaa55853f4b42a652fcd49d88e4d6758c97e920912",
+      "shared/sdlc/topology/__init__.py": "1ee114ed63a0ff66e84febfe4e09d7e6f7dc67bcbd015141e84dcaf95a4f3dee",
+      "shared/sdlc/topology/contract.py": "70fb0713a286f21eb0a9f5f8e1d6f6d4c0b813ec7da25bba22ef01d87afca46b",
+      "shared/sdlc/policy/__init__.py": "623f4ea75e615f6c0707b4842f0babbe783270f9d984d25dfd8ea75ce939c6bb",
+      "shared/sdlc/policy/contract.py": "820fc7fdd91aeab444531eb1eff023238381bcf2f25b69b973e74a65271347d7",
+      "shared/sdlc/foundation/__init__.py": "9adc22ca418db48a530997ff61fbcd82923c3c9788ea58bbfb0290cbeb165c10",
+      "shared/sdlc/foundation/contract.py": "5150d5cfdddeea1f4f8d827a38e5847aeea95318e5e7c014b0012e3d1a0c53b3",
+      "shared/sdlc/foundation/profiles.py": "ec1233b6c5f7c89d1128f51379ba437885f683bc45426a6daf064b23526b235d",
       "ba-workflow/scripts/contracts.py": "00898f7bcbec77ce61af1b1a507a901775ee9304cb43c2036afca889a4f69fa7",
       "ba-workflow/scripts/approved_baseline.py": "40396dd4cb01e997eb19b48d7ba9ab2fd3f674b70b83e0e3eb0828d38af3b3c3",
       "ba-workflow/scripts/delivery_manifest.py": "764105aba6a48e349b1818a3dce77474f286a35353899630b37507b76fb11193"
     },
-    "sha256": "504e0da276c5f344dea2f922746b55b21d568fc80efa34d62e2bad5acb009da6"
+    "sha256": "e649ad8e436d093dcbe1312493aaca3518873c415163274670602fe769ed8836"
   }
 }

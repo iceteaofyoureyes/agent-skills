@@ -315,12 +315,6 @@
       "capability": "core"
     },
     {
-      "source": "shared/sdlc/promotion/testware_promotion.py",
-      "destination": ".test-kit/shared/sdlc/promotion/testware_promotion.py",
-      "classification": "CORE_RUNTIME",
-      "capability": "core"
-    },
-    {
       "source": "shared/sdlc/provenance/__init__.py",
       "destination": ".test-kit/shared/sdlc/provenance/__init__.py",
       "classification": "CORE_RUNTIME",
@@ -353,6 +347,72 @@
     {
       "source": "tooling/lib/execution_contract.py",
       "destination": ".test-kit/tooling/lib/execution_contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/promotion/immutable.py",
+      "destination": ".test-kit/shared/sdlc/promotion/immutable.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/readiness/compatibility.py",
+      "destination": ".test-kit/shared/sdlc/readiness/compatibility.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/schema.py",
+      "destination": ".test-kit/shared/sdlc/schema.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/topology/__init__.py",
+      "destination": ".test-kit/shared/sdlc/topology/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/topology/contract.py",
+      "destination": ".test-kit/shared/sdlc/topology/contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/policy/__init__.py",
+      "destination": ".test-kit/shared/sdlc/policy/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/policy/contract.py",
+      "destination": ".test-kit/shared/sdlc/policy/contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/foundation/__init__.py",
+      "destination": ".test-kit/shared/sdlc/foundation/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/foundation/contract.py",
+      "destination": ".test-kit/shared/sdlc/foundation/contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/foundation/profiles.py",
+      "destination": ".test-kit/shared/sdlc/foundation/profiles.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/test_promotion.py",
+      "destination": ".test-kit/tooling/lib/test_promotion.py",
       "classification": "CORE_RUNTIME",
       "capability": "core"
     }
@@ -440,11 +500,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "4657d4c8ae022ad5217a2aeed1cc978d7e5a84a33f5d9fcd084a0dd25fa34269"
+      "sha256": "323d3b146b2157e5cbe8e22d569643ddf0803a820c0048ace48d86b95faec9be"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "59fc760adefcfc6e8cb5ae241bb7687c18e49cd540c25fe0619f7667d17e620f"
+      "sha256": "2a47c1193cd945473fc14afdb35a79e517d5bb0ce989abf256ea4f6ad5865212"
     }
   }
 }

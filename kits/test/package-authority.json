@@ -125,13 +125,38 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/shared/sdlc/foundation/__init__.py",
+      "sha256": "9adc22ca418db48a530997ff61fbcd82923c3c9788ea58bbfb0290cbeb165c10",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/foundation/contract.py",
+      "sha256": "5150d5cfdddeea1f4f8d827a38e5847aeea95318e5e7c014b0012e3d1a0c53b3",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/foundation/profiles.py",
+      "sha256": "ec1233b6c5f7c89d1128f51379ba437885f683bc45426a6daf064b23526b235d",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/policy/__init__.py",
+      "sha256": "623f4ea75e615f6c0707b4842f0babbe783270f9d984d25dfd8ea75ce939c6bb",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/policy/contract.py",
+      "sha256": "820fc7fdd91aeab444531eb1eff023238381bcf2f25b69b973e74a65271347d7",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/shared/sdlc/promotion/__init__.py",
       "sha256": "6e62371c51ca7c332b7ee389ffb6ed243568af71d2b8768eb1d95f4d61d4eb4a",
       "classification": "CORE_RUNTIME"
     },
     {
-      "path": ".test-kit/shared/sdlc/promotion/testware_promotion.py",
-      "sha256": "927bb4d0ebd1a72386dcce66d2c8325f6942601320799ec156569bf7af56e699",
+      "path": ".test-kit/shared/sdlc/promotion/immutable.py",
+      "sha256": "cab2993b8217660356afc6d9e07ece15ac7ad0e1a2b06906e32136aca35f119d",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -155,8 +180,28 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/shared/sdlc/readiness/compatibility.py",
+      "sha256": "010cc01f6e0a5676bc263c710058cb82d8b0221f06acd33a8725e7573bf57d04",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/shared/sdlc/readiness/vocabulary.py",
       "sha256": "1acf0d1c4cdaed5609d2a30ef714a532addb5f72e8f9b00ddafb15d376b9373c",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/schema.py",
+      "sha256": "774570f765bf3330cf37bcaaa55853f4b42a652fcd49d88e4d6758c97e920912",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/topology/__init__.py",
+      "sha256": "1ee114ed63a0ff66e84febfe4e09d7e6f7dc67bcbd015141e84dcaf95a4f3dee",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/topology/contract.py",
+      "sha256": "70fb0713a286f21eb0a9f5f8e1d6f6d4c0b813ec7da25bba22ef01d87afca46b",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -215,8 +260,13 @@
       "classification": "OPTIONAL_RUNTIME"
     },
     {
+      "path": ".test-kit/tooling/lib/test_promotion.py",
+      "sha256": "a22ca90d78d3072205d2d6ca14b259fe541b6bdc4e90359a7fb1e291984b15f1",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/tooling/lib/testware_promotion.py",
-      "sha256": "398da01037b51f2785eaa3b35afb6fe9b513caa42af7d6d2c907cfa31d72f29b",
+      "sha256": "e2b07e8c986d5236b12ba39d841a2a364d42d1f16f1bffe0fda3c49892841a28",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -700,7 +750,7 @@
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 139,
+  "managed_file_count": 149,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "59fc760adefcfc6e8cb5ae241bb7687c18e49cd540c25fe0619f7667d17e620f"
+  "payload_tree_sha256": "2a47c1193cd945473fc14afdb35a79e517d5bb0ce989abf256ea4f6ad5865212"
 }
