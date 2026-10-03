@@ -22,8 +22,13 @@ a separate schema and explicit reader boundary.
 
 `read_document(text)` accepts strict JSON and a bounded YAML subset: two-space
 indented mappings, lists, mapping list items, quoted strings, integer scalars,
-`true`, `false`, `null`, and JSON inline arrays/objects. Duplicate keys and
-non-finite numbers fail in both formats. Anchors, aliases, tags, block strings,
+`true`, `false`, `null`, and JSON inline arrays/objects. YAML single-quoted
+scalars decode doubled apostrophes and keep backslashes literal; unmatched or
+unescaped quotes and adjacent literal concatenation fail. Double-quoted scalars
+use JSON string decoding. Duplicate keys and non-finite numbers, including
+numeric exponent overflow, fail in top-level and inline JSON. Finite JSON
+floats retain normal float values; current v1 schema fields still reject floats.
+Anchors, aliases, tags, block strings,
 inline comments, YAML implicit booleans and numeric/date-like plain strings are
 unsupported. Quote such strings or use JSON. A JSON document is valid at a
 `.yml` location. Existing kit parsers are unaffected.
@@ -237,6 +242,9 @@ profile, rejecting reserved Windows names, ADS and illegal components before
 any write. Existing absolute root directories may contain legitimate spaces
 or Unicode. Traversal, aliases, file/ancestor collisions and reparse destinations
 fail preflight.
+Every existing ancestor must be a directory. An existing destination must be a
+regular file with identical bytes for replay; an occupied directory position
+cannot cause an earlier output to publish before the operation is rejected.
 
 Test-specific loading, receipt authentication, Test Design/Case states and
 rendering now belong to `tooling/lib/test_promotion.py`. That adapter calls

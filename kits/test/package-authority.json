@@ -156,7 +156,7 @@
     },
     {
       "path": ".test-kit/shared/sdlc/promotion/immutable.py",
-      "sha256": "cab2993b8217660356afc6d9e07ece15ac7ad0e1a2b06906e32136aca35f119d",
+      "sha256": "7172b1396615415324920dd23c8bc2cb5edd9bcff8c91a818a9f1a40a8743326",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -191,7 +191,7 @@
     },
     {
       "path": ".test-kit/shared/sdlc/schema.py",
-      "sha256": "774570f765bf3330cf37bcaaa55853f4b42a652fcd49d88e4d6758c97e920912",
+      "sha256": "8ac66871bef2c6633a9eea0dc3b86be46f0a4141dc4175dca45e6688cb2cca44",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -752,5 +752,5 @@
   ],
   "managed_file_count": 149,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "2a47c1193cd945473fc14afdb35a79e517d5bb0ce989abf256ea4f6ad5865212"
+  "payload_tree_sha256": "585565c1e7f354ff0f952a2dfefd1657c6c308b1cd7be7f2aedd609dd84dba6f"
 }

@@ -135,6 +135,36 @@ class ProjectContractTests(unittest.TestCase):
                      'a: [NaN]\n', 'a: {"b": Infinity}\n'):
             with self.subTest(text=text), self.assertRaises(ValueError): m.read_document(text)
 
+    def test_single_quoted_yaml_decodes_apostrophes_and_preserves_backslashes(self):
+        m = self.module('shared.sdlc.schema')
+        for raw, expected in [("'ordinary'",'ordinary'), ("'exam''ple'","exam'ple"),
+                              ("'a''b''c'","a'b'c"), ("''''","'"), ("''",''),
+                              ("'exam\\x70le'",r'exam\x70le'), ("'line\\ntext'",r'line\ntext')]:
+            with self.subTest(raw=raw): self.assertEqual(m.read_document('a: '+raw+'\n'),{'a':expected})
+
+    def test_single_quoted_yaml_rejects_adjacent_literals_and_unescaped_quotes(self):
+        m = self.module('shared.sdlc.schema')
+        for raw in ("'exam' 'ple'", "'exam", "'exam'ple'", "'exam' #comment", "'exam'\"ple\""):
+            with self.subTest(raw=raw), self.assertRaises(ValueError): m.read_document('a: '+raw+'\n')
+
+    def test_topology_single_quotes_cannot_silently_change_project_identity(self):
+        m = self.module('shared.sdlc.topology.contract')
+        for raw in ("'exam''ple'", "'exam\\x70le'", "'exam' 'ple'"):
+            text = ('schema_version: 1\nproject:\n  id: '+raw+'\nrepositories:\n'
+                    '  - id: docs\n    path: docs\n    repository: owner/docs\n    role: documentation\n')
+            with self.subTest(raw=raw), self.assertRaises(ValueError): m.read_topology(text)
+
+    def test_json_float_overflow_rejected_in_all_reader_paths(self):
+        m = self.module('shared.sdlc.schema')
+        for text in ('{"a":1e999}','{"a":-1e999}','[1e999]',
+                     'a: [1e999]\n','a: {"b": -1e999}\n'):
+            with self.subTest(text=text), self.assertRaises(ValueError): m.read_document(text)
+        self.assertEqual(m.read_document('{"a":0.25,"b":1e308,"c":-1e308,"d":1e-308}'),
+                         {'a':0.25,'b':1e308,'c':-1e308,'d':1e-308})
+        finite = m.read_document('a: [1.7976931348623157e308]\n')['a'][0]
+        self.assertIs(type(finite),float)
+        self.assertEqual(finite,1.7976931348623157e308)
+
     def test_policy_reader_is_read_only_and_uses_canonical_location(self):
         m = self.module('shared.sdlc.policy.contract')
         with tempfile.TemporaryDirectory() as temp:
@@ -350,6 +380,21 @@ class ProjectContractTests(unittest.TestCase):
                            [(root/'One',b'a'),(root/'one',b'b')]):
                 with self.assertRaises(ValueError): m.publish_immutable(writes,stage='X',transition='X')
                 self.assertEqual(list(root.iterdir()),[])
+
+    def test_generic_existing_file_ancestor_rejects_before_any_publication(self):
+        m = self.module('shared.sdlc.promotion.immutable')
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); occupied = root/'occupied'; occupied.write_bytes(b'existing')
+            errors = []
+            try:
+                m.publish_immutable([(root/'first',b'published'),(occupied/'next',b'blocked')],
+                                    stage='REVIEW',transition='PROMOTE')
+            except Exception as error:
+                errors.append(error)
+            self.assertFalse((root/'first').exists(), 'invalid later destination published earlier bytes')
+            self.assertEqual(occupied.read_bytes(),b'existing')
+            self.assertEqual(len(errors),1)
+            self.assertIsInstance(errors[0],ValueError)
 
     def test_generic_promotion_unsafe_names_fail_before_any_publication(self):
         m = self.module('shared.sdlc.promotion.immutable')

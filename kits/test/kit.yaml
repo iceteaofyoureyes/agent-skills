@@ -500,11 +500,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "323d3b146b2157e5cbe8e22d569643ddf0803a820c0048ace48d86b95faec9be"
+      "sha256": "320ef6ff11fbdb6c1d2fabac0aca28536645d2a7db47179c4d1763c313c36c82"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "2a47c1193cd945473fc14afdb35a79e517d5bb0ce989abf256ea4f6ad5865212"
+      "sha256": "585565c1e7f354ff0f952a2dfefd1657c6c308b1cd7be7f2aedd609dd84dba6f"
     }
   }
 }

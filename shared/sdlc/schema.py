@@ -3,9 +3,9 @@
 Schema definitions use the JSON Schema vocabulary implemented below, without
 an optional runtime dependency. Unknown versions are never migrated implicitly.
 """
-import ast
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import stat
@@ -23,7 +23,19 @@ def _pairs(pairs):
 def _json(text):
     def reject_constant(value):
         raise ValueError('non-finite JSON constant: ' + value)
-    return json.loads(text,object_pairs_hook=_pairs,parse_constant=reject_constant)
+    def finite_float(raw):
+        value = float(raw)
+        if not math.isfinite(value):
+            raise ValueError('non-finite JSON number: ' + raw)
+        return value
+    return json.loads(text,object_pairs_hook=_pairs,parse_constant=reject_constant,parse_float=finite_float)
+
+
+def _single_quoted_yaml(raw):
+    if not re.fullmatch(r"'(?:[^']|'')*'",raw):
+        raise ValueError('unmatched or unescaped single quote in YAML scalar')
+    # YAML only escapes an apostrophe by doubling it. Backslashes are literal.
+    return raw[1:-1].replace("''", "'")
 
 
 def read_document(text):
@@ -48,7 +60,7 @@ def read_document(text):
             if raw.startswith('"'):
                 value = _json(raw)
             else:
-                value = ast.literal_eval(raw)
+                value = _single_quoted_yaml(raw)
             if not isinstance(value, str):
                 raise ValueError('quoted YAML value must be a string')
             return value

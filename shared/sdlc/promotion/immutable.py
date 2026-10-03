@@ -28,6 +28,11 @@ def publish_immutable(writes, *, stage, transition, writer=None):
                 info = ancestor.lstat()
                 if stat.S_ISLNK(info.st_mode) or bool(getattr(info,'st_file_attributes',0) & 0x400):
                     raise ValueError('unsafe symlink/reparse promotion destination')
+                if ancestor == path:
+                    if not stat.S_ISREG(info.st_mode):
+                        raise ValueError('existing promotion destination must be a regular file')
+                elif not stat.S_ISDIR(info.st_mode):
+                    raise ValueError('existing promotion ancestor must be a directory')
         key = str(path.absolute()).casefold()
         if key in seen: raise ValueError('duplicate immutable destination')
         seen.add(key)
