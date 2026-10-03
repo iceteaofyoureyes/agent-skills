@@ -656,7 +656,7 @@ def normalize_tea_markdown(
         evidence = (RawEvidenceRef(source_path, file_digest),)
         for cells, hierarchy, line in rows:
             design_id, title, trace, expected, trace_field, observable_field = _scenario_values(header, cells, source_path, line)
-            refs = _parse_ref_cell(trace, baseline.ba_ids, path=source_path, line=line, field=trace_field)
+            refs = _parse_ref_cell(trace, baseline.authority_ref_ids, path=source_path, line=line, field=trace_field)
             questions = _unknown_for_row(refs, title, expected, baseline, path=source_path, line=line)
             is_null = _scenario_outcome_is_deferred(title, expected)
             behavior = None if is_null else expected
@@ -745,12 +745,12 @@ def _record_findings(snapshot: DesignSnapshot, baseline: ApprovedBaseline) -> li
         if len(record.requirement_refs) != len(set(record.requirement_refs)):
             findings.append(Finding("DUPLICATE_REQUIREMENT_REF", f"{record.design_id} repeats a BA reference", source.path if source else None, source.line if source else None, "requirement_refs"))
         for ref in record.requirement_refs:
-            if ref not in baseline.ba_ids:
+            if ref not in baseline.authority_ref_ids:
                 findings.append(Finding("ORPHAN_REQUIREMENT_REF", f"{record.design_id} references unknown BA ID {ref}", source.path if source else None, source.line if source else None, "requirement_refs"))
             else:
                 covered.add(ref)
         for question in record.open_questions:
-            if question.status != "UNKNOWN" or question.source_ref not in baseline.ba_ids:
+            if question.status != "UNKNOWN" or question.source_ref not in baseline.authority_ref_ids:
                 findings.append(Finding("INVALID_OPEN_QUESTION_REF", f"{record.design_id} has an invalid UNKNOWN reference {question.source_ref}", source.path if source else None, source.line if source else None, "open_questions"))
             elif baseline.unknown_clauses.get(question.source_ref) != question.text:
                 findings.append(Finding("UNKNOWN_TEXT_DRIFT", f"{record.design_id} changed UNKNOWN text for {question.source_ref}", source.path if source else None, source.line if source else None, "open_questions"))
@@ -760,11 +760,12 @@ def _record_findings(snapshot: DesignSnapshot, baseline: ApprovedBaseline) -> li
         if _leaks_unknown_answer(record, baseline):
             findings.append(Finding("UNKNOWN_ASSERTION_LEAK", f"{record.design_id} asserts a value for an unresolved BA question", source.path if source else None, source.line if source else None, "expected_behavior"))
 
-    missing_refs = sorted(baseline.ba_ids - covered)
+    missing_refs = sorted(baseline.coverage_ids - covered)
     for ref in missing_refs:
         findings.append(Finding("UNCOVERED_BA_REQUIREMENT", f"approved BA ID has no Test Design or explicit UNKNOWN: {ref}", field="requirement_refs"))
     for source_id, text in baseline.unknown_clauses.items():
-        if source_id in covered and not any(question_text == text for _, question_text in preserved_unknowns):
+        # Real UNKNOWNs remain mandatory even on optional provenance locators.
+        if not any(question_text == text for _, question_text in preserved_unknowns):
             findings.append(Finding("UNKNOWN_NOT_PRESERVED", f"BA UNKNOWN was not preserved: {source_id}", field="open_questions"))
     return findings
 

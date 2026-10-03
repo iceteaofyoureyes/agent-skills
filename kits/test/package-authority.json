@@ -11,7 +11,7 @@
     },
     {
       "path": ".test-kit/ba-workflow/scripts/approved_baseline.py",
-      "sha256": "83073828305e8947fdf732786930944279bcf08155d53739207b412c9ef41414",
+      "sha256": "47e9cd74d7441183ecb21434b48d52cf2e5329802c7a642ae51e6af2598ab9f4",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -81,7 +81,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "a60982a090d360005c4dfdbd75f4ddda16faf642b974fd74a3dfc9c00b1940db",
+      "sha256": "236e6f2bfb5cc2df52955776c52404ed33a7974ba22773f62f1c30dc030e06ae",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -587,5 +587,5 @@
   ],
   "managed_file_count": 116,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "a05ce16987dde6711d72123546f5af1453e8732b9d583e6ef6ee223cbafab583"
+  "payload_tree_sha256": "0175ea379fa4f761c44046cb782976bd1f3cafd2a30f2a3217571ea0bc49f0e6"
 }

@@ -302,11 +302,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "f801a8a0c300b86b632bb1d083144448e2932f13ca4c5a0b8803bdcc0ee575b5"
+      "sha256": "7faaa814924c68db723be7d32af52455efa75c3f07240260b53dc8626bd4336e"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "a05ce16987dde6711d72123546f5af1453e8732b9d583e6ef6ee223cbafab583"
+      "sha256": "0175ea379fa4f761c44046cb782976bd1f3cafd2a30f2a3217571ea0bc49f0e6"
     }
   }
 }

@@ -75,8 +75,20 @@ class ApprovedBaseline:
         return {row.id for row in self.business_rules}
 
     @property
-    def ba_ids(self) -> set[str]:
+    def authority_ref_ids(self) -> set[str]:
+        """All source references, including structural BAREF locators."""
         return self.requirement_ids | self.business_rule_ids
+
+    @property
+    def coverage_ids(self) -> set[str]:
+        """Only canonical FR/BR IDs impose mandatory business coverage."""
+        return {identifier for identifier in self.authority_ref_ids
+                if _source_id_matches(identifier, "FR") or _source_id_matches(identifier, "BR")}
+
+    @property
+    def ba_ids(self) -> set[str]:
+        """Compatibility alias for authority refs, never mandatory coverage."""
+        return self.authority_ref_ids
 
 
 def _markdown_cells(line: str) -> list[str]:
