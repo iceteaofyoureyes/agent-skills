@@ -46,6 +46,7 @@ RUNTIME_FILES = (
     'shared/sdlc/foundation/inventory.py',
     'shared/sdlc/foundation/impact.py',
     'shared/sdlc/foundation/workflow.py',
+    'shared/sdlc/foundation/producers.py',
     'shared/sdlc/foundation/cli.py',
 
     "tooling/__init__.py",

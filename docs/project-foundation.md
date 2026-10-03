@@ -121,6 +121,7 @@ when Windows privileges are unavailable; a separate reparse-attribute guard test
 
 Evidence records, SECTION_V1 and impact owner routes are extension interfaces for
 BA domain discovery, Engineering architecture discovery/C4/arc42 projection and
-evidence-backed ADR authoring, and TEST foundation discovery. Rich arc42/C4/ADR
-generation is not implemented. Extensions must preserve Shared semantic ownership,
-exact Human Gates and runtime separation.
+evidence-backed ADR authoring, and TEST foundation discovery. Owner-specific direct
+APIs are documented in [Foundation semantic producers](foundation-semantic-producers.md).
+Installer/package and workflow extension integration remains Wave 2B work.
+Extensions preserve Shared semantic ownership, exact Human Gates and runtime separation.
