@@ -104,9 +104,6 @@ def start(root, run_id, mode, topology_ref, project_policy_ref, *, level='MINIMA
         declared_repository(topology, relative)
         if '/.sdlc/' in '/' + relative:
             raise ValueError('runtime and durable authority must be separated')
-    authority_paths = [path.casefold() for path in policy['authority'].values()]
-    if len(set(authority_paths)) != len(authority_paths):
-        raise ValueError('duplicate/conflicting project authority locations')
     result = inventory(root, topology, policy)
     directory = _runtime_path(root, run_id, 'inventory.json')
     state = {'schema_version': 1, 'run_id': run_id, 'project_id': topology['project']['id'],

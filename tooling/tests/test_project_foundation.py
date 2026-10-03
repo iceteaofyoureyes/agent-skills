@@ -92,6 +92,38 @@ class FoundationTests(unittest.TestCase):
             w.accept(self.root,'run-1',approval,human_actor_authenticator=auth)
         self.assertFalse((self.root/'docs/foundation').exists())
 
+    def test_policy_may_explicitly_share_exact_authority_path_across_domains(self):
+        policy_path = self.root/'.sdlc/project-policy.yml'
+        policy = read_document(policy_path.read_text())
+        shared = 'docs/project-knowledge.md'
+        (self.root/shared).write_text('# Shared project knowledge\n',encoding='utf-8')
+        policy['authority']['product'] = shared
+        policy['authority']['domain'] = shared
+        policy_path.write_text(json.dumps(policy),encoding='utf-8')
+        self.start(level='STANDARD')
+        review = w.prepare(self.root,'run-1','foundation','R1',**self.inputs())
+        candidate = self.candidate()
+        self.assertEqual(candidate['entry_points']['product']['path'],shared)
+        self.assertEqual(candidate['entry_points']['domain']['path'],shared)
+        self.assertEqual(review['conflicts'],[])
+        self.assertEqual(w.doctor(self.root,'run-1')['status'],'NOT_READY')
+
+    def test_explicit_shared_policy_path_does_not_hide_same_domain_competitors(self):
+        policy_path = self.root/'.sdlc/project-policy.yml'
+        policy = read_document(policy_path.read_text())
+        shared = 'docs/project-knowledge.md'
+        (self.root/shared).write_text('# Shared project knowledge\n',encoding='utf-8')
+        policy['authority']['product'] = shared
+        policy['authority']['domain'] = shared
+        policy_path.write_text(json.dumps(policy),encoding='utf-8')
+        claims = [{'domain':'product','reference':w.exact_ref(self.root,shared,'R1')},
+                  {'domain':'product','reference':w.exact_ref(self.root,'module/product.md','R1')},
+                  {'domain':'domain','reference':w.exact_ref(self.root,shared,'R1')}]
+        self.start()
+        review = w.prepare(self.root,'run-1','foundation','R1',authority_claims=claims,**self.inputs())
+        self.assertEqual([item['kind'] for item in review['conflicts']],['AUTHORITY_CONFLICT'])
+        self.assertEqual(review['conflicts'][0]['references'][0]['path'],shared)
+
     def test_synthetic_brownfield_acceptance_preserves_current_inferred_unknown(self):
         data, _, auth = self.promoted()
         self.assertEqual(data['sections']['runtime_view']['evidence'],'CURRENT_SYSTEM')
@@ -234,8 +266,8 @@ class FoundationTests(unittest.TestCase):
 
     def test_missing_policy_authority_and_weakened_policy_fail_closed(self):
         path = self.root/'.sdlc/project-policy.yml'; content = path.read_bytes()
-        for mutate in (lambda d:d['authority'].update(product='module/product.md',domain='module/product.md'),
-                       lambda d:d.update(approval='AUTO'),lambda d:d['authority'].update(product='outside/product.md')):
+        for mutate in (lambda d:d.update(approval='AUTO'),
+                       lambda d:d['authority'].update(product='outside/product.md')):
             data = read_document(content.decode()); mutate(data); path.write_bytes(w.semantic_bytes(data))
             with self.assertRaises(ValueError): self.start()
             self.assertFalse((self.root/'.sdlc/runs').exists()); path.write_bytes(content)
