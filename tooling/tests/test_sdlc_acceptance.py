@@ -9,10 +9,11 @@ from pathlib import Path
 
 from tooling.lib import ba_kit, dev_kit as dev, dev_router, test_kit_v1 as design, test_kit_v1_cases as cases
 from tooling.lib import execution_contract as execution, testware_promotion as promotion
-from tooling.tests.test_sdlc_contracts import delivery_fixture
+from tooling.tests.test_sdlc_contracts import delivery_fixture, generalized_delivery_fixture
 from tooling.tests.test_dev_kit import _planning_text, _advance_high_risk_to_plan_gate
 from tooling import install_dev_kit, prepare_agent_profile
 from tooling.sdlc_suite import check_runtime_ignores
+from delivery_manifest import load_delivery_manifest
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -54,6 +55,96 @@ def fixture_actor(actor_id, _receipt):
 
 
 class FreshSyntheticAcceptance(unittest.TestCase):
+    def test_dev_readiness_uses_external_approval_precedence_for_historical_lifecycle_text(self):
+        with tempfile.TemporaryDirectory(prefix="sdlc-approval-precedence-") as temp:
+            root = Path(temp)
+            docs = root / "docs"
+            feature = docs / "features/CR-001"
+            feature.mkdir(parents=True)
+            manifest, data = generalized_delivery_fixture(feature)
+            handoff = feature / "engineering-handoff.yml"
+            rules = feature / "rules.md"
+            srs = feature / "srs.md"
+            rules.write_text(
+                "# Business Rules\n\nTrạng thái lịch sử: DRAFT_FOR_HUMAN_BASELINE_REVIEW.\n\n"
+                "| ID | Rule | Note |\n|---|---|---|\n"
+                "| `BR-001` | Search and status are combined with AND. | Confirmed |\n",
+                encoding="utf-8",
+            )
+            srs.write_text(
+                "# SRS\n\nTrạng thái lịch sử: DRAFT_FOR_HUMAN_BASELINE_REVIEW.\n\n"
+                "| ID | Requirement | Note |\n|---|---|---|\n"
+                "| `FR-001` | Filter the approved list. | Confirmed |\n",
+                encoding="utf-8",
+            )
+            handoff_text = handoff.read_text(encoding="utf-8")
+            fields, _, _, _ = dev._yaml_fields(handoff_text)
+            for role, source in (("business_rules", rules), ("srs", srs)):
+                old = fields[("authoritative_sources", role, "sha256")]
+                handoff_text = handoff_text.replace(old, ref(source)["sha256"])
+            handoff_text = handoff_text.replace(
+                "  non_blocking: []",
+                "  non_blocking:\n    - UX Contract and prototype are pending the G2 Human UX Gate; do not create the Delivery Manifest or implement.",
+            )
+            handoff.write_text(handoff_text, encoding="utf-8")
+            data["ba"]["handoff"]["sha256"] = ref(handoff)["sha256"]
+
+            contract = feature / data["ux"]["contract"]["path"]
+            contract.write_text(
+                contract.read_text(encoding="utf-8") + "\nHistorical status: DRAFT_FOR_HUMAN_UX_REVIEW / PENDING_HUMAN_REVIEW.\n",
+                encoding="utf-8",
+            )
+            receipt_path = feature / data["ux"]["approval_receipt"]["path"]
+            receipt_data = json.loads(receipt_path.read_text(encoding="utf-8"))
+            contract_ref = data["ux"]["contract"]["path"]
+            receipt_data["sources"][contract_ref] = ref(contract)["sha256"]
+            receipt_data["semantic_snapshot_sha256"] = hashlib.sha256(
+                json.dumps(receipt_data["sources"], sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest()
+            receipt_path.write_text(json.dumps(receipt_data), encoding="utf-8")
+            data["ux"]["contract"]["sha256"] = ref(contract)["sha256"]
+            data["ux"]["approval_receipt"]["sha256"] = ref(receipt_path)["sha256"]
+
+            app = root / "app"
+            init(app, "app")
+            (app / "package.json").write_text(
+                json.dumps({"scripts": {"build": "node -e \"\"", "qa:gate": "node -e \"\""}}),
+                encoding="utf-8",
+            )
+            git(app, "add", ".")
+            git(app, "commit", "-m", "Synthetic authority precedence fixture")
+            git(app, "remote", "add", "origin", "https://github.com/fixture/app.git")
+            data["targets"][0]["base_revision"] = git(app, "rev-parse", "HEAD")
+            write_json(manifest, data)
+
+            delivery = load_delivery_manifest(manifest)
+            self.assertEqual(delivery["sha256"], ref(manifest)["sha256"])
+            source_bytes = {path: path.read_bytes() for path in (handoff, rules, srs, contract, receipt_path)}
+            started = dev_router.start_from_delivery(app, manifest, "Implement approved fixture behavior")
+            self.assertEqual(started["route"]["risk_level"], "NORMAL")
+            run = Path(started["run_dir"])
+            inputs = dev._read_json(run / "input.json")
+            authority = inputs["authority_precedence"]
+            self.assertEqual(authority["ba"]["status"], "APPROVED_FOR_ENGINEERING")
+            self.assertEqual(authority["ba"]["source_hashes"], delivery["baseline"].source_hashes)
+            self.assertEqual(authority["ux"]["status"], "APPROVED_EXACT_SNAPSHOT")
+            self.assertEqual(authority["ux"]["approval_receipt_sha256"], data["ux"]["approval_receipt"]["sha256"])
+
+            dev.write_artifact(run / "spec-readiness.json", {"status": "READY_FOR_PLANNING", "business_ambiguities": []})
+            self.assertEqual(dev.preflight(app)["status"], "READY_FOR_PLANNING")
+            for path, original in source_bytes.items():
+                self.assertEqual(path.read_bytes(), original)
+
+            dev.write_artifact(run / "spec-readiness.json", {
+                "status": "NEEDS_BA_CLARIFICATION",
+                "business_ambiguities": ["Approved semantic rules disagree about the combined filter behavior."],
+            })
+            self.assertEqual(dev.preflight(app)["status"], "NEEDS_BA_CLARIFICATION")
+            inputs["authority_precedence"]["ux"]["status"] = "PENDING_HUMAN_REVIEW"
+            dev._write_run_json(run, "input.json", inputs, inputs["baseline_snapshot"])
+            with self.assertRaisesRegex(ValueError, "validated delivery approval context changed"):
+                dev.preflight(app)
+
     def check_preparation_patches_preserve_authority_and_ignore_runtime(self):
         workspace = ROOT.parent / "digital-wedding-workspace"
         patches = workspace / "audits/golden-run-readiness-2026-10-02/preparation"
@@ -114,6 +205,61 @@ class FreshSyntheticAcceptance(unittest.TestCase):
                      "artifacts": {"srs": ref(srs)}, "gates": {"ba": {"fixture": "SYNTHETIC_ONLY", "decision": "APPROVE", "sha256": ref(srs)["sha256"]}},
                      "pending": [], "source_of_truth": {"handoff": ref(handoff)}, "history": []}
             self.assertEqual(validate_state_data(state), [])
+
+    def test_same_session_design_traces_cr_dwc_inline_business_rule_ids(self):
+        with tempfile.TemporaryDirectory(prefix="sdlc-inline-id-design-") as temp:
+            docs = Path(temp) / "docs"
+            init(docs, "docs")
+            feature = docs / "features/CR-001"
+            feature.mkdir(parents=True)
+            manifest, data = generalized_delivery_fixture(feature)
+            handoff = feature / "engineering-handoff.yml"
+            rules = feature / "rules.md"
+            srs = feature / "srs.md"
+            rules.write_bytes((Path(__file__).parent / "fixtures/approved-baseline-inline-ids/business-rules.md").read_bytes())
+            srs.write_text(
+                "# SRS fixture\n\n| ID | Requirement | Notes |\n|---|---|---|\n"
+                "| `FR-001` | The approved rule set can be traced. | Confirmed |\n",
+                encoding="utf-8",
+            )
+            handoff_text = handoff.read_text(encoding="utf-8")
+            fields, _, _, _ = dev._yaml_fields(handoff_text)
+            for role, source in (("business_rules", rules), ("srs", srs)):
+                old = fields[("authoritative_sources", role, "sha256")]
+                handoff_text = handoff_text.replace(old, ref(source)["sha256"])
+            handoff.write_text(handoff_text, encoding="utf-8")
+            data["ba"]["handoff"]["sha256"] = ref(handoff)["sha256"]
+            write_json(manifest, data)
+
+            skills = docs / ".agents/skills"
+            ba_kit.install(ROOT, skills, "test", project_root=docs)
+            self.assertEqual(ba_kit.doctor(ROOT, skills, "test", project_root=docs)["status"], "READY")
+            run = docs / ".test-kit/runs/CR-001/design-inline-ids"
+            prepared = design.prepare_same_session_design(
+                handoff, run, project_root=docs, skill_dir=skills / "bmad-testarch-test-design",
+                delivery_path=manifest,
+            )
+            self.assertEqual(prepared["status"], "PREPARED")
+            baseline = design.load_approved_baseline(handoff)
+            expected = {f"BR-DASH-{number:03d}" for number in range(1, 7)}
+            self.assertEqual(baseline.business_rule_ids, expected)
+            self.assertFalse(any(identifier.startswith("BAREF:BR:") for identifier in baseline.ba_ids))
+            adapter = (run / "inputs/adapter/business-rules.md").read_text(encoding="utf-8")
+            for identifier in expected:
+                self.assertIn(identifier, adapter)
+
+            raw = Path(prepared["raw_output_path"])
+            raw.parent.mkdir(parents=True, exist_ok=True)
+            trace = "; ".join(["FR-001", *sorted(expected)])
+            raw.write_text(
+                "# Test Design: Epic 1 — CR-001\n\n## Test Coverage Plan\n\n### P0\nNone\n\n### P1\n\n"
+                "| Test ID | Kịch bản | Mức kiểm thử | Risk Link | Truy vết | Kết quả quan sát được |\n"
+                "|---|---|---|---|---|---|\n"
+                f"| 1.0-UNIT-001 | Trace approved search rules | UNIT | None | {trace} | Approved search result is observable. |\n\n"
+                "### P2\nNone\n\n### P3\nNone\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(design.finalize_same_session_design(handoff, run)["status"], "DESIGN_REVIEW")
 
     def test_same_session_no_ids_gates_promotion_and_clean_docs(self):
         with tempfile.TemporaryDirectory(prefix="sdlc-synthetic-test-") as temp:

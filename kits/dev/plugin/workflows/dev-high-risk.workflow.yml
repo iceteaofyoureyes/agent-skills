@@ -32,6 +32,15 @@ steps:
       radius from source, and create impact-manifest.json per the schema printed by `{{ inputs.devkit_command }} schema impact-manifest`. Use
       codebase-memory-mcp only if native source inspection cannot establish dependencies/callers. Record technical
       facts and unknowns only. Never write into an Approved BA Baseline path.
+      Treat input.json's validated authority_precedence as the approval source: APPROVED_FOR_ENGINEERING plus
+      exact BA hashes approves the immutable BA snapshot, and a valid Delivery Manifest V2 plus its exact Human
+      UX receipt approves the bound UX snapshot. APPROVAL STATE != INLINE LIFECYCLE TEXT. Historical DRAFT,
+      PENDING_HUMAN_REVIEW, or next_stage wording inside those exact approved bytes does not revoke approval.
+      open_items.blocking remains blocking by contract. Do not promote open_items.non_blocking into business
+      ambiguity; when later validated manifest evidence satisfies its old UX dependency, classify it as
+      SUPERSEDED_BY_DELIVERY_MANIFEST. Still stop for a semantic contradiction between approved rules,
+      an UNKNOWN/TBD that forces Dev to choose WHAT, missing/invalid approval evidence, hash drift, or a real
+      blocking item. Resolve WHAT only through BA/Human authority.
   - id: enforce-readiness-and-impact
     type: shell
     run: '"{{ inputs.devkit_command }}" preflight'

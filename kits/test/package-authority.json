@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.4",
+  "kit_version": "2.0.0-rc.5",
   "manifest_schema_version": 1,
   "managed_files": [
     {
@@ -11,7 +11,7 @@
     },
     {
       "path": ".test-kit/ba-workflow/scripts/approved_baseline.py",
-      "sha256": "de34a7bb8b0b0a830266c44d4a651ea6d245081dc252377d89323b721629968e",
+      "sha256": "83073828305e8947fdf732786930944279bcf08155d53739207b412c9ef41414",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -587,5 +587,5 @@
   ],
   "managed_file_count": 116,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "76320406cf3b289fb2e0091b15c8a316926cd0de6313d0cc12e7c3380096350c"
+  "payload_tree_sha256": "a05ce16987dde6711d72123546f5af1453e8732b9d583e6ef6ee223cbafab583"
 }

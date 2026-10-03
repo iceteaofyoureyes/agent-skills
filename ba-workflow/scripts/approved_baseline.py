@@ -10,7 +10,7 @@ from contracts import _yaml_fields, validate_handoff_file
 CONTRACT_VERSION = 1
 TABLE_SEPARATOR = re.compile(r"^\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?$")
 SOURCE_HEADING = re.compile(
-    r"^(?P<marks>#{2,6})\s+(?P<id>(?:FR|BR)-(?:[A-Za-z0-9]+-)*\d+)\s*(?:[—–-]\s*)?(?P<title>.*?)\s*$",
+    r"^(?P<marks>#{2,6})\s+(?P<id>`?(?:FR|BR)-(?:[A-Za-z0-9]+-)*\d+`?)\s*(?:[—–-]\s*)?(?P<title>.*?)\s*$",
     re.IGNORECASE,
 )
 MARKDOWN_HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
@@ -83,8 +83,15 @@ def _markdown_cells(line: str) -> list[str]:
     return [cell.strip() for cell in line.strip().strip("|").split("|")]
 
 
+def _normalize_source_id(value: str) -> str:
+    value = value.strip()
+    if value.startswith("`") and value.endswith("`") and not value.startswith("``") and not value.endswith("``"):
+        return value[1:-1].strip()
+    return value
+
+
 def _source_id_matches(value: str, id_prefix: str) -> bool:
-    return bool(re.fullmatch(rf"{id_prefix}-(?:[A-Za-z0-9]+-)*\d+", value, re.IGNORECASE))
+    return bool(re.fullmatch(rf"{id_prefix}-(?:[A-Za-z0-9]+-)*\d+", _normalize_source_id(value), re.IGNORECASE))
 
 
 def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int, *, source_path=None) -> tuple[BaselineRow, ...]:
@@ -96,19 +103,24 @@ def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int, *, sourc
         if not raw.lstrip().startswith("|") or TABLE_SEPARATOR.fullmatch(raw.strip()):
             continue
         cells = _markdown_cells(raw)
-        if not cells or not _source_id_matches(cells[0], id_prefix):
+        if not cells:
+            continue
+        source_id = _normalize_source_id(cells[0])
+        if not _source_id_matches(source_id, id_prefix):
             continue
         if len(cells) < 2:
             raise BaselineError(f"{path}:{number}: source ID requires source text")
         if not cells[1]:
-            raise BaselineError(f"{path}:{number}: {cells[0]} has no source text")
-        rows.append(BaselineRow(cells[0], cells[1], str(path), number))
+            raise BaselineError(f"{path}:{number}: {source_id} has no source text")
+        rows.append(BaselineRow(source_id, cells[1], str(path), number))
 
     for index, raw in enumerate(lines):
         match = SOURCE_HEADING.match(raw)
-        if not match or not _source_id_matches(match.group("id"), id_prefix):
+        if not match:
             continue
-        source_id = match.group("id")
+        source_id = _normalize_source_id(match.group("id"))
+        if not _source_id_matches(source_id, id_prefix):
+            continue
         heading_depth = len(match.group("marks"))
         body: list[str] = []
         cursor = index + 1
@@ -126,9 +138,11 @@ def _parse_source_rows(path: Path, id_prefix: str, wanted_columns: int, *, sourc
         rows.append(BaselineRow(source_id, text, str(path), index + 1))
 
     for number, raw in enumerate(lines, 1):
-        match = re.match(rf"^\s*(?:[-*+]\s+|\d+[.)]\s+)?(?P<id>{id_prefix}-(?:[A-Za-z0-9]+-)*\d+)\s*[:—–-]\s*(?P<text>.+)$", raw)
+        match = re.match(rf"^\s*(?:[-*+]\s+|\d+[.)]\s+)?(?P<id>`?{id_prefix}-(?:[A-Za-z0-9]+-)*\d+`?)\s*[:—–-]\s*(?P<text>.+)$", raw)
         if match:
-            rows.append(BaselineRow(match.group("id"), match.group("text"), str(path), number))
+            source_id = _normalize_source_id(match.group("id"))
+            if _source_id_matches(source_id, id_prefix):
+                rows.append(BaselineRow(source_id, match.group("text"), str(path), number))
 
     if not rows:
         # Structural sections preserve authority text without asserting new business IDs.

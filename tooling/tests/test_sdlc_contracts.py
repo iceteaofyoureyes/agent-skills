@@ -10,7 +10,7 @@ from pathlib import Path
 from dataclasses import replace
 
 from tooling.lib import ba_kit, dev_kit, test_kit_v1 as test, test_kit_v1_cases as cases
-from approved_baseline import read_approved_baseline
+from approved_baseline import BaselineError, _parse_source_rows, read_approved_baseline
 from delivery_manifest import load_delivery_manifest
 from tooling.tests.test_dev_kit import _write_approved_baseline
 from tooling.install_dev_kit import install as install_dev
@@ -57,6 +57,66 @@ def generalized_delivery_fixture(root, prototype=True):
 
 
 class SharedBaselineTests(unittest.TestCase):
+    def test_inline_code_source_ids_normalize_across_source_extraction_paths(self):
+        fixtures = (
+            ("table", "BR", "| `BR-DASH-001` | Rule text. | Confirmed |\n", "BR-DASH-001"),
+            ("heading", "FR", "## `FR-ABC-001` — Heading title\nRequirement text.\n", "FR-ABC-001"),
+            ("legacy", "BR", "- `BR-ABC-002`: Rule text.\n", "BR-ABC-002"),
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            for name, prefix, source, expected in fixtures:
+                path = Path(temp) / f"{name}.md"
+                path.write_text(source, encoding="utf-8")
+                with self.subTest(name=name):
+                    self.assertEqual([row.id for row in _parse_source_rows(path, prefix, 3)], [expected])
+
+    def test_cr_dwc_inline_id_fixture_exposes_all_canonical_business_rules(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            handoff = _write_approved_baseline(root)
+            rules = Path(root) / "rules.md"
+            fixture = Path(__file__).parent / "fixtures/approved-baseline-inline-ids/business-rules.md"
+            rules.write_bytes(fixture.read_bytes())
+            original_source = rules.read_bytes()
+            text = handoff.read_text(encoding="utf-8")
+            fields, _, _, _ = dev_kit._yaml_fields(text)
+            digest = hashlib.sha256(original_source).hexdigest()
+            old_digest = fields[("authoritative_sources", "business_rules", "sha256")]
+            handoff.write_text(text.replace(old_digest, digest), encoding="utf-8")
+
+            baseline = read_approved_baseline(handoff)
+            expected = {f"BR-DASH-{number:03d}" for number in range(1, 7)}
+            self.assertEqual(baseline.business_rule_ids, expected)
+            self.assertFalse(any(identifier.startswith("BAREF:BR:") for identifier in baseline.business_rule_ids))
+            self.assertEqual(rules.read_bytes(), original_source)
+
+    def test_malformed_inline_ids_and_arbitrary_text_are_not_normalized(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "rules.md"
+            path.write_text(
+                "| ID | Rule | Note |\n|---|---|---|\n"
+                "| ``BR-001`` | Double wrapper. | Confirmed |\n"
+                "| `BR-002 | Missing close. | Confirmed |\n"
+                "| BR-003` | Missing open. | Confirmed |\n"
+                "| NOT-A-BR | Arbitrary text. | Confirmed |\n",
+                encoding="utf-8",
+            )
+            rows = _parse_source_rows(path, "BR", 3)
+            self.assertTrue(all(row.id.startswith("BAREF:BR:") for row in rows))
+            self.assertFalse(any(row.id in {"BR-001", "BR-002", "BR-003", "NOT-A-BR"} for row in rows))
+
+    def test_duplicate_id_after_inline_code_normalization_fails(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "rules.md"
+            path.write_text(
+                "| ID | Rule | Note |\n|---|---|---|\n"
+                "| BR-001 | Plain ID. | Confirmed |\n"
+                "| `BR-001` | Same canonical ID. | Confirmed |\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(BaselineError, "duplicate BR source IDs"):
+                _parse_source_rows(path, "BR", 3)
+
     def test_skill_payload_excludes_generated_bytecode(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp) / "source"
@@ -173,7 +233,7 @@ class DeliveryTests(unittest.TestCase):
 
     def test_distributed_ba_dev_test_validate_canonical_receipt(self):
         source = Path(__file__).resolve().parents[2]
-        versions = {"ba": "2.0.0-rc.2", "dev": "0.3.0-rc.3", "test": "2.0.0-rc.4"}
+        versions = {"ba": "2.0.0-rc.3", "dev": "0.3.0-rc.4", "test": "2.0.0-rc.5"}
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             feature = root / "feature"
@@ -348,6 +408,31 @@ class DeliveryTests(unittest.TestCase):
             ref = data["ba"]["handoff"]
             path.write_text(f"schema_version: 2\nfeature:\n  id: CR-001\ndelivery_revision: CR-001-DELIVERY-001\nba:\n  handoff:\n    path: {ref['path']}\n    revision: {ref['revision']}\n    sha256: {ref['sha256']}\nux:\n  required: false\ntargets:\n  - repository: fixture/app\n    module: app\n    base_revision: {'a'*40}\nopen_items:\n  blocking: []\n", encoding="utf-8")
             self.assertEqual(load_delivery_manifest(path)["data"], data)
+
+
+class DevApprovalPrecedencePromptTests(unittest.TestCase):
+    def test_all_readiness_entrypoints_use_validated_approval_precedence(self):
+        root = Path(__file__).resolve().parents[2]
+        paths = (
+            root / "dev-kit/SKILL.md",
+            root / "requirements-gap-auditor/SKILL.md",
+            root / "kits/dev/plugin/workflows/dev-normal.workflow.yml",
+            root / "kits/dev/plugin/workflows/dev-high-risk.workflow.yml",
+        )
+        required = (
+            "APPROVAL STATE != INLINE LIFECYCLE TEXT",
+            "APPROVED_FOR_ENGINEERING",
+            "PENDING_HUMAN_REVIEW",
+            "open_items.blocking",
+            "open_items.non_blocking",
+            "SUPERSEDED_BY_DELIVERY_MANIFEST",
+            "semantic contradiction",
+        )
+        for path in paths:
+            text = path.read_text(encoding="utf-8")
+            with self.subTest(path=path.relative_to(root)):
+                for phrase in required:
+                    self.assertIn(phrase, text)
 
 
 class DependencyTests(unittest.TestCase):

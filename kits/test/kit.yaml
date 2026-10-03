@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "test",
   "name": "Test Kit",
-  "version": "2.0.0-rc.4",
+  "version": "2.0.0-rc.5",
   "workflow": {
     "skill": "test-kit"
   },
@@ -302,11 +302,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "766f8008b4580459b9f577ca16663d75b0ac50f4bea7f22b7e562f66a0fc38d6"
+      "sha256": "f801a8a0c300b86b632bb1d083144448e2932f13ca4c5a0b8803bdcc0ee575b5"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "76320406cf3b289fb2e0091b15c8a316926cd0de6313d0cc12e7c3380096350c"
+      "sha256": "a05ce16987dde6711d72123546f5af1453e8732b9d583e6ef6ee223cbafab583"
     }
   }
 }

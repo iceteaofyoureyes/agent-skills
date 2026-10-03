@@ -2,7 +2,7 @@
   "schema_version": 2,
   "id": "dev",
   "name": "Dev Kit",
-  "version": "0.3.0-rc.3",
+  "version": "0.3.0-rc.4",
   "status": "INTEGRATION_CANDIDATE",
   "packaging": {
     "type": "agent-plugin",

@@ -1,4 +1,4 @@
-# BA Kit 2.0.0-rc.2
+# BA Kit 2.0.0-rc.3
 
 This candidate distributes Delivery Manifest V2 with the canonical immutable Human UX receipt. See [the V2 contract and package version provenance](../../docs/DELIVERY_MANIFEST_V2.md). Earlier RC1 acceptance evidence below remains historical.
 

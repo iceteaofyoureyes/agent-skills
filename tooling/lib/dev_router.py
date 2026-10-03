@@ -52,6 +52,7 @@ def start_from_delivery(project, delivery_path, summary):
     started = dev.start_run(project, **validated)
     inputs = dev._read_json(Path(started["run_dir"]) / "input.json")
     inputs["delivery_snapshot"] = {"path": str(delivery["path"]), "sha256": delivery["sha256"]}
+    inputs["authority_precedence"] = dev.delivery_approval_context(delivery)
     inputs["provisional_write_scope"] = [target["module"]]
     inputs["inspection"] = {"tracked_files": files, "agents_read_required": True}
     dev._write_run_json(Path(started["run_dir"]), "input.json", inputs, inputs["baseline_snapshot"])

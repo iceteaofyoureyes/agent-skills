@@ -31,6 +31,15 @@ steps:
       Otherwise write status READY_FOR_PLANNING and an empty business_ambiguities list. In the same preflight,
       inspect relevant source and create impact-manifest.json following the schema printed by
       `{{ inputs.devkit_command }} schema impact-manifest`.
+      Treat input.json's validated authority_precedence as the approval source: APPROVED_FOR_ENGINEERING plus
+      exact BA hashes approves the immutable BA snapshot, and a valid Delivery Manifest V2 plus its exact Human
+      UX receipt approves the bound UX snapshot. APPROVAL STATE != INLINE LIFECYCLE TEXT. Historical DRAFT,
+      PENDING_HUMAN_REVIEW, or next_stage wording inside those exact approved bytes does not revoke approval.
+      open_items.blocking remains blocking by contract. Do not promote open_items.non_blocking into business
+      ambiguity; when later validated manifest evidence satisfies its old UX dependency, classify it as
+      SUPERSEDED_BY_DELIVERY_MANIFEST. Still stop for a semantic contradiction between approved rules,
+      an UNKNOWN/TBD that forces Dev to choose WHAT, missing/invalid approval evidence, hash drift, or a real
+      blocking item. Resolve WHAT only through BA/Human authority.
       Record technical owners, repositories, components, interfaces, data, dependencies, constraints, risk reasons,
       and technical unknowns. Do not decide WHAT. Never write into any Approved BA Baseline path.
   - id: enforce-readiness-and-impact

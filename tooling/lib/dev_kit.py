@@ -773,6 +773,9 @@ def _load_run(project_root, change_id=None, check_baseline=True):
         delivery = load_delivery_manifest(ref["path"])
         if delivery["sha256"] != ref["sha256"]:
             raise ValueError("Delivery Manifest changed after run start")
+        expected_authority = delivery_approval_context(delivery)
+        if inputs.get("authority_precedence") is not None and inputs["authority_precedence"] != expected_authority:
+            raise ValueError("validated delivery approval context changed after run start")
     return run_dir, inputs
 
 
@@ -782,6 +785,36 @@ def snapshot_approved_baseline(path):
 
 def verify_baseline(snapshot):
     return verify_baseline_snapshot(snapshot)
+
+
+def delivery_approval_context(delivery):
+    """Describe approval only from the validated handoff, source hashes, and Delivery Manifest V2."""
+    data = delivery["data"]
+    baseline = delivery["baseline"]
+    handoff = data["ba"]["handoff"]
+    ux = data["ux"]
+    contract = ux.get("contract", {})
+    receipt = ux.get("approval_receipt", {})
+    return {
+        "basis": "VALIDATED_DELIVERY_MANIFEST_V2",
+        "delivery_revision": data["delivery_revision"],
+        "delivery_manifest_sha256": delivery["sha256"],
+        "ba": {
+            "status": "APPROVED_FOR_ENGINEERING",
+            "revision": baseline.revision,
+            "handoff_sha256": handoff["sha256"],
+            "source_hashes": dict(baseline.source_hashes),
+            "non_blocking_items": list(baseline.open_items),
+        },
+        "ux": {
+            "status": "APPROVED_EXACT_SNAPSHOT" if ux["required"] else "NOT_REQUIRED",
+            "revision": contract.get("revision"),
+            "contract_sha256": contract.get("sha256"),
+            "approval_receipt_sha256": receipt.get("sha256"),
+        },
+        "delivery_blocking_items": list(data["open_items"]["blocking"]),
+        "delivery_non_blocking_items": list(data["open_items"].get("non_blocking", [])),
+    }
 
 
 def _write_run_json(run_dir, name, value, baseline_snapshot):
