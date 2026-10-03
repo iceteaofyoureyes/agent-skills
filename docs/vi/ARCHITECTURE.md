@@ -13,6 +13,11 @@ Test Kit V1 + TEA/Katalon = HOW DO WE PROVE IT
 
 ## Layer
 
+Các integration contract hiện nằm trong `shared/sdlc`; compatibility adapter giữ
+nguyên import path và semantics BA/Test/Dev. Xem
+[Shared SDLC Core Wave 1](../en/SHARED_SDLC_CORE_WAVE1.md) để biết source owner,
+runtime payload theo kit và phạm vi còn lại cho Wave 2.
+
 ~~~text
 User intent
     ↓

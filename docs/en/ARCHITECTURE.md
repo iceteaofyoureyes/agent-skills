@@ -13,6 +13,11 @@ Test Kit + TEA = HOW DO WE PROVE IT
 
 ## Layers
 
+Integration contracts now physically live in `shared/sdlc`, with adapters
+preserving BA/Test/Dev callers and current semantics. See the
+[Shared SDLC Core Wave 1 migration map](SHARED_SDLC_CORE_WAVE1.md) for ownership,
+installed payloads, and remaining Wave 2 boundaries.
+
 ~~~text
 User intent
     ↓

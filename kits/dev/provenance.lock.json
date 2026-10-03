@@ -178,8 +178,33 @@
       "tooling/lib/dev_kit.py": "eb425b826828b44199452c652bb95736f1346e936006bf8e421c3d7b8a7ad142",
       "tooling/lib/dev_router.py": "aa22d14daca3896e775c60bf4a3f3f6f36d9bc13bed0c820c54a6fe3e722c4c7",
       "kits/dev/kit.yaml": "bc687e809ade6ff3bd3ca4587e2d3c0f829ab85b35fe981811707ea60bd871d6",
-      "kits/dev/plugin/plugin.json": "30471bdc3c61ca633ceee9645e528622b5611f8c72f4ad647141bba5e0a0f2ad"
+      "kits/dev/plugin/plugin.json": "30471bdc3c61ca633ceee9645e528622b5611f8c72f4ad647141bba5e0a0f2ad",
+      "shared/__init__.py": "cfa2e273faa77d861705a491166e4bfc65bb7f304dafbd45c1a3f3fc6ee5ba54",
+      "shared/sdlc/__init__.py": "b32bcf7c86171673ace107616a9a74053dcb3435fb664ee3f4006ac3c0c6ad4d",
+      "shared/sdlc/approvals/__init__.py": "02ae9d010202ab19ab7fc85efefe2b57307eb7915acbb1220cd0c2b7b4b1c8ff",
+      "shared/sdlc/approvals/gate_persistence.py": "20cf38e7d809a30dde3aedca8a97950e0705fcfa9e08a094483468ad473d996d",
+      "shared/sdlc/approvals/invariants.py": "86294be476ad728d1c6e94e82229304098d5a83cbf2ef08160cfd3384e48461e",
+      "shared/sdlc/artifacts/__init__.py": "f3a6068bfd22d339b370f35760366715a4fd13b4213fff79135697bdbf4604aa",
+      "shared/sdlc/artifacts/classes.py": "5530083ee5318930576f09578cc134358e134d2e0594077e2d6de912c6f94856",
+      "shared/sdlc/artifacts/delivery_manifest.py": "136d1807d543ace69664c772c123ac0e01777a6bb408cfb5bf790301195fff55",
+      "shared/sdlc/authority/__init__.py": "00bac0425b66c977513c7f3c2898e71f0e4e2b217551ff4bcf4c3b6f33462170",
+      "shared/sdlc/authority/approved_baseline.py": "fc726cf2f3b3cf87913513b87e3943c7ca43a7b2e321183fadcd6f14386f0baa",
+      "shared/sdlc/authority/contracts.py": "c9a3479e8527798e290b7dddfce88279f5b393d7251b7763958cbba2e0c6c696",
+      "shared/sdlc/compatibility/__init__.py": "82958f288eb2fad5d3aa841bf76a237925ed35143605e6644474dd74aac3b783",
+      "shared/sdlc/findings/__init__.py": "83d38300c75e8cc1ed4a8a797fe986a8f755d3e8430268bd2fbfe1b315e0a3e8",
+      "shared/sdlc/findings/execution_contract.py": "6878989e8c002f6347c7d516846a2cfba2dbfe1cf7b6c82a99d1747952c76e8d",
+      "shared/sdlc/findings/taxonomy.py": "bbe4d10b377a4476978bbb59a419546a2dce49f58aca954add87a907b88a4459",
+      "shared/sdlc/promotion/__init__.py": "6e62371c51ca7c332b7ee389ffb6ed243568af71d2b8768eb1d95f4d61d4eb4a",
+      "shared/sdlc/promotion/testware_promotion.py": "146ba30825d4e0585b351ba44097f594d0f17b6065d8a4367652981df443e39d",
+      "shared/sdlc/provenance/__init__.py": "aa2ec05ff32382fd173823d3d246e03006b77d9e87e168fddfadf561d8247599",
+      "shared/sdlc/provenance/references.py": "bc8a9bd47e2d1d7b90172bbdbaf20488a325698f4443b84175f46094592b9003",
+      "shared/sdlc/provenance/runtime_paths.py": "ef4028a10d251d18b94400a71bcde6f9f2ec400e230bdaa47f3ea8f4b1fef4d9",
+      "shared/sdlc/readiness/__init__.py": "4c8b6a8f71ebb04a802ef443ca8c739357fea151f3610a9f36c64faebb410316",
+      "shared/sdlc/readiness/vocabulary.py": "1acf0d1c4cdaed5609d2a30ef714a532addb5f72e8f9b00ddafb15d376b9373c",
+      "ba-workflow/scripts/contracts.py": "00898f7bcbec77ce61af1b1a507a901775ee9304cb43c2036afca889a4f69fa7",
+      "ba-workflow/scripts/approved_baseline.py": "40396dd4cb01e997eb19b48d7ba9ab2fd3f674b70b83e0e3eb0828d38af3b3c3",
+      "ba-workflow/scripts/delivery_manifest.py": "764105aba6a48e349b1818a3dce77474f286a35353899630b37507b76fb11193"
     },
-    "sha256": "de0fd1b3362bf7c9875edcbe062028b058a19bb2c31225385c275a0baa88f872"
+    "sha256": "6eab385cb82e36da8dfda8d5e98a2872fe16817f8b4f84d54332d00a76fe696f"
   }
 }
