@@ -1,7 +1,9 @@
 # Agent Skills Kits
 
 **Project Foundation:** capability Shared SDLC cho brownfield, greenfield và refresh.
-Xem [workflow core](docs/project-foundation.md) và [skill](project-foundation/SKILL.md).
+Xem [workflow core](docs/project-foundation.md), [semantic producers](docs/foundation-semantic-producers.md)
+và [skill](project-foundation/SKILL.md). Producer artifacts được giữ trong runtime
+review package; C4 và arc42 là derived views.
 
 Repository này dành cho **Agent Skills Kits**: các skill nguyên tử có thể tái sử dụng và các Kit kết hợp chúng thành workflow theo vai trò cho từng giai đoạn AI-assisted SDLC.
 

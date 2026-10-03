@@ -36,10 +36,12 @@ RUN_STATE_V1 = object_schema({
     'state': {'type': 'string', 'enum': STATES},
     'inputs': {'type': 'array', 'items': REFERENCE},
     'artifacts': {'type': 'object', 'additionalProperties': REFERENCE},
+    'semantic_artifacts': {'type': 'object', 'additionalProperties': REFERENCE},
     'open_items': FOUNDATION_MANIFEST_V1['properties']['blockers'],
     'history': {'type': 'array', 'minItems': 1, 'items': object_schema({
         'from': {'enum': (None, *STATES)}, 'to': {'type': 'string', 'enum': STATES}})},
-    'promotion': object_schema({'manifest': STRING, 'provenance': STRING})}, optional=('promotion',))
+    'promotion': object_schema({'manifest': STRING, 'provenance': STRING})},
+    optional=('promotion', 'semantic_artifacts'))
 
 
 def semantic_bytes(value):
@@ -81,7 +83,8 @@ def _load(root, run_id):
     policy = validate_policy(_read(root, state['project_policy_ref']))
     if topology['project']['id'] != state['project_id']:
         raise ValueError('run project identity drift')
-    for ref in (*state['inputs'], *state['artifacts'].values()): validate_reference(ref, root, revision=True)
+    for ref in (*state['inputs'], *state['artifacts'].values(), *state.get('semantic_artifacts', {}).values()):
+        validate_reference(ref, root, revision=True)
     return state, topology, policy
 
 
@@ -109,13 +112,154 @@ def start(root, run_id, mode, topology_ref, project_policy_ref, *, level='MINIMA
     state = {'schema_version': 1, 'run_id': run_id, 'project_id': topology['project']['id'],
              'mode': mode, 'foundation_profile': {'id': PROFILE['id'], 'level': level},
              'topology_ref': topology_ref, 'project_policy_ref': project_policy_ref,
-             'state': 'ANALYSIS', 'inputs': [topology_ref, project_policy_ref],
+             'state': 'ANALYSIS', 'inputs': [topology_ref, project_policy_ref], 'semantic_artifacts': {},
              'artifacts': {}, 'open_items': [], 'history': [{'from': None, 'to': 'ANALYSIS'}]}
     content = semantic_bytes(result)
     state['artifacts']['inventory'] = {'path': directory.relative_to(root).as_posix(),
                                      'revision': run_id, 'sha256': hashlib.sha256(content).hexdigest()}
     _publish([(directory, content), (_state_path(root, run_id), semantic_bytes(state))], 'START')
     return state
+
+
+def _artifact_key(producer, artifact_id, revision):
+    revision_component(producer.replace('-', '_')); identifier(artifact_id); revision_component(revision)
+    return f'{producer}-{artifact_id}-{revision}'
+
+
+def _record_semantic(root, run_id, key, data, *, source_keys=(), authority_authenticator=None,
+                    approval_context=None):
+    root = Path(root).absolute()
+    state, topology, policy = _load(root, run_id)
+    if state['state'] != 'ANALYSIS':
+        raise ValueError('semantic artifacts must be attached before review preparation')
+    for source_key in source_keys:
+        if source_key not in state.get('semantic_artifacts', {}):
+            raise ValueError('derived projection requires exact run semantic inputs')
+    if data.get('artifact_class') == 'RUNTIME' and data.get('source_producer') == 'conflict-analysis':
+        if not source_keys or type(data.get('conflicts')) is not list:
+            raise ValueError('conflict artifact requires explicit semantic inputs')
+        data = {**data, 'source_artifacts': {name: state['semantic_artifacts'][name] for name in source_keys}}
+    elif data.get('artifact_class') == 'RUNTIME':
+        from shared.sdlc.foundation.producers import validate_artifact
+        validate_artifact(data, root, topology, policy, authority_authenticator=authority_authenticator,
+                          approval_context=approval_context)
+        if (data['topology_ref'] != state['topology_ref'] or
+                data['project_policy_ref'] != state['project_policy_ref']):
+            raise ValueError('producer artifact configuration binding differs from Foundation run')
+    elif data.get('artifact_class') == 'DERIVED':
+        if data.get('projection') not in ('C4_MERMAID', 'ARC42_STANDARD_MARKDOWN') or not source_keys:
+            raise ValueError('unsupported or unbound derived projection')
+        data = {**data, 'source_artifacts': {name: state['semantic_artifacts'][name] for name in source_keys}}
+    else:
+        raise ValueError('unsupported semantic artifact class')
+    path = _runtime_path(root, run_id, f'semantic/{key}.json')
+    content = semantic_bytes(data)
+    ref = {'path': path.relative_to(root).as_posix(), 'revision': key,
+           'sha256': hashlib.sha256(content).hexdigest()}
+    existing = state.get('semantic_artifacts', {}).get(key)
+    if existing is not None:
+        if existing != ref:
+            raise ValueError('semantic artifact identity is immutable within a Foundation run')
+        return ref
+    _publish([(path, content)], 'SEMANTIC_ARTIFACT')
+    after = copy.deepcopy(state)
+    after.setdefault('semantic_artifacts', {})
+    after['semantic_artifacts'][key] = ref
+    if _load(root, run_id)[0] != state:
+        raise ValueError('Foundation state conflict')
+    atomic_workflow(_state_path(root, run_id), after)
+    return ref
+
+
+def produce_semantic(root, run_id, producer, artifact_id, revision, *, observations=(), kind=None,
+                     elements=(), relationships=(), authority_authenticator=None, approval_context=None):
+    """Run one explicit owner producer and bind its exact bytes to an active Foundation run."""
+    from shared.sdlc.foundation import producers as semantic
+    state, topology, policy = _load(Path(root).absolute(), run_id)
+    if producer in ('domain-discovery', 'architecture-discovery', 'test-foundation'):
+        artifact = semantic.produce(root, topology, policy, producer, artifact_id, revision,
+                                    state['mode'], observations,
+                                    authority_authenticator=authority_authenticator,
+                                    approval_context=approval_context)
+    elif producer == 'adr-management':
+        artifact = semantic.adr(root, topology, policy, artifact_id, revision, state['mode'], kind,
+                                observations, authority_authenticator=authority_authenticator,
+                                approval_context=approval_context)
+    elif producer == 'c4-modeling':
+        artifact = semantic.c4_model(root, topology, policy, artifact_id, revision, state['mode'],
+                                     elements, relationships, authority_authenticator=authority_authenticator,
+                                     approval_context=approval_context)
+    else:
+        raise ValueError('unsupported Project Foundation producer')
+    key = _artifact_key(producer, artifact_id, revision)
+    return _record_semantic(root, run_id, key, artifact, authority_authenticator=authority_authenticator,
+                            approval_context=approval_context)
+
+
+def _semantic_input(root, state, key):
+    ref = state.get('semantic_artifacts', {}).get(key)
+    if ref is None:
+        raise ValueError('semantic artifact is not attached to this Foundation run')
+    return read_document(validate_reference(ref, root, revision=True).read_text(encoding='utf-8'))
+
+
+def render_c4_candidate(root, run_id, source_key):
+    from shared.sdlc.foundation import producers as semantic
+    root = Path(root).absolute()
+    state, topology, policy = _load(root, run_id)
+    source = _semantic_input(root, state, source_key)
+    view = semantic.render_c4(source, root, topology, policy)
+    return _record_semantic(root, run_id, 'c4-view', view, source_keys=(source_key,))
+
+
+def project_arc42(root, run_id, source_keys, *, configuration_revision=None):
+    from shared.sdlc.foundation import producers as semantic
+    root = Path(root).absolute()
+    state, topology, policy = _load(root, run_id)
+    if type(source_keys) not in (tuple, list):
+        raise ValueError('arc42 inputs must be explicit semantic artifact keys')
+    artifacts = [_semantic_input(root, state, key) for key in source_keys]
+    view = semantic.arc42(artifacts, root, topology, policy,
+                          configuration_revision=configuration_revision)
+    return _record_semantic(root, run_id, 'arc42', view, source_keys=source_keys)
+
+
+def detect_semantic_conflicts(root, run_id, source_keys, disagreements, *, authority_authenticator=None):
+    from shared.sdlc.foundation import producers as semantic
+    root = Path(root).absolute()
+    state, topology, policy = _load(root, run_id)
+    if type(source_keys) not in (tuple, list):
+        raise ValueError('conflict inputs must be explicit semantic artifact keys')
+    artifacts = [_semantic_input(root, state, key) for key in source_keys]
+    result = semantic.conflicts(artifacts, disagreements, root, topology, policy,
+                                authority_authenticator=authority_authenticator)
+    revision = max((item.get('revision', 'R1') for item in artifacts), default='R1')
+    data = {'schema_version': 1, 'id': 'conflicts', 'revision': revision,
+            'artifact_class': 'RUNTIME', 'source_producer': 'conflict-analysis',
+            'owner': 'ENGINEERING', 'conflicts': result}
+    return _record_semantic(root, run_id, 'conflicts', data, source_keys=source_keys)
+
+
+def _semantic_review(root, state):
+    rows = []
+    for key, ref in sorted(state.get('semantic_artifacts', {}).items()):
+        data = _semantic_input(root, state, key)
+        if data['artifact_class'] == 'RUNTIME':
+            records = data.get('records', [])
+            owner, producer = data['owner'], data['source_producer']
+            unknowns = [row['id'] for row in records if row['evidence_label'] == 'UNKNOWN']
+            proposed = [row['id'] for row in records if row['evidence_label'] == 'PROPOSED']
+            conflicts = data.get('conflicts', []) if producer == 'conflict-analysis' else []
+        else:
+            owner, producer = 'ENGINEERING', data['projection']
+            unknowns = [name for name, section in data.get('sections', {}).items()
+                        if section.get('status') == 'UNKNOWN']
+            proposed, conflicts = [], []
+        rows.append({'identity': data.get('id', key), 'revision': data.get('revision', ref['revision']),
+                     'reference': ref, 'owner': owner, 'producer_type': producer,
+                     'artifact_class': data['artifact_class'], 'unknowns': unknowns,
+                     'proposed_targets': proposed, 'unresolved_conflicts': conflicts})
+    return rows
 
 
 def candidate_manifest(root, state, topology, policy, manifest_id, revision, *, sections=None,
@@ -243,6 +387,21 @@ def prepare(root, run_id, manifest_id, revision, *, sections=None, blockers=None
     if any(row['evidence'] == 'APPROVED_TARGET' for row in data['sections'].values()):
         _approval(data, root, approval, human_actor_authenticator, previous)
     change = copy.deepcopy(knowledge_impact(impact))
+    semantic = _semantic_review(root, state)
+    for key in state.get('semantic_artifacts', {}):
+        artifact = _semantic_input(root, state, key)
+        producer = artifact.get('source_producer')
+        if producer == 'domain-discovery':
+            topics = {row['topic'] for row in artifact.get('records', [])}
+            if 'product_goals' in topics: change['areas']['product']['affected'] = True
+            if topics - {'product_goals'}: change['areas']['domain']['affected'] = True
+            continue
+        elif producer == 'test-foundation': area = 'testing'
+        elif producer in ('architecture-discovery', 'adr-management', 'c4-modeling'): area = 'architecture'
+        else: continue
+        change['areas'][area]['affected'] = True
+    producer_decisions = [f"{row['owner']}_REVIEW:{row['identity']}:{target}"
+                          for row in semantic for target in row['proposed_targets']]
     for row in change['areas'].values():
         for target in row['targets']: declared_repository(topology, target)
     if previous is not None:
@@ -264,10 +423,12 @@ def prepare(root, run_id, manifest_id, revision, *, sections=None, blockers=None
     review = {'schema_version': 1, 'mode': state['mode'],
               'candidate': {'id': data['id'], 'revision': revision, 'sha256': manifest_sha256(data)},
               'critical_blockers': critical,
-              'noncritical_unknowns': unknowns, 'conflicts': conflicts,
+              'noncritical_unknowns': unknowns, 'conflicts': conflicts + [conflict for row in semantic for conflict in row['unresolved_conflicts']],
               'proposed_target_decisions': proposed, 'evidence_references': evidence,
+              'semantic_artifacts': semantic,
               'knowledge_impact': change, 'routes': routes(change),
-              'required_decisions': ['HUMAN_EXACT_SNAPSHOT_REVIEW'] + ['ENGINEERING_TARGET:' + name
+              'required_owner_decisions': producer_decisions,
+              'required_decisions': ['HUMAN_EXACT_SNAPSHOT_REVIEW'] + producer_decisions + ['ENGINEERING_TARGET:' + name
                   for name in proposed if data['sections'][name]['blocking']],
               'refresh_outcome': refresh_outcome(change) if previous is not None else None,
               'human_approval': False}
@@ -360,6 +521,7 @@ def promote(root, run_id, destination, provenance_destination, *, human_actor_au
                                content, approval, receipt_bytes)
     record.update(source_evidence=review['evidence_references'], mode=data['mode'],
                   knowledge_impact=review['knowledge_impact'], manifest_sha256=manifest_sha256(data))
+    record['source_evidence'].extend({'semantic_artifact': row} for row in review.get('semantic_artifacts', []))
     _publish([(safe_location(root, destination), content),
               (safe_location(root, provenance_destination), semantic_bytes(record))], 'PROMOTE')
     if state['state'] == 'PROJECT_FOUNDATION_READY': return state

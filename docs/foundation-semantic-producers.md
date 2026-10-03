@@ -1,10 +1,10 @@
 # Foundation semantic producers
 
-Wave 2A implements the owner producer layer in `shared.sdlc.foundation.producers`.
-These direct Python APIs consume explicit observations, declared topology/Project
-Policy and exact refs. They perform no repository scan, LLM invocation, filesystem
-write, approval or publication. Installer/profile/package and workflow integration
-is deferred to Wave 2B, except for the minimal runtime closure described below.
+`shared.sdlc.foundation.producers` provides owner-specific semantic producers.
+Direct producer APIs consume explicit observations, declared topology/Project
+Policy and exact refs. The Project Foundation workflow binds their immutable
+runtime outputs to the run and review package. Producer APIs themselves perform
+no repository scan, LLM invocation, approval or publication.
 
 ## Inputs and records
 
@@ -140,8 +140,9 @@ inputs when projected into this section. Section ownership is explicit in both
 the structured projection and Markdown; it does not reassign record ownership.
 
 The artifact is DERIVED. Generation does not approve it or change evidence labels.
-Architecture governance/promotion uses existing owner/Foundation workflows;
-mechanical connections remain Wave 2B work.
+Architecture governance/promotion uses existing owner/Foundation workflows.
+The Foundation run stores the structured RUNTIME candidate and binds this
+DERIVED projection by exact source references; it does not promote either.
 
 ## Conflicts and artifact classes
 
@@ -172,16 +173,26 @@ python -m unittest discover -s tooling/tests -v
 ```
 
 Actual Windows symlink checks may skip without privileges; simulated reparse guards
-run independently. Wave 2B should wire installer/profile/package allowlists,
-regenerate payload/provenance, connect orchestrator extensions, exercise installed
-producer payloads and complete cross-producer public workflow acceptance.
+run independently. Wave 2B acceptance covers installed producer payloads,
+cross-producer exact references, workflow conflicts, and synthetic brownfield and
+greenfield review/promotion paths.
 
-### Unavoidable packaging exception
+### Runtime integration and packaging
 
 Existing `test_ba_archive_exact_allowlist_bytes_and_deterministic_regeneration`
 requires every Python source under `shared/**` to be in the Shared runtime payload.
-Adding this module without updating the closure fails full regression. Wave 2A
-therefore adds one Dev runtime allowlist entry and regenerates the two existing
-Shared ZIPs and Dev runtime provenance with official scripts. This makes the source
-module available in those payloads, but adds no workflow commands, profile options,
-Kit migration or broader package integration. Remaining Wave 2B wiring is deferred.
+The shared runtime allowlist includes the complete Foundation source closure.
+Regenerate the deterministic Shared ZIPs and Dev runtime provenance with the
+repository tools after source changes. The optional Foundation profile and Dev
+install both carry the skill and runtime payload; clean-installed acceptance runs
+with Python isolation and no source-checkout imports.
+
+Integrated outputs live under `.sdlc/runs/foundation/<run-id>/semantic/`.
+The Foundation review request lists exact artifact references, owner, producer,
+unknowns, proposed targets and unresolved conflicts. Knowledge Impact routes
+product/domain to BA, architecture/context_scope/C4/ADR to ENGINEERING and
+testing to TEST. Only explicit changed producer records mark an area affected.
+
+The CLI exposes `start`, `prepare`, each owner producer, `render-c4`,
+`arc42-projection` and `conflicts`. Trusted-host approval remains a Python API;
+there is no CLI approval flag or receipt generator.

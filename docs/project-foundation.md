@@ -84,6 +84,9 @@ python <skill>/scripts/project_foundation.py inventory --project-root <project>
 python <skill>/scripts/project_foundation.py brownfield --project-root <project> --run-id recovery-1 --input analysis.json
 python <skill>/scripts/project_foundation.py greenfield --project-root <project> --run-id bootstrap-1 --input analysis.json
 python <skill>/scripts/project_foundation.py refresh --project-root <project> --run-id refresh-1 --revision R2 --input refresh.json
+python <skill>/scripts/project_foundation.py start --project-root <project> --run-id recovery-2 --mode BROWNFIELD_RECOVERY
+python <skill>/scripts/project_foundation.py architecture-discovery --project-root <project> --run-id recovery-2 --input architecture.json
+python <skill>/scripts/project_foundation.py prepare --project-root <project> --run-id recovery-2
 python <skill>/scripts/project_foundation.py doctor --project-root <project> --run-id recovery-1
 ```
 
@@ -96,10 +99,17 @@ Observed section/source changes add owner routes without clearing supplied impac
 MINIMAL/STANDARD use existing profile rules. EXTENDED fails closed when the existing
 Policy cannot declare its required operations entry point; no location is invented.
 
-CLI stops at review, with no approve switch. Trusted host integrations import the
-installed `shared.sdlc.foundation.workflow`: `start`, `candidate_manifest`, `prepare`,
-`accept`, `promote`, `doctor`. Inventory and impact modules are independently usable.
-Authenticators are in-process host callbacks; project-provided code is not loaded.
+CLI stops at review, with no approve switch or receipt generator. Start an analysis
+run, attach explicit owner producer observations (`domain-discovery`,
+`architecture-discovery`, `test-foundation`, `adr-management`, `c4-modeling`),
+optionally add `render-c4`, `arc42-projection` or `conflicts`, then prepare one
+deterministic review package. Outputs are exact-hash-bound under
+`.sdlc/runs/foundation/<id>/semantic/`; structured candidates are RUNTIME and C4/
+arc42 views are DERIVED. Review metadata carries owners, gaps, proposals, conflicts
+and Knowledge Impact routing. Trusted-host integrations use the installed workflow
+APIs `produce_semantic`, `render_c4_candidate`, `project_arc42`, and
+`detect_semantic_conflicts` along with `accept`, `promote`, and `doctor`.
+Authenticators remain in-process host callbacks; project-provided code is not loaded.
 
 `tooling.prepare_agent_profile --foundation` copies the skill and deterministic
 Shared payload to an explicitly expanded fresh profile. The default Dev-only
@@ -110,7 +120,7 @@ closed. Canonical source is `shared/**`; archives are derived installation paylo
 Regenerate via `python -m tooling.regenerate_shared_sdlc_payload` then
 `python -m tooling.regenerate_dev_provenance`. Kit versions/ownership do not change.
 
-## Synthetic acceptance and Wave 2 extensions
+## Synthetic acceptance and regression
 
 `tooling/tests/fixtures/synthetic-greenfield-foundation` supplies neutral intent,
 constraints, material PROPOSED architecture and DEFERRED deployment, without code.
@@ -124,9 +134,10 @@ Run `python -m unittest tooling.tests.test_project_foundation -v` plus
 `python -m unittest discover -s tooling/tests -v`. Actual symlink checks may skip
 when Windows privileges are unavailable; a separate reparse-attribute guard test runs.
 
-Evidence records, SECTION_V1 and impact owner routes are extension interfaces for
-BA domain discovery, Engineering architecture discovery/C4/arc42 projection and
-evidence-backed ADR authoring, and TEST foundation discovery. Owner-specific direct
-APIs are documented in [Foundation semantic producers](foundation-semantic-producers.md).
-Installer/package and workflow extension integration remains Wave 2B work.
-Extensions preserve Shared semantic ownership, exact Human Gates and runtime separation.
+Evidence records, SECTION_V1 and impact owner routes connect BA domain discovery,
+Engineering architecture discovery/C4/arc42 projection and evidence-backed ADR
+authoring, and TEST foundation discovery. Detailed producer contracts are in
+[Foundation semantic producers](foundation-semantic-producers.md). Runtime package
+regeneration uses `tooling.regenerate_shared_sdlc_payload` and
+`tooling.regenerate_dev_provenance`; integration preserves Shared semantic ownership,
+exact Human Gates and runtime separation.

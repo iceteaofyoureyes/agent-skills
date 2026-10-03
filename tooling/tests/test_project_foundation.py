@@ -1,5 +1,7 @@
 """Foundation mechanics and public synthetic acceptance; receipts are test-only."""
 import copy
+from contextlib import redirect_stderr, redirect_stdout
+import io
 import json
 from pathlib import Path
 import shutil
@@ -469,7 +471,260 @@ class FoundationTests(unittest.TestCase):
                     for word in forbidden: self.assertNotIn(word,text,str(path))
 
 
+class IntegratedProducerTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='foundation-integrated-')
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name) / 'project'
+        shutil.copytree(FIXTURES/'synthetic-brownfield-foundation', self.root)
+        self.topology, self.policy = self.config()
+        self.run = w.start(self.root, 'integrated', 'BROWNFIELD_RECOVERY',
+            w.exact_ref(self.root, '.sdlc/topology.json', 'R1'),
+            w.exact_ref(self.root, '.sdlc/project-policy.yml', 'R1'))
+
+    def config(self):
+        from shared.sdlc.schema import read_document
+        return (read_document((self.root/'.sdlc/topology.json').read_text()),
+                read_document((self.root/'.sdlc/project-policy.yml').read_text()))
+
+    def observation(self, topic, ident=None, path='module/config.json', statement='Observed configuration.'):
+        return {'id': ident or topic.replace('_', '-'), 'topic': topic, 'statement': statement,
+                'basis': 'OBSERVED', 'references': [w.exact_ref(self.root, path, 'R1')],
+                'status': 'PARTIAL', 'questions': []}
+
+    def test_semantic_producers_are_immutable_run_inputs_and_review_refs(self):
+        ref = w.produce_semantic(self.root, 'integrated', 'architecture-discovery', 'architecture', 'R1',
+            observations=[self.observation('context_scope', path='docs/architecture.md')])
+        review = w.prepare(self.root, 'integrated', 'foundation', 'R1')
+        self.assertEqual(review['semantic_artifacts'][0]['owner'], 'ENGINEERING')
+        self.assertEqual(review['semantic_artifacts'][0]['producer_type'], 'architecture-discovery')
+        self.assertEqual(review['semantic_artifacts'][0]['reference'], ref)
+        self.assertIn('unknown-runtime', review['semantic_artifacts'][0]['unknowns'])
+        self.assertTrue((self.root/ref['path']).is_file())
+        self.assertIn({'area':'architecture','owner':'ENGINEERING','targets':[]}, review['routes'])
+
+    def test_integrated_artifact_bytes_and_configuration_drift_fail_closed(self):
+        ref = w.produce_semantic(self.root, 'integrated', 'domain-discovery', 'domain', 'R1',
+            observations=[self.observation('entities', path='docs/domain.md')])
+        (self.root/ref['path']).write_bytes(b'{}')
+        with self.assertRaisesRegex(ValueError, 'SHA-256'):
+            w.prepare(self.root, 'integrated', 'foundation', 'R1')
+
+    def test_existing_analysis_run_without_semantic_artifacts_remains_readable(self):
+        path=self.root/'.sdlc/runs/foundation/integrated/run-state.json'
+        state=json.loads(path.read_text()); state.pop('semantic_artifacts')
+        path.write_bytes(w.semantic_bytes(state))
+        self.assertNotIn('semantic_artifacts',w._load(self.root,'integrated')[0])
+        review=w.prepare(self.root,'integrated','foundation','R1')
+        self.assertEqual(review['semantic_artifacts'],[])
+
+    def test_cross_producer_conflict_is_bound_and_blocks_human_acceptance(self):
+        domain_ref = w.produce_semantic(self.root, 'integrated', 'domain-discovery', 'domain', 'R1',
+            observations=[self.observation('entities', path='docs/domain.md', statement='A catalog is a business collection.')])
+        architecture_ref = w.produce_semantic(self.root, 'integrated', 'architecture-discovery', 'architecture', 'R1',
+            observations=[self.observation('context_scope', path='docs/architecture.md', statement='A catalog is a runtime service.')])
+        review_ref = w.detect_semantic_conflicts(self.root, 'integrated',
+            ['domain-discovery-domain-R1', 'architecture-discovery-architecture-R1'],
+            [{'domain':'domain','claims':[
+                {'producer':'domain-discovery','record_id':'entities'},
+                {'producer':'architecture-discovery','record_id':'context-scope'}]}])
+        review = w.prepare(self.root, 'integrated', 'foundation', 'R1')
+        conflicts = json.loads((self.root/review_ref['path']).read_text())['conflicts']
+        self.assertEqual(conflicts[0]['status'], 'UNRESOLVED')
+        self.assertEqual(review['conflicts'], conflicts)
+        self.assertEqual(len(review['semantic_artifacts']), 3)
+        with self.assertRaisesRegex(ValueError, 'unresolved authority conflicts'):
+            w.accept(self.root, 'integrated', None, human_actor_authenticator=lambda *_: True)
+        self.assertEqual(w._load(self.root, 'integrated')[0]['state'], 'REVIEW_REQUIRED')
+
+    def test_greenfield_producers_stay_proposed_until_exact_human_snapshot_review(self):
+        root = self.root.parent/'greenfield'
+        shutil.copytree(FIXTURES/'synthetic-greenfield-foundation', root)
+        topology, policy = read_document((root/'.sdlc/topology.json').read_text()), read_document((root/'.sdlc/project-policy.yml').read_text())
+        w.start(root,'green-run','GREENFIELD_BOOTSTRAP',w.exact_ref(root,'.sdlc/topology.json','R1'),
+                w.exact_ref(root,'.sdlc/project-policy.yml','R1'))
+        def proposed(ident,topic,statement='Synthetic target proposal.'):
+            return {'id':ident,'topic':topic,'statement':statement,'basis':'PROPOSED','references':[],
+                    'status':'PARTIAL','questions':[]}
+        def produce(producer,ident,observations=(),**kw):
+            return w.produce_semantic(root,'green-run',producer,ident,'R1',observations=observations,**kw)
+        domain=produce('domain-discovery','domain',[proposed('goals','product_goals')])
+        architecture=produce('architecture-discovery','architecture',[proposed('strategy','solution_strategy')])
+        testing=produce('test-foundation','testing',[proposed('gates','quality_gates')])
+        adr=produce('adr-management','adr',[proposed('decision','decision')],kind='PROPOSED')
+        elements=[{'record':proposed('actor','c4_element'),'kind':'ACTOR'},
+                  {'record':proposed('system','c4_element'),'kind':'SYSTEM'},
+                  {'record':proposed('container','c4_element'),'kind':'CONTAINER','parent':'system'}]
+        relationships=[{'record':proposed('uses','c4_relationship'),'source':'actor','target':'system','level':'CONTEXT'},
+                       {'record':proposed('calls','c4_relationship'),'source':'actor','target':'container','level':'CONTAINER'}]
+        c4=produce('c4-modeling','c4',elements=elements,relationships=relationships)
+        keys=['domain-discovery-domain-R1','architecture-discovery-architecture-R1','test-foundation-testing-R1',
+              'adr-management-adr-R1','c4-modeling-c4-R1']
+        arc=w.project_arc42(root,'green-run',keys)
+        self.assertEqual(json.loads((root/adr['path']).read_text())['decision_status'],'PROPOSED')
+        self.assertEqual(json.loads((root/c4['path']).read_text())['artifact_class'],'RUNTIME')
+        self.assertEqual(json.loads((root/arc['path']).read_text())['artifact_class'],'DERIVED')
+        target=root/'docs/architecture.md'
+        section={'solution_strategy':{'owner':'ENGINEERING','status':'COMPLETE','blocking':True,
+            'evidence':'APPROVED_TARGET','references':[w.exact_ref(root,'docs/architecture.md','R1')]}}
+        state,topology,policy=w._load(root,'green-run')
+        manifest=w.candidate_manifest(root,state,topology,policy,'foundation','R1',sections=section)
+        (root/'docs/decision.txt').write_text('Synthetic Human selection of exact target snapshot.')
+        receipt={'schema_version':1,'decision':'APPROVE','actor_id':'synthetic-human','actor_role':'HUMAN',
+            'artifact_id':'foundation','artifact_revision':'R1','manifest_sha256':manifest_sha256(manifest),
+            'decision_ref':w.exact_ref(root,'docs/decision.txt','R1')}
+        (root/'.sdlc/receipt.json').write_bytes(w.semantic_bytes(receipt))
+        approval=w.exact_ref(root,'.sdlc/receipt.json','R1')
+        auth=lambda actor,actual:actor=='synthetic-human' and actual==receipt
+        with self.assertRaises(ValueError): w.prepare(root,'green-run','foundation','R1',sections=section)
+        review=w.prepare(root,'green-run','foundation','R1',sections=section,approval=approval,
+                         human_actor_authenticator=auth)
+        architecture_review=next(row for row in review['semantic_artifacts'] if row['producer_type']=='architecture-discovery')
+        self.assertIn('strategy',architecture_review['proposed_targets'])
+        self.assertIn('ENGINEERING_REVIEW:architecture:strategy',review['required_owner_decisions'])
+        w.accept(root,'green-run',approval,human_actor_authenticator=auth)
+        state=w.promote(root,'green-run','docs/foundation/R1.json','docs/foundation/R1.provenance.json',
+                        human_actor_authenticator=auth)
+        self.assertEqual(state['state'],'PROJECT_FOUNDATION_READY')
+        self.assertEqual(json.loads((root/'docs/foundation/R1.json').read_text())['sections']['solution_strategy']['evidence'],
+                         'APPROVED_TARGET')
+        self.assertEqual(json.loads((root/'docs/foundation/R1.json').read_text())['sections']['solution_strategy']['references'][0],
+                         w.exact_ref(root,'docs/architecture.md','R1'))
+        self.assertTrue((root/arc['path']).is_file())
+
+    def test_semantic_drift_guard_keeps_wave_2_ownership_and_labels(self):
+        from shared.sdlc.foundation import producers
+        self.assertEqual(w.SECTION_DOMAINS['context_scope'], 'architecture')
+        self.assertEqual(w.SECTION_DOMAINS['introduction_goals'], 'product')
+        self.assertEqual(w.SECTION_DOMAINS['glossary'], 'domain')
+        self.assertEqual(w.SECTION_DOMAINS['quality_requirements'], 'testing')
+        self.assertEqual(w.SEMANTIC_OWNERS, {'product':'BA','domain':'BA','architecture':'ENGINEERING','testing':'TEST','features':'BA'})
+        self.assertEqual(producers.PRODUCERS, {
+            'domain-discovery':('BA',('product_goals','glossary','actors','entities','lifecycle','business_rule','gaps')),
+            'architecture-discovery':('ENGINEERING',('constraints','context_scope','solution_strategy','architecture_pattern',
+                'building_blocks','runtime','deployment','crosscutting','quality_facts','risks','decisions_inventory',
+                'historical_rationale','gaps')),
+            'test-foundation':('TEST',('test_levels','ownership','test_split','execution_topology','fixtures_data',
+                'quality_gates','evidence_expectations','automation_role','gaps')),
+            'adr-management':('ENGINEERING',('context','decision','rationale','consequences','alternative','gaps')),
+            'c4-modeling':('ENGINEERING',('c4_element','c4_relationship'))})
+        self.assertEqual(producers.LABELS, {'OBSERVED':'CURRENT_SYSTEM','INFERRED':'INFERRED','AUTHORITY':'CONFIRMED',
+            'DECISION_EVIDENCE':'CURRENT_SYSTEM','PROPOSED':'PROPOSED','UNKNOWN':'UNKNOWN','DEFERRED':'DEFERRED',
+            'APPROVED_TARGET':'APPROVED_TARGET'})
+        self.assertEqual(w.MODES, ('BROWNFIELD_RECOVERY','GREENFIELD_BOOTSTRAP','FOUNDATION_REFRESH'))
+
+    def test_operator_cli_exposes_integrated_producers_without_approval_flag(self):
+        from shared.sdlc.foundation.cli import main
+        output = io.StringIO()
+        with redirect_stdout(output), self.assertRaises(SystemExit) as help_exit:
+            main(['--help'])
+        self.assertEqual(help_exit.exception.code, 0)
+        for command in ('domain-discovery','architecture-discovery','test-foundation','adr-management',
+                        'c4-modeling','render-c4','arc42-projection','conflicts','prepare','doctor'):
+            self.assertIn(command, output.getvalue())
+        self.assertNotIn('--approve', output.getvalue())
+        errors = io.StringIO()
+        with redirect_stderr(errors), self.assertRaises(SystemExit) as invalid:
+            main(['brownfield','--project-root',str(self.root),'--approve'])
+        self.assertEqual(invalid.exception.code, 2)
+
+
 class InstalledFoundationTests(unittest.TestCase):
+    def test_installed_runtime_integrates_all_producers_without_checkout_imports(self):
+        from tooling.prepare_agent_profile import prepare
+        from tooling.install_dev_kit import install
+        with tempfile.TemporaryDirectory(prefix='foundation-isolated-') as temp:
+            base = Path(temp)
+            prepare(ROOT, base/'profile', foundation=True)
+            runtime = Path(install(ROOT, base/'dev')['runtime_root'])
+            project = base/'project'
+            shutil.copytree(FIXTURES/'synthetic-brownfield-foundation', project)
+            code = r'''import json,pathlib,sys
+sys.path.insert(0,sys.argv[1])
+from shared.sdlc.foundation import workflow
+from shared.sdlc.foundation.inventory import inventory
+from shared.sdlc.schema import read_document
+root=pathlib.Path(sys.argv[2])
+topology=read_document((root/'.sdlc/topology.json').read_text())
+policy=read_document((root/'.sdlc/project-policy.yml').read_text())
+state=workflow.start(root,'installed-run','BROWNFIELD_RECOVERY',
+ workflow.exact_ref(root,'.sdlc/topology.json','R1'),workflow.exact_ref(root,'.sdlc/project-policy.yml','R1'))
+assert inventory(root,topology,policy)['schema_version']==1
+def observation(ident,topic,path):
+ return {'id':ident,'topic':topic,'statement':'Synthetic observed evidence.','basis':'OBSERVED',
+  'references':[workflow.exact_ref(root,path,'R1')],'status':'PARTIAL','questions':[]}
+def produce(producer,ident,observations=(),**kw):
+ return workflow.produce_semantic(root,'installed-run',producer,ident,'R1',observations=observations,**kw)
+business=observation('business-rule','business_rule','module/src/catalog.py')
+domain=produce('domain-discovery','domain',[observation('actor','actors','docs/domain.md'),
+ observation('entity','entities','docs/domain.md'),business])
+inferred=observation('pattern','architecture_pattern','docs/architecture.md')
+inferred.update(basis='INFERRED',statement='The observed components may follow a layered pattern.')
+architecture=produce('architecture-discovery','architecture',[
+ observation('scope','context_scope','docs/architecture.md'),inferred])
+testing=produce('test-foundation','testing',[observation('levels','test_levels','docs/testing.md')])
+adr=produce('adr-management','adr',[observation('decision','decision','docs/adr/record.md')],kind='RECOVERED')
+elements=[{'record':observation('user','c4_element','docs/architecture.md'),'kind':'ACTOR'},
+ {'record':observation('system','c4_element','docs/architecture.md'),'kind':'SYSTEM'},
+ {'record':observation('container','c4_element','docs/architecture.md'),'kind':'CONTAINER','parent':'system'}]
+edges=[{'record':observation('uses','c4_relationship','docs/architecture.md'),'source':'user','target':'system','level':'CONTEXT'},
+ {'record':observation('calls','c4_relationship','docs/architecture.md'),'source':'user','target':'container','level':'CONTAINER'}]
+c4=produce('c4-modeling','c4',elements=elements,relationships=edges)
+keys=['domain-discovery-domain-R1','architecture-discovery-architecture-R1','test-foundation-testing-R1','adr-management-adr-R1','c4-modeling-c4-R1']
+c4view=workflow.render_c4_candidate(root,'installed-run',keys[-1])
+arc=workflow.project_arc42(root,'installed-run',keys)
+domain_data=json.loads((root/domain['path']).read_text())
+architecture_data=json.loads((root/architecture['path']).read_text())
+testing_data=json.loads((root/testing['path']).read_text())
+adr_data=json.loads((root/adr['path']).read_text())
+assert domain_data['records'][0]['owner']=='BA'
+assert next(row for row in domain_data['records'] if row['topic']=='business_rule')['evidence_label']=='CURRENT_SYSTEM'
+assert not any(row['id'].upper().startswith(('BR-','FR-','BAREF')) for row in domain_data['records'])
+assert architecture_data['records'][0]['owner']=='ENGINEERING'
+assert next(row for row in architecture_data['records'] if row['topic']=='architecture_pattern')['evidence_label']=='INFERRED'
+assert testing_data['source_producer']=='test-foundation'
+assert not any(row['topic'] in ('test_design','testcase') for row in testing_data['records'])
+assert next(row for row in adr_data['records'] if row['topic']=='rationale')['evidence_label']=='UNKNOWN'
+assert json.loads((root/c4['path']).read_text())['artifact_class']=='RUNTIME'
+assert json.loads((root/c4view['path']).read_text())['artifact_class']=='DERIVED'
+assert json.loads((root/arc['path']).read_text())['artifact_class']=='DERIVED'
+scope=next(row for row in architecture_data['records'] if row['topic']=='context_scope')
+review=workflow.prepare(root,'installed-run','foundation','R1',sections={
+ 'context_scope':{
+ 'owner':'ENGINEERING','status':scope['status'],'blocking':False,'evidence':scope['evidence_label'],
+ 'references':scope['references']},
+ 'quality_requirements':{'owner':'TEST','status':'PARTIAL','blocking':False,'evidence':'CURRENT_SYSTEM',
+ 'references':[workflow.exact_ref(root,'docs/testing.md','R1')]}})
+assert len(review['semantic_artifacts'])==7
+assert workflow.doctor(root,'installed-run')['status']=='NOT_READY'
+from shared.sdlc.foundation.contract import manifest_sha256
+manifest=json.loads((root/'.sdlc/runs/foundation/installed-run/candidates/R1/manifest.json').read_text())
+assert manifest['sections']['context_scope']['owner']=='ENGINEERING'
+assert manifest['sections']['context_scope']['evidence']=='CURRENT_SYSTEM'
+assert manifest['sections']['quality_requirements']['owner']=='TEST'
+assert not any(row['evidence']=='APPROVED_TARGET' for row in manifest['sections'].values())
+(root/'docs/decision.txt').write_text('Synthetic trusted-host review decision.')
+receipt={'schema_version':1,'decision':'APPROVE','actor_id':'synthetic-human','actor_role':'HUMAN',
+ 'artifact_id':'foundation','artifact_revision':'R1','manifest_sha256':manifest_sha256(manifest),
+ 'decision_ref':workflow.exact_ref(root,'docs/decision.txt','R1')}
+(root/'.sdlc/receipt.json').write_bytes(workflow.semantic_bytes(receipt))
+approval=workflow.exact_ref(root,'.sdlc/receipt.json','R1')
+auth=lambda actor,actual:actor=='synthetic-human' and actual==receipt
+workflow.accept(root,'installed-run',approval,human_actor_authenticator=auth)
+workflow.promote(root,'installed-run','docs/foundation/R1.json','docs/foundation/R1.provenance.json',human_actor_authenticator=auth)
+assert workflow.doctor(root,'installed-run',human_actor_authenticator=auth)['status']=='PROJECT_FOUNDATION_READY'
+assert (root/'docs/foundation/R1.json').is_file()
+assert not (root/'docs/foundation/semantic').exists()
+print('INSTALLED_FOUNDATION_ACCEPTED')
+'''
+            for source in (base/'profile/skills/project-foundation/scripts/shared-sdlc-core.zip', runtime):
+                result = subprocess.run([sys.executable,'-I','-c',code,str(source),str(project)], cwd=base,
+                    env={k:v for k,v in __import__('os').environ.items() if k != 'PYTHONPATH'},
+                    capture_output=True,text=True,timeout=60)
+                self.assertEqual(result.returncode,0,result.stdout+result.stderr)
+                self.assertIn('INSTALLED_FOUNDATION_ACCEPTED',result.stdout)
+                shutil.rmtree(project/'.sdlc/runs/foundation/installed-run')
+
     def test_profile_and_dev_install_use_only_installed_payload_for_both_modes(self):
         from tooling.prepare_agent_profile import prepare
         from tooling.install_dev_kit import install

@@ -53,6 +53,23 @@ Doctor and uninstall use the same kit/target arguments with the matching **docto
 
 The installer preserves existing same-name skills rather than merging/overwriting them. Reinstall is idempotent. Uninstall removes BA-managed skills only when their contents remain unchanged.
 
+## Project Foundation opt-in
+
+Project Foundation is a standalone Shared SDLC capability, not a fourth Kit.
+Install the Shared runtime and skill into an explicit install home:
+
+~~~powershell
+python C:\tools\agent-skills\tooling\install_dev_kit.py --source-root C:\tools\agent-skills --install-home C:\agent-runtime
+python C:\agent-runtime\runtime\v1\project-foundation\scripts\project_foundation.py inventory --project-root C:\path\to\your-project
+~~~
+
+To include the skill in a separate Codex profile, create a fresh profile with
+`python tooling/prepare_agent_profile.py --destination <fresh-profile> --foundation`.
+Both the profile and Dev runtime carry the deterministic Shared payload. See the
+[Project Foundation workflow](../project-foundation.md) for modes, producer
+commands and the Human Gate. The CLI stops at review; approval remains with the
+trusted host.
+
 ## What does Doctor check?
 
 Doctor checks:

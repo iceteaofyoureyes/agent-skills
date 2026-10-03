@@ -259,7 +259,7 @@ Other Wave 1 historical imports and BA/Delivery/UX/execution semantics remain.
 | Test Design/Case promotion gates | `tooling.lib.test_promotion` | `tooling.lib.testware_promotion` |
 | Immutable generic publication | `shared.sdlc.promotion.immutable` | Called by the Test adapter |
 | Project topology/policy | `shared.sdlc.topology` / `policy` | New, no output migration |
-| Foundation profile/manifest | `shared.sdlc.foundation` | New, no discovery commands |
+| Foundation profile/manifest and producer orchestration | `shared.sdlc.foundation` | Shared schemas/ownership unchanged |
 | Doctor normalization | `shared.sdlc.readiness.compatibility` | Existing Doctor output preserved |
 
 Generic Shared code imports no Test Kit runtime. Tests check static imports,
@@ -278,5 +278,7 @@ rtk proxy python -m tooling.regenerate_test_package
 rtk proxy python -m tooling.regenerate_dev_provenance
 ```
 
-Foundation discovery, bootstrap, code archaeology, arc42/C4/ADR generation and
-global Doctor output migration are separate implementation work.
+Project Foundation wires explicit BA, Engineering and Test producer observations
+into immutable RUNTIME artifacts and deterministic review packages. C4 and arc42
+renderings remain DERIVED. Installed profile/runtime packaging carries this shared
+capability; trusted Human approval remains host-only.

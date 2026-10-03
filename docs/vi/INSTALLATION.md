@@ -73,6 +73,22 @@ cd /path/to/your-project
 
 `TEST_KIT_CODEX_COMMAND` là command/path override của Codex CLI. Nếu không đặt, resolver tìm Codex trên `PATH`. Override sai là lỗi rõ ràng, không fallback sang cài đặt riêng của máy. Windows npm shim `.cmd`/`.ps1` được resolver xử lý bằng argv rời, không nối shell command string.
 
+## Project Foundation opt-in
+
+Project Foundation là capability Shared SDLC riêng, chưa phải Kit thứ tư. Cài
+Shared runtime và skill vào một install home tường minh:
+
+~~~powershell
+python C:\tools\agent-skills\tooling\install_dev_kit.py --source-root C:\tools\agent-skills --install-home C:\agent-runtime
+python C:\agent-runtime\runtime\v1\project-foundation\scripts\project_foundation.py inventory --project-root C:\path\to\your-project
+~~~
+
+Để đưa skill vào profile Codex tách biệt, tạo profile mới với
+`python tooling/prepare_agent_profile.py --destination <fresh-profile> --foundation`.
+Profile và Dev runtime mang theo cùng deterministic Shared payload. Xem
+[Project Foundation workflow](../project-foundation.md) để biết các mode,
+producer commands và Human Gate. CLI dừng ở review; approval vẫn thuộc trusted host.
+
 ### Doctor và drift của Test Kit
 
 Doctor Test đọc đúng `.agents/skills/.test-kit/kit.yaml` đã cài, kiểm tra pin authority, payload, install record, từng managed file và dependency bắt buộc. `READY` nghĩa các hợp đồng bắt buộc đạt; dependency XMind/Excel tùy chọn có thể được báo `DEPENDENCY_MISSING` nhưng core vẫn hoạt động. `FAIL` nghĩa không được coi package là healthy. Ví dụ:
