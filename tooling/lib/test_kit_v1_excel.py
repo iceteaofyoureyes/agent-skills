@@ -199,10 +199,41 @@ def _load_design(directory: str | Path) -> core.DesignSnapshot:
 def _load_approved_collection(directory: str | Path, *, test_only: bool):
     root = Path(directory).resolve()
     workflow = _read_json(root / "case-gate/workflow-state.json")
-    artifact = _read_json(root / "approved-testware.json")
+    vnext = isinstance(workflow, dict) and workflow.get("state") == "APPROVED_TESTWARE"
+    artifact = _read_json(root / ("approved-testware-vnext.json" if vnext else "approved-testware.json"))
     if not isinstance(workflow, dict) or not isinstance(artifact, dict):
         raise ExcelProjectionError("APPROVED_TESTWARE_INVALID", "terminal workflow and Approved Testware must be objects")
-    if test_only:
+    if vnext:
+        if test_only:
+            if (
+                workflow.get("review_status") != "APPROVED"
+                or workflow.get("validation_status") != "PASS" or workflow.get("test_only") is not True
+                or workflow.get("design_gate_receipt_mode") != "TEST_ONLY"
+                or artifact.get("fixture_type") != "TEST_ONLY_APPROVED_TESTWARE_EVIDENCE"
+                or artifact.get("not_for_production") is not True
+                or not isinstance(artifact.get("approved_testware"), dict)
+            ):
+                raise ExcelProjectionError("TEST_ONLY_FIXTURE_INVALID", "expected terminal TEST_ONLY VNext Approved Testware evidence")
+            approved = artifact["approved_testware"]
+            if approved.get("artifact_class") != "HANDOFF_MANIFEST" or approved.get("state") != "APPROVED_TESTWARE":
+                raise ExcelProjectionError("TEST_ONLY_FIXTURE_INVALID", "TEST_ONLY wrapper does not contain a VNext HANDOFF_MANIFEST")
+            approved = {
+                **approved,
+                "approved_design": {key: approved["approved_design"][key] for key in ("artifact_id", "revision", "sha256")},
+            }
+        else:
+            if (
+                workflow.get("review_status") != "APPROVED"
+                or workflow.get("validation_status") != "PASS" or workflow.get("test_only") is True
+                or artifact.get("artifact_class") != "HANDOFF_MANIFEST"
+                or artifact.get("state") != "APPROVED_TESTWARE"
+            ):
+                raise ExcelProjectionError("APPROVED_TESTWARE_REQUIRED", "production export requires a Human-approved VNext HANDOFF_MANIFEST")
+            approved = {
+                **artifact,
+                "approved_design": {key: artifact["approved_design"][key] for key in ("artifact_id", "revision", "sha256")},
+            }
+    elif test_only:
         if (
             workflow.get("state") != "STOP_V1" or workflow.get("review_status") != "APPROVED"
             or workflow.get("validation_status") != "PASS" or workflow.get("test_only") is not True
@@ -221,7 +252,10 @@ def _load_approved_collection(directory: str | Path, *, test_only: bool):
         ):
             raise ExcelProjectionError("APPROVED_TESTWARE_REQUIRED", "production export requires persisted Human-approved APPROVED_TESTWARE at STOP_V1")
         approved = artifact
-    if workflow.get("history", [])[-2:] != ["APPROVED_TESTWARE", "STOP_V1"]:
+    if vnext:
+        if workflow.get("history", [])[-1:] != ["APPROVED_TESTWARE"]:
+            raise ExcelProjectionError("APPROVED_TESTWARE_REQUIRED", "persisted VNext workflow lacks the terminal APPROVED_TESTWARE transition")
+    elif workflow.get("history", [])[-2:] != ["APPROVED_TESTWARE", "STOP_V1"]:
         raise ExcelProjectionError("APPROVED_TESTWARE_REQUIRED", "persisted workflow lacks the APPROVED_TESTWARE terminal transition")
 
     canonical_path = root / "canonical-testcases-approved-projection.json"
@@ -284,18 +318,30 @@ def _make_review_state(workflow: dict, snapshot: cases.CaseSnapshot, input_refs:
 
 
 def _authorize_collection(root, workflow, approved, snapshot, receipt, design, baseline, design_directory, *, test_only, human_actor_authenticator):
+    execution_refs = tuple(dict(ref) for ref in approved.get("execution_oracle_refs", []))
+    vnext = workflow.get("state") == "APPROVED_TESTWARE"
     try:
-        input_refs = cases.case_gate_input_refs(baseline, design, run_dir=root)
+        input_refs = cases.case_gate_input_refs(
+            baseline, design, run_dir=root,
+            execution_contract_refs=execution_refs, case_snapshot=snapshot,
+            vnext_authority=vnext,
+        )
     except core.ProjectPolicyBindingError as error:
         raise ExcelProjectionError(error.code, str(error)) from error
-    if approved.get("project_policy_context") != workflow.get("project_policy_context"):
-        raise ExcelProjectionError("PROJECT_POLICY_STALE", "Approved Testware policy context differs from the terminal workflow")
-    if approved.get("ba_input_refs") != cases.baseline_receipt_refs(baseline):
-        raise ExcelProjectionError("CASE_REVIEW_INPUTS_STALE", "Approved Testware BA refs do not match current approved inputs")
+    if vnext:
+        if approved.get("input_refs") != input_refs:
+            raise ExcelProjectionError("CASE_REVIEW_INPUTS_STALE", "VNext Approved Testware refs differ from current authority inputs")
+        expected_policy = next((ref for ref in input_refs if "POLICY" in ref["id"].upper()), None)
+        if approved.get("project_policy_context") != expected_policy:
+            raise ExcelProjectionError("PROJECT_POLICY_STALE", "Approved Testware policy ref differs from the current policy snapshot")
+    else:
+        if approved.get("project_policy_context") != workflow.get("project_policy_context"):
+            raise ExcelProjectionError("PROJECT_POLICY_STALE", "Approved Testware policy context differs from the terminal workflow")
+        if approved.get("ba_input_refs") != cases.baseline_receipt_refs(baseline):
+            raise ExcelProjectionError("CASE_REVIEW_INPUTS_STALE", "Approved Testware BA refs do not match current approved inputs")
     expected_design = {"artifact_id": design.artifact_id, "revision": design.revision, "sha256": design.sha256}
     if approved.get("approved_design") != expected_design:
         raise ExcelProjectionError("CASE_REVIEW_INPUTS_STALE", "Approved Testware Test Design ref is stale")
-    execution_refs = tuple(dict(ref) for ref in approved.get("execution_oracle_refs", []))
     if test_only:
         gate_evidence = workflow.get("design_gate_receipt_evidence")
         if isinstance(gate_evidence, dict):
@@ -348,6 +394,7 @@ def _authorize_collection(root, workflow, approved, snapshot, receipt, design, b
             checked = cases.validate_test_only_case_gate_fixture(
                 fixture_path, review_snapshot, design, baseline, state, workflow_dir=root,
                 validation=validation, execution_contract_refs=execution_refs,
+                require_resolved_required_dependencies=vnext,
             )
         finally:
             if temporary is not None:
@@ -357,6 +404,7 @@ def _authorize_collection(root, workflow, approved, snapshot, receipt, design, b
             receipt, review_snapshot, design, baseline, state,
             human_actor_authenticator=human_actor_authenticator,
             validation=validation, execution_contract_refs=execution_refs,
+            require_resolved_required_dependencies=vnext,
         )
     if checked.status != "PASS":
         finding = checked.finding
@@ -367,7 +415,9 @@ def _authorize_collection(root, workflow, approved, snapshot, receipt, design, b
     return input_refs, receipt
 
 
-def _functional_groups(baseline: core.ApprovedBaseline) -> tuple[dict[str, str], dict[str, str]]:
+def _functional_groups(baseline: core.ApprovedBaseline, *, generic_vnext: bool = False) -> tuple[dict[str, str], dict[str, str]]:
+    if generic_vnext:
+        return {ref: "Approved business behavior" for ref in baseline.coverage_ids}, {}
     try:
         pin = json.loads(GROUPING_PIN_PATH.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
@@ -784,7 +834,7 @@ def validate_excel_projection(snapshot, baseline, xlsx_path: str | Path, manifes
     xlsx_bytes = xlsx_path.read_bytes()
     manifest = _read_manifest(manifest_path)
     findings = []
-    labels, rules = _functional_groups(baseline)
+    labels, rules = _functional_groups(baseline, generic_vnext=isinstance(approved_testware, dict) and approved_testware.get("artifact_class") == "HANDOFF_MANIFEST")
     projected = [_projected_case(row, baseline, labels, rules) for row in snapshot.records]
     expected_count = len(projected)
     if manifest.get("projection_type") != "EXCEL_TESTCASE" or manifest.get("projection_profile_version") != PROFILE_VERSION:
@@ -796,8 +846,16 @@ def validate_excel_projection(snapshot, baseline, xlsx_path: str | Path, manifes
         findings.append("current Test Kit authority context is required for semantic validation")
     else:
         context = approved_testware.get("project_policy_context")
-        policy_run = Path(context["context_path"]).parents[1] if context else None
-        if manifest.get("current_input_refs") != cases.case_gate_input_refs(baseline, design, run_dir=policy_run):
+        if approved_testware.get("artifact_class") == "HANDOFF_MANIFEST":
+            collection_path = Path(approved_testware["testcase_collection"]["path"]).resolve()
+            policy_run = collection_path.parents[1]
+        else:
+            policy_run = Path(context["context_path"]).parents[1] if context else None
+        if manifest.get("current_input_refs") != cases.case_gate_input_refs(
+            baseline, design, run_dir=policy_run,
+            execution_contract_refs=approved_testware.get("execution_oracle_refs", []),
+            case_snapshot=snapshot,
+        ):
             findings.append("manifest current input refs differ from current approved BA and Design snapshots")
         expected_receipt_ref = approved_testware.get("case_gate_receipt", {})
         if manifest.get("case_gate_receipt_ref") != {"path": expected_receipt_ref.get("path"), "sha256": expected_receipt_ref.get("sha256")}:
@@ -1130,9 +1188,9 @@ def _final_artifact_integrity_check(
         raise ExcelProjectionError("EXCEL_ARTIFACT_INTEGRITY_FAILURE", "published projection artifacts lost their sealed state")
 
 
-def _export(directory, design_directory, baseline_handoff_path, output_dir, *, test_only, human_actor_authenticator, template_path, project_template_path, row_model, project_root=None):
+def _export(directory, design_directory, baseline_handoff_path, output_dir, *, test_only, human_actor_authenticator, template_path, project_template_path, row_model, project_root=None, baseline_override=None):
     _load_default_pin()
-    baseline = core.load_approved_baseline(baseline_handoff_path)
+    baseline = baseline_override or core.load_approved_baseline(baseline_handoff_path)
     design = _load_design(design_directory)
     root, workflow, approved, snapshot, receipt, receipt_path, _ = _load_approved_collection(directory, test_only=test_only)
     input_refs, receipt = _authorize_collection(
@@ -1158,7 +1216,7 @@ def _export(directory, design_directory, baseline_handoff_path, output_dir, *, t
         template_bytes = Path(source_path).resolve().read_bytes()
         if _sha(template_bytes) != contract.template_sha256:
             raise ExcelProjectionError("CANNOT_PROJECT_TEMPLATE", "TEMPLATE_HASH_MISMATCH")
-    labels, rules = _functional_groups(baseline)
+    labels, rules = _functional_groups(baseline, generic_vnext=workflow.get("state") == "APPROVED_TESTWARE")
     projected = [_projected_case(row, baseline, labels, rules) for row in snapshot.records]
     rows = snapshot.records
     output = Path(output_dir).resolve()
@@ -1251,13 +1309,14 @@ def export_approved_testware_excel(
     project_template_path: str | Path | None = None,
     row_model: str | None = None,
     project_root: str | Path | None = None,
+    baseline_override: core.ApprovedBaseline | None = None,
 ) -> ExcelExportResult:
     """Production export requires a persisted Human-authenticated terminal Test Gate."""
     return _export(
         approved_testware_dir, design_directory, baseline_handoff_path, output_dir,
         test_only=False, human_actor_authenticator=human_actor_authenticator,
         template_path=template_path, project_template_path=project_template_path, row_model=row_model,
-        project_root=project_root,
+        project_root=project_root, baseline_override=baseline_override,
     )
 
 
@@ -1271,6 +1330,7 @@ def export_test_only_approved_testware_excel(
     project_template_path: str | Path | None = None,
     row_model: str | None = None,
     project_root: str | Path | None = None,
+    baseline_override: core.ApprovedBaseline | None = None,
 ) -> ExcelExportResult:
     """Acceptance-only export for an isolated persisted TEST_ONLY terminal fixture."""
     output = Path(output_dir).resolve()
@@ -1280,5 +1340,5 @@ def export_test_only_approved_testware_excel(
         approved_testware_dir, design_directory, baseline_handoff_path, output,
         test_only=True, human_actor_authenticator=None,
         template_path=template_path, project_template_path=project_template_path, row_model=row_model,
-        project_root=project_root,
+        project_root=project_root, baseline_override=baseline_override,
     )

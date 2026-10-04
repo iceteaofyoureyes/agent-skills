@@ -227,6 +227,7 @@ class CaseWorkflowState:
     input_refs: tuple[tuple[str, str, str], ...] = ()
     execution_oracle_refs: tuple[dict, ...] = ()
     project_policy_context: dict | None = None
+    terminal_state: str = "STOP_V1"
 
 
 @dataclass(frozen=True)
@@ -336,12 +337,51 @@ def baseline_receipt_refs(baseline: foundation.ApprovedBaseline) -> list[dict]:
 def case_gate_input_refs(
     baseline: foundation.ApprovedBaseline, design: foundation.DesignSnapshot,
     *, run_dir: str | Path | None = None,
+    execution_contract_refs: Iterable[dict] = (),
+    case_snapshot: CaseSnapshot | None = None,
+    vnext_authority: bool = False,
 ) -> list[dict]:
     refs = baseline_receipt_refs(baseline) + [
         {"id": design.artifact_id, "revision": design.revision, "sha256": design.sha256}
     ]
     policy_ref = foundation.current_project_policy_ref(run_dir, "CASES") if run_dir is not None else None
-    return refs + (foundation.current_delivery_refs(run_dir) if run_dir is not None else []) + ([policy_ref] if policy_ref else [])
+    if run_dir is not None:
+        from .test_kit_vnext import current_vnext_input_refs
+        vnext_refs = current_vnext_input_refs(run_dir)
+        refs.extend(vnext_refs)
+        vnext_authority = vnext_authority or bool(vnext_refs)
+        refs.extend(foundation.current_delivery_refs(run_dir))
+    if policy_ref:
+        refs.append(policy_ref)
+    if vnext_authority:
+        execution_refs = tuple(execution_contract_refs)
+        if case_snapshot is None and execution_refs and run_dir is not None:
+            root = Path(run_dir).resolve()
+            canonical = root / "canonical/canonical-testcases.json"
+            workflow = root / "workflow-state.json"
+            semantic = root / "canonical/semantic-payload.json"
+            if canonical.is_file() and workflow.is_file() and semantic.is_file():
+                case_snapshot, _ = load_case_review_snapshot(canonical, workflow, semantic)
+        if case_snapshot is None and execution_refs:
+            raise ValueError("VNext execution-oracle refs require the exact persisted Case snapshot")
+        used_resolutions = None if case_snapshot is None else {
+            dep.resolution_ref for row in case_snapshot.records for dep in row.execution_dependencies
+            if dep.status == "RESOLVED" and dep.resolution_ref
+        }
+        for ref in execution_refs:
+            if not isinstance(ref, dict) or not all(isinstance(ref.get(key), str) and ref[key].strip() for key in ("id", "revision", "sha256")):
+                raise ValueError("execution-oracle refs require exact identity, revision and SHA-256")
+            if used_resolutions is not None and ref["id"] not in used_resolutions:
+                continue
+            refs.append({"id": ref["id"], "revision": ref["revision"], "sha256": ref["sha256"]})
+    result = []
+    seen = set()
+    for ref in refs:
+        key = (ref["id"], ref["revision"], ref["sha256"].lower())
+        if key not in seen:
+            seen.add(key)
+            result.append({"id": ref["id"], "revision": ref["revision"], "sha256": ref["sha256"]})
+    return result
 
 
 def load_design_snapshot(
@@ -460,6 +500,7 @@ def load_case_review_snapshot(
         design_receipt_mode, design_receipt_evidence, input_signature,
         tuple(dict(ref) for ref in execution_oracle_refs),
         workflow.get("project_policy_context"),
+        workflow.get("terminal_state", "STOP_V1"),
     )
 
 
@@ -1308,6 +1349,8 @@ def validate_testcases(
     execution_contract_refs: Iterable[dict] = (),
     execution_oracle_authenticator: Callable | None = None,
     allow_test_only_execution_oracles: bool = False,
+    technical_context_refs: Iterable[dict] = (),
+    require_resolved_required_dependencies: bool = False,
     explicit_authority_conflicts: Iterable[foundation.Finding] = (),
 ) -> CaseValidatorResult:
     findings: list[foundation.Finding] = []
@@ -1338,6 +1381,7 @@ def validate_testcases(
         baseline=baseline,
     )
     findings.extend(provenance_findings)
+    technical_ids = {ref.get("id") for ref in technical_context_refs if isinstance(ref, dict) and isinstance(ref.get("id"), str)}
     for case in snapshot.records:
         if set(case.to_dict()) != set(CASE_RECORD_FIELDS):
             findings.append(foundation.Finding("CANONICAL_SCHEMA_MISMATCH", f"{case.test_case_id} does not match the frozen testcase field set"))
@@ -1412,11 +1456,11 @@ def validate_testcases(
             dependency_keys.add(key)
             if dependency.status == "OPEN" and dependency.resolution_ref is not None:
                 findings.append(foundation.Finding("INVALID_EXECUTION_RESOLUTION_REF", f"{case.test_case_id} OPEN dependency cannot have a resolution ref"))
-            if dependency.status == "RESOLVED" and (
-                dependency.resolution_ref is None
-                or sum(ref[0] == dependency.resolution_ref for ref in execution_ids) != 1
-            ):
-                findings.append(foundation.Finding("INVALID_EXECUTION_RESOLUTION_REF", f"{case.test_case_id} resolution ref is not an approved execution source"))
+            if dependency.status == "RESOLVED":
+                oracle_resolved = dependency.resolution_ref is not None and sum(ref[0] == dependency.resolution_ref for ref in execution_ids) == 1
+                technical_resolved = dependency.kind != "SEMANTIC_ORACLE" and dependency.resolution_ref in technical_ids
+                if not (oracle_resolved or technical_resolved):
+                    findings.append(foundation.Finding("INVALID_EXECUTION_RESOLUTION_REF", f"{case.test_case_id} resolution ref is not an exact approved technical or execution source"))
             if dependency.status == "RESOLVED":
                 conflict = _unresolved_ba_answer(dependency.need, baseline)
                 if conflict:
@@ -1428,6 +1472,10 @@ def validate_testcases(
                     ))
             if dependency.status == "OPEN" and dependency.required and dependency.kind == "SEMANTIC_ORACLE":
                 findings.append(foundation.Finding("OPEN_SEMANTIC_ORACLE", f"{case.test_case_id}: {dependency.need}"))
+            elif require_resolved_required_dependencies and dependency.status == "OPEN" and dependency.required:
+                findings.append(foundation.Finding("OPEN_REQUIRED_EXECUTION_DEPENDENCY", f"{case.test_case_id}: {dependency.need} prevents a reproducible observable testcase result"))
+            if require_resolved_required_dependencies and dependency.status == "NOT_REQUIRED" and dependency.required:
+                findings.append(foundation.Finding("INVALID_EXECUTION_DEPENDENCY", f"{case.test_case_id} marks a required dependency NOT_REQUIRED"))
     for row in design.records:
         if row.expected_behavior is not None and row.design_id not in covered_designs:
             findings.append(foundation.Finding("UNCOVERED_TD", f"approved Test Design row has no testcase: {row.design_id}"))
@@ -1546,8 +1594,10 @@ def _input_ref_signature(refs: Iterable[dict]) -> tuple[tuple[str, str, str], ..
     return tuple((ref["id"], ref["revision"], ref["sha256"].lower()) for ref in refs)
 
 
-def start_case_workflow(snapshot: CaseSnapshot) -> CaseWorkflowState:
-    return CaseWorkflowState("DRAFT_CASES", snapshot.artifact_id, snapshot.revision, snapshot.sha256, "DRAFT", "NOT_RUN")
+def start_case_workflow(snapshot: CaseSnapshot, *, terminal_state: str = "STOP_V1") -> CaseWorkflowState:
+    if terminal_state not in {"STOP_V1", "APPROVED_TESTWARE"}:
+        raise ValueError("unsupported Case Gate terminal state")
+    return CaseWorkflowState("DRAFT_CASES", snapshot.artifact_id, snapshot.revision, snapshot.sha256, "DRAFT", "NOT_RUN", terminal_state=terminal_state)
 
 
 def submit_cases_for_review(
@@ -1583,6 +1633,7 @@ def submit_cases_for_review(
         _input_ref_signature(input_refs),
         tuple(dict(ref) for ref in execution_refs),
         project_policy_context,
+        state.terminal_state,
     )
 
 
@@ -1596,12 +1647,16 @@ def validate_case_gate_receipt(
     human_actor_authenticator: Callable | None,
     validation: CaseValidatorResult | None = None,
     execution_contract_refs: Iterable[dict] = (),
+    technical_context_refs: Iterable[dict] = (),
+    require_resolved_required_dependencies: bool = False,
 ) -> GateReceiptResult:
     return _validate_case_gate_receipt(
         receipt, snapshot, design, baseline, state,
         human_actor_authenticator=human_actor_authenticator,
         validation=validation,
         execution_contract_refs=execution_contract_refs,
+        technical_context_refs=technical_context_refs,
+        require_resolved_required_dependencies=require_resolved_required_dependencies,
     )
 
 
@@ -1616,6 +1671,8 @@ def _validate_case_gate_receipt(
     test_only_actor: TestOnlyHumanActorContext | None = None,
     validation: CaseValidatorResult | None = None,
     execution_contract_refs: Iterable[dict] = (),
+    technical_context_refs: Iterable[dict] = (),
+    require_resolved_required_dependencies: bool = False,
 ) -> GateReceiptResult:
     finding = _receipt_shape_finding(receipt, "CASE_REVIEW")
     if finding:
@@ -1645,6 +1702,8 @@ def _validate_case_gate_receipt(
         snapshot, design, baseline, execution_contract_refs=refs,
         execution_oracle_authenticator=human_actor_authenticator,
         allow_test_only_execution_oracles=test_only_actor is not None,
+        technical_context_refs=technical_context_refs,
+        require_resolved_required_dependencies=require_resolved_required_dependencies,
     )
     if (
         current_validation.status != "PASS"
@@ -1662,7 +1721,10 @@ def _validate_case_gate_receipt(
     try:
         context = state.project_policy_context
         policy_run = Path(context["context_path"]).parents[1] if context else None
-        expected = tuple((ref["id"], ref["revision"], ref["sha256"].lower()) for ref in case_gate_input_refs(baseline, design, run_dir=policy_run))
+        expected = tuple((ref["id"], ref["revision"], ref["sha256"].lower()) for ref in case_gate_input_refs(
+            baseline, design, run_dir=policy_run, execution_contract_refs=refs, case_snapshot=snapshot,
+            vnext_authority=state.terminal_state == "APPROVED_TESTWARE",
+        ))
         if context and json.loads(Path(context["context_path"]).read_text(encoding="utf-8")) != context:
             raise foundation.ProjectPolicyBindingError("Case Review policy context changed")
     except foundation.ProjectPolicyBindingError as error:
@@ -1834,6 +1896,8 @@ def validate_test_only_case_gate_fixture(
     workflow_dir: str | Path,
     validation: CaseValidatorResult | None = None,
     execution_contract_refs: Iterable[dict] = (),
+    technical_context_refs: Iterable[dict] = (),
+    require_resolved_required_dependencies: bool = False,
 ) -> GateReceiptResult:
     fixture_path = Path(fixture_path).resolve()
     if not foundation.is_test_only_workspace_path(fixture_path) and not fixture_path.is_relative_to((ROOT / "benchmark").resolve()):
@@ -1867,6 +1931,8 @@ def validate_test_only_case_gate_fixture(
         test_only_actor=actor,
         validation=validation,
         execution_contract_refs=refs,
+        technical_context_refs=technical_context_refs,
+        require_resolved_required_dependencies=require_resolved_required_dependencies,
     )
 
 
@@ -1883,6 +1949,8 @@ def _approved_testware(
     receipt_sha256: str,
     execution_contract_refs: Iterable[dict],
     project_policy_context: dict | None = None,
+    *,
+    workflow_dir: str | Path | None = None,
 ) -> ApprovedTestware:
     used_resolution_refs = {
         dependency.resolution_ref
@@ -1915,6 +1983,68 @@ def _approved_testware(
     return ApprovedTestware(payload_bytes, hashlib.sha256(payload_bytes).hexdigest())
 
 
+def _approved_testware_vnext(
+    snapshot: CaseSnapshot,
+    design: foundation.DesignSnapshot,
+    baseline: foundation.ApprovedBaseline,
+    receipt_sha256: str,
+    execution_contract_refs: Iterable[dict],
+    state: CaseWorkflowState,
+    workflow_dir: str | Path,
+) -> ApprovedTestware:
+    from .test_kit_vnext import read_vnext_authority_context
+
+    run_dir = Path(workflow_dir).resolve()
+    context = read_vnext_authority_context(run_dir)
+    if context["feature_id"] != baseline.feature_id:
+        raise ValueError("VNext Test Authority feature differs from approved testcase feature")
+    design_receipt = state.design_gate_receipt_evidence or {}
+    design_receipt_path = Path(design_receipt.get("path", "")).resolve()
+    if not design_receipt_path.is_file() or _hash_path(design_receipt_path) != design_receipt.get("sha256"):
+        raise ValueError("Design Gate receipt changed before Approved Testware manifest creation")
+    design_run = design_receipt_path.parents[3]
+    exact_inputs = [{"id": ref[0], "revision": ref[1], "sha256": ref[2]} for ref in state.input_refs]
+    policy_ref = next((ref for ref in exact_inputs if "POLICY" in ref["id"].upper()), None)
+    used_resolution_refs = {
+        dependency.resolution_ref
+        for record in snapshot.records
+        for dependency in record.execution_dependencies
+        if dependency.status == "RESOLVED" and dependency.resolution_ref is not None
+    }
+    execution_refs = [dict(ref) for ref in execution_contract_refs if ref.get("id") in used_resolution_refs]
+    trace_ids = sorted({ref for case in snapshot.records for ref in case.requirement_refs if ref.startswith(("FR-", "BR-"))})
+    values = {
+        "schema_version": 1,
+        "artifact_class": "HANDOFF_MANIFEST",
+        "feature_id": baseline.feature_id,
+        "testcase_collection": {
+            "artifact_id": snapshot.artifact_id, "revision": snapshot.revision,
+            "sha256": snapshot.sha256, "path": str(run_dir / "canonical/semantic-payload.json"),
+        },
+        "approved_design": {
+            "artifact_id": design.artifact_id, "revision": design.revision,
+            "sha256": design.sha256, "path": str(design_run / "canonical/semantic-payload.json"),
+        },
+        "design_gate_receipt": {"path": str(design_receipt_path), "sha256": design_receipt["sha256"]},
+        "case_gate_receipt": {"path": "case-gate/receipt.json", "sha256": receipt_sha256},
+        "ba_engineering_handoff": dict(context["ba"]["handoff"]),
+        "ba_baseline": dict(context["ba"]["baseline_identity"]),
+        "ux_context": context.get("ux_refs"),
+        "dev_context": context.get("dev_refs"),
+        "execution_oracle_refs": execution_refs,
+        "project_policy_context": policy_ref,
+        "trace_summary": {
+            "requirement_ids": trace_ids,
+            "test_design_ids": sorted({ref for case in snapshot.records for ref in case.test_design_refs}),
+            "testcase_count": len(snapshot.records),
+        },
+        "state": "APPROVED_TESTWARE",
+        "input_refs": exact_inputs,
+    }
+    content = json.dumps(values, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return ApprovedTestware(content, hashlib.sha256(content).hexdigest())
+
+
 def _case_gate_transition(
     receipt: dict,
     snapshot: CaseSnapshot,
@@ -1926,6 +2056,7 @@ def _case_gate_transition(
     execution_contract_refs: Iterable[dict],
     next_revision: str | None,
     test_only: bool,
+    workflow_dir: str | Path | None = None,
 ) -> CaseGateDecisionResult:
     if validation_result.status != "PASS" or validation_result.human_actor is None:
         findings = validation_result.findings or ((validation_result.finding,) if validation_result.finding else ())
@@ -1946,20 +2077,30 @@ def _case_gate_transition(
     receipt_sha256 = hashlib.sha256(receipt_bytes).hexdigest()
     if receipt["decision"] == "APPROVE":
         approved_snapshot = snapshot.project("APPROVED")
-        testware = _approved_testware(
-            snapshot, design, baseline, receipt_sha256, execution_contract_refs, state.project_policy_context,
-        )
+        terminal = state.terminal_state
+        if terminal == "APPROVED_TESTWARE":
+            if workflow_dir is None:
+                raise ValueError("VNext Approved Testware requires its persisted authority context")
+            testware = _approved_testware_vnext(
+                snapshot, design, baseline, receipt_sha256, execution_contract_refs,
+                state, workflow_dir,
+            )
+        else:
+            testware = _approved_testware(
+                snapshot, design, baseline, receipt_sha256, execution_contract_refs, state.project_policy_context,
+            )
         workflow = CaseWorkflowState(
-            "STOP_V1", snapshot.artifact_id, snapshot.revision, snapshot.sha256,
+            terminal, snapshot.artifact_id, snapshot.revision, snapshot.sha256,
             "APPROVED", "PASS", state.execution_contract_refs,
             state.design_gate_receipt_mode, state.design_gate_receipt_evidence, state.input_refs,
             state.execution_oracle_refs,
             state.project_policy_context,
+            terminal,
         )
         return CaseGateDecisionResult(
-            "STOP_V1", None, (), workflow, approved_snapshot, receipt_bytes=receipt_bytes,
+            terminal, None, (), workflow, approved_snapshot, receipt_bytes=receipt_bytes,
             receipt_sha256=receipt_sha256, approved_testware=testware,
-            state_history=("CASE_REVIEW", "APPROVED_TESTWARE", "STOP_V1"), test_only=test_only,
+            state_history=("CASE_REVIEW", "APPROVED_TESTWARE") if terminal == "APPROVED_TESTWARE" else ("CASE_REVIEW", "APPROVED_TESTWARE", "STOP_V1"), test_only=test_only,
         )
 
     changed_snapshot = snapshot.project("CHANGES_REQUESTED")
@@ -1976,6 +2117,7 @@ def _case_gate_transition(
         state.design_gate_receipt_mode, state.design_gate_receipt_evidence, state.input_refs,
         state.execution_oracle_refs,
         state.project_policy_context,
+        state.terminal_state,
     )
     return CaseGateDecisionResult(
         "DRAFT_CASES", None, (), workflow, changed_snapshot, next_snapshot=next_snapshot,
@@ -1995,7 +2137,10 @@ def apply_case_gate_decision(
     human_actor_authenticator: Callable | None,
     validation: CaseValidatorResult | None = None,
     execution_contract_refs: Iterable[dict] = (),
+    technical_context_refs: Iterable[dict] = (),
+    post_authentication_validator: Callable[[], bool] | None = None,
     next_revision: str | None = None,
+    require_resolved_required_dependencies: bool = False,
 ) -> CaseGateDecisionResult:
     workflow_dir = Path(workflow_dir).resolve()
     receipt_bytes = json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
@@ -2038,10 +2183,21 @@ def apply_case_gate_decision(
         human_actor_authenticator=human_actor_authenticator,
         validation=validation,
         execution_contract_refs=execution_refs,
+        technical_context_refs=technical_context_refs,
+        require_resolved_required_dependencies=require_resolved_required_dependencies,
     )
+    if checked.status == "PASS" and post_authentication_validator is not None:
+        try:
+            still_current = post_authentication_validator() is True
+        except Exception:
+            still_current = False
+        if not still_current:
+            finding = foundation.Finding("CASE_GATE_INPUTS_STALE", "a bound authority input changed during trusted Human authentication")
+            return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot)
     decision_result = _case_gate_transition(
         receipt, snapshot, design, baseline, state, checked,
         execution_contract_refs=execution_refs, next_revision=next_revision, test_only=False,
+        workflow_dir=workflow_dir,
     )
     if decision_result.status != "REJECTED":
         try:
@@ -2062,7 +2218,9 @@ def apply_test_only_case_gate_decision(
     workflow_dir: str | Path,
     validation: CaseValidatorResult | None = None,
     execution_contract_refs: Iterable[dict] = (),
+    technical_context_refs: Iterable[dict] = (),
     next_revision: str | None = None,
+    require_resolved_required_dependencies: bool = False,
 ) -> CaseGateDecisionResult:
     workflow_dir = Path(workflow_dir).resolve()
     try:
@@ -2101,11 +2259,14 @@ def apply_test_only_case_gate_decision(
     checked = validate_test_only_case_gate_fixture(
         fixture_path, snapshot, design, baseline, state, workflow_dir=workflow_dir,
         validation=validation, execution_contract_refs=execution_refs,
+        technical_context_refs=technical_context_refs,
+        require_resolved_required_dependencies=require_resolved_required_dependencies,
     )
 
     decision_result = _case_gate_transition(
         receipt, snapshot, design, baseline, state, checked,
         execution_contract_refs=execution_refs, next_revision=next_revision, test_only=True,
+        workflow_dir=workflow_dir,
     )
     if decision_result.status != "REJECTED":
         try:
@@ -2119,11 +2280,11 @@ def apply_test_only_case_gate_decision(
 def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecisionResult) -> None:
     if decision.status == "REJECTED" or decision.receipt_bytes is None:
         raise ValueError("rejected Case Gate decisions cannot persist a receipt")
-    if decision.status == "STOP_V1" and decision.approved_testware is None:
-        raise ValueError("STOP_V1 requires an Approved Testware reference artifact")
+    if decision.status in {"STOP_V1", "APPROVED_TESTWARE"} and decision.approved_testware is None:
+        raise ValueError(f"{decision.status} requires an Approved Testware reference artifact")
     if decision.status == "DRAFT_CASES" and decision.next_snapshot is None:
         raise ValueError("REQUEST_CHANGES requires a new DRAFT_CASES revision")
-    if decision.status not in {"STOP_V1", "DRAFT_CASES"}:
+    if decision.status not in {"STOP_V1", "APPROVED_TESTWARE", "DRAFT_CASES"}:
         raise ValueError(f"unsupported Case Gate result state: {decision.status}")
     evidence_dir = Path(evidence_dir).resolve()
     root_workflow_path = evidence_dir / "workflow-state.json"
@@ -2140,11 +2301,11 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
     def add_artifact(path, content):
         artifacts.append((path, content))
     human_history = [*before.get('human_gate_history', []), {
-        'event': 'HUMAN_APPROVE' if decision.status == 'STOP_V1' else 'HUMAN_REQUEST_CHANGES',
+        'event': 'HUMAN_APPROVE' if decision.status in {'STOP_V1', 'APPROVED_TESTWARE'} else 'HUMAN_REQUEST_CHANGES',
         'artifact_revision': decision.reviewed_snapshot.revision,
         'artifact_sha256': decision.reviewed_snapshot.sha256,
         'receipt_sha256': decision.receipt_sha256}]
-    if decision.status == "STOP_V1":
+    if decision.status in {"STOP_V1", "APPROVED_TESTWARE"}:
         approved_record = decision.approved_testware.to_dict()
         if decision.test_only:
             approved_record = {
@@ -2152,10 +2313,8 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
                 "not_for_production": True,
                 "approved_testware": approved_record,
             }
-        add_artifact(
-            evidence_dir / "approved-testware.json",
-            (json.dumps(approved_record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
-        )
+        approved_path = evidence_dir / ("approved-testware-vnext.json" if decision.status == "APPROVED_TESTWARE" else "approved-testware.json")
+        add_artifact(approved_path, (json.dumps(approved_record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
         projection = [record.to_dict() for record in decision.reviewed_snapshot.records]
         add_artifact(
             internal_artifact(evidence_dir, 'approved.json', 'canonical-testcases-approved-projection.json'),
@@ -2211,6 +2370,7 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
             "human_gate_history": human_history,
             "test_only": decision.test_only,
             "project_policy_context": decision.workflow.project_policy_context,
+            "terminal_state": decision.workflow.terminal_state,
         }, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
     )
     root_workflow.update({
@@ -2223,6 +2383,7 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
         "history": list(decision.state_history),
         "human_gate_history": human_history,
         "test_only": decision.test_only,
+        "terminal_state": decision.workflow.terminal_state,
         "case_gate_receipt_mode": "TEST_ONLY" if decision.test_only else "HUMAN_AUTHENTICATED",
         "case_gate_receipt_evidence": {"path": str(evidence_dir / "case-gate/receipt.json"), "sha256": decision.receipt_sha256},
     })
@@ -2232,7 +2393,7 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
                                         'sha256': decision.reviewed_snapshot.sha256}
     gate_persistence.commit_gate(evidence_dir, evidence_dir / 'case-gate/receipt.json',
                                  decision.receipt_bytes, artifacts, before, root_workflow,
-                                 stage='CASE_GATE', transition='APPROVE' if decision.status == 'STOP_V1' else 'REQUEST_CHANGES')
+                                 stage='CASE_GATE', transition='APPROVE' if decision.status in {'STOP_V1', 'APPROVED_TESTWARE'} else 'REQUEST_CHANGES')
 
 
 def _write_exclusive(path: Path, content: bytes) -> None:
@@ -2427,7 +2588,8 @@ def persist_case_review(
         "artifact_revision": state.artifact_revision,
         "artifact_sha256": state.artifact_sha256,
         "review_status": state.review_status,
-        "validation_status": state.validation_status,
+            "validation_status": state.validation_status,
+            "terminal_state": state.terminal_state,
         "execution_contract_refs": [
             {"id": ref.get("id"), "revision": ref.get("revision"), "sha256": ref.get("sha256"), "approved": ref.get("approved")}
             for ref in state.execution_oracle_refs
@@ -2600,6 +2762,8 @@ Write the completed output with Python 3 pathlib so its UTF-8 bytes are preserve
 def _load_persisted_design_authorization(
     design_run_dir: str | Path,
     baseline: foundation.ApprovedBaseline,
+    *,
+    test_only_fixture_path: str | Path | None = None,
 ) -> tuple[foundation.DesignSnapshot, DesignGateAuthorization, dict]:
     """Trust only a previously persisted HUMAN_AUTHENTICATED Design approval."""
     design_run = Path(design_run_dir).resolve()
@@ -2611,6 +2775,26 @@ def _load_persisted_design_authorization(
         workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
         raise ValueError(f"approved Design workflow is unavailable: {error}") from error
+    if workflow.get("design_gate_receipt_mode") == "TEST_ONLY":
+        if test_only_fixture_path is None:
+            raise ValueError("TEST_ONLY Design approval is available only through the isolated testcase acceptance path")
+        checked = validate_test_only_design_fixture(
+            test_only_fixture_path, design, baseline, design_workflow_dir=design_run,
+        )
+        if checked.status != "PASS" or checked.authorization is None:
+            finding = checked.finding
+            raise ValueError(finding.message if finding else "TEST_ONLY Design approval is invalid")
+        receipt_path = Path(checked.authorization.receipt_path)
+        return design, checked.authorization, {
+            "path": str(receipt_path), "sha256": checked.authorization.receipt_sha256,
+            "mode": "TEST_ONLY",
+            "fixture": {
+                "path": str(Path(test_only_fixture_path).resolve()),
+                "sha256": _hash_path(test_only_fixture_path),
+            },
+        }
+    if test_only_fixture_path is not None:
+        raise ValueError("TEST_ONLY Design fixture cannot authorize a production Design approval")
     if workflow.get("design_gate_receipt_mode") != "HUMAN_AUTHENTICATED":
         raise ValueError("production testcase generation requires a persisted Human-authenticated Design approval")
 
@@ -2667,6 +2851,9 @@ def prepare_same_session_cases(
     skill_dir: str | Path,
     execution_oracle_refs: Iterable[dict] = (),
     delivery_path: str | Path | None = None,
+    baseline_override: foundation.ApprovedBaseline | None = None,
+    terminal_state: str = "STOP_V1",
+    test_only_design_fixture_path: str | Path | None = None,
 ) -> dict:
     """Prepare approved Design inputs for same-session create-test-cases execution."""
     run_dir = Path(run_dir).resolve()
@@ -2687,9 +2874,9 @@ def prepare_same_session_cases(
     elif delivery_path:
         raise ValueError("Design was not prepared from the requested Delivery Manifest")
 
-    baseline = foundation.load_approved_baseline(handoff_path)
+    baseline = baseline_override or foundation.load_approved_baseline(handoff_path)
     design, authorization, receipt_ref = _load_persisted_design_authorization(
-        design_run_dir, baseline
+        design_run_dir, baseline, test_only_fixture_path=test_only_design_fixture_path,
     )
     execution_refs = tuple(execution_oracle_refs)
     katalon_input = adapt_approved_design_to_katalon(
@@ -2735,6 +2922,18 @@ Do not inspect application source to invent expected behavior.
 Use the pinned skill's manual testcase method and write only its completed raw testcase Markdown to the prepared raw output path.
 If the capability cannot complete from these prepared inputs, stop and report the blocker.
 """
+    from .test_kit_vnext import AUTHORITY_CONTEXT_PATH, read_vnext_authority_context
+    authority_path = run_dir / AUTHORITY_CONTEXT_PATH
+    authority_context = read_vnext_authority_context(run_dir) if authority_path.is_file() else {}
+    dev_context = authority_context.get("dev_context")
+    if dev_context:
+        technical_path = Path(dev_context["technical_snapshot_ref"]["path"])
+        technical_bytes = technical_path.read_bytes()
+        if hashlib.sha256(technical_bytes).hexdigest() != dev_context["technical_snapshot_ref"]["sha256"]:
+            raise ValueError("Dev technical snapshot changed after authority validation")
+        local_technical = run_dir / "inputs/dev-technical-context.json"
+        _write_if_same_or_absent(local_technical, technical_bytes)
+        prompt += f"\nEngineering-owned technical setup/action/observation context: {local_technical}. It cannot change approved BR/FR or UX expected behavior.\n"
     _write_if_same_or_absent(instructions, prompt.encode("utf-8"))
 
     input_manifest = {
@@ -2745,9 +2944,10 @@ If the capability cannot complete from these prepared inputs, stop and report th
         },
         "ba_input_refs": list(katalon_input.ba_refs),
         "execution_contract_refs": list(katalon_input.execution_refs),
-        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "receipt_mode": receipt_ref["mode"],
         "design_gate_receipt_evidence": receipt_ref,
         "project_policy_context": policy_context,
+        "terminal_state": terminal_state,
     }
     _write_if_same_or_absent(
         run_dir / "inputs/input-manifest.json",
@@ -2772,7 +2972,7 @@ If the capability cannot complete from these prepared inputs, stop and report th
             "files": skill_files,
         },
         "project_policy_context": policy_context,
-        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "receipt_mode": receipt_ref["mode"],
         "design_gate_receipt_evidence": receipt_ref,
         "execution_contract_refs": list(execution_refs),
         "input_path": str(input_path),
@@ -2794,6 +2994,9 @@ def finalize_same_session_cases(
     raw_cases: str | Path | None = None,
     artifact_id: str | None = None,
     revision: str = "1",
+    baseline_override: foundation.ApprovedBaseline | None = None,
+    vnext_authority: bool = False,
+    test_only_design_fixture_path: str | Path | None = None,
 ) -> CaseIntegrationResult:
     """Normalize, validate and submit same-session testcase output to CASE_REVIEW."""
     run_dir = Path(run_dir).resolve()
@@ -2805,9 +3008,10 @@ def finalize_same_session_cases(
     if prepared.get("mode") != "SAME_SESSION" or prepared.get("stage") != "CASES" or prepared.get("status") != "PREPARED":
         raise RuntimeError("same-session testcase preparation evidence is invalid")
 
-    baseline = foundation.load_approved_baseline(handoff_path)
+    baseline = baseline_override or foundation.load_approved_baseline(handoff_path)
     design, _, receipt_ref = _load_persisted_design_authorization(
-        prepared["design_run_dir"], baseline
+        prepared["design_run_dir"], baseline,
+        test_only_fixture_path=test_only_design_fixture_path,
     )
     if (
         prepared.get("feature_id") != baseline.feature_id
@@ -2832,7 +3036,7 @@ def finalize_same_session_cases(
         "status": "ARTIFACT_COMPLETE",
         "raw_output_path": str(raw_path),
         "raw_output_sha256": raw_hash,
-        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "receipt_mode": receipt_ref["mode"],
         "design_gate_receipt_evidence": receipt_ref,
         "project_policy_context": prepared.get("project_policy_context"),
     }
@@ -2844,6 +3048,8 @@ def finalize_same_session_cases(
         execution_contract_refs=tuple(prepared.get("execution_contract_refs", [])),
         artifact_id=artifact_id or f"{baseline.feature_id}-testcases",
         revision=revision,
+        terminal_state="APPROVED_TESTWARE" if vnext_authority else "STOP_V1",
+        vnext_authority=vnext_authority,
     )
     if result.status != "CASE_REVIEW":
         raise RuntimeError(f"testcase finalize failed: {result.status}")
@@ -2858,6 +3064,7 @@ def finalize_same_session_cases(
         "artifact_sha256": result.workflow.artifact_sha256,
         "review_status": result.workflow.review_status,
         "validation_status": result.workflow.validation_status,
+        "terminal_state": result.workflow.terminal_state,
         "raw_output_path": str(raw_path),
     }
     _write_exclusive(
@@ -3196,6 +3403,8 @@ def _finish_case_integration(
     revision: str,
     execution_oracle_authenticator: Callable | None = None,
     allow_test_only_execution_oracles: bool = False,
+    terminal_state: str = "STOP_V1",
+    vnext_authority: bool = False,
 ) -> CaseIntegrationResult:
     raw_path, raw_bytes, actual_raw_hash, integrity_message = _read_verified_katalon_raw(manifest)
     if integrity_message:
@@ -3220,20 +3429,38 @@ def _finish_case_integration(
     if normalization.status != "NORMALIZED" or normalization.snapshot is None:
         _persist_case_failure(run_dir, normalization, None)
         return CaseIntegrationResult("CANNOT_NORMALIZE", manifest, normalization, None, None)
-    validation = validate_testcases(
-        normalization.snapshot, design, baseline, execution_contract_refs=execution_contract_refs,
-        execution_oracle_authenticator=execution_oracle_authenticator,
-        allow_test_only_execution_oracles=allow_test_only_execution_oracles,
-    )
+    if vnext_authority:
+        from .test_kit_vnext import TestAuthorityContext, read_vnext_authority_context, validate_vnext_cases
+        context = read_vnext_authority_context(run_dir)
+        authority = TestAuthorityContext(
+            "VNEXT", True, baseline, context["ba"]["handoff"], context["ba"]["baseline"],
+            context["ba"]["approval_receipt"], tuple(context["byte_refs"]), Path(context["project_root"]),
+            context["ba"]["baseline_identity"], context.get("ux_context"), context.get("ux_required", False),
+            context.get("dev_context"),
+        )
+        validation = validate_vnext_cases(
+            normalization.snapshot, design, authority, execution_contract_refs=execution_contract_refs,
+            execution_oracle_authenticator=execution_oracle_authenticator,
+        )
+    else:
+        validation = validate_testcases(
+            normalization.snapshot, design, baseline, execution_contract_refs=execution_contract_refs,
+            execution_oracle_authenticator=execution_oracle_authenticator,
+            allow_test_only_execution_oracles=allow_test_only_execution_oracles,
+        )
     if validation.status != "PASS":
         _persist_case_failure(run_dir, normalization, validation)
         return CaseIntegrationResult("VALIDATION_FAILED", manifest, normalization, validation, None)
     workflow = submit_cases_for_review(
-        start_case_workflow(normalization.snapshot), normalization.snapshot, validation,
+        start_case_workflow(normalization.snapshot, terminal_state=terminal_state), normalization.snapshot, validation,
         execution_contract_refs=execution_contract_refs,
         design_gate_receipt_mode=manifest.get("receipt_mode"),
         design_gate_receipt_evidence=manifest.get("design_gate_receipt_evidence"),
-        input_refs=case_gate_input_refs(baseline, design, run_dir=run_dir),
+        input_refs=case_gate_input_refs(
+            baseline, design, run_dir=run_dir,
+            execution_contract_refs=execution_contract_refs, case_snapshot=normalization.snapshot,
+            vnext_authority=vnext_authority,
+        ),
         project_policy_context=manifest.get("project_policy_context"),
     )
     try:

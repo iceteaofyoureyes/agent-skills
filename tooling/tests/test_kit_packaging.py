@@ -62,6 +62,12 @@ class TestKitPackagingTests(unittest.TestCase):
         self.assertIn("tooling/lib/test_kit_v1.py", sources)
         self.assertIn("tooling/lib/test_kit_policy.py", sources)
         self.assertIn("tooling/lib/test_kit_v1_cases.py", sources)
+        self.assertIn("tooling/lib/test_kit_vnext.py", sources)
+        self.assertIn("shared/sdlc/foundation/impact.py", sources)
+        self.assertIn("shared/sdlc/foundation/inventory.py", sources)
+        self.assertIn("ba-workflow/scripts/ba_vnext.py", sources)
+        self.assertIn("ba-workflow/scripts/ba_contracts.py", sources)
+        self.assertIn("tooling/lib/dev_vnext.py", sources)
         self.assertIn("tooling/lib/codex_cli.py", sources)
         self.assertIn("ba-workflow/scripts/contracts.py", sources)
 

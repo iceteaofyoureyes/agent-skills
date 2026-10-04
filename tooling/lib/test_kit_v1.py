@@ -114,6 +114,7 @@ class AdapterBundle:
     open_decisions_markdown: str
     supplemental_text: str | None = None
     supplemental_source: RawEvidenceRef | None = None
+    authority_refs: tuple[dict, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -296,8 +297,9 @@ def adapt_ba_to_tea(
     *,
     supplemental: str | None = None,
     supplemental_source: RawEvidenceRef | None = None,
+    baseline: ApprovedBaseline | None = None,
 ) -> AdapterBundle:
-    baseline = load_approved_baseline(handoff_path)
+    baseline = baseline or load_approved_baseline(handoff_path)
     epic = _heading_markdown(f"# Epic 1 — {baseline.feature_id} {baseline.feature_title}", baseline.requirements)
     epic = epic.replace("\n### ", "\n## Acceptance criteria\n\n### ", 1)
     business = _heading_markdown("# Separate approved business-rule context", baseline.business_rules)
@@ -1197,8 +1199,24 @@ def current_project_policy_ref(run_dir: str | Path, stage: str) -> dict | None:
 
 def design_gate_input_refs(baseline: ApprovedBaseline, run_dir: str | Path) -> list[dict]:
     refs = baseline_receipt_refs(baseline)
+    from .test_kit_vnext import current_vnext_input_refs
+    refs.extend(current_vnext_input_refs(run_dir))
     policy_ref = current_project_policy_ref(run_dir, "DESIGN")
-    return refs + current_delivery_refs(run_dir) + ([policy_ref] if policy_ref else [])
+    refs.extend(current_delivery_refs(run_dir))
+    if policy_ref:
+        refs.append(policy_ref)
+    return _unique_input_refs(refs)
+
+
+def _unique_input_refs(refs: Iterable[dict]) -> list[dict]:
+    result = []
+    seen = set()
+    for ref in refs:
+        key = (ref["id"], ref["revision"], ref["sha256"].lower())
+        if key not in seen:
+            seen.add(key)
+            result.append({"id": ref["id"], "revision": ref["revision"], "sha256": ref["sha256"]})
+    return result
 
 
 def current_delivery_refs(run_dir):
@@ -1356,6 +1374,11 @@ def persist_design_review(
     for name, source in bundle.baseline.source_paths.items():
         input_refs.append({"name": name, "path": str(source), "revision": bundle.baseline.revision, "sha256": bundle.baseline.source_hashes[name]})
     input_refs.append({"name": "handoff", "path": str(bundle.baseline.handoff_path), "revision": bundle.baseline.revision, "sha256": _source_hash(bundle.baseline.handoff_path)})
+    input_refs.extend(
+        {"name": ref["id"], "path": ref["path"], "revision": ref["revision"], "sha256": ref["sha256"]}
+        for ref in bundle.authority_refs
+        if ref["id"] not in {"BA:business_rules", "BA:srs", "BA:decisions", "BA:handoff"}
+    )
     if policy_ref:
         input_refs.append(policy_ref)
     _write_exclusive(evidence_dir / "tea-raw-output.md", raw_bytes)
@@ -1721,6 +1744,7 @@ def prepare_same_session_design(
     skill_dir: str | Path,
     supplemental_manifest: str | Path | None = None,
     delivery_path: str | Path | None = None,
+    adapter_bundle: AdapterBundle | None = None,
 ) -> dict:
     """Prepare immutable Test Design inputs for execution by the current agent session."""
     run_dir = Path(run_dir).resolve()
@@ -1753,9 +1777,10 @@ def prepare_same_session_design(
         )
         supplemental_ref = RawEvidenceRef(str(path), _source_hash(path), line, "CURRENT_SYSTEM / SUPPLEMENTAL")
 
-    bundle = adapt_ba_to_tea(
+    bundle = adapter_bundle or adapt_ba_to_tea(
         handoff_path, supplemental=supplemental, supplemental_source=supplemental_ref
     )
+    from .test_kit_vnext import current_vnext_input_refs
     policy_context = persist_project_policy_context(
         run_dir, project_root, "DESIGN", bootstrap_tea=True
     )
@@ -1774,6 +1799,14 @@ def prepare_same_session_design(
         ux_input = run_dir / "inputs/approved-ux-contract.md"
         _write_if_same_or_absent(ux_input, contract.read_bytes())
         prompt += f"\nApproved interaction/presentation authority: {ux_input}. BA owns business WHAT. Prototype is review evidence.\n"
+    elif adapter_bundle is not None:
+        from .test_kit_vnext import read_vnext_authority_context
+        authority_context = read_vnext_authority_context(run_dir)
+        ux_context = authority_context.get("ux_context")
+        if ux_context:
+            ux_input = run_dir / "inputs/approved-ux-contract.md"
+            _write_if_same_or_absent(ux_input, Path(ux_context["contract_path"]).read_bytes())
+            prompt += f"\nApproved interaction/presentation authority: {ux_input}. BA owns business WHAT; do not change business outcomes. Prototype remains REVIEW_EVIDENCE.\n"
     prompt += """
 SAME_SESSION_EXECUTION:
 - Execute the installed bmad-testarch-test-design capability in this current agent session.
@@ -1805,6 +1838,10 @@ SAME_SESSION_EXECUTION:
             "files": skill_files,
         },
         "project_policy_context": policy_context,
+        "authority_refs": [
+            {"id": ref["id"], "revision": ref["revision"], "sha256": ref["sha256"]}
+            for ref in current_vnext_input_refs(run_dir)
+        ],
         "prepared_inputs": {
             "epic": str(epic),
             "business_rules": str(rules),
@@ -1827,6 +1864,9 @@ def finalize_same_session_design(
     run_dir: str | Path,
     *,
     raw_design: str | Path | None = None,
+    adapter_bundle: AdapterBundle | None = None,
+    vnext_authority: bool = False,
+    authority_context=None,
 ) -> dict:
     """Normalize, validate and submit same-session TEA output to Human Design Review."""
     run_dir = Path(run_dir).resolve()
@@ -1849,7 +1889,7 @@ def finalize_same_session_design(
             "project config must remain stable and run-local paths belong in Test Kit evidence"
         )
 
-    bundle = adapt_ba_to_tea(handoff_path)
+    bundle = adapter_bundle or adapt_ba_to_tea(handoff_path)
     if (
         prepared.get("feature_id") != bundle.baseline.feature_id
         or prepared.get("ba_revision") != bundle.baseline.revision
@@ -1874,7 +1914,14 @@ def finalize_same_session_design(
         )
         raise RuntimeError(f"CANNOT_NORMALIZE: {normalized.findings}")
 
-    validation = validate_design(normalized.snapshot, bundle.baseline)
+    if vnext_authority:
+        from .test_kit_vnext import TestAuthorityContext, validate_vnext_design
+        context = authority_context or TestAuthorityContext(
+            "VNEXT", True, bundle.baseline, {}, {}, {}, tuple(bundle.authority_refs),
+        )
+        validation = validate_vnext_design(normalized.snapshot, context)
+    else:
+        validation = validate_design(normalized.snapshot, bundle.baseline)
     if validation.status != "PASS":
         findings_path = run_dir / "evidence/validator-results.json"
         _write_exclusive(

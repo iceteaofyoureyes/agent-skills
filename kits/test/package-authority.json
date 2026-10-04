@@ -15,6 +15,16 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/ba-workflow/scripts/ba_contracts.py",
+      "sha256": "493c18ed1dca51c40de89dab9b159ab9ea9e87bd5b07031463386bb0033b314e",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/ba-workflow/scripts/ba_vnext.py",
+      "sha256": "c22899a00e7a37d447f50f02607125fbb6d6a688f70c2aa3c6b2a7919624f6c3",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/ba-workflow/scripts/contracts.py",
       "sha256": "00898f7bcbec77ce61af1b1a507a901775ee9304cb43c2036afca889a4f69fa7",
       "classification": "CORE_RUNTIME"
@@ -135,6 +145,16 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/shared/sdlc/foundation/impact.py",
+      "sha256": "d33355bf1c26c47860a1d9a477ed6e4a034d88282c3656caaeb5ee1fb3c895e7",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/foundation/inventory.py",
+      "sha256": "5334e09c71ae6feed0f869ad763887dfdad93041bcf49a617201f07184774c40",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/shared/sdlc/foundation/profiles.py",
       "sha256": "ec1233b6c5f7c89d1128f51379ba437885f683bc45426a6daf064b23526b235d",
       "classification": "CORE_RUNTIME"
@@ -220,6 +240,11 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/tooling/lib/dev_vnext.py",
+      "sha256": "3575d76520348bbf8798d9f6831d57491ce047bfbe380729f8733f2ee63a914a",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/tooling/lib/execution_contract.py",
       "sha256": "ae05c78a546f8df178257587fecbd292363d2b60eb7cc20bf324bc517736a94e",
       "classification": "CORE_RUNTIME"
@@ -241,23 +266,28 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "236e6f2bfb5cc2df52955776c52404ed33a7974ba22773f62f1c30dc030e06ae",
+      "sha256": "95fd27c6e0f5ff3ad17d6fa4963ee27739a5cf6a233fd846a8029df8c0c683bf",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_cases.py",
-      "sha256": "3f71dad5029a8b624569a1a6c916b2ba5626a9e7dd8c6df0940201b305c21f7f",
+      "sha256": "2996b5df1347bff0cf4d7170499edd9d5ac2410fba7cb7ec0fd4643eddd85a4f",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_excel.py",
-      "sha256": "76252b82510ace7ed5a0ae53308cee7e3f723d9a9405ec2e0ea8600c34fcd5fd",
+      "sha256": "d75399a2eb35f81429060b1e766dca0e4348eb136cb9833860cb1714870fb4ae",
       "classification": "OPTIONAL_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_xmind.py",
-      "sha256": "4f263f7d08d57f46e36eb8ec128000764bd9ac01cabd5f0419a94695f3b077ab",
+      "sha256": "829176d1197bf905664d94c52717a8fa47f3bae8e4a9a16a015f66cba27cbcc9",
       "classification": "OPTIONAL_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/test_kit_vnext.py",
+      "sha256": "64a99a9d1e832d1935d544658302f1debf8818d2ff4e54489202c1e3fe57c626",
+      "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_promotion.py",
@@ -746,11 +776,11 @@
     },
     {
       "path": "test-kit/SKILL.md",
-      "sha256": "2e2ac3a3b63d5fc2752f26609dfb5840a75be72c25aaaddc8ea48ed87dc48b96",
+      "sha256": "83bb2074dd8fa15150ffc36f1fb8dc3e21201a300a6164e72635e8b28b04962f",
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 149,
+  "managed_file_count": 155,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "585565c1e7f354ff0f952a2dfefd1657c6c308b1cd7be7f2aedd609dd84dba6f"
+  "payload_tree_sha256": "0a431ff9d7c5c20c1f0ae0d6c2d80bc8d70e9eabc867be0abda312524d4e264f"
 }

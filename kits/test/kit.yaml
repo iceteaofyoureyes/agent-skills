@@ -99,6 +99,18 @@
       "capability": "core"
     },
     {
+      "source": "tooling/lib/test_kit_vnext.py",
+      "destination": ".test-kit/tooling/lib/test_kit_vnext.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/dev_vnext.py",
+      "destination": ".test-kit/tooling/lib/dev_vnext.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
       "source": "tooling/lib/codex_cli.py",
       "destination": ".test-kit/tooling/lib/codex_cli.py",
       "classification": "CORE_RUNTIME",
@@ -197,6 +209,18 @@
     {
       "source": "ba-workflow/scripts/delivery_manifest.py",
       "destination": ".test-kit/ba-workflow/scripts/delivery_manifest.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "ba-workflow/scripts/ba_vnext.py",
+      "destination": ".test-kit/ba-workflow/scripts/ba_vnext.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "ba-workflow/scripts/ba_contracts.py",
+      "destination": ".test-kit/ba-workflow/scripts/ba_contracts.py",
       "classification": "CORE_RUNTIME",
       "capability": "core"
     },
@@ -411,6 +435,18 @@
       "capability": "core"
     },
     {
+      "source": "shared/sdlc/foundation/impact.py",
+      "destination": ".test-kit/shared/sdlc/foundation/impact.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/foundation/inventory.py",
+      "destination": ".test-kit/shared/sdlc/foundation/inventory.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
       "source": "tooling/lib/test_promotion.py",
       "destination": ".test-kit/tooling/lib/test_promotion.py",
       "classification": "CORE_RUNTIME",
@@ -500,11 +536,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "320ef6ff11fbdb6c1d2fabac0aca28536645d2a7db47179c4d1763c313c36c82"
+      "sha256": "b4c826c66169d3fea79c2e32a551d65d3dfb7c4668769e75661aa271b0d78184"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "585565c1e7f354ff0f952a2dfefd1657c6c308b1cd7be7f2aedd609dd84dba6f"
+      "sha256": "0a431ff9d7c5c20c1f0ae0d6c2d80bc8d70e9eabc867be0abda312524d4e264f"
     }
   }
 }
