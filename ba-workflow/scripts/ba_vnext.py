@@ -15,9 +15,10 @@ import tempfile
 # Load the existing source/installed Shared Core bootstrap without changing its identity.
 import contracts as legacy
 from shared.sdlc.authority.approved_baseline import _parse_source_rows, _source_id_matches
-from shared.sdlc.foundation.contract import foundation_readiness
+from shared.sdlc.foundation.contract import foundation_readiness, manifest_sha256, validate_manifest, _approval as foundation_approval
 from shared.sdlc.foundation.impact import KNOWLEDGE_IMPACT_V1, knowledge_impact
 from shared.sdlc.foundation.inventory import safe_location
+from shared.sdlc.promotion.immutable import promotion_record
 from shared.sdlc.schema import (REFERENCE, STRING, identifier, object_schema,
     portable_path, read_document, reject_secrets, unique, validate_reference, validate_schema)
 
@@ -34,8 +35,8 @@ LABELS = ('CONFIRMED','CURRENT_SYSTEM','INFERRED','PROPOSED','UNKNOWN')
 SOURCES = object_schema({role:REFERENCE for role in ('business_rules','srs','decisions')})
 IMPLEMENTED = object_schema({role:REFERENCE for role in ('business_rules','srs')},
                             optional=('business_rules','srs'))
-FOUNDATION = object_schema({'manifest':REFERENCE,'root':STRING,'approval':REFERENCE,
-    'previous':REFERENCE}, optional=('approval','previous'))
+FOUNDATION = object_schema({'manifest':REFERENCE,'provenance':REFERENCE,'approval':REFERENCE,'root':STRING,
+    'previous':REFERENCE}, optional=('previous',))
 EVIDENCE = object_schema({'label':{'type':'string','enum':LABELS},'ref':REFERENCE,
     'topic':STRING,'target_decision_id':STRING}, optional=('target_decision_id',))
 BUSINESS_ID = {'type':'string','pattern':r'(?:BR|FR)-(?:[A-Za-z0-9]+-)*\d+'}
@@ -124,19 +125,63 @@ def _foundation(binding, root, authenticator=None):
     context_root = Path(root)/binding['root']
     if not context_root.is_dir() or context_root.is_symlink() or not context_root.resolve().is_relative_to(Path(root).resolve()):
         raise ValueError('unsafe Foundation project root')
+    def local_ref(ref):
+        outer_path = validate_reference(ref,Path(root),revision=True)
+        try: relative = outer_path.resolve().relative_to(context_root.resolve()).as_posix()
+        except ValueError as exc: raise ValueError('Foundation ref must be inside its declared project root') from exc
+        return {**ref,'path':relative}
+
+    manifest_ref = local_ref(binding['manifest'])
+    provenance_ref = local_ref(binding['provenance'])
+    approval_ref = local_ref(binding['approval'])
     data = _ref_data(binding['manifest'], root)
     if binding['manifest']['revision'] != data.get('revision'):
         raise ValueError('Foundation reference revision mismatch')
     previous = _ref_data(binding['previous'], root) if 'previous' in binding else None
-    if previous is not None and binding['previous']['revision'] != previous.get('revision'):
+    previous_ref = local_ref(binding['previous']) if 'previous' in binding else None
+    if previous is not None and previous_ref['revision'] != previous.get('revision'):
         raise ValueError('previous Foundation reference revision mismatch')
-    approval = None
-    if 'approval' in binding:
-        path = validate_reference(binding['approval'],Path(root),revision=True)
-        # BA refs are feature-relative; Foundation validates against its own project root.
-        approval = {**binding['approval'],'path':path.resolve().relative_to(context_root.resolve()).as_posix()}
-    return foundation_readiness(data, context_root, approval=approval, previous=previous,
+
+    validate_manifest(data)
+    if data['revision'] != manifest_ref['revision']:
+        raise ValueError('Foundation reference revision mismatch')
+    manifest_path = validate_reference(manifest_ref,context_root,revision=True)
+    manifest_bytes = manifest_path.read_bytes()
+    provenance_path = validate_reference(provenance_ref,context_root,revision=True)
+    provenance_bytes = provenance_path.read_bytes()
+    provenance = read_document(provenance_bytes.decode('utf-8'))
+    receipt_path = validate_reference(approval_ref,context_root,revision=True)
+    receipt_bytes = receipt_path.read_bytes()
+    if provenance_ref['revision'] != data['revision'] or approval_ref['revision'] != data['revision']:
+        raise ValueError('Foundation provenance/approval revision mismatch')
+    if not isinstance(provenance,dict) or set(provenance) != {
+        'schema_version','source','approval_receipt','human_approval','source_evidence','mode','knowledge_impact','manifest_sha256'}:
+        raise ValueError('invalid Foundation promotion provenance shape')
+    if type(provenance['schema_version']) is not int or type(provenance['human_approval']) is not bool:
+        raise ValueError('invalid Foundation promotion provenance field types')
+    expected = promotion_record(provenance['source'],manifest_bytes,approval_ref,receipt_bytes)
+    if any(provenance.get(key) != value for key,value in expected.items()):
+        raise ValueError('Foundation provenance does not bind exact manifest and approval bytes')
+    if (provenance['source'].get('id') != data['id'] or
+        provenance['source'].get('revision') != data['revision'] or
+        provenance['source'].get('sha256') != hashlib.sha256(manifest_bytes).hexdigest() or
+        provenance['manifest_sha256'] != manifest_sha256(data)):
+        raise ValueError('Foundation provenance source identity/hash mismatch')
+    if provenance['mode'] != data['mode']:
+        raise ValueError('Foundation provenance mode mismatch')
+    if (not isinstance(provenance['source_evidence'],list) or
+        any(not isinstance(item,dict) for item in provenance['source_evidence'])):
+        raise ValueError('Foundation provenance source evidence must be an array of records')
+    knowledge_impact(provenance['knowledge_impact'])
+    # This shared contract checks exact receipt bytes, manifest identity/hash,
+    # trusted-host authentication, and any declared prior-manifest rules.
+    foundation_approval(data,context_root,approval_ref,authenticator,previous)
+    readiness = foundation_readiness(data,context_root,approval=approval_ref,previous=previous,
         human_actor_authenticator=authenticator)
+    # Recheck all supplied refs after the trusted-host call.
+    for ref in (manifest_ref,provenance_ref,approval_ref): validate_reference(ref,context_root,revision=True)
+    if previous_ref is not None: validate_reference(previous_ref,context_root,revision=True)
+    return readiness
 
 
 def validate_decisions(data, root, feature_id, sources=None):

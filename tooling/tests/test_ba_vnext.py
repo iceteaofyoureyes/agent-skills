@@ -67,11 +67,12 @@ class BAVNextTests(unittest.TestCase):
         expected = copy.deepcopy(receipt)
         return self.ref('receipt.json', candidate['revision']), lambda who, actual: who == 'synthetic-human' and actual == expected
 
-    def approved(self):
-        state = ba.advance(self.state, 'VALIDATE', self.root)
-        state = ba.advance(state, 'REQUEST_REVIEW', self.root)
+    def approved(self, foundation_authenticator=None):
+        state = ba.advance(self.state, 'VALIDATE', self.root, foundation_authenticator=foundation_authenticator)
+        state = ba.advance(state, 'REQUEST_REVIEW', self.root, foundation_authenticator=foundation_authenticator)
         approval, auth = self.host_receipt()
-        state = ba.advance(state, 'APPROVE', self.root, approval=approval, human_actor_authenticator=auth)
+        state = ba.advance(state, 'APPROVE', self.root, approval=approval, human_actor_authenticator=auth,
+            foundation_authenticator=foundation_authenticator)
         return state, auth
 
     def test_greenfield_exact_baseline_and_handoff(self):
@@ -113,12 +114,14 @@ class BAVNextTests(unittest.TestCase):
         foundation = foundation_tests.FoundationTests('test_synthetic_brownfield_acceptance_preserves_current_inferred_unknown')
         foundation.setUp()
         try:
-            data, _, _ = foundation.promoted()
+            data, foundation_approval, foundation_auth = foundation.promoted()
             self.assertEqual(foundation_readiness(data, foundation.root)['status'], 'PROJECT_FOUNDATION_READY')
             shutil.copytree(foundation.root, self.root/'foundation-project')
             # Portable references remain relative to the Foundation manifest's project root.
             foundation_ref = {'manifest':self.ref('foundation-project/docs/foundation/R1.json'),
-                              'root':'foundation-project'}
+                'provenance':self.ref('foundation-project/docs/foundation/R1.provenance.json'),
+                'approval':self.ref('foundation-project/'+foundation_approval['path']),
+                'root':'foundation-project'}
             self.candidate['project_foundation'] = foundation_ref
             self.candidate['mode'] = 'BROWNFIELD'
             self.candidate['evidence'] = [{'label':'CURRENT_SYSTEM','ref':self.ref('current-system.txt'),
@@ -129,18 +132,118 @@ class BAVNextTests(unittest.TestCase):
             self.candidate['revision'] = 'R2'
             self.candidate['semantic_sha256'] = ba.candidate_hash(self.candidate)
             self.candidate_ref = self.publish(self.candidate)
-            self.state = ba.select_candidate(ba.new_state(self.candidate['feature'], 'BROWNFIELD'), self.candidate_ref, self.root)
+            self.state = ba.select_candidate(ba.new_state(self.candidate['feature'], 'BROWNFIELD'), self.candidate_ref,
+                self.root, foundation_authenticator=foundation_auth)
             self.assertEqual(self.state['lifecycle'], 'DRAFT')
             with self.assertRaises(ValueError): ba.make_handoff(self.state, self.root)
-            state, auth = self.approved()
-            handoff = ba.make_handoff(state, self.root, human_actor_authenticator=auth)
+            state, auth = self.approved(foundation_auth)
+            handoff = ba.make_handoff(state, self.root, human_actor_authenticator=auth,
+                foundation_authenticator=foundation_auth)
             self.assertEqual(handoff['project_foundation'], foundation_ref)
             self.assertCountEqual([r['owner'] for r in routes(handoff['knowledge_impact'])], ['BA','ENGINEERING'])
             self.assertIn('eligible members', (self.root/'business-rules.md').read_text())
             self.assertIn('all visitors', (self.root/'current-system.txt').read_text())
             foundation_path = self.root/foundation_ref['manifest']['path']
             foundation_path.write_bytes(foundation_path.read_bytes()+b'\n')
-            with self.assertRaises(ValueError): ba.validate_handoff(handoff, self.root, human_actor_authenticator=auth)
+            with self.assertRaises(ValueError): ba.validate_handoff(handoff, self.root, human_actor_authenticator=auth,
+                foundation_authenticator=foundation_auth)
+        finally:
+            foundation.doCleanups()
+
+    def test_structurally_ready_unpromoted_brownfield_foundation_is_rejected(self):
+        foundation = foundation_tests.FoundationTests('test_synthetic_brownfield_acceptance_preserves_current_inferred_unknown')
+        foundation.setUp()
+        try:
+            foundation.prepare()
+            data = foundation.candidate()
+            self.assertNotIn('APPROVED_TARGET', [section['evidence'] for section in data['sections'].values()])
+            self.assertEqual(foundation_readiness(data, foundation.root)['status'], 'PROJECT_FOUNDATION_READY')
+            shutil.copytree(foundation.root, self.root/'foundation-unpromoted')
+            foundation_ref = {'manifest':self.ref(
+                'foundation-unpromoted/.sdlc/runs/foundation/run-1/candidates/R1/manifest.json'),
+                'root':'foundation-unpromoted'}
+            candidate = copy.deepcopy(self.candidate)
+            candidate['project_foundation'] = foundation_ref
+            candidate['mode'] = 'BROWNFIELD'
+            candidate['evidence'] = [{'label':'CURRENT_SYSTEM','ref':self.ref('current-system.txt'),
+                'topic':'eligibility','target_decision_id':'DEC-001'}]
+            candidate['knowledge_impact']['areas']['domain'] = {'affected':True,'targets':['domain/requests.md']}
+            candidate['knowledge_impact']['areas']['architecture'] = {'affected':True,'targets':['architecture/impact.md']}
+            candidate['revision'] = 'R2'
+            candidate['semantic_sha256'] = ba.candidate_hash(candidate)
+            with self.assertRaises(ValueError):
+                ba.validate_candidate(candidate, self.root)
+            approval, auth = foundation.receipt(data)
+            foundation_tests.w.accept(foundation.root,'run-1',approval,human_actor_authenticator=auth)
+            foundation_tests.w.promote(foundation.root,'run-1','docs/foundation/R1.json',
+                'docs/foundation/R1.provenance.json',human_actor_authenticator=auth)
+            durable = json.loads((foundation.root/'docs/foundation/R1.json').read_text(encoding='utf-8'))
+            self.assertEqual(durable,data)
+            self.assertEqual(foundation_readiness(durable,foundation.root)['manifest_sha256'],
+                foundation_readiness(data,foundation.root)['manifest_sha256'])
+            shutil.copytree(foundation.root,self.root/'foundation-project')
+            binding = {'root':'foundation-project',
+                'manifest':self.ref('foundation-project/docs/foundation/R1.json'),
+                'provenance':self.ref('foundation-project/docs/foundation/R1.provenance.json'),
+                'approval':self.ref('foundation-project/'+approval['path'])}
+            candidate['project_foundation'] = binding
+            candidate['semantic_sha256'] = ba.candidate_hash(candidate)
+            self.assertEqual(ba.validate_candidate(candidate,self.root,foundation_authenticator=auth)['status'],'VALIDATED')
+        finally:
+            foundation.doCleanups()
+
+    def test_foundation_promotion_proof_mutations_fail_closed(self):
+        foundation = foundation_tests.FoundationTests('test_synthetic_brownfield_acceptance_preserves_current_inferred_unknown')
+        foundation.setUp()
+        try:
+            _, approval, auth = foundation.promoted()
+            shutil.copytree(foundation.root, self.root/'foundation-project')
+            binding = {'root':'foundation-project',
+                'manifest':self.ref('foundation-project/docs/foundation/R1.json'),
+                'provenance':self.ref('foundation-project/docs/foundation/R1.provenance.json'),
+                'approval':self.ref('foundation-project/'+approval['path'])}
+            def candidate_for(proof):
+                candidate = copy.deepcopy(self.candidate)
+                candidate['project_foundation'] = copy.deepcopy(proof)
+                candidate['semantic_sha256'] = ba.candidate_hash(candidate)
+                return candidate
+            valid = candidate_for(binding)
+            self.assertEqual(ba.validate_candidate(valid,self.root,foundation_authenticator=auth)['status'],'VALIDATED')
+            for host in (None,lambda *_:False):
+                with self.subTest(authenticator=host), self.assertRaises(ValueError):
+                    ba.validate_candidate(valid,self.root,foundation_authenticator=host)
+            missing = copy.deepcopy(binding); missing.pop('provenance')
+            with self.assertRaises(ValueError): ba.validate_candidate(candidate_for(missing),self.root,foundation_authenticator=auth)
+
+            provenance_path = self.root/binding['provenance']['path']
+            original_provenance = provenance_path.read_bytes()
+            original_receipt = (self.root/binding['approval']['path']).read_bytes()
+            def changed_provenance(change):
+                value = json.loads(original_provenance)
+                change(value)
+                provenance_path.write_text(json.dumps(value,sort_keys=True,separators=(',',':')),encoding='utf-8')
+                proof = copy.deepcopy(binding)
+                proof['provenance'] = self.ref('foundation-project/docs/foundation/R1.provenance.json')
+                with self.assertRaises(ValueError):
+                    ba.validate_candidate(candidate_for(proof),self.root,foundation_authenticator=auth)
+                provenance_path.write_bytes(original_provenance)
+            changed_provenance(lambda row: row.update(manifest_sha256='0'*64))
+            changed_provenance(lambda row: row['source'].update(sha256='0'*64))
+            changed_provenance(lambda row: row['source'].update(id='OTHER'))
+            changed_provenance(lambda row: row['source'].update(revision='R2'))
+            changed_provenance(lambda row: row.update(mode='GREENFIELD_BOOTSTRAP'))
+            changed_provenance(lambda row: row.update(approval_receipt={'path':'other.json','revision':'R1','sha256':'0'*64}))
+            changed_provenance(lambda row: row.update(schema_version=True))
+            changed_provenance(lambda row: row.update(human_approval=0))
+            changed_provenance(lambda row: row.update(source_evidence=[1]))
+            changed_provenance(lambda row: row['knowledge_impact'].update(schema_version=99))
+            escaped = copy.deepcopy(binding)
+            escaped['manifest'] = self.ref('srs.md')
+            with self.assertRaises(ValueError): ba.validate_candidate(candidate_for(escaped),self.root,foundation_authenticator=auth)
+            receipt_path = self.root/binding['approval']['path']
+            receipt_path.write_bytes(original_receipt+b'\nchanged')
+            with self.assertRaises(ValueError): ba.validate_candidate(valid,self.root,foundation_authenticator=auth)
+            receipt_path.write_bytes(original_receipt)
         finally:
             foundation.doCleanups()
 
@@ -160,6 +263,7 @@ class BAVNextTests(unittest.TestCase):
             foundation_tests.w.promote(foundation.root,'run-1','docs/foundation/R1.json','docs/foundation/R1.provenance.json',human_actor_authenticator=auth)
             shutil.copytree(foundation.root,self.root/'foundation-project')
             binding = {'root':'foundation-project','manifest':self.ref('foundation-project/docs/foundation/R1.json'),
+                       'provenance':self.ref('foundation-project/docs/foundation/R1.provenance.json'),
                        'approval':self.ref('foundation-project/'+approval['path'])}
             candidate = copy.deepcopy(self.candidate)
             candidate.update(revision='R2',project_foundation=binding)
@@ -167,6 +271,22 @@ class BAVNextTests(unittest.TestCase):
             result = ba.validate_candidate(candidate,self.root,foundation_authenticator=auth)
             self.assertEqual(result['status'],'VALIDATED')
             self.assertFalse(result['human_approval'])
+            proof_path = self.root/binding['provenance']['path']
+            proof_bytes = proof_path.read_bytes()
+            proof_path.write_bytes(proof_bytes+b'\nchanged')
+            tampered = copy.deepcopy(candidate)
+            tampered['project_foundation']['provenance'] = self.ref(binding['provenance']['path'])
+            tampered['semantic_sha256'] = ba.candidate_hash(tampered)
+            with self.assertRaises(ValueError): ba.validate_candidate(tampered,self.root,foundation_authenticator=auth)
+            proof_path.write_bytes(proof_bytes)
+            receipt_path = self.root/binding['approval']['path']
+            receipt_bytes = receipt_path.read_bytes()
+            receipt_path.write_bytes(receipt_bytes+b'\nchanged')
+            tampered = copy.deepcopy(candidate)
+            tampered['project_foundation']['approval'] = self.ref(binding['approval']['path'])
+            tampered['semantic_sha256'] = ba.candidate_hash(tampered)
+            with self.assertRaises(ValueError): ba.validate_candidate(tampered,self.root,foundation_authenticator=auth)
+            receipt_path.write_bytes(receipt_bytes)
             candidate = ba.make_candidate(self.root,feature=candidate['feature'],baseline_id='BA-1',revision='R2',
                 sources=self.sources,business_identities=candidate['business_identities'],knowledge=knowledge_impact(),
                 project_foundation=binding,foundation_authenticator=auth)
@@ -176,6 +296,43 @@ class BAVNextTests(unittest.TestCase):
                 'REQUEST_REVIEW',self.root,foundation_authenticator=auth)
             self.assertEqual(state['lifecycle'],'HUMAN_REVIEW')
             with self.assertRaises(ValueError): ba.make_handoff(state,self.root,foundation_authenticator=auth)
+        finally:
+            foundation.doCleanups()
+
+    def test_foundation_refresh_binding_requires_matching_prior_receipt(self):
+        foundation = foundation_tests.FoundationTests('test_synthetic_brownfield_acceptance_preserves_current_inferred_unknown')
+        foundation.setUp()
+        try:
+            previous, _, _ = foundation.promoted()
+            previous_ref = foundation_tests.w.exact_ref(foundation.root,'docs/foundation/R1.json','R1')
+            state = foundation.start('refresh',mode='FOUNDATION_REFRESH')
+            topology, policy = foundation.config()
+            inputs = foundation.inputs()
+            inputs['sections']['runtime_view']['evidence'] = 'APPROVED_TARGET'
+            data = foundation_tests.w.candidate_manifest(foundation.root,state,topology,policy,'foundation','R2',**inputs)
+            approval, auth = foundation.receipt(data,previous=previous)
+            foundation_tests.w.prepare(foundation.root,'refresh','foundation','R2',previous_ref=previous_ref,
+                approval=approval,human_actor_authenticator=auth,**inputs)
+            foundation_tests.w.accept(foundation.root,'refresh',approval,human_actor_authenticator=auth)
+            foundation_tests.w.promote(foundation.root,'refresh','docs/foundation/R2.json',
+                'docs/foundation/R2.provenance.json',human_actor_authenticator=auth)
+            shutil.copytree(foundation.root,self.root/'foundation-project')
+            binding = {'root':'foundation-project',
+                'manifest':self.ref('foundation-project/docs/foundation/R2.json','R2'),
+                'provenance':self.ref('foundation-project/docs/foundation/R2.provenance.json','R2'),
+                'approval':self.ref('foundation-project/'+approval['path'],'R2'),
+                'previous':self.ref('foundation-project/docs/foundation/R1.json')}
+            candidate = copy.deepcopy(self.candidate)
+            candidate['project_foundation'] = binding
+            candidate['semantic_sha256'] = ba.candidate_hash(candidate)
+            self.assertEqual(ba.validate_candidate(candidate,self.root,foundation_authenticator=auth)['status'],'VALIDATED')
+            for prior in (None,self.ref('foundation-project/docs/foundation/R2.json')):
+                changed = copy.deepcopy(candidate)
+                if prior is None: changed['project_foundation'].pop('previous')
+                else: changed['project_foundation']['previous'] = prior
+                changed['semantic_sha256'] = ba.candidate_hash(changed)
+                with self.subTest(previous=prior), self.assertRaises(ValueError):
+                    ba.validate_candidate(changed,self.root,foundation_authenticator=auth)
         finally:
             foundation.doCleanups()
 

@@ -20,7 +20,7 @@ BA owns WHAT. Technical owners, API/event/DB design, service boundaries, locking
 
 Use `CURRENT_SYSTEM` for verified behavior in the existing code, data, API or UI. Do not promote it to target behavior without BA confirmation. Report material differences between the request and current system as gaps or questions.
 
-Consume Foundation inventory/context where available; READY is context, never BA target approval. Architecture remains Engineering-owned. Foundation target approval and BA approval are independent. Full Foundation is optional: bounded feature evidence may suffice. When consuming READY, reuse its existing readiness/reference checks without weakening blockers. Material current/target contradictions remain gaps until Human clarification. Implementation inference stays INFERRED.
+Consume Foundation inventory/context where available; READY is context, never BA target approval. A BA Foundation binding must include exact durable manifest, promotion provenance, and authenticated Foundation approval refs; structural readiness alone is insufficient. Architecture remains Engineering-owned. Foundation target approval and BA approval are independent. Full Foundation is optional: bounded feature evidence may suffice. When consuming READY, reuse its existing readiness/reference checks without weakening blockers. Material current/target contradictions remain gaps until Human clarification. Implementation inference stays INFERRED.
 
 ## Visual and delivery artifacts
 

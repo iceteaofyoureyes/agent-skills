@@ -101,13 +101,17 @@ generation, Foundation READY and UX approval cannot grant baseline approval.
 
 ## Foundation and Knowledge Impact
 
-Optional Foundation binding: exact manifest ref, root relative to feature root
-(`.` allowed), optional Foundation approval/previous refs. Existing Foundation
-readiness revalidates it; target approval requires foundation_authenticator.
-All binding refs are feature-relative; the BA adapter validates and rebases the
-Foundation approval ref to its project root. Hosts pass foundation_authenticator
-through candidate creation/selection, question resolution, validation and handoff.
-Foundation context never establishes BA approval. Architecture remains Engineering
+Optional Foundation binding: exact durable manifest, promotion provenance, and
+Foundation approval refs, plus a root relative to the feature root (`.`
+allowed); an exact previous manifest ref may be supplied when applicable. All
+refs are feature-relative and are validated/rebased under the declared
+Foundation project root. Provenance binds the durable manifest bytes, semantic
+identity, mode, and exact approval receipt reference. The Foundation receipt is
+always checked through `foundation_authenticator`, including for brownfield
+snapshots; structural readiness alone is insufficient. Hosts pass the
+authenticator through candidate creation/selection, question resolution,
+validation and handoff. Foundation context never establishes BA approval.
+Architecture remains Engineering
 authority. Brownfield CURRENT_SYSTEM may differ from target; target_decision_id
 links that topic to a current confirmed decision. INFERRED stays inferred.
 Greenfield has no current-system dependency. Full Foundation is optional when
