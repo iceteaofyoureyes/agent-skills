@@ -1199,7 +1199,7 @@ instead of silently changing contracts if it needs to:
 
 ## 38. Human review checklist
 
-Human should explicitly accept or amend these before implementation:
+Human approval has been recorded for the following Phase 5 decisions:
 
 1. Engineering Handoff VNext is mandatory WHAT authority for feature delivery.
 2. Delivery Manifest remains a delivery envelope and never substitutes BA proof.
@@ -1214,7 +1214,7 @@ Human should explicitly accept or amend these before implementation:
 11. FR/BR-only coverage contract.
 12. three-wave implementation plan.
 
-No Phase 5 code starts before this checklist is approved.
+This checklist is approved. Phase 5 Wave 1 implementation may start under this exact specification.
 
 ---
 
@@ -1228,3 +1228,26 @@ No Phase 5 code starts before this checklist is approved.
 6. Temporary spec is removed from the final implementation tree.
 7. Push remote.
 8. Independent SOL review before Wave 2.
+
+---
+
+## 40. Temporary bootstrap cleanup
+
+This file is a temporary bootstrap artifact on `phase5/dev-kit-vnext-bootstrap`.
+
+A fresh implementation agent must:
+
+1. fetch and read this entire file before implementation;
+2. create `feat/dev-kit-vnext-wave1` from the latest remote bootstrap branch;
+3. implement **Wave 1 only**;
+4. DELETE `PHASE_5_DEV_KIT_VNEXT_EXECUTION_SPEC.md` from the implementation branch before the final commit/report;
+5. not copy, rename, or preserve this temporary spec under docs/evidence/runtime;
+6. verify the final Wave 1 tree does not contain this file.
+
+The authoritative behavioral implementation base remains:
+
+```text
+84c050865630125751f8bfe1c1ca30c0a0a7b8c7
+```
+
+The bootstrap-only commit(s) do not change Phase 4 behavior.
