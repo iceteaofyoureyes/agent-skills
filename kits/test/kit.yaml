@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "test",
   "name": "Test Kit Manual VNext",
-  "version": "2.0.0-rc.6",
+  "version": "2.0.0-rc.7",
   "workflow": {
     "skill": "test-kit"
   },
@@ -10,14 +10,16 @@
   "skills": {
     "required": [
       "bmad-testarch-test-design",
-      "create-test-cases"
+      "create-test-cases",
+      "test-automation-v1"
     ],
     "optional": []
   },
   "skill_sources": {
     "test-kit": "kits/test/skills/test-kit",
     "bmad-testarch-test-design": "kits/test/skills/bmad-testarch-test-design",
-    "create-test-cases": "kits/test/skills/create-test-cases"
+    "create-test-cases": "kits/test/skills/create-test-cases",
+    "test-automation-v1": "kits/test/skills/test-automation-v1"
   },
   "files": [
     {
@@ -493,13 +495,92 @@
       "destination": ".test-kit/examples/legacy-v1/workflow-state.json",
       "classification": "LEGACY_COMPAT_FIXTURE",
       "capability": "core"
+    },
+    {
+      "source": "tooling/lib/test_automation_v1.py",
+      "destination": ".test-kit/tooling/lib/test_automation_v1.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/schemas/automation-suitability-v1.schema.json",
+      "destination": ".test-kit/schemas/automation-suitability-v1.schema.json",
+      "classification": "CANONICAL_SCHEMA",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/schemas/automation-plan-v1.schema.json",
+      "destination": ".test-kit/schemas/automation-plan-v1.schema.json",
+      "classification": "CANONICAL_SCHEMA",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/schemas/automation-review-v1.schema.json",
+      "destination": ".test-kit/schemas/automation-review-v1.schema.json",
+      "classification": "EVIDENCE_SCHEMA",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/schemas/automation-verification-v1.schema.json",
+      "destination": ".test-kit/schemas/automation-verification-v1.schema.json",
+      "classification": "EVIDENCE_SCHEMA",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/schemas/execution-ready-v1-handoff.schema.json",
+      "destination": ".test-kit/schemas/execution-ready-v1-handoff.schema.json",
+      "classification": "HANDOFF_SCHEMA",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/templates/automation-suitability-v1.template.json",
+      "destination": ".test-kit/templates/automation-suitability-v1.template.json",
+      "classification": "OPERATOR_TEMPLATE",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/templates/automation-plan-v1.template.json",
+      "destination": ".test-kit/templates/automation-plan-v1.template.json",
+      "classification": "OPERATOR_TEMPLATE",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "docs/vi/TEST_AUTOMATION_V1.md",
+      "destination": ".test-kit/docs/vi/TEST_AUTOMATION_V1.md",
+      "classification": "OPERATOR_DOCUMENTATION",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "docs/en/TEST_AUTOMATION_V1.md",
+      "destination": ".test-kit/docs/en/TEST_AUTOMATION_V1.md",
+      "classification": "OPERATOR_DOCUMENTATION",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/examples/vnext/neutral/automation-v1/README.md",
+      "destination": ".test-kit/examples/vnext/neutral/automation-v1/README.md",
+      "classification": "PUBLIC_EXAMPLE",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/examples/vnext/neutral/automation-v1/automation-suitability.example.json",
+      "destination": ".test-kit/examples/vnext/neutral/automation-v1/automation-suitability.example.json",
+      "classification": "PUBLIC_EXAMPLE",
+      "capability": "automation_v1"
+    },
+    {
+      "source": "kits/test/examples/vnext/neutral/automation-v1/automation-plan.example.json",
+      "destination": ".test-kit/examples/vnext/neutral/automation-v1/automation-plan.example.json",
+      "classification": "PUBLIC_EXAMPLE",
+      "capability": "automation_v1"
     }
   ],
   "capabilities": {
     "core": "required",
     "xmind_projection": "optional",
     "excel_projection": "optional",
-    "legacy_nested_invocation": "optional"
+    "legacy_nested_invocation": "optional",
+    "automation_v1": "required"
   },
   "prerequisites": {
     "python": [
@@ -578,11 +659,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "2137773eaafc15ef6bd26ee503052cedde929205a0034da9791da91390ff3f1b"
+      "sha256": "818c03364efe5b86fa3893252bdb83033085a662c691eaed59b77ea4603d3ba6"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "e19a0a87e6b9822a61ecf8b5175181897dc0257196a52e2f13f53f1bfb4100d6"
+      "sha256": "19a71b23e56f60382441b7ef5b59e2a2639001f19cbc178f133422e0112cccc3"
     }
   }
 }

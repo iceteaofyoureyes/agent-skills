@@ -83,7 +83,7 @@ Xem [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md).
 |---|---|---|
 | **BA Kit** | **VNext packaging candidate; Tier 3 fresh-install acceptance required; not a stable release** | **WHAT** |
 | **Dev Kit** | Planned | Engineering Impact + **HOW** |
-| **Test Kit Manual VNext** | `2.0.0-rc.6` prerelease candidate; Phase 6 completion requires Tier 3 installed acceptance and full regression | **HOW DO WE PROVE IT** |
+| **Test Kit Manual + Automation V1** | `2.0.0-rc.7` prerelease candidate; Phase 7 requires fresh installed Automation acceptance and full regression | **HOW DO WE PROVE IT** |
 
 ## Bắt đầu
 

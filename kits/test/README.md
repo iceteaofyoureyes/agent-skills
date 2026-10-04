@@ -12,7 +12,7 @@ Engineering Handoff VNext
 → APPROVED_TESTWARE
 ```
 
-`APPROVED_TESTWARE` is the Phase 6 manual terminal. It does not mean `EXECUTION_READY`, execution PASS, `VERIFIED`, or `READY_TO_MERGE`. Automation and execution lifecycle work begin in Phase 7+.
+`APPROVED_TESTWARE` is the Phase 6 manual terminal. It does not mean `EXECUTION_READY`, execution PASS, `VERIFIED`, or `READY_TO_MERGE`. Test Automation V1 adds the Phase 7 technical flow and stops at `EXECUTION_READY`; it does not run the product under test.
 
 ## Start here
 
@@ -26,6 +26,9 @@ Engineering Handoff VNext
 - [Provenance and licenses](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/PROVENANCE.md)
 - [Release status](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/RELEASE.md)
 - [English overview](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/en/TEST_KIT_README.md)
+- [Test Automation V1 (Vietnamese)](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/TEST_AUTOMATION_V1.md)
+- [Test Automation V1 (English)](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/en/TEST_AUTOMATION_V1.md)
+- [Neutral Automation V1 example](examples/vnext/neutral/automation-v1/README.md)
 
 The Appointment/CR-001 material is retained only as a historical V1 `LEGACY_COMPAT` example. It is not the default VNext flow.
 

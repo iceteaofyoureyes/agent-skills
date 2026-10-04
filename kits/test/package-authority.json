@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.6",
+  "kit_version": "2.0.0-rc.7",
   "manifest_schema_version": 1,
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "b7101eba7534aac71b3f06d72f575438cd5cc1b8a6fdf5d43919e6fe748f9bb2",
+      "sha256": "ef95ecd78fa6edb35b126167226e60f1761b90fdb92b4b1de7d3252abfce48a4",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
       "path": ".test-kit/acceptance.yaml",
-      "sha256": "0cf38e971e2b4636c99c0f8318f6db360186929bf68732a0fff96762d038f00c",
+      "sha256": "5f30559532580ab9cf5b3c7201730c63cbd0265ba87305501e95f92caaf67dfe",
       "classification": "ACCEPTANCE_CONTRACT"
     },
     {
@@ -40,6 +40,16 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/docs/en/TEST_AUTOMATION_V1.md",
+      "sha256": "388b0a8569d6267bd2257b81bc6b2f8ae87092fffef122c2bff2ea7922d98109",
+      "classification": "OPERATOR_DOCUMENTATION"
+    },
+    {
+      "path": ".test-kit/docs/vi/TEST_AUTOMATION_V1.md",
+      "sha256": "4f8fba2e5eb760fc13af1ff442dcb895729d202cc4b07f18e00ff6785f0570f6",
+      "classification": "OPERATOR_DOCUMENTATION"
+    },
+    {
       "path": ".test-kit/examples/legacy-v1/README.md",
       "sha256": "8387cb83a7aebfa16497fe70f6082bedd847e42cbd919b64b9e1019f8a0256d5",
       "classification": "LEGACY_COMPAT_EXAMPLE"
@@ -53,6 +63,21 @@
       "path": ".test-kit/examples/vnext/neutral/README.md",
       "sha256": "4ea6cfc410e7dedca896468bc8020c5f5e9dd748a1b13b2cdb86f1872fed00c0",
       "classification": "OPERATOR_EXAMPLE"
+    },
+    {
+      "path": ".test-kit/examples/vnext/neutral/automation-v1/README.md",
+      "sha256": "eb625b2321f865c8a893dd9f523893a7b8a154422b4e57368c961fba0abc4aeb",
+      "classification": "PUBLIC_EXAMPLE"
+    },
+    {
+      "path": ".test-kit/examples/vnext/neutral/automation-v1/automation-plan.example.json",
+      "sha256": "c32514e77502ccbd87b90e1918da628399a9a8631c7bb9998a898f4526ca3fe6",
+      "classification": "PUBLIC_EXAMPLE"
+    },
+    {
+      "path": ".test-kit/examples/vnext/neutral/automation-v1/automation-suitability.example.json",
+      "sha256": "271448b96a388b9d85cff53e044a3f2ccc736502d2846154255847e520de1188",
+      "classification": "PUBLIC_EXAMPLE"
     },
     {
       "path": ".test-kit/licenses/README.md",
@@ -83,6 +108,31 @@
       "path": ".test-kit/schemas/approved-testware-vnext-handoff-manifest.schema.json",
       "sha256": "4aa737f4c89e791eec8c412e191561be197bbc2729c3600ce6910abd6209474b",
       "classification": "PUBLIC_SCHEMA"
+    },
+    {
+      "path": ".test-kit/schemas/automation-plan-v1.schema.json",
+      "sha256": "255a6ee12224c67dd5ef5b54818efdcadcb2f763f312b17ffea7b9e2133b610e",
+      "classification": "CANONICAL_SCHEMA"
+    },
+    {
+      "path": ".test-kit/schemas/automation-review-v1.schema.json",
+      "sha256": "570789161a2147e31088c64eaf2597c81c5d14bc3d1f1c272c3f39604949ccfe",
+      "classification": "EVIDENCE_SCHEMA"
+    },
+    {
+      "path": ".test-kit/schemas/automation-suitability-v1.schema.json",
+      "sha256": "25b10b5c736d93929b74d4dd3d7d42d8a5f292bd0d051b27e144c313463d40da",
+      "classification": "CANONICAL_SCHEMA"
+    },
+    {
+      "path": ".test-kit/schemas/automation-verification-v1.schema.json",
+      "sha256": "c39d999d8dd6e264d353832bf30ccc9ac24cff1a84fead8ede493e8e78a6501f",
+      "classification": "EVIDENCE_SCHEMA"
+    },
+    {
+      "path": ".test-kit/schemas/execution-ready-v1-handoff.schema.json",
+      "sha256": "2b65385f9fabca899ccfc6c45042959e2428bd241e84527b5c3ff114c3950897",
+      "classification": "HANDOFF_SCHEMA"
     },
     {
       "path": ".test-kit/schemas/test-authority-context-vnext.schema.json",
@@ -255,6 +305,16 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/templates/automation-plan-v1.template.json",
+      "sha256": "41952b3e2e6222d8443a1d5d6a62cbf0173cc60fb90397b1353f56e34e7dcba6",
+      "classification": "OPERATOR_TEMPLATE"
+    },
+    {
+      "path": ".test-kit/templates/automation-suitability-v1.template.json",
+      "sha256": "ac19b13f13ba03b0b398c0d319886668feebb229fafb9c799e94f935d1200103",
+      "classification": "OPERATOR_TEMPLATE"
+    },
+    {
       "path": ".test-kit/templates/ux-context-request.template.json",
       "sha256": "427be7c29d6d2b796ca19cff185cbd4023fdca12a47f03876b0e85f3ffc2b6eb",
       "classification": "OPERATOR_TEMPLATE"
@@ -292,6 +352,11 @@
     {
       "path": ".test-kit/tooling/lib/runtime_paths.py",
       "sha256": "b57e8221ec5d8ef269cdb146fe58b3fabbb7dbd3c4b0354ea34e076aba34b459",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/test_automation_v1.py",
+      "sha256": "05a94310fae7b39dad62f63e947baad39b58e964e17ba2ba83da90b7db6f9ddf",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -810,12 +875,17 @@
       "classification": "REQUIRED_SKILL"
     },
     {
+      "path": "test-automation-v1/SKILL.md",
+      "sha256": "b89a3d4cbc6ef0e64f49dd9fac426c8fbe78250aaf5ddc5b464d33c6896df71d",
+      "classification": "REQUIRED_SKILL"
+    },
+    {
       "path": "test-kit/SKILL.md",
       "sha256": "659bc1dceb367a638e6ce4a072d220fd16d14191d5e6e27cfacd5e8c00cc6a48",
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 162,
+  "managed_file_count": 176,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "e19a0a87e6b9822a61ecf8b5175181897dc0257196a52e2f13f53f1bfb4100d6"
+  "payload_tree_sha256": "19a71b23e56f60382441b7ef5b59e2a2639001f19cbc178f133422e0112cccc3"
 }

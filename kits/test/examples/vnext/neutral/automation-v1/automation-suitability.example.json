@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "artifact_class": "CANONICAL",
+  "feature_id": "EXAMPLE-1",
+  "revision": "1",
+  "approved_testware_ref": {
+    "id": "EXAMPLE-1:APPROVED_TESTWARE",
+    "revision": "1",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+    "path": ".test-kit/runs/EXAMPLE-1/approved-testware-vnext.json"
+  },
+  "rows": [
+    {
+      "testcase_id": "TC-EXAMPLE-001",
+      "classification": "API",
+      "owner": "TEST_AUTOMATION",
+      "required": true,
+      "rationale": "The project exposes a stable API boundary.",
+      "dependency_refs": []
+    }
+  ]
+}

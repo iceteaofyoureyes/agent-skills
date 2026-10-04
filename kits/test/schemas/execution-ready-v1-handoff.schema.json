@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.invalid/kits/test/execution-ready-v1-handoff.schema.json",
+  "title": "Test Automation EXECUTION_READY Handoff V1",
+  "description": "Durable Phase 7 readiness binding. It is not a product execution result.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "feature_id", "approved_testware", "automation_suitability", "automation_plan", "dev_handoff", "application_revisions", "automation_repository", "automation_revision", "automation_items", "manual_testcases", "blocked_testcases", "dev_local_references", "resolved_dependencies", "review", "automation_verification", "state"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "artifact_class": {"const": "HANDOFF_MANIFEST"},
+    "feature_id": {"$ref": "#/$defs/id"},
+    "approved_testware": {"$ref": "#/$defs/artifactRef"},
+    "automation_suitability": {"$ref": "#/$defs/artifactRef"},
+    "automation_plan": {"$ref": "#/$defs/artifactRef"},
+    "dev_handoff": {"$ref": "#/$defs/artifactRef"},
+    "application_revisions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{40,64}$"}},
+    "automation_repository": {"$ref": "#/$defs/repository"},
+    "automation_revision": {"type": "string", "pattern": "^AUTOMATION_TREE_SHA256:[a-f0-9]{64}$"},
+    "automation_items": {"type": "array", "items": {"$ref": "#/$defs/automationItem"}},
+    "manual_testcases": {"type": "array", "items": {"$ref": "#/$defs/testcaseDisposition"}},
+    "blocked_testcases": {"type": "array", "items": {"$ref": "#/$defs/testcaseDisposition"}},
+    "dev_local_references": {"type": "array", "items": {"$ref": "#/$defs/devLocalReference"}},
+    "resolved_dependencies": {"type": "array", "items": {"$ref": "#/$defs/resolvedDependency"}},
+    "review": {"$ref": "#/$defs/artifactRef"},
+    "automation_verification": {"$ref": "#/$defs/artifactRef"},
+    "state": {"const": "EXECUTION_READY"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+    "artifactRef": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256", "path"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "path": {"$ref": "#/$defs/path"}}},
+    "repository": {"type": "object", "additionalProperties": false, "required": ["id", "role", "repository", "path"], "properties": {"id": {"$ref": "#/$defs/id"}, "role": {"$ref": "#/$defs/id"}, "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"}, "path": {"$ref": "#/$defs/path"}}},
+    "automationItem": {"type": "object", "additionalProperties": false, "required": ["aut_id", "testcase_refs", "automation_class", "owner", "repository_id", "paths", "revision", "verification_evidence_refs"], "properties": {"aut_id": {"type": "string", "pattern": "^AUT-[A-Za-z0-9][A-Za-z0-9._-]*$"}, "testcase_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}, "uniqueItems": true}, "automation_class": {"enum": ["CONTRACT", "DB_RUNTIME", "API", "INTEGRATION", "E2E", "ACCESSIBILITY", "SYSTEM"]}, "owner": {"const": "TEST_AUTOMATION"}, "repository_id": {"$ref": "#/$defs/id"}, "paths": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/path"}, "uniqueItems": true}, "revision": {"type": "string", "pattern": "^AUTOMATION_TREE_SHA256:[a-f0-9]{64}$"}, "verification_evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}}},
+    "testcaseDisposition": {"type": "object", "additionalProperties": false, "required": ["testcase_id", "testcase_collection_ref"], "properties": {"testcase_id": {"$ref": "#/$defs/id"}, "testcase_collection_ref": {"type": "object", "additionalProperties": false, "required": ["artifact_id", "revision", "sha256", "path"], "properties": {"artifact_id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "path": {"$ref": "#/$defs/path"}}}}},
+    "devLocalReference": {"type": "object", "additionalProperties": false, "required": ["testcase_id", "evidence_refs"], "properties": {"testcase_id": {"$ref": "#/$defs/id"}, "evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifactRef"}}}},
+    "resolvedDependency": {"type": "object", "additionalProperties": false, "required": ["testcase_id", "dependency_id", "kind", "ref"], "properties": {"testcase_id": {"$ref": "#/$defs/id"}, "dependency_id": {"type": "string", "minLength": 1}, "kind": {"enum": ["SEMANTIC_ORACLE", "ENVIRONMENT_ACCESS", "TEST_DATA_FIXTURE", "IMPLEMENTATION_LOCATOR", "TOOLING", "OBSERVABILITY"]}, "ref": {"$ref": "#/$defs/ref"}}},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}}
+  }
+}

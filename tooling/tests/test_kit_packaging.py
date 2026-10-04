@@ -37,15 +37,21 @@ class TestKitPackagingTests(unittest.TestCase):
     def _assert_test_core_ready(self, report):
         optional_missing = any(not ok and kind == "dependency" for _, ok, kind, _ in report["checks"])
         self.assertEqual(report["status"], "DEGRADED" if optional_missing else "READY", report)
-        self.assertEqual(report["version"], "2.0.0-rc.6")
+        self.assertEqual(report["version"], "2.0.0-rc.7")
         self.assertEqual(report["readiness"]["scope"], "PACKAGE_CAPABILITY_ONLY")
+        self.assertEqual(report["readiness"]["automation_v1"], "PACKAGE_CAPABILITY_ONLY")
+        self.assertEqual(report["readiness"]["approved_testware"], "NOT_EVALUATED")
+        self.assertEqual(report["readiness"]["ready_for_test"], "NOT_EVALUATED")
+        self.assertEqual(report["readiness"]["execution_ready"], "NOT_EVALUATED")
         vnext_check = next(row for row in report["checks"] if row[0] == "Test VNext installed capability")
         self.assertTrue(vnext_check[1], vnext_check)
+        automation_check = next(row for row in report["checks"] if row[0] == "Test Automation V1 installed capability")
+        self.assertTrue(automation_check[1], automation_check)
 
     def test_test_manifest_resolves_explicit_runtime_only_closure(self):
         manifest = ba_kit.load_manifest(ROOT, "test")
         self.assertEqual(manifest["id"], "test")
-        self.assertEqual(manifest["version"], "2.0.0-rc.6")
+        self.assertEqual(manifest["version"], "2.0.0-rc.7")
         self.assertEqual(manifest["capabilities"]["core"], "required")
         self.assertEqual(manifest["capabilities"]["xmind_projection"], "optional")
         self.assertEqual(manifest["capabilities"]["excel_projection"], "optional")
@@ -396,7 +402,8 @@ class TestKitPackagingTests(unittest.TestCase):
             self.assertEqual(doctor.returncode, 0, doctor.stdout + doctor.stderr)
             self.assertRegex(doctor.stdout, r"STATUS: (READY|DEGRADED)")
             self.assertIn("SCOPE: PACKAGE/CAPABILITY ONLY", doctor.stdout)
-            self.assertIn("Version: 2.0.0-rc.6", doctor.stdout)
+            manifest = json.loads((ROOT / "kits/test/kit.yaml").read_text(encoding="utf-8"))
+            self.assertIn(f"Version: {manifest['version']}", doctor.stdout)
 
     def test_doctor_reports_modified_skill_file_and_reinstall_keeps_drift(self):
         with tempfile.TemporaryDirectory() as temp:
