@@ -998,6 +998,13 @@ def _with_project_policy(report, target_dir, kit_id, project_root):
     """Diagnose project inputs independently of installed-package ownership."""
     if kit_id != "test":
         return report
+    report["readiness"] = {
+        "scope": "PACKAGE_CAPABILITY_ONLY",
+        "project_approval": "NOT_EVALUATED",
+        "approved_design": "NOT_EVALUATED",
+        "approved_testware": "NOT_EVALUATED",
+        "execution": "NOT_EVALUATED",
+    }
     target = Path(target_dir).resolve()
     if project_root is None:
         if target.name == "skills" and target.parent.name in {".agents", ".claude"}:
@@ -1073,6 +1080,60 @@ def _doctor_ba_vnext(target_dir):
     if result.returncode:
         return False, "isolated installed-runtime import failed: " + (result.stderr.strip() or result.stdout.strip())
     return True, ""
+
+
+def _doctor_test_vnext(target_dir):
+    """Check that the installed Test VNext, BA, Dev and Shared SDLC imports close locally."""
+    target_dir = Path(target_dir).resolve()
+    runtime = target_dir / ".test-kit"
+    required = (
+        "tooling/lib/test_kit_vnext.py",
+        "tooling/lib/test_kit_v1.py",
+        "tooling/lib/test_kit_v1_cases.py",
+        "tooling/lib/test_kit_policy.py",
+        "tooling/lib/dev_vnext.py",
+        "ba-workflow/scripts/ba_vnext.py",
+        "ba-workflow/scripts/ba_contracts.py",
+        "shared/sdlc/authority/approved_baseline.py",
+        "shared/sdlc/schema.py",
+        "tooling/pins/tea-test-design-v1.json",
+        "tooling/pins/katalon-create-test-cases-v1.json",
+        "schemas/test-authority-context-vnext.schema.json",
+        "schemas/approved-testware-vnext-handoff-manifest.schema.json",
+        "acceptance.yaml",
+        "examples/vnext/neutral/README.md",
+    )
+    failures = [f"missing or unsafe: .test-kit/{relative}" for relative in required
+                if not (runtime / relative).is_file() or (runtime / relative).is_symlink()]
+    for skill in ("bmad-testarch-test-design", "create-test-cases"):
+        path = target_dir / skill / "SKILL.md"
+        if path.is_symlink() or not path.is_file():
+            failures.append(f"missing or unsafe pinned skill: {skill}/SKILL.md")
+    if failures:
+        return False, "; ".join(failures)
+
+    scripts = runtime / "ba-workflow" / "scripts"
+    probe = "\n".join((
+        "import importlib, pathlib, sys",
+        "runtime=pathlib.Path(sys.argv[1]).resolve()",
+        "scripts=runtime/'ba-workflow'/'scripts'",
+        "sys.path[:0]=[str(runtime),str(scripts)]",
+        "names=('tooling.lib.test_kit_vnext','tooling.lib.test_kit_v1','tooling.lib.test_kit_v1_cases','tooling.lib.test_kit_policy','tooling.lib.dev_vnext','ba_vnext','ba_contracts','shared.sdlc.schema','shared.sdlc.authority.approved_baseline')",
+        "modules={name:importlib.import_module(name) for name in names}",
+        "assert all(pathlib.Path(module.__file__).resolve().is_relative_to(runtime) for module in modules.values()), {name:module.__file__ for name,module in modules.items()}",
+    ))
+    env = os.environ.copy()
+    env.pop("PYTHONPATH", None)
+    try:
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", probe, str(runtime)],
+            cwd=tempfile.gettempdir(), env=env, capture_output=True, text=True, timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return False, f"isolated installed VNext import failed: {error}"
+    if result.returncode:
+        return False, "isolated installed VNext import failed: " + (result.stderr.strip() or result.stdout.strip())
+    return True, "isolated imports resolve from the installed Test package"
 
 
 def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
@@ -1264,6 +1325,9 @@ def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
         if resolved_project_root is not None:
             tea_ok, tea_detail = _check_test_tea_project_config(resolved_project_root)
             checks.append(("TEA_PROJECT_CONFIG", tea_ok, "contract", tea_detail))
+        if integrity:
+            test_vnext_ok, test_vnext_detail = _doctor_test_vnext(target_dir)
+            checks.append(("Test VNext installed capability", test_vnext_ok, "contract", test_vnext_detail))
 
     checks.extend(_dependency_checks(manifest, target_dir))
 
@@ -1320,10 +1384,10 @@ def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
 
     required_failed = any(not ok and kind == "required" for _, ok, kind, _ in checks)
     contract_failed = any(not ok and kind == "contract" for _, ok, kind, _ in checks)
-    optional_missing = any(not ok and kind == "optional" for _, ok, kind, _ in checks)
+    optional_missing = any(not ok and kind in {"optional", "dependency"} for _, ok, kind, _ in checks)
     status = "FAIL" if required_failed or contract_failed else "DEGRADED" if optional_missing else "READY"
     return _with_project_policy(
-        {"status": status, "kit": manifest["name"], "checks": checks},
+        {"status": status, "kit": manifest["name"], "version": manifest["version"], "checks": checks},
         target_dir, kit_id, project_root,
     )
 
@@ -1345,11 +1409,15 @@ def resolve_target(agent, scope, explicit=None, project_dir=None):
 
 def _print_doctor(report):
     print(f"{report.get('kit', 'Kit')} Doctor")
+    if report.get("version"):
+        print(f"Version: {report['version']}")
+    if report.get("readiness", {}).get("scope") == "PACKAGE_CAPABILITY_ONLY":
+        print("SCOPE: PACKAGE/CAPABILITY ONLY; project approval, Testware approval, and execution are not evaluated")
     package_checks = [check for check in report["checks"] if check[2] != "project_policy"]
     project_checks = [check for check in report["checks"] if check[2] == "project_policy"]
     for name, ok, kind, detail in package_checks:
-        label = "PASS" if ok else "MISSING" if kind == "dependency" else "DEGRADED" if kind == "optional" else "FAIL"
-        suffix = f" - {kind}" if kind == "optional" and not ok else ""
+        label = "PASS" if ok else "DEGRADED" if kind in {"optional", "dependency"} else "FAIL"
+        suffix = f" - {kind}" if kind in {"optional", "dependency"} and not ok else ""
         if kind == "required":
             suffix = " - required"
         if detail:

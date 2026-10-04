@@ -1,6 +1,6 @@
 # BA Kit Documentation — English
 
-Vietnamese is the primary user-facing documentation. English documentation is secondary. BA Kit maintains broad English coverage; Test Kit V1.1 currently provides an [English overview](TEST_KIT_README.md), while its complete operator guides are maintained in Vietnamese, including [project customization](../vi/TEST_KIT_CUSTOMIZATION.md): [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [usage scenarios](../vi/TEST_KIT_USAGE_GUIDE.md), and [workflow](../vi/TEST_KIT_WORKFLOW.md).
+Vietnamese is the primary user-facing documentation. English documentation is secondary. BA Kit maintains broad English coverage; Test Kit Manual VNext has an [English overview](TEST_KIT_README.md), while its operator guides are maintained in Vietnamese, including [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [usage scenarios](../vi/TEST_KIT_USAGE_GUIDE.md), and [workflow](../vi/TEST_KIT_WORKFLOW.md). Start with the [neutral VNext example](../../kits/test/examples/vnext/neutral/README.md).
 
 ## If you are new
 

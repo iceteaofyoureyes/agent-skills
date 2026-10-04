@@ -129,6 +129,8 @@ def export_approved_design_xmind(
     output_dir: str | Path,
     *,
     human_actor_authenticator,
+    baseline_override: core.ApprovedBaseline | None = None,
+    generic_vnext: bool = False,
 ) -> XMindExportResult:
     """Export only a persisted, current APPROVED_DESIGN with host-authenticated Human receipt."""
     run_dir = Path(design_workflow_dir).resolve()
@@ -139,7 +141,7 @@ def export_approved_design_xmind(
         raise XMindProjectionError("TEST_ONLY_RECEIPT_NOT_PRODUCTION", "TEST_ONLY Design Gate receipts cannot authorize production XMind export")
     if workflow.get("design_gate_receipt_mode") != "HUMAN_AUTHENTICATED":
         raise XMindProjectionError("MISSING_HUMAN_DESIGN_RECEIPT", "XMind export requires a persisted Human Design Gate receipt")
-    baseline = _load_baseline(baseline_handoff_path)
+    baseline = baseline_override or _load_baseline(baseline_handoff_path)
     receipt_path = run_dir / "design-gate/revisions" / design.revision / "receipt.json"
     try:
         receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
@@ -158,7 +160,10 @@ def export_approved_design_xmind(
             finding.code if finding else "DESIGN_GATE_VALIDATION_FAILED",
             finding.message if finding else "Human Design Gate authorization did not validate",
         )
-    return _export_validated(design, baseline, checked.authorization, "HUMAN_AUTHENTICATED", output_dir)
+    return _export_validated(
+        design, baseline, checked.authorization, "HUMAN_AUTHENTICATED", output_dir,
+        generic_vnext=generic_vnext,
+    )
 
 
 def export_test_only_design_xmind(
@@ -167,13 +172,15 @@ def export_test_only_design_xmind(
     output_dir: str | Path,
     *,
     test_only_receipt_fixture_path: str | Path,
+    baseline_override: core.ApprovedBaseline | None = None,
+    generic_vnext: bool = False,
 ) -> XMindExportResult:
     """Acceptance-only path for isolated TEST_ONLY fixtures; outputs stay temporary."""
     run_dir = Path(design_workflow_dir).resolve()
     workflow, design = _load_design(run_dir)
     if workflow.get("state") != "APPROVED_DESIGN" or workflow.get("review_status") != "APPROVED":
         raise XMindProjectionError("DESIGN_NOT_APPROVED", "XMind export requires persisted APPROVED_DESIGN")
-    baseline = _load_baseline(baseline_handoff_path)
+    baseline = baseline_override or _load_baseline(baseline_handoff_path)
     checked = cases.validate_test_only_design_fixture(
         test_only_receipt_fixture_path,
         design,
@@ -186,7 +193,10 @@ def export_test_only_design_xmind(
             finding.code if finding else "TEST_ONLY_DESIGN_GATE_VALIDATION_FAILED",
             finding.message if finding else "TEST_ONLY Design Gate fixture did not validate",
         )
-    return _export_validated(design, baseline, checked.authorization, "TEST_ONLY", output_dir, benchmark_only=True)
+    return _export_validated(
+        design, baseline, checked.authorization, "TEST_ONLY", output_dir,
+        benchmark_only=True, generic_vnext=generic_vnext,
+    )
 
 
 def _node(
@@ -228,7 +238,44 @@ def _question_display_groups(row, presentations: dict[str, str]) -> dict[str, li
 def _resolve_human_facing_projection(
     design: core.DesignSnapshot,
     baseline: core.ApprovedBaseline,
+    *,
+    generic_vnext: bool = False,
 ) -> HumanFacingProjection:
+    if generic_vnext:
+        group_label = "Manual test scenarios"
+        root_title = f"{baseline.feature_id} — {baseline.feature_title}"
+        group_node = _node(group_label)
+        group_by_design_id = {}
+        scenario_titles = {}
+        topic_ids = {}
+        for row in design.records:
+            if not row.design_id or row.design_id in group_by_design_id:
+                raise XMindProjectionError("CANNOT_PROJECT_HUMAN_PROFILE", "Canonical Test Design contains an empty or duplicate design_id")
+            if row.expected_behavior is None and not row.open_questions:
+                raise XMindProjectionError("CANNOT_PROJECT_HUMAN_PROFILE", f"Deferred row has no approved unresolved topic: {row.design_id}")
+            group_by_design_id[row.design_id] = group_label
+            title = _scenario_display_title(row.scenario_title)
+            scenario_titles[row.design_id] = title
+            topic_ids[row.design_id] = _scenario_topic_id(design.artifact_id, row.design_id)
+            children = (
+                [_node(f"{MM_PREFIX}{row.expected_behavior}")]
+                if row.expected_behavior is not None
+                else [_node(f"{BA_WARNING_PREFIX}{question.text}") for question in row.open_questions]
+            )
+            group_node["children"].append(_node(title, children=children, component_id=topic_ids[row.design_id], custom_id=row.design_id))
+        config = b"TEST_KIT_VNEXT_GENERIC_XMIND_PROFILE_V1"
+        return HumanFacingProjection(
+            model={"sheet_title": SHEET_TITLE, "root_title": root_title, "children": [group_node]},
+            group_by_design_id=group_by_design_id,
+            group_labels={group_label: group_label},
+            scenario_titles=scenario_titles,
+            question_presentations={},
+            topic_ids=topic_ids,
+            profile_name="TEST_KIT_VNEXT_GENERIC_XMIND_PROFILE",
+            profile_version="1",
+            profile_sha256=hashlib.sha256(config).hexdigest(),
+            root_title=root_title,
+        )
     try:
         config_bytes = PROFILE_PATH.read_bytes()
         config = json.loads(config_bytes.decode("utf-8"))
@@ -822,9 +869,10 @@ def _export_validated(
     output_dir: str | Path,
     *,
     benchmark_only: bool = False,
+    generic_vnext: bool = False,
 ) -> XMindExportResult:
     pin = _read_pin()
-    projection = _resolve_human_facing_projection(design, baseline)
+    projection = _resolve_human_facing_projection(design, baseline, generic_vnext=generic_vnext)
     model = projection.model
     model_bytes = json.dumps(model, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     model_sha256 = hashlib.sha256(model_bytes).hexdigest()

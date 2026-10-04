@@ -1,4 +1,7 @@
-# CR-001 — Project customization V1.1
+# Historical V1 LEGACY_COMPAT: CR-001 Project Customization
+
+This material is retained as V1 history. It is not the default Test VNext example or an authority source.
+
 
 Đây là **TEST_ONLY documentation fixture**, `not_for_production: true`. Profile/rules minh họa thật và có thể resolve bằng tooling; thư mục này không chứa production Human receipt, execution approval hoặc approved testware. Không chạy native invocation hay coi fixture là Human acceptance.
 

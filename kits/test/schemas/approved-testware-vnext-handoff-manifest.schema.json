@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.invalid/kits/test/approved-testware-vnext-handoff-manifest.schema.json",
+  "title": "Approved Testware VNext Handoff Manifest",
+  "description": "Exact manual-test handoff evidence. It is terminal for the Phase 6 manual lane and does not authorize execution or verification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "feature_id", "testcase_collection", "approved_design", "design_gate_receipt", "case_gate_receipt", "ba_engineering_handoff", "ba_baseline", "ux_context", "dev_context", "execution_oracle_refs", "project_policy_context", "trace_summary", "state", "input_refs"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "artifact_class": {"const": "HANDOFF_MANIFEST"},
+    "feature_id": {"type": "string", "minLength": 1},
+    "testcase_collection": {"$ref": "#/$defs/artifactRef"},
+    "approved_design": {"$ref": "#/$defs/artifactRef"},
+    "design_gate_receipt": {"$ref": "#/$defs/fileRef"},
+    "case_gate_receipt": {"$ref": "#/$defs/fileRef"},
+    "ba_engineering_handoff": {"$ref": "#/$defs/byteRef"},
+    "ba_baseline": {"type": "object", "required": ["id", "revision", "semantic_sha256"], "properties": {"id": {"type": "string"}, "revision": {"type": "string"}, "semantic_sha256": {"$ref": "#/$defs/sha256"}}},
+    "ux_context": {"oneOf": [{"type": "null"}, {"type": "array", "items": {"$ref": "#/$defs/ref"}}]},
+    "dev_context": {"oneOf": [{"type": "null"}, {"type": "array", "items": {"$ref": "#/$defs/ref"}}]},
+    "execution_oracle_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+    "project_policy_context": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/ref"}]},
+    "trace_summary": {
+      "type": "object", "additionalProperties": false, "required": ["requirement_ids", "test_design_ids", "testcase_count"],
+      "properties": {
+        "requirement_ids": {"type": "array", "items": {"type": "string", "pattern": "^(BR|FR)-[A-Za-z0-9._-]+$"}, "uniqueItems": true},
+        "test_design_ids": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "testcase_count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "state": {"const": "APPROVED_TESTWARE"},
+    "input_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}, "uniqueItems": true}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "byteRef": {"type": "object", "required": ["id", "revision", "sha256", "path"], "properties": {"id": {"type": "string"}, "revision": {"type": "string"}, "sha256": {"$ref": "#/$defs/sha256"}, "path": {"type": "string"}}},
+    "fileRef": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "artifactRef": {"type": "object", "additionalProperties": false, "required": ["artifact_id", "revision", "sha256", "path"], "properties": {"artifact_id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "path": {"type": "string", "minLength": 1}}}
+  }
+}

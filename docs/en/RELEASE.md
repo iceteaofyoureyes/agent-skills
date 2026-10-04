@@ -1,57 +1,25 @@
 # Release Status
 
-BA Kit is a VNext packaging candidate on the repository prerelease line; no stable release is claimed. Phase 4 completion requires Tier 3 fresh-install acceptance with the installed runtime isolated from the source checkout.
+## Test Kit Manual VNext
 
-Dev Kit remains **Planned**. Test Kit V1.1 is a separate committed Kit, not part of BA Kit.
+The current Test Kit package candidate is **`2.0.0-rc.6`**. It is a prerelease branch candidate, not stable `2.0.0`, a GitHub release, tag, or published artifact.
 
-## Test Kit V1.1
+The default manual lane is:
 
-Test Kit V1 Core, XMind Projection V1, Excel Projection V1, Packaging Cleanup, Packaging V1, and the V1.1 Project Customization & Policy Layer have been Human accepted as framework capabilities. The package manifest is `1.1.0`. The Packaging V1 baseline was committed at `55e88c39cd97945ee8c2e1b4f152599449966ddb`; subsequent documentation/package-identity revisions are tracked by repository history. **Internal Human acceptance is not a GitHub release, tag, or published artifact.** It does not approve any project's generated Design, Testcases, or Testware; those still need current authenticated Human Gate receipts. TEST_ONLY artifacts are not production testware. Project policy remains non-authoritative testing guidance and is hash/snapshot-bound to the relevant Human Gates. Automation Test V2 is not included. Start with the [Test Kit overview](TEST_KIT_README.md) and the [Vietnamese customization guide](../vi/TEST_KIT_CUSTOMIZATION.md).
+```text
+Engineering Handoff VNext
+→ Test Design → Human Design Gate → APPROVED_DESIGN
+→ Testcases → Human Case Gate → APPROVED_TESTWARE
+```
 
-## Package / installer
+`APPROVED_TESTWARE` ends the Phase 6 manual lane. It does not mean `EXECUTION_READY`, execution PASS, `VERIFIED`, or `READY_TO_MERGE`. Automation and execution lifecycle work belong to Phase 7+.
 
-Evidence exists for the corresponding package checks:
+Phase 6 completion is gated by the three tiers in [`kits/test/acceptance.yaml`](../../kits/test/acceptance.yaml). Tier 3 fresh installed-runtime acceptance is mandatory; Tier 1/2 alone cannot mark Phase 6 complete. An acceptance result applies only to the exact branch and commit verified.
 
-- Codex project install;
-- idempotent reinstall;
-- Doctor READY;
-- safe uninstall;
-- project isolation;
-- generic PowerShell/Bash structural paths;
-- Claude Code structural install.
+Doctor `READY` means package/core capability ready. Missing optional XMind/Excel dependencies report `DEGRADED`; required package, integrity, or capability failures report `FAIL`. Doctor does not evaluate BA approval, Design/Case approval, or execution state.
 
-These checks prove package/install behavior, not runtime BA semantics.
+## Other Kits and history
 
-## Historical BA Kit checks
+Test Kit Manual VNext is a separate Kit and can coexist with BA Kit. Other repository documents retain their own Kit versions and acceptance history.
 
-Manual checks have been exercised for Requirement, Business Rules, SRS, and Draw.io.
-
-The checks below are historical V1 preview evidence. They do not describe VNext package acceptance.
-
-VNext acceptance is defined in [BA Kit acceptance](../../kits/ba/acceptance.yaml). Doctor READY is package capability readiness, not BA approval or feature readiness.
-
-## SRS/DOCX/Draw.io capability status
-
-- canonical functional SRS capability: implemented; manual check exercised;
-- DOCX capability: required skill present; final manual validation pending;
-- Word-template support: available through document-docx, but **no default SRS_TEMPLATE.docx is bundled**;
-- Draw.io capability: required skill present; manual check exercised;
-- optional prototype/UI capability: available only when corresponding optional skills are installed.
-
-## Redistribution readiness
-
-BA Kit installer payload:
-
-~~~text
-BA_KIT_LICENSE_READY
-~~~
-
-Required/core/optional BA payload skills have the provenance/license status needed for redistribution.
-
-## BA VNext acceptance gate
-
-Tier 1 and Tier 2 do not complete Phase 4 by themselves. Tier 3 must install to a clean target, run Doctor, prove the VNext approval boundary, create and revalidate Engineering Handoff VNext from installed runtime, and retain V1 `LEGACY_COMPAT` behavior.
-
----
-
-Tiếng Việt: [Trạng thái phát hành](../vi/RELEASE.md)
+See [Test Kit overview](TEST_KIT_README.md), [Vietnamese installation guide](../vi/INSTALLATION.md), [provenance](../vi/PROVENANCE.md), and the [Vietnamese release status](../vi/RELEASE.md). TEA/Katalon pins, licenses, notices and package authority are maintained by repository tooling; hashes are regenerated, never hand-edited.

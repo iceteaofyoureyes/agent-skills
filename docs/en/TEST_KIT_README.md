@@ -1,41 +1,37 @@
-# Test Kit V1.1 — English overview
+# Test Kit Manual VNext
 
-**Test Kit answers “How do we prove it?”** It turns a Human-approved BA baseline into a canonical Test Design and manual testcases, with a separate authenticated Human gate for each. It does not redefine business requirements or decide implementation architecture.
+Test Kit turns an exact, Human-approved BA Engineering Handoff VNext into Human-reviewed manual testware.
 
 ```text
-Approved BA Baseline → TEA analysis → Canonical Test Design
-→ Human Design Gate → Canonical Testcases
-→ Human Case Gate → APPROVED_TESTWARE → STOP_V1
+Engineering Handoff VNext
+→ Canonical Test Design → Human Design Gate → APPROVED_DESIGN
+→ Canonical Testcases → Human Case Gate → APPROVED_TESTWARE
 ```
 
-V1.1 adds project-owned, hash-bound testing policy as non-authoritative guidance for Design and Cases; see the [Vietnamese customization guide](../vi/TEST_KIT_CUSTOMIZATION.md). The full operator documentation is currently in Vietnamese: [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [scenario guide](../vi/TEST_KIT_USAGE_GUIDE.md), [workflow and gates](../vi/TEST_KIT_WORKFLOW.md), and the [CR-001 example](../../kits/test/examples/CR-001/README.md). This page is an English entrypoint, not a full translation of those guides.
+Canonical business trace contains `BR-*` and `FR-*`; `BAREF:*` is locator/provenance only. `APPROVED_TESTWARE` is the Phase 6 manual terminal, not `EXECUTION_READY`, execution PASS, `VERIFIED`, or `READY_TO_MERGE`.
 
-## Install
+Start with the [neutral VNext example](../../kits/test/examples/vnext/neutral/README.md), then follow the Vietnamese [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [usage guide](../vi/TEST_KIT_USAGE_GUIDE.md), [workflow](../vi/TEST_KIT_WORKFLOW.md), and [customization guide](../vi/TEST_KIT_CUSTOMIZATION.md). Appointment/CR-001 material is historical V1 `LEGACY_COMPAT`, not the default.
 
-Test Kit V1.1 supports Codex project scope. From the target project, with Python 3.10+ and Codex CLI available:
+## Install and readiness
+
+Test Kit supports project-scope installation and requires Python 3.10+. TEA and Katalon are pinned and bundled. XMind and Excel are optional derived projections; install does not download optional dependencies.
 
 ```powershell
-& 'C:\tools\agent-skills\tooling\install.ps1' test --agent codex --scope project
-& 'C:\tools\agent-skills\tooling\doctor.ps1' test --agent codex --scope project
+& '<path-to-agent-skills>\tooling\install.ps1' test --agent codex --scope project
+& '<path-to-agent-skills>\tooling\doctor.ps1' test --agent codex --scope project
 ```
 
-```bash
-~/src/agent-skills/tooling/install.sh test --agent codex --scope project
-~/src/agent-skills/tooling/doctor.sh test --agent codex --scope project
-```
+Doctor `READY` means package/core capability ready. It does not evaluate BA approval, `APPROVED_DESIGN`, `APPROVED_TESTWARE`, execution, or verification. Optional dependency gaps report `DEGRADED`; required package or integrity failures report `FAIL`.
 
-The project also needs a TEA-compatible `_bmad/tea/config.yaml`. The package bundles pinned TEA and Katalon skills. Native generation resolves `TEST_KIT_CODEX_COMMAND` first, then Codex on `PATH`; an invalid explicit override fails closed. Installation does not silently download optional dependencies. See [installation](../vi/INSTALLATION.md).
+## Authority boundaries
 
-## Authority and Human gates
+- BA Engineering Handoff VNext, backed by exact trusted Human proof, is required business WHAT authority.
+- UX is required only when exact Test authority context sets `ux_required: true`. Consumed approved UX refs are hash-bound and revalidated; prototypes remain `REVIEW_EVIDENCE`.
+- Generic prose such as “API response field”, “input payload”, or “page number” does not infer a UX requirement. Runtime validates authority identity and bytes; Human review owns free-form semantic consistency.
+- Dev Handoff V2 is optional technical context and cannot redefine BA WHAT.
+- TEA, Katalon and Project Test Policy are analysis, drafting or non-authoritative guidance.
+- XMind derives only from `APPROVED_DESIGN`; Excel derives only from `APPROVED_TESTWARE`; neither can import authority back.
+- V1 is readable only as `LEGACY_COMPAT` with `vnext_authority=false`.
+- Delivery Manifest is `DEFERRED_NON_AUTHORITATIVE` and not required for Test VNext.
 
-An approved engineering handoff and its hashed Business Rules, SRS, and decisions define business behavior. TEA is advisory analysis; the validated **Canonical Test Design** is the coverage artifact. Katalon is a pinned generator input; the validated **Canonical Testcases** are the manual testcase artifact. `REVIEW` and `ANSWER` do not approve anything. `CONTINUE`, “Next”, “OK”, and “PASS” do not approve anything. Only an authenticated Human `APPROVE` receipt bound to the current artifact revision, semantic hash, and upstream refs can pass the corresponding gate. `REQUEST_CHANGES` opens a new draft revision.
-
-Unknown BA behavior stays `UNKNOWN`. A deferred scenario does not acquire an invented expected result. P0–P3 are advisory test priorities, not business rules or execution results. A material open execution dependency blocks Case Gate approval.
-
-## Optional projections and V1.1 limit
-
-XMind is a one-way view of approved Canonical Test Design, using the pinned Logic Chart Right presentation profile. Excel is a one-way view of approved Canonical Testcases, with one testcase per row by default. External projection manifests retain trace and hashes. Neither file is canonical, and V1 does not import edits back into Test Design or Testcases.
-
-Excel can inspect a Human-supplied or project `.xlsx` template before using the default. XMind V1 has **no supplied-template API**; a requested Human XMind template cannot be treated as supported. Optional XMind uses a pinned npm lockfile; optional Excel uses hash-locked Python requirements.
-
-`TEST_ONLY` fixtures and outputs are non-production evidence. Automation planning, code generation, Playwright/API execution, execution evidence, flaky management, failure triage, and automated defect handling belong to **Automation Test V2**. Framework acceptance does not approve a project's testware. See [release status](../vi/RELEASE.md).
+Automation planning and execution lifecycle work begin in Phase 7+. See [release status](../vi/RELEASE.md).

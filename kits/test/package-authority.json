@@ -1,17 +1,32 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.5",
+  "kit_version": "2.0.0-rc.6",
   "manifest_schema_version": 1,
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "a8517c3c69ae332887c45292443376caa5a31e0fb1cda807a465ee0ecdbf18ef",
+      "sha256": "b7101eba7534aac71b3f06d72f575438cd5cc1b8a6fdf5d43919e6fe748f9bb2",
       "classification": "OPERATOR_DOCUMENTATION"
+    },
+    {
+      "path": ".test-kit/acceptance.yaml",
+      "sha256": "0cf38e971e2b4636c99c0f8318f6db360186929bf68732a0fff96762d038f00c",
+      "classification": "ACCEPTANCE_CONTRACT"
     },
     {
       "path": ".test-kit/ba-workflow/scripts/approved_baseline.py",
       "sha256": "40396dd4cb01e997eb19b48d7ba9ab2fd3f674b70b83e0e3eb0828d38af3b3c3",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/ba-workflow/scripts/ba_contracts.py",
+      "sha256": "493c18ed1dca51c40de89dab9b159ab9ea9e87bd5b07031463386bb0033b314e",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/ba-workflow/scripts/ba_vnext.py",
+      "sha256": "c22899a00e7a37d447f50f02607125fbb6d6a688f70c2aa3c6b2a7919624f6c3",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -23,6 +38,21 @@
       "path": ".test-kit/ba-workflow/scripts/delivery_manifest.py",
       "sha256": "764105aba6a48e349b1818a3dce77474f286a35353899630b37507b76fb11193",
       "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/examples/legacy-v1/README.md",
+      "sha256": "8387cb83a7aebfa16497fe70f6082bedd847e42cbd919b64b9e1019f8a0256d5",
+      "classification": "LEGACY_COMPAT_EXAMPLE"
+    },
+    {
+      "path": ".test-kit/examples/legacy-v1/workflow-state.json",
+      "sha256": "986e47b5fdbf1bba27e8da84123ca8d13ec78a2909690c678ec6d9f5a4e6a0ab",
+      "classification": "LEGACY_COMPAT_FIXTURE"
+    },
+    {
+      "path": ".test-kit/examples/vnext/neutral/README.md",
+      "sha256": "4ea6cfc410e7dedca896468bc8020c5f5e9dd748a1b13b2cdb86f1872fed00c0",
+      "classification": "OPERATOR_EXAMPLE"
     },
     {
       "path": ".test-kit/licenses/README.md",
@@ -48,6 +78,16 @@
       "path": ".test-kit/licenses/tea-test-design-v1.LICENSE",
       "sha256": "d63b6198ba078d9494407eb94e2d86adf6350195301bb5ded4ba24e36bce8b55",
       "classification": "PROVENANCE_LICENSE"
+    },
+    {
+      "path": ".test-kit/schemas/approved-testware-vnext-handoff-manifest.schema.json",
+      "sha256": "4aa737f4c89e791eec8c412e191561be197bbc2729c3600ce6910abd6209474b",
+      "classification": "PUBLIC_SCHEMA"
+    },
+    {
+      "path": ".test-kit/schemas/test-authority-context-vnext.schema.json",
+      "sha256": "426c2356ff43a1b0e9e944161205ca22667dff4f79459f0fa008f6ea95abe1b9",
+      "classification": "PUBLIC_SCHEMA"
     },
     {
       "path": ".test-kit/shared/__init__.py",
@@ -135,6 +175,16 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/shared/sdlc/foundation/impact.py",
+      "sha256": "d33355bf1c26c47860a1d9a477ed6e4a034d88282c3656caaeb5ee1fb3c895e7",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/foundation/inventory.py",
+      "sha256": "5334e09c71ae6feed0f869ad763887dfdad93041bcf49a617201f07184774c40",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/shared/sdlc/foundation/profiles.py",
       "sha256": "ec1233b6c5f7c89d1128f51379ba437885f683bc45426a6daf064b23526b235d",
       "classification": "CORE_RUNTIME"
@@ -205,6 +255,11 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/templates/ux-context-request.template.json",
+      "sha256": "427be7c29d6d2b796ca19cff185cbd4023fdca12a47f03876b0e85f3ffc2b6eb",
+      "classification": "OPERATOR_TEMPLATE"
+    },
+    {
       "path": ".test-kit/tooling/__init__.py",
       "sha256": "c9a9a0e113e64b85e1adfd0cd5b67a40994f3a8157a5e4e37f6a3c38e33844c6",
       "classification": "CORE_RUNTIME"
@@ -217,6 +272,11 @@
     {
       "path": ".test-kit/tooling/lib/codex_cli.py",
       "sha256": "b9fe3524963fb2472454fbc8a002961bc98bce3c166f9cf09d85bd61bd1bc331",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/dev_vnext.py",
+      "sha256": "3575d76520348bbf8798d9f6831d57491ce047bfbe380729f8733f2ee63a914a",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -241,23 +301,28 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "236e6f2bfb5cc2df52955776c52404ed33a7974ba22773f62f1c30dc030e06ae",
+      "sha256": "95fd27c6e0f5ff3ad17d6fa4963ee27739a5cf6a233fd846a8029df8c0c683bf",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_cases.py",
-      "sha256": "3f71dad5029a8b624569a1a6c916b2ba5626a9e7dd8c6df0940201b305c21f7f",
+      "sha256": "2996b5df1347bff0cf4d7170499edd9d5ac2410fba7cb7ec0fd4643eddd85a4f",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_excel.py",
-      "sha256": "76252b82510ace7ed5a0ae53308cee7e3f723d9a9405ec2e0ea8600c34fcd5fd",
+      "sha256": "d75399a2eb35f81429060b1e766dca0e4348eb136cb9833860cb1714870fb4ae",
       "classification": "OPTIONAL_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_xmind.py",
-      "sha256": "4f263f7d08d57f46e36eb8ec128000764bd9ac01cabd5f0419a94695f3b077ab",
+      "sha256": "829176d1197bf905664d94c52717a8fa47f3bae8e4a9a16a015f66cba27cbcc9",
       "classification": "OPTIONAL_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/test_kit_vnext.py",
+      "sha256": "d9181afad42890b9e4e484e52995f4030ac49f739301c86c9861205c3baa3cfd",
+      "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_promotion.py",
@@ -746,11 +811,11 @@
     },
     {
       "path": "test-kit/SKILL.md",
-      "sha256": "2e2ac3a3b63d5fc2752f26609dfb5840a75be72c25aaaddc8ea48ed87dc48b96",
+      "sha256": "659bc1dceb367a638e6ce4a072d220fd16d14191d5e6e27cfacd5e8c00cc6a48",
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 149,
+  "managed_file_count": 162,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "585565c1e7f354ff0f952a2dfefd1657c6c308b1cd7be7f2aedd609dd84dba6f"
+  "payload_tree_sha256": "e19a0a87e6b9822a61ecf8b5175181897dc0257196a52e2f13f53f1bfb4100d6"
 }

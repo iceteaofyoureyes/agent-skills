@@ -1,6 +1,6 @@
 # Cài đặt
 
-Clone repository, sau đó chạy installer khi shell đang ở project muốn dùng Kit. BA và Test cài độc lập hoặc cùng project; mỗi Kit có install record và managed paths riêng. Test Kit V1 chỉ hỗ trợ Codex **project scope**.
+Clone repository, sau đó chạy installer khi shell đang ở project muốn dùng Kit. BA và Test cài độc lập hoặc cùng project; mỗi Kit có install record và managed paths riêng. Test Kit Manual VNext hỗ trợ Codex **project scope**.
 
 ~~~powershell
 git clone --branch main https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
@@ -53,9 +53,9 @@ Gỡ cài đặt hoặc Doctor dùng cùng kit/target arguments với **uninstal
 
 Installer giữ nguyên file/skill người dùng đã sửa; không merge/overwrite. Reinstall idempotent. Uninstall chỉ xóa managed asset chưa bị sửa và thuộc Kit đang gỡ.
 
-## Cài Test Kit V1
+## Cài Test Kit Manual VNext
 
-Test Kit V1 cần Python 3.10+ và Codex CLI. Với Codex project scope, installer tự bootstrap `_bmad/tea/config.yaml` starter khi file còn thiếu và giữ nguyên config project đã có. Chạy trong project muốn tạo testware:
+Test Kit Manual VNext cần Python 3.10+ và Codex CLI. Với Codex project scope, installer tự bootstrap `_bmad/tea/config.yaml` starter khi file còn thiếu và giữ nguyên config project đã có. Chạy trong project muốn tạo testware:
 
 ~~~powershell
 Set-Location C:\path\to\your-project
@@ -91,14 +91,14 @@ producer commands và Human Gate. CLI dừng ở review; approval vẫn thuộc 
 
 ### Doctor và drift của Test Kit
 
-Doctor Test đọc đúng `.agents/skills/.test-kit/kit.yaml` đã cài, kiểm tra pin authority, payload, install record, từng managed file và dependency bắt buộc. `READY` nghĩa các hợp đồng bắt buộc đạt; dependency XMind/Excel tùy chọn có thể được báo `DEPENDENCY_MISSING` nhưng core vẫn hoạt động. `FAIL` nghĩa không được coi package là healthy. Ví dụ:
+Doctor Test đọc package manifest/authority và install record đã cài; kiểm tra managed-file hashes, import closure của Test/BA/Dev/Shared SDLC, pinned skills, schemas/templates/examples và TEA project config. `READY` nghĩa package/core capability sẵn sàng; Doctor không đánh giá BA approval, `APPROVED_DESIGN`, `APPROVED_TESTWARE`, execution hay verification. Thiếu optional XMind/Excel dependency cho `DEGRADED`; lỗi integrity hoặc capability bắt buộc cho `FAIL`. Ví dụ:
 
 | Finding | Hành động |
 |---|---|
 | `PACKAGE_DEFINITION_INVALID`, `PACKAGE_AUTHORITY_INVALID`, `PACKAGE_METADATA_INVALID` | Kiểm tra package gốc; cài lại từ cùng revision đã pin. Không tự sửa digest để làm Doctor xanh. |
 | `MODIFIED_MANAGED_FILE` | Kiểm tra local edit; reinstall giữ edit và Doctor còn báo drift cho đến khi khôi phục đúng bytes. |
 | `MISSING_MANAGED_FILE` | Khôi phục từ cùng package version, chạy Doctor lại. |
-| `DEPENDENCY_MISSING` | Phân biệt Codex bắt buộc với XMind/Excel tùy chọn; cài dependency của capability cần dùng. |
+| `DEPENDENCY_MISSING` | Cài dependency chỉ khi cần projection; trạng thái `DEGRADED` không chặn core VNext. |
 
 Reinstall và uninstall Test Kit dùng cùng scope:
 
@@ -149,7 +149,7 @@ Doctor BA Kit **không phải dependency manager cho external tooling**, và kh�
 
 Ví dụ một installation có thể READY nhưng vẫn thiếu tool để export Word/PNG/browser.
 
-Phase 4 còn yêu cầu Tier 3 fresh-install acceptance: cài vào target sạch, chạy Doctor, rồi thực hiện VNext lifecycle và revalidate handoff với import được cách ly khỏi source checkout.
+Phase 6 yêu cầu Tier 3 fresh installed-runtime acceptance: install vào project sạch, chạy Doctor, hoàn tất hai Human Gate qua runtime cô lập, revalidate Approved Testware manifest, rồi chạy regression theo kits/test/acceptance.yaml.
 
 ## Runtime prerequisite theo capability
 

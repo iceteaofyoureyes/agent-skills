@@ -1,0 +1,13 @@
+{
+  "root": "<project-relative UX evidence root>",
+  "contract": {
+    "path": "docs/ux/ux-contract.md",
+    "revision": "<approved revision>",
+    "sha256": "<64 lowercase hex characters>"
+  },
+  "approval_receipt": {
+    "path": "docs/ux/approval-receipt.json",
+    "sha256": "<64 lowercase hex characters>"
+  },
+  "prototype": null
+}
