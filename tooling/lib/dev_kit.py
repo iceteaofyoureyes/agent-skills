@@ -1513,7 +1513,8 @@ def _print_doctor(report, as_json=False):
         print(f"ERROR: {error}{suffix}")
 
 
-def main(argv=None):
+def _legacy_main(argv=None):
+    """Historical regression entrypoint; public VNext CLI never dispatches mutations here."""
     parser = argparse.ArgumentParser(description="Dev Kit V1 runtime and contract checks")
     commands = parser.add_subparsers(dest="command", required=True)
     router = commands.add_parser("route", help="Internal natural-intent delivery router")
@@ -1565,8 +1566,8 @@ def main(argv=None):
     try:
         if args.command == "route":
             sys.path.insert(0, str(KIT_ROOT))
-            from tooling.lib.dev_router import start_from_delivery
-            print(json.dumps(start_from_delivery(Path.cwd(), args.delivery, args.summary), indent=2, ensure_ascii=False))
+            from tooling.lib.dev_router import _legacy_start_from_delivery
+            print(json.dumps(_legacy_start_from_delivery(Path.cwd(), args.delivery, args.summary), indent=2, ensure_ascii=False))
             return 0
         if args.command == "start":
             if args.request:
@@ -1674,6 +1675,17 @@ def main(argv=None):
     except (OSError, ValueError, json.JSONDecodeError, KeyError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 2
+
+
+def main(argv=None):
+    """New runs use VNext; V1 artifacts are available for explicit inspection."""
+    argv = list(sys.argv[1:] if argv is None else argv)
+    # Read-only package diagnostics remain available before Wave 3 packaging.
+    if argv and argv[0] in {"doctor", "provenance", "runtime-root", "schema"}:
+        return _legacy_main(argv)
+    sys.path.insert(0, str(KIT_ROOT))
+    from tooling.lib.dev_vnext_cli import main as vnext_main
+    return vnext_main(argv)
 
 
 if __name__ == "__main__":

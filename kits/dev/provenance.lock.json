@@ -175,8 +175,8 @@
   "runtime_payload": {
     "algorithm": "DEV_RUNTIME_CORE_SHA256_V1",
     "files": {
-      "tooling/lib/dev_kit.py": "eb425b826828b44199452c652bb95736f1346e936006bf8e421c3d7b8a7ad142",
-      "tooling/lib/dev_router.py": "aa22d14daca3896e775c60bf4a3f3f6f36d9bc13bed0c820c54a6fe3e722c4c7",
+      "tooling/lib/dev_kit.py": "0eb29937d81a944e52a8b327b4a158b886418b4cf1f9363f7c19cb599befb49e",
+      "tooling/lib/dev_router.py": "9dc4188973f264950bda91ec326a1f19452d5fc23eb74a69747ab171262736f5",
       "kits/dev/kit.yaml": "bc687e809ade6ff3bd3ca4587e2d3c0f829ab85b35fe981811707ea60bd871d6",
       "kits/dev/plugin/plugin.json": "30471bdc3c61ca633ceee9645e528622b5611f8c72f4ad647141bba5e0a0f2ad",
       "shared/__init__.py": "cfa2e273faa77d861705a491166e4bfc65bb7f304dafbd45c1a3f3fc6ee5ba54",
@@ -217,8 +217,10 @@
       "shared/sdlc/foundation/cli.py": "26bd5339b3bdcc9dc54268b87d6793daa2360d0dc1dc527a2fb498d49ff68919",
       "ba-workflow/scripts/contracts.py": "00898f7bcbec77ce61af1b1a507a901775ee9304cb43c2036afca889a4f69fa7",
       "ba-workflow/scripts/approved_baseline.py": "40396dd4cb01e997eb19b48d7ba9ab2fd3f674b70b83e0e3eb0828d38af3b3c3",
-      "ba-workflow/scripts/delivery_manifest.py": "764105aba6a48e349b1818a3dce77474f286a35353899630b37507b76fb11193"
+      "ba-workflow/scripts/delivery_manifest.py": "764105aba6a48e349b1818a3dce77474f286a35353899630b37507b76fb11193",
+      "ba-workflow/scripts/ba_contracts.py": "493c18ed1dca51c40de89dab9b159ab9ea9e87bd5b07031463386bb0033b314e",
+      "ba-workflow/scripts/ba_vnext.py": "c22899a00e7a37d447f50f02607125fbb6d6a688f70c2aa3c6b2a7919624f6c3"
     },
-    "sha256": "5cfb242fda99d403e5110e46f1dca14e53436bea4c3ecad9b858c4687ee470a5"
+    "sha256": "ac069ee650b25cfa7155f3abfb1edb73bcf603b2ea282e589c06a35c90799245"
   }
 }

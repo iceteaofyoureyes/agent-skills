@@ -23,7 +23,8 @@ def derive_checks(project):
     raise ValueError("repository-owned deterministic build/test quality gate is missing")
 
 
-def start_from_delivery(project, delivery_path, summary):
+def _legacy_start_from_delivery(project, delivery_path, summary):
+    """Historical V1 regression adapter; never used by public VNext routing."""
     project = Path(project).resolve()
     if not (project / "AGENTS.md").is_file():
         raise ValueError("target AGENTS.md is required")
@@ -57,6 +58,10 @@ def start_from_delivery(project, delivery_path, summary):
     inputs["inspection"] = {"tracked_files": files, "agents_read_required": True}
     dev._write_run_json(Path(started["run_dir"]), "input.json", inputs, inputs["baseline_snapshot"])
     return {"status": "STARTED", **started}
+
+
+def start_from_delivery(project, delivery_path, summary):
+    raise ValueError("DELIVERY_MANIFEST: DEFERRED_NON_AUTHORITATIVE; start VNext with an exact Engineering Handoff and explicit repository/write scope")
 
 
 def main():

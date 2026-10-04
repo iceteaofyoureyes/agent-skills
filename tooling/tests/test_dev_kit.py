@@ -55,12 +55,20 @@ def _start_normal_run(project, signals=()):
 
 def _run_cli(project, *args):
     return subprocess.run(
-        [sys.executable, str(ROOT / "tooling/lib/dev_kit.py"), *map(str, args)],
+        _legacy_cli_command(ROOT, *args),
         cwd=project,
         capture_output=True,
         text=True,
         shell=False,
     )
+
+
+def _legacy_cli_command(runtime_root, *args):
+    # Exercise frozen historical assertions through the explicit private V1
+    # regression entrypoint. Production CLI defaults to VNext/read-only legacy.
+    return [sys.executable, "-c",
+            "import runpy,sys; raise SystemExit(runpy.run_path(sys.argv[1])['_legacy_main'](sys.argv[2:]))",
+            str(runtime_root / "tooling/lib/dev_kit.py"), *map(str,args)]
 
 
 def _write_start_request(project, *, change_id, kind, summary, signals=(), baseline=None, checks=None):
@@ -346,12 +354,12 @@ class DevKitTests(unittest.TestCase):
                 "checks": [{"name": "docs", "category": "static_checks", "argv": [sys.executable, "-c", "pass"]}],
             }), encoding="utf-8-sig")
             validate = subprocess.run(
-                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "validate-start-request", str(request_path)],
+                _legacy_cli_command(runtime_root, "validate-start-request", request_path),
                 cwd=target, text=True, capture_output=True, check=False,
             )
             self.assertEqual(validate.returncode, 0, validate.stderr)
             completed = subprocess.run(
-                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "start", "--request", str(request_path)],
+                _legacy_cli_command(runtime_root, "start", "--request", request_path),
                 cwd=target, text=True, capture_output=True, check=False,
             )
             self.assertEqual(completed.returncode, 0, completed.stderr)
@@ -360,7 +368,7 @@ class DevKitTests(unittest.TestCase):
             self.assertTrue((target / ".devkit/runs/EXT-001/input.json").is_file())
             self.assertTrue((target / ".devkit/runs/EXT-001/lifecycle.json").is_file())
             finish = subprocess.run(
-                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "finish-trivial"],
+                _legacy_cli_command(runtime_root, "finish-trivial"),
                 cwd=target, text=True, capture_output=True, check=False,
             )
             self.assertEqual(finish.returncode, 0, finish.stderr)
@@ -402,7 +410,8 @@ class DevKitTests(unittest.TestCase):
                 cwd=target, text=True, capture_output=True, check=False,
             )
             self.assertEqual(workflow.returncode, 0, workflow.stderr)
-            self.assertTrue(Path(workflow.stdout.strip()).is_file())
+            workflow_definition = json.loads(workflow.stdout)
+            self.assertEqual(workflow_definition["workflow"]["id"], "dev-vnext-normal")
 
     def test_dev_struct_07_artifacts_cannot_overwrite_baseline(self):
         with tempfile.TemporaryDirectory() as temp:
