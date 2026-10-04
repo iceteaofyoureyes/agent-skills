@@ -17,15 +17,15 @@ Engineering Handoff VNext
 ## Start here
 
 - [Neutral VNext example](examples/vnext/neutral/README.md)
-- [Vietnamese Quick Start](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/vi/TEST_KIT_QUICKSTART.md)
-- [Capabilities and authority boundaries](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/vi/TEST_KIT_CAPABILITIES.md)
-- [Usage guide](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/vi/TEST_KIT_USAGE_GUIDE.md)
-- [Workflow and Human Gates](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/vi/TEST_KIT_WORKFLOW.md)
-- [Project customization](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/vi/TEST_KIT_CUSTOMIZATION.md)
-- [Installation](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/vi/INSTALLATION.md)
-- [Provenance and licenses](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/vi/PROVENANCE.md)
-- [Release status](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/vi/RELEASE.md)
-- [English overview](https://github.com/iceteaofyoureyes/agent-skills/blob/feat/test-kit-manual-vnext-wave2/docs/en/TEST_KIT_README.md)
+- [Vietnamese Quick Start](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/TEST_KIT_QUICKSTART.md)
+- [Capabilities and authority boundaries](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/TEST_KIT_CAPABILITIES.md)
+- [Usage guide](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/TEST_KIT_USAGE_GUIDE.md)
+- [Workflow and Human Gates](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/TEST_KIT_WORKFLOW.md)
+- [Project customization](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/TEST_KIT_CUSTOMIZATION.md)
+- [Installation](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/INSTALLATION.md)
+- [Provenance and licenses](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/PROVENANCE.md)
+- [Release status](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/RELEASE.md)
+- [English overview](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/en/TEST_KIT_README.md)
 
 The Appointment/CR-001 material is retained only as a historical V1 `LEGACY_COMPAT` example. It is not the default VNext flow.
 
