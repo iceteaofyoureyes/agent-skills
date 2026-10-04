@@ -4,7 +4,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-from contracts import validate_handoff_file
+from ba_contracts import validate_handoff_file, read_handoff
 
 
 def main():
@@ -16,7 +16,7 @@ def main():
         print(f"INVALID: {error}", file=sys.stderr)
     if errors:
         return 1
-    print("VALID: engineering handoff and source hashes")
+    print("VALID: engineering handoff and source hashes; " + read_handoff(args.path)['mode'])
     return 0
 
 

@@ -13,6 +13,12 @@ Test Kit V1 + TEA/Katalon = HOW DO WE PROVE IT
 
 ## Layer
 
+Các integration contract hiện nằm trong `shared/sdlc`; compatibility adapter giữ
+nguyên import path và semantics BA/Test/Dev. Xem
+[Shared SDLC Core Wave 1](../en/SHARED_SDLC_CORE_WAVE1.md) mô tả source owner và
+runtime payload theo kit. Project Foundation tích hợp producer observations, exact
+review refs, Knowledge Impact và clean installed runtime theo cùng Shared authority.
+
 ~~~text
 User intent
     ↓
@@ -70,7 +76,7 @@ Workflow không bắt mọi request chạy full pipeline; nó bắt đầu từ 
 
 | Stage | Question | Status |
 |---|---|---|
-| BA Kit | **WHAT**? | 1.0.0-rc.1 Public Preview; trạng thái BA riêng |
+| BA Kit | **WHAT**? | VNext packaging candidate; cần Tier 3 fresh-install acceptance; chưa stable release |
 | Engineering Impact | **WHERE / WHO OWNS**? | Planned |
 | Dev Kit + Spec Kit | **HOW**? | Planned |
 | Test Kit V1 | **HOW DO WE PROVE IT**? | Core, XMind, Excel, Packaging V1 Human accepted; package đã commit |

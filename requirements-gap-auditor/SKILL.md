@@ -34,6 +34,25 @@ Audit a requirement set for what is missing relative to common engineering needs
 2. Flag absent or weak areas.
 3. Suggest the next best artifact or question to close each major gap.
 
+## Approved authority and historical lifecycle wording
+
+When Dev uses this capability after a valid Approved BA Baseline or Delivery Manifest V2, determine approval from
+the validated machine-readable authority and its exact hashes/receipt. APPROVAL STATE != INLINE LIFECYCLE TEXT.
+`ba_baseline.status == APPROVED_FOR_ENGINEERING` and exact BA source hashes establish the approved BA snapshot;
+a valid Delivery Manifest V2 plus its exact Human receipt establishes approved UX. Do not infer that BA/UX is
+unapproved because an immutable approved source still contains `DRAFT_FOR_HUMAN_BASELINE_REVIEW`,
+`DRAFT_FOR_HUMAN_UX_REVIEW`, or `PENDING_HUMAN_REVIEW` wording, or because a handoff's historical `next_stage`
+describes an earlier gate.
+An approved Business Rule with a semantic contradiction against another approved rule remains a real ambiguity and
+must stop readiness; this precedence applies only to approval/lifecycle metadata.
+
+Keep `open_items.blocking` as a blocker by contract. `open_items.non_blocking` is not automatically a business
+ambiguity. If a later validated Delivery Manifest V2 proves the referenced UX snapshot and receipt are approved,
+classify that earlier UX-pending item as SUPERSEDED_BY_DELIVERY_MANIFEST. Do not change approved source bytes.
+
+Readiness still stops for an UNKNOWN/TBD that forces Dev to choose WHAT, conflicting approved semantics, missing or
+invalid approval evidence, hash drift, or a genuine blocking item. Technical design choices do not become BA gaps.
+
 ## Quality gates
 - Gaps are categorized and evidence-based.
 - Findings distinguish absent, weak, and deferred.

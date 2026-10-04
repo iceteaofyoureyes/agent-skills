@@ -70,7 +70,7 @@ def payload_tree_sha256_from_inventory(inventory: list[dict]) -> str:
 
 def package_source_inventory(source_root: str | Path, manifest: dict) -> list[dict]:
     """Resolve runtime files, excluding the root definition and authority metadata."""
-    from .ba_kit import _content_hash, _resolve_under, _valid_skill, skill_composition
+    from .ba_kit import _content_hash, _resolve_under, _valid_skill, skill_composition, is_skill_payload
 
     source_root = Path(source_root).resolve()
     required = {manifest["workflow"]["skill"], *manifest["core"], *manifest["skills"]["required"]}
@@ -87,7 +87,7 @@ def package_source_inventory(source_root: str | Path, manifest: dict) -> list[di
                 raise ValueError(f"package source contains symlink: {path}")
             if not path.is_dir() and not path.is_file():
                 raise ValueError(f"package source contains a non-regular file: {path}")
-            if path.is_file():
+            if path.is_file() and is_skill_payload(path):
                 inventory.append({
                     "path": f"{skill}/{path.relative_to(source).as_posix()}",
                     "sha256": _content_hash(path),
@@ -160,7 +160,7 @@ def validate_source_package_integrity(source_root: str | Path, manifest: dict) -
 
 def package_inventory(package_root: str | Path, *, source_root: str | Path, manifest: dict) -> list[dict]:
     """Inventory every package file and mark files outside the manifest."""
-    from .ba_kit import skill_composition
+    from .ba_kit import skill_composition, is_skill_payload
 
     package_root = Path(package_root).resolve()
     source_root = Path(source_root).resolve()
@@ -171,7 +171,7 @@ def package_inventory(package_root: str | Path, *, source_root: str | Path, mani
         source = source_root / manifest.get("skill_sources", {}).get(skill, skill)
         classification = "REQUIRED_SKILL" if skill in required else "OPTIONAL_SKILL"
         for path in source.rglob("*"):
-            if path.is_file():
+            if path.is_file() and is_skill_payload(path):
                 relative = path.relative_to(source).as_posix()
                 sources[f"{skill}/{relative}"] = (classification, path.relative_to(source_root).as_posix())
     for item in manifest.get("files", []):

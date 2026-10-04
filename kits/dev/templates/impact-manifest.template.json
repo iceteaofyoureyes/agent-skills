@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "change_id": "CHANGE-001",
+  "baseline_ref": {
+    "path": "approved/engineering-handoff.yml",
+    "revision": "ba-rev-1",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "affected_repositories": [],
+  "affected_components": [],
+  "affected_interfaces": [],
+  "affected_data": [],
+  "dependencies": [],
+  "constraints": [],
+  "risk": {
+    "level": "NORMAL",
+    "reasons": []
+  },
+  "unknowns": []
+}

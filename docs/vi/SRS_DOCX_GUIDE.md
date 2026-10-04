@@ -9,7 +9,7 @@ Hai lớp này không giống nhau.
 
 ## 1. Canonical SRS dùng template nào?
 
-BA Kit RC1 hiện dùng **functional SRS contract**, không ép mọi feature vào một file Markdown template cố định.
+BA Kit hiện dùng **functional SRS contract**, không ép mọi feature vào một file Markdown template cố định.
 
 Skill **srs-function-document** tạo SRS từ:
 
@@ -46,7 +46,7 @@ Không phải feature nào cũng cần mọi section. Agent không được thê
 
 **Không.**
 
-BA Kit RC1 production repository hiện **không bundle một SRS_TEMPLATE.docx mặc định**.
+BA Kit repository hiện **không bundle một SRS_TEMPLATE.docx mặc định**.
 
 Điều này cần được hiểu rõ:
 

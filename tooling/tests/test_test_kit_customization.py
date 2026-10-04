@@ -15,7 +15,7 @@ from tooling.tests.codex_stub import fake_codex_on_path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-HANDOFF = ROOT / "kits/ba/examples/CR-001/vi/05-engineering-handoff.yml"
+HANDOFF = ROOT / "tooling/tests/fixtures/ba-v1-legacy-compat/05-engineering-handoff.yml"
 RAW = ROOT / "benchmark/test-kit/petclinic/tea-test-design/raw-output/test-design/test-design-epic-1.md"
 
 
@@ -82,7 +82,7 @@ def case_review(root, design_root, project_root):
         cases.CanonicalTestcase(
             f"TC-{i:03}", row.scenario_title, "Verify approved behavior", "No setup required.", None,
             (cases.CaseStep("Exercise approved behavior", None, row.expected_behavior),), "P1",
-            row.requirement_refs, (row.design_id,), (cases.ExecutionDependency("Approved read mapping", True, "RESOLVED", "EXEC:read-mapping"),),
+            row.requirement_refs, (row.design_id,), (cases.ExecutionDependency("Approved read mapping", "SEMANTIC_ORACLE", "RESOLVED", "EXEC:read-mapping"),),
         )
         for i, row in enumerate(design.records, 1) if row.expected_behavior is not None
     )

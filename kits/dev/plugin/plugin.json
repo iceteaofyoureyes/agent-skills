@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-skills-dev-kit",
+  "version": "0.3.0-rc.4",
+  "description": "Curated engineering capabilities, natural intent router and bounded Spec Kit workflows. Synthetic acceptance required.",
+  "author": {
+    "name": "iceteaofyoureyes",
+    "url": "https://github.com/iceteaofyoureyes"
+  },
+  "repository": "https://github.com/iceteaofyoureyes/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "software-engineering",
+    "dev-kit",
+    "codex",
+    "agent-skills"
+  ]
+}

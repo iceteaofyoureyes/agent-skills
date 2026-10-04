@@ -9,6 +9,44 @@ BA Kit không phải một pipeline cứng bắt mọi yêu cầu chạy từ đ
 
 ## Core semantic flow
 
+BA VNext dùng lifecycle chuẩn cho mọi baseline mới:
+
+```text
+DRAFT → VALIDATED → HUMAN_REVIEW → APPROVED_BASELINE
+```
+
+Validator PASS chỉ là bằng chứng kiểm tra. HUMAN_REVIEW đóng băng đúng manifest,
+revision và input hashes. APPROVED_BASELINE yêu cầu receipt bên ngoài bind đúng
+identity/revision/semantic SHA-256 và được trusted host xác thực Human.
+ANSWER, CONTINUE, artifact được tạo, Foundation READY và UX approval không phải
+BA baseline approval. Candidate đổi bytes phải có revision mới và approval mới.
+
+Workflow state schema 2 là RUNTIME; các bước Business Rules/SRS bên dưới là
+activity/sub-stage. Handoff schema 2 bind đúng candidate + receipt + Decisions/BR/SRS,
+Shared Foundation Knowledge Impact và Foundation ref nếu có; mỗi lần consume
+phải revalidate proof. State/handoff V1 vẫn đọc được dưới LEGACY_COMPAT và không
+đủ bằng chứng để cấp approval VNext. Các import Shared Core cũ, Delivery Manifest V2,
+UX receipt V2 và atomic skills giữ nguyên contract.
+
+BR-* là Business Rule; FR-* là Functional Requirement. Giữ ID cho cùng semantic
+item, lưu ID đã retired và không tái sử dụng cho ý nghĩa mới. BAREF:* chỉ là
+structural/provenance locator, tuyệt đối không tạo mandatory coverage. Human
+decision mới phải bind BR/SRS đã cập nhật trước readiness. BA sở hữu WHAT;
+technical owner, API/event/DB design, service boundaries, locking/transaction và
+architecture decisions thuộc downstream.
+
+Consume Foundation inventory/context khi có. CURRENT_SYSTEM/INFERRED không tự
+thành target requirement; mâu thuẫn thành gap cho Human clarification. Greenfield
+bắt đầu từ Human intent và câu hỏi/quyết định rõ ràng. Không bắt buộc Foundation
+hoàn hảo nếu bounded feature evidence đủ. Knowledge Impact bind affected/targets
+cho product/domain/architecture/testing vào baseline/handoff và route đánh giá
+kỹ thuật cho Engineering/Test mà không mô tả giải pháp HOW.
+
+Trusted host dùng [VNext executable contracts](../../ba-workflow/references/baseline-vnext.md).
+CLI read-only không xác thực Human và fail closed với approved state/handoff
+VNext khi thiếu trusted authenticator. Candidate mới làm mất hiệu lực derived refs;
+snapshot đã approve vẫn giữ nguyên bytes và output liên quan phải refresh.
+
 ~~~mermaid
 flowchart TD
     A[BA Input / Requirement / CR] --> B{Current system matters?}
@@ -74,7 +112,7 @@ Khi semantic baseline thay đổi, derived artifact liên quan phải được r
 | SRS | Tạo/update functional SRS | Review/request changes | Canonical SRS |
 | Draw.io/DOCX/Prototype | Tạo derived artifacts theo nguồn đã xác định | Visual/document review | .drawio, DOCX, prototype |
 | Approval | Không tự approve | APPROVE/REJECT/REQUEST_CHANGES | Gate decision |
-| Handoff | Validate baseline + hashes | Xác nhận baseline đã approve | engineering-handoff.yml |
+| Handoff | Revalidate đúng baseline/receipt/sources | Xác thực quyết định đúng baseline | engineering-handoff.json (VNext) |
 
 ## Những gap BA Kit nên chủ động soi
 
@@ -157,13 +195,13 @@ Không sửa riêng derived artifact để biến nó thành source của busine
 
 Prototype/Figma-derived output có thể cần Human visual review riêng.
 
-Visual approval xác nhận presentation/interaction scope được nêu; nó **không tự approve BA baseline** trừ khi Human nói rõ artifact/revision và approval target.
+Visual approval xác nhận presentation/interaction scope được nêu. BA baseline approval yêu cầu receipt riêng bind đúng snapshot và được trusted host xác thực Human.
 
 ## Engineering Handoff Gate
 
 Chỉ tạo handoff khi:
 
-- Business Rules/SRS đúng revision đã explicit approve;
+- candidate đúng revision đã APPROVED_BASELINE với receipt được trusted host xác thực Human;
 - không còn blocking item;
 - source paths/hashes hợp lệ;
 - không có technical ownership/design fields.

@@ -8,14 +8,14 @@ Nguồn semantic:
 
 - BR-008: Scheduled, Cancelled, Completed; create → Scheduled; chỉ Scheduled được action;
 - BR-009: Cancel giải phóng slot;
-- BR-010: Complete tạo chính xác một Visit;
+- BR-010: Complete tạo chính xác một Fulfillment Record;
 - BR-011: không hard-delete.
 
 Prompt mẫu:
 
 ~~~text
 Từ BR-008..BR-011 trong 03-approved-business-rules.md,
-tạo docs/diagrams/CR-001-appointment-lifecycle.drawio.
+tạo docs/diagrams/CR-001-request-lifecycle.drawio.
 
 Yêu cầu:
 - editable .drawio;
@@ -33,7 +33,7 @@ Scheduled
   ├── Cancel ───→ Cancelled
   │               releases slot
   └── Complete ─→ Completed
-                  creates exactly one Visit
+                  creates exactly one Fulfillment Record
 ~~~
 
 Diagram là derived artifact; nếu Human đổi lifecycle rule, BR/SRS đổi trước rồi diagram mới update.
@@ -45,20 +45,20 @@ Nguồn semantic: BR-003..BR-007, BR-013.
 Prompt:
 
 ~~~text
-Tạo business flowchart cho create/reschedule Appointment.
+Tạo business flowchart cho create/reschedule Resource Request.
 Chỉ thể hiện business decisions:
 - validate required data;
 - future start;
 - duration > 0;
-- same-Veterinarian Scheduled conflict;
+- same-Coordinator Scheduled conflict;
 - [start,end), touching allowed;
 - reschedule excludes itself;
-- only non-conflicting appointment is saved.
+- only non-conflicting request is saved.
 
 Không mô tả API, transaction, DB constraint hay locking.
 ~~~
 
-Điểm quan trọng: “chỉ save non-conflicting appointment” là business outcome; cơ chế atomicity thuộc Engineering.
+Điểm quan trọng: “chỉ save non-conflicting request” là business outcome; cơ chế atomicity thuộc Engineering.
 
 ## 3. SRS DOCX theo template
 
@@ -100,7 +100,7 @@ Không gọi output này là company-template SRS.
 
 CR-001 fixture không cung cấp screenshot/Figma nên example **không giả lập UI**.
 
-Nếu một project thật cung cấp screenshot màn Appointment:
+Nếu một project thật cung cấp screenshot màn Resource Request:
 
 ~~~text
 Review screenshot cùng canonical SRS.

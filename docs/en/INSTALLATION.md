@@ -53,6 +53,23 @@ Doctor and uninstall use the same kit/target arguments with the matching **docto
 
 The installer preserves existing same-name skills rather than merging/overwriting them. Reinstall is idempotent. Uninstall removes BA-managed skills only when their contents remain unchanged.
 
+## Project Foundation opt-in
+
+Project Foundation is a standalone Shared SDLC capability, not a fourth Kit.
+Install the Shared runtime and skill into an explicit install home:
+
+~~~powershell
+python C:\tools\agent-skills\tooling\install_dev_kit.py --source-root C:\tools\agent-skills --install-home C:\agent-runtime
+python C:\agent-runtime\runtime\v1\project-foundation\scripts\project_foundation.py inventory --project-root C:\path\to\your-project
+~~~
+
+To include the skill in a separate Codex profile, create a fresh profile with
+`python tooling/prepare_agent_profile.py --destination <fresh-profile> --foundation`.
+Both the profile and Dev runtime carry the deterministic Shared payload. See the
+[Project Foundation workflow](../project-foundation.md) for modes, producer
+commands and the Human Gate. The CLI stops at review; approval remains with the
+trusted host.
+
 ## What does Doctor check?
 
 Doctor checks:
@@ -61,7 +78,10 @@ Doctor checks:
 - required/optional skill directories;
 - Agent Skills frontmatter;
 - workflow-state/source-authority contracts;
-- Engineering Handoff contract.
+- Engineering Handoff contract;
+- installed `ba_vnext.py`, `ba_contracts.py`, validators and VNext templates;
+- isolated Shared SDLC payload imports from the installed skill folder;
+- canonical SRS contract and required atomic BA skills.
 
 | Status | Meaning |
 |---|---|
@@ -73,9 +93,11 @@ FAIL exits 1; READY/DEGRADED exit 0.
 
 ### Important: READY does not mean every external runtime tool is installed
 
-Doctor is currently **not an external dependency manager** and does not prove runtime acceptance.
+Doctor is **not an external dependency manager** and does not prove Human approval, approved baseline, feature readiness, or full runtime acceptance. READY confirms package capability closure only.
 
 An installation may be READY while lacking tools needed for Word export, Draw.io export, or browser rendering.
+
+Phase 4 completion also requires the Tier 3 fresh-install acceptance: install to a clean target, run Doctor, then execute the VNext lifecycle and exact handoff revalidation with imports isolated from the source checkout.
 
 ## Runtime prerequisites by capability
 

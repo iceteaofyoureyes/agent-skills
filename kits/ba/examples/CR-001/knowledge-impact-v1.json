@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "areas": {
+    "product": {"affected": true, "targets": ["resource-request-capability"]},
+    "domain": {"affected": true, "targets": ["resource-request-rules"]},
+    "architecture": {"affected": false, "targets": []},
+    "testing": {"affected": true, "targets": ["resource-request-acceptance"]}
+  }
+}

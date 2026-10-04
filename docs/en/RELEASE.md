@@ -1,8 +1,8 @@
 # Release Status
 
-BA Kit **1.0.0-rc.1** is a **Public Preview**, not a fully accepted release.
+BA Kit is a VNext packaging candidate on the repository prerelease line; no stable release is claimed. Phase 4 completion requires Tier 3 fresh-install acceptance with the installed runtime isolated from the source checkout.
 
-Dev Kit remains **Planned**. Test Kit V1.1 is a separate committed Kit, not part of the BA Kit preview.
+Dev Kit remains **Planned**. Test Kit V1.1 is a separate committed Kit, not part of BA Kit.
 
 ## Test Kit V1.1
 
@@ -22,13 +22,13 @@ Evidence exists for the corresponding package checks:
 
 These checks prove package/install behavior, not runtime BA semantics.
 
-## Manual preview checks
+## Historical BA Kit checks
 
 Manual checks have been exercised for Requirement, Business Rules, SRS, and Draw.io.
 
-Final manual validation of DOCX and final validation of approval/handoff remain pending.
+The checks below are historical V1 preview evidence. They do not describe VNext package acceptance.
 
-BA Kit 1.0.0-rc.1 remains a Public Preview and is not fully accepted.
+VNext acceptance is defined in [BA Kit acceptance](../../kits/ba/acceptance.yaml). Doctor READY is package capability readiness, not BA approval or feature readiness.
 
 ## SRS/DOCX/Draw.io capability status
 
@@ -48,9 +48,9 @@ BA_KIT_LICENSE_READY
 
 Required/core/optional BA payload skills have the provenance/license status needed for redistribution.
 
-## Remaining validation
+## BA VNext acceptance gate
 
-Final manual validation of DOCX and final validation of approval/handoff remain pending. BA Kit 1.0.0-rc.1 must not be described as fully accepted.
+Tier 1 and Tier 2 do not complete Phase 4 by themselves. Tier 3 must install to a clean target, run Doctor, prove the VNext approval boundary, create and revalidate Engineering Handoff VNext from installed runtime, and retain V1 `LEGACY_COMPAT` behavior.
 
 ---
 

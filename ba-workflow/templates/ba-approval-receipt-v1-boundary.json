@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "artifact_type": "HOST_SUPPLIED_ONLY",
+  "decision": "HOST_SUPPLIED_ONLY",
+  "actor_id": "<trusted-host-provided-human-id>",
+  "actor_role": "HUMAN",
+  "recorded_at": "<trusted-host-recorded-UTC-timestamp>",
+  "feature_id": "<exact-feature-id>",
+  "baseline_id": "<exact-baseline-id>",
+  "baseline_revision": "<exact-candidate-revision>",
+  "baseline_semantic_sha256": "<exact-candidate-hash>",
+  "baseline_manifest": {"path": "<exact-candidate-manifest>", "revision": "<revision>", "sha256": "<64-lowercase-hex>"},
+  "decision_ref": {"path": "<host-recorded-approval-evidence>", "revision": "<revision>", "sha256": "<64-lowercase-hex>"}
+}

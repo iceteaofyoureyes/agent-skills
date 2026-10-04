@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.dev/schemas/impact-manifest-v1.json",
+  "title": "Dev Kit Impact Manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "change_id", "baseline_ref", "affected_repositories",
+    "affected_components", "affected_interfaces", "affected_data",
+    "dependencies", "constraints", "risk", "unknowns"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "change_id": { "$ref": "#/$defs/nonEmpty" },
+    "baseline_ref": { "$ref": "#/$defs/baselineRef" },
+    "affected_repositories": { "$ref": "#/$defs/stringList" },
+    "affected_components": { "$ref": "#/$defs/stringList" },
+    "affected_interfaces": { "$ref": "#/$defs/stringList" },
+    "affected_data": { "$ref": "#/$defs/stringList" },
+    "dependencies": { "$ref": "#/$defs/stringList" },
+    "constraints": { "$ref": "#/$defs/stringList" },
+    "risk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "reasons"],
+      "properties": {
+        "level": { "enum": ["TRIVIAL", "NORMAL", "HIGH_RISK"] },
+        "reasons": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "description", "blocking"],
+        "properties": {
+          "id": { "$ref": "#/$defs/nonEmpty" },
+          "kind": { "enum": ["BUSINESS", "TECHNICAL"] },
+          "description": { "$ref": "#/$defs/nonEmpty" },
+          "blocking": { "type": "boolean" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nonEmpty": { "type": "string", "minLength": 1 },
+    "stringList": { "type": "array", "items": { "$ref": "#/$defs/nonEmpty" } },
+    "baselineRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "revision", "sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmpty" },
+        "revision": { "$ref": "#/$defs/nonEmpty" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    }
+  }
+}

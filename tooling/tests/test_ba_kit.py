@@ -4,6 +4,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import shutil
 from unittest import mock
 from pathlib import Path
 
@@ -61,16 +62,15 @@ class BaKitTests(unittest.TestCase):
         required, optional = ba_kit._skill_names(manifest)
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "skills"
-            for skill in required:
-                folder = target / skill
-                folder.mkdir(parents=True)
-                if skill == "srs-function-document":
-                    content = (ROOT / skill / "SKILL.md").read_text(encoding="utf-8")
-                else:
-                    content = f"---\nname: {skill}\ndescription: test skill\n---\n"
-                (folder / "SKILL.md").write_text(content, encoding="utf-8")
-            self.assertEqual(ba_kit.doctor(ROOT, target)["status"], "DEGRADED")
+            ba_kit.install(ROOT, target)
+            self.assertEqual(ba_kit.doctor(ROOT, target)["status"], "READY")
             command = [sys.executable, str(ROOT / "tooling/lib/ba_kit.py"), "doctor", "ba", "--target", str(target)]
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("STATUS: READY", result.stdout)
+            shutil.rmtree(target / optional[0])
+            (target / ba_kit.INSTALL_RECORD).unlink()
+            self.assertEqual(ba_kit.doctor(ROOT, target)["status"], "DEGRADED")
             result = subprocess.run(command, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("STATUS: DEGRADED", result.stdout)
@@ -82,14 +82,10 @@ class BaKitTests(unittest.TestCase):
 
     def test_doctor_fails_when_canonical_srs_format_contract_is_missing(self):
         manifest = ba_kit.load_manifest(ROOT)
-        required, _optional = ba_kit._skill_names(manifest)
         with tempfile.TemporaryDirectory() as temp:
             target = Path(temp) / "skills"
-            for skill in required:
-                folder = target / skill
-                folder.mkdir(parents=True)
-                if skill == "srs-function-document":
-                    content = """---
+            ba_kit.install(ROOT, target)
+            content = """---
 name: srs-function-document
 description: generic semantic-only SRS skill
 ---
@@ -98,9 +94,7 @@ description: generic semantic-only SRS skill
 
 Include only sections needed for the feature.
 """
-                else:
-                    content = f"---\nname: {skill}\ndescription: test skill\n---\n"
-                (folder / "SKILL.md").write_text(content, encoding="utf-8")
+            (target / "srs-function-document" / "SKILL.md").write_text(content, encoding="utf-8")
 
             report = ba_kit.doctor(ROOT, target)
             self.assertEqual(report["status"], "FAIL")
@@ -108,6 +102,23 @@ Include only sections needed for the feature.
             self.assertEqual(len(matching), 1)
             self.assertFalse(matching[0][1])
             self.assertIn("canonical SRS", matching[0][3])
+
+    def test_doctor_vnext_capability_is_installed_and_readiness_is_not_approval(self):
+        with tempfile.TemporaryDirectory() as temp:
+            target = Path(temp) / "skills"
+            ba_kit.install(ROOT, target)
+            report = ba_kit.doctor(ROOT, target)
+            self.assertEqual(report["status"], "READY")
+            check = next(item for item in report["checks"] if item[0] == "BA VNext installed capability")
+            self.assertTrue(check[1])
+            self.assertEqual(check[2], "contract")
+            self.assertFalse(any("APPROVED_BASELINE" in str(item[3]) for item in report["checks"]))
+            (target / "ba-workflow" / "templates" / "ba-baseline-candidate-v1.json").unlink()
+            report = ba_kit.doctor(ROOT, target)
+            self.assertEqual(report["status"], "FAIL")
+            check = next(item for item in report["checks"] if item[0] == "BA VNext installed capability")
+            self.assertFalse(check[1])
+            self.assertIn("ba-baseline-candidate-v1.json", check[3])
 
     def test_install_preflights_conflicts_before_copying(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -251,29 +262,29 @@ next_stage:
         with_design_field = sample.replace("next_stage:", "architecture: event-driven\nnext_stage:")
         self.assertTrue(any("forbidden technical field: architecture" in error for error in ba_kit.validate_handoff_text(with_design_field)))  # Case D
 
-    def test_acceptance_feedback_loop_requires_tier_three_for_rc1_pass(self):
+    def test_acceptance_contract_requires_tier_three_for_phase_four(self):
         acceptance = (ROOT / "kits/ba/acceptance.yaml").read_text(encoding="utf-8")
         for marker in (
             "tier_1_deterministic:",
             "tier_2_focused_runtime:",
             "tier_3_fresh_session_e2e:",
-            "tier_3_required_for_rc1_pass: true",
-            "tier_1_or_tier_2_can_mark_rc1_pass: false",
+            "tier_3_required_for_phase_4_completion: true",
+            "tier_1_or_tier_2_can_mark_phase_4_complete: false",
         ):
             self.assertIn(marker, acceptance)
 
-    def test_local_discovery_fixture_contains_only_as_is_visit_facts(self):
-        source = (ROOT / "tooling/fixtures/ba_local_discovery/src/visit.py").read_text(encoding="utf-8")
-        self.assertIn("class Visit", source)
-        self.assertIn("pet_id", source)
+    def test_local_discovery_fixture_contains_only_as_is_resource_facts(self):
+        source = (ROOT / "tooling/fixtures/ba_local_discovery/src/resource_event.py").read_text(encoding="utf-8")
+        self.assertIn("class ResourceEvent", source)
+        self.assertIn("resource_id", source)
         self.assertIn("description", source)
-        self.assertNotIn("Appointment", source)
+        self.assertNotIn("Request", source)
 
     def test_local_discovery_probe_reads_project_source_without_remote_review(self):
         contract = json.loads((ROOT / "ba-workflow/evals/cr001-semantic-contract.json").read_text(encoding="utf-8"))
         prompt = contract["runtime_probes"]["discovery"].lower()
         self.assertIn("do not invoke automatic or remote review services", prompt)
-        self.assertIn("read src/visit.py directly using local read-only filesystem access", prompt)
+        self.assertIn("read src/resource_event.py directly using local read-only filesystem access", prompt)
 
     def test_install_is_idempotent_and_uninstall_preserves_unrelated_and_edited_skills(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -281,6 +292,10 @@ next_stage:
             unrelated = target / "unrelated-skill"
             unrelated.mkdir(parents=True)
             (unrelated / "SKILL.md").write_text("keep me", encoding="utf-8")
+            shared_owner = target / "project-foundation" / "scripts"
+            shared_owner.mkdir(parents=True)
+            shared_payload = shared_owner / "shared-sdlc-core.zip"
+            shared_payload.write_bytes(b"owned by Project Foundation")
             customized = target / "requirements-gap-auditor"
             customized.mkdir()
             (customized / "SKILL.md").write_text("user-owned version", encoding="utf-8")
@@ -323,6 +338,7 @@ next_stage:
             result = ba_kit.uninstall(target)
 
             self.assertEqual((unrelated / "SKILL.md").read_text(encoding="utf-8"), "keep me")
+            self.assertEqual(shared_payload.read_bytes(), b"owned by Project Foundation")
             self.assertEqual((customized / "SKILL.md").read_text(encoding="utf-8"), "user-owned version")
             self.assertTrue((target / "ba-workflow" / "SKILL.md").exists())
             self.assertIn("ba-workflow", result["preserved"])

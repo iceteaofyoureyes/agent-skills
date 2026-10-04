@@ -9,7 +9,7 @@ Approved BA Baseline → TEA → Canonical Test Design → Human Design Gate
 
 ## 1. Cài vào project Codex
 
-Cần Python 3.10+, Codex CLI và project có `_bmad/tea/config.yaml` phù hợp với TEA đã pin. Installer không tự cài dependency qua mạng. Chạy trong thư mục project cần test:
+Cần Python 3.10+. Khi cài ở project scope, installer tự tạo `_bmad/tea/config.yaml` starter nếu project chưa có và giữ nguyên config hiện hữu nếu đã có; tester không cần tạo file này bằng tay. Operator flow chạy TEA/Katalon trong chính agent session hiện tại, không khởi tạo một agent session lồng bên trong. Installer không tự cài dependency qua mạng. Chạy trong thư mục project cần test:
 
 ```powershell
 git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
@@ -27,11 +27,33 @@ cd /path/to/your-project
 ~/src/agent-skills/tooling/doctor.sh test --agent codex --scope project
 ```
 
-Test Kit V1.1 chỉ hỗ trợ **Codex project scope**; ba skill nằm dưới `.agents/skills/`, runtime và pin nằm dưới `.agents/skills/.test-kit/`. BA Kit có thể cài cùng project, nhưng không bắt buộc nếu project đã có BA handoff hợp lệ. `TEST_KIT_CODEX_COMMAND` là override tường minh; nếu không đặt, resolver tìm `codex` trên `PATH`. Override sai sẽ báo lỗi, không tự tìm đường cài đặt riêng của máy.
+Test Kit V1.1 chỉ hỗ trợ **Codex project scope**; ba skill nằm dưới `.agents/skills/`, runtime và pin nằm dưới `.agents/skills/.test-kit/`. `_bmad/tea/config.yaml` là project-owned runtime config, không thuộc package inventory và không bị uninstall/reinstall ghi đè. Starter dùng path tương đối cố định `.test-kit/runtime` để portable giữa các máy; file này không được retarget theo CR hoặc run. Với project dùng Git, review rồi commit file này để toàn team dùng cùng một TEA runtime contract; không commit machine-local absolute paths. BA Kit có thể cài cùng project, nhưng không bắt buộc nếu project đã có BA handoff hợp lệ. `TEST_KIT_CODEX_COMMAND` là override tường minh; nếu không đặt, resolver tìm `codex` trên `PATH`. Override sai sẽ báo lỗi, không tự tìm đường cài đặt riêng của máy.
 
 Nếu cần rule/template riêng của project, bootstrap `.test-kit/project.yaml` và rule files theo [Project Customization & Policy](TEST_KIT_CUSTOMIZATION.md). Policy chỉ là testing guidance, không thay BA/Design/execution authority. Doctor `READY` nghĩa package bắt buộc và các hợp đồng đã kiểm tra còn khớp; `DEGRADED` nghĩa có capability tùy chọn thiếu; `FAIL` nghĩa phần bắt buộc hoặc tính toàn vẹn lỗi. Doctor có thể liệt kê `DEPENDENCY_MISSING` cho XMind/Excel tùy chọn trong khi core vẫn dùng được. Xem [cài đặt và xử lý lỗi](INSTALLATION.md).
 
-## 2. Cung cấp BA baseline đã duyệt
+## 2. UX vận hành giống BA Kit
+
+Sau install + doctor, Human chỉ cần nói mục tiêu, ví dụ:
+
+```text
+Tạo Test Design cho CR-DWC-DEMO-001 từ BA baseline đã được approve.
+```
+
+Agent tự tìm approved handoff, tạo internal run dưới `.test-kit/runs/<feature-id>/...`, chạy Test Kit `prepare-design`, thực thi TEA trong cùng session bằng run-local resolved config, rồi chạy `finalize-design`. Human không cần biết Python module, run directory, TEA flag, adapter manifest hay launcher nội bộ.
+
+```text
+Human request
+→ Test Kit PREPARE
+→ TEA capability (same session)
+→ Test Kit FINALIZE
+→ Canonical Test Design
+→ DESIGN_REVIEW
+→ Human Gate
+```
+
+Nếu preflight, capability, normalizer hoặc validator lỗi, agent dừng và báo lỗi. Không tạo compatibility shim hay sửa runtime trong run.
+
+## 3. Cung cấp BA baseline đã duyệt
 
 Cung cấp `engineering-handoff.yml` với `ba_baseline.status: APPROVED_FOR_ENGINEERING` và đúng ba nguồn có đường dẫn/SHA-256: Business Rules, functional SRS, BA decisions. Test Kit kiểm tra các file hiện tại khớp handoff. Bản nháp, một câu trả lời chưa được approve hoặc chỉ có requirement rời rạc chưa phải đầu vào production hợp lệ.
 
@@ -43,7 +65,7 @@ Giữ UNKNOWN và nêu rõ scenario nào phải deferred.
 
 TEA là skill phân tích/tư vấn được bundle cùng Kit. Adapter chuyển BA baseline sang đầu vào TEA, giữ output gốc làm evidence, rồi chuẩn hóa/validate thành **Canonical Test Design**. TEA không tự approve Design. Nếu chuẩn hóa hoặc validator lỗi, agent báo finding và không đẩy qua gate.
 
-## 3. Review Test Design, rồi quyết định rõ ràng
+## 4. Review Test Design, rồi quyết định rõ ràng
 
 ```text
 REVIEW only Canonical Test Design của run này.
@@ -60,7 +82,7 @@ Tôi APPROVE Canonical Test Design <artifact_id>, revision <revision>,
 
 Host phải xác thực Human và lưu receipt gắn **artifact ID, revision, semantic SHA-256 và BA input refs hiện tại**. Câu nói `Tiếp tục`, `OK`, `PASS` hoặc kết quả validator `PASS` không tạo approval. Agent không thể tự ký receipt. Chỉ sau gate hợp lệ workflow mới là `APPROVED_DESIGN`.
 
-## 4. Tạo và review testcase
+## 5. Tạo và review testcase
 
 ```text
 Từ APPROVED_DESIGN của run này, dùng create-test-cases để tạo canonical manual testcases.
@@ -85,15 +107,22 @@ Tôi APPROVE Canonical Testcases <artifact_id>, revision <revision>,
 
 Case Gate yêu cầu receipt của Human đã xác thực, đúng BA/Design refs hiện hành và không còn **material OPEN execution dependency**. Nếu điều kiện thiếu, approval bị từ chối; không suy ra testware đã sẵn sàng chạy. Khi hợp lệ, runtime ghi `APPROVED_TESTWARE` rồi chuyển `STOP_V1`.
 
-## 5. Xuất bản chiếu khi Human yêu cầu
+## 6. Xuất bản chiếu khi Human yêu cầu
 
 - Từ **Canonical Test Design đã duyệt**: yêu cầu XMind. Cài Node.js 18+/npm 9+ rồi chạy `npm ci` trong `.agents/skills/.test-kit/tooling/xmind/`. XMind V1 dùng profile trình bày đã pin, chưa có input template XMind do Human cung cấp.
 - Từ **Canonical Testcases đã duyệt** sau Case Gate: yêu cầu Excel. Cài dependency vào đúng Python environment: `python -m pip install --require-hashes -r .agents/skills/.test-kit/tooling/requirements-excel.lock`. Có thể đưa template `.xlsx` hợp lệ; xem [chính sách template](TEST_KIT_CAPABILITIES.md#template-và-bản-chiếu).
 
 Projection ghi vào output directory do caller chọn, cạnh run artifact tương ứng; trace và hash nằm trong manifest bên ngoài (`*.projection.json`). Không sửa file XMind/Excel để thay canonical semantics. Muốn chỉnh nội dung test, quay lại canonical source/revision và Human Gate thích hợp.
 
-## 6. Dừng ở V1
+## 7. Dừng ở V1
 
 `APPROVED_TESTWARE` là sự chấp nhận **testware thủ công của chính feature/snapshot đã review**, không phải kết quả chạy test hay approval cho mọi project. `TEST_ONLY` là fixture/evidence dùng cho kiểm thử Kit, có `not_for_production: true`; nó không thay receipt Human production. Playwright/API automation, thực thi, evidence, flaky management và triage thuộc **Automation Test V2**.
 
 Đi tiếp: [Khả năng](TEST_KIT_CAPABILITIES.md) · [Tình huống sử dụng](TEST_KIT_USAGE_GUIDE.md) · [Workflow/Human Gates](TEST_KIT_WORKFLOW.md) · [Ví dụ CR-001](../../kits/test/examples/CR-001/README.md).
+
+
+## Integrated production contract
+Same-session prepare-design → current-session pinned TEA → finalize-design; prepare-cases → current-session create-test-cases → finalize-cases. Nested Codex is legacy benchmark only, not a production core dependency.
+UI features start from the same approved Delivery Manifest as Dev. Agent supplies --delivery internally during Design preparation; Case preparation inherits that exact manifest.
+Typed SEMANTIC_ORACLE gaps block testware approval; environment, fixture, locator, tooling and observation needs block execution only.
+After a valid Human gate, promote exact semantic snapshots with tooling.lib.testware_promotion. See docs/vi/SDLC_SUITE_CONTRACT.md for the project execution extension and profile/ignore setup.

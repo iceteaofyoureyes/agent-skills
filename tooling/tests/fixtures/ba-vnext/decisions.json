@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "feature_id": "FEATURE-1",
+  "decisions": [{
+    "id": "DEC-001",
+    "topic": "eligibility",
+    "text": "Only eligible members may submit a collection request.",
+    "actor_id": "synthetic-human",
+    "actor_role": "HUMAN",
+    "recorded_at": "2026-10-04T08:00:00Z",
+    "input_refs": [],
+    "affected_ids": ["BR-001", "FR-001"],
+    "status": "CONFIRMED",
+    "supersedes": [],
+    "superseded_by": [],
+    "implemented_sources": {}
+  }]
+}

@@ -7,7 +7,15 @@ from pathlib import Path
 import pytest
 
 from tooling.lib import test_kit_v1_excel as excel
-from tooling.tests.test_test_kit_v1_excel import BASELINE, DESIGN, TEMPLATE, TESTWARE
+from tooling.tests.current_excel_fixture import build as build_current_excel_fixture
+from tooling.tests.test_test_kit_v1_excel import ARCHIVED_TESTWARE, BASELINE, DESIGN, TEMPLATE
+
+
+@pytest.fixture(scope='session')
+def current_testware(tmp_path_factory):
+    return build_current_excel_fixture(
+        tmp_path_factory.mktemp('customization-testware'), ARCHIVED_TESTWARE, DESIGN, BASELINE,
+    )
 
 
 def project(tmp_path, template=True):
@@ -32,42 +40,42 @@ def project(tmp_path, template=True):
     (False, True, 'PROJECT_TEMPLATE'),
     (False, False, 'DEFAULT_TEMPLATE'),
 ])
-def test_profile_template_precedence(tmp_path, human, configured, expected):
+def test_profile_template_precedence(tmp_path, current_testware, human, configured, expected):
     root = project(tmp_path, configured)
     result = excel.export_test_only_approved_testware_excel(
-        TESTWARE, DESIGN, BASELINE, tmp_path / 'output',
+        current_testware, DESIGN, BASELINE, tmp_path / 'output',
         project_root=root, template_path=TEMPLATE if human else None,
     )
     assert json.loads(result.manifest_path.read_text(encoding='utf-8'))['template_source'] == expected
     assert result.semantic_diff.status == 'PASS'
 
 
-def test_invalid_selected_project_template_fails_without_default(tmp_path):
+def test_invalid_selected_project_template_fails_without_default(tmp_path, current_testware):
     root = project(tmp_path)
     (root / '.test-kit/templates/testcases.xlsx').write_bytes(b'invalid workbook')
     with pytest.raises(excel.ExcelProjectionError) as failure:
         excel.export_test_only_approved_testware_excel(
-            TESTWARE, DESIGN, BASELINE, tmp_path / 'output', project_root=root,
+            current_testware, DESIGN, BASELINE, tmp_path / 'output', project_root=root,
         )
     assert failure.value.code == 'CANNOT_PROJECT_TEMPLATE'
     assert not (tmp_path / 'output').exists()
 
 
-def test_human_template_wins_over_invalid_project_workbook(tmp_path):
+def test_human_template_wins_over_invalid_project_workbook(tmp_path, current_testware):
     root = project(tmp_path)
     (root / '.test-kit/templates/testcases.xlsx').write_bytes(b'invalid workbook')
     result = excel.export_test_only_approved_testware_excel(
-        TESTWARE, DESIGN, BASELINE, tmp_path / 'output',
+        current_testware, DESIGN, BASELINE, tmp_path / 'output',
         project_root=root, template_path=TEMPLATE,
     )
     assert json.loads(result.manifest_path.read_text(encoding='utf-8'))['template_source'] == 'HUMAN_SUPPLIED_APPROVED_TEMPLATE'
 
 
-def test_missing_selected_project_template_fails_closed(tmp_path):
+def test_missing_selected_project_template_fails_closed(tmp_path, current_testware):
     root = project(tmp_path)
     (root / '.test-kit/templates/testcases.xlsx').unlink()
     with pytest.raises(excel.ExcelProjectionError) as failure:
         excel.export_test_only_approved_testware_excel(
-            TESTWARE, DESIGN, BASELINE, tmp_path / 'output', project_root=root,
+            current_testware, DESIGN, BASELINE, tmp_path / 'output', project_root=root,
         )
     assert failure.value.code == 'CANNOT_PROJECT_TEMPLATE'

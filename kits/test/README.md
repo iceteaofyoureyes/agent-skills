@@ -43,7 +43,7 @@ Repository: https://github.com/iceteaofyoureyes/agent-skills
 
 ## Điều kiện và cài đặt
 
-Test Kit V1 hỗ trợ Codex ở project scope. Core cần Python 3.10+, Codex CLI và project có `_bmad/tea/config.yaml` tương thích với TEA skill đã pin. TEA và Katalon skills đã được bundle; install không tải lại chúng. Codex được resolve theo `TEST_KIT_CODEX_COMMAND`, sau đó `PATH`; explicit override không hợp lệ sẽ fail closed.
+Test Kit V1 hỗ trợ Codex ở project scope. Core cần Python 3.10+ và project có `_bmad/tea/config.yaml` tương thích với TEA skill đã pin. TEA và Katalon skills đã được bundle; install không tải lại chúng. Production operator flow chạy các capability ngay trong agent session hiện tại; nested Codex launcher không còn là UX vận hành chuẩn. Project TEA config là stable team config; Test Kit sinh run-local resolved config và không được sửa project config theo CR/run.
 
 Từ project đích, chạy script từ Agent Skills checkout:
 
@@ -61,13 +61,26 @@ Doctor kiểm tra integrity của package đã cài và phát hiện local drift
 
 ## Workflow và authority
 
-**TEA là analysis/advisory**, không phải Test Design authority. Adapter tạo và validate **Canonical Test Design**, sau đó dừng ở `DESIGN_REVIEW` để Human review. Chỉ approval hợp lệ cho đúng snapshot mới cho phép chuyển sang testcase generation.
+**TEA là analysis/advisory**, không phải Test Design authority. Test Kit chuẩn bị input, agent hiện tại chạy TEA cùng session, rồi runtime finalize/validate **Canonical Test Design** và dừng ở `DESIGN_REVIEW` để Human review. Chỉ approval hợp lệ cho đúng snapshot mới cho phép chuyển sang testcase generation.
 
 Pinned Katalon skill hỗ trợ sinh testcase; adapter validate **Canonical Testcases** rồi dừng ở `CASE_REVIEW`. Chỉ Human approval receipt hợp lệ cho đúng snapshot, đồng thời không còn material open execution dependency, mới tạo trạng thái `APPROVED_TESTWARE` và `STOP_V1`.
 
 `ANSWER`, `REVIEW`, `REQUEST_CHANGES`, `CONTINUE` và `APPROVE` là các ý định khác nhau. `Continue`, `Next`, `OK` hoặc `PASS` không tự động có nghĩa là approval. Agent không tự approve.
 
 Nếu BA baseline còn behavior chưa được quyết định, Test Kit giữ `UNKNOWN`/open question; không invent expected behavior để làm testcase trông hoàn chỉnh.
+
+## Human Gate persistence trên Windows
+
+Design/Case APPROVE và REQUEST_CHANGES preflight toàn bộ output trước receipt. Persistence dùng
+immutable transaction journal, write-if-same-or-absent và atomic workflow commit. Host có thể
+resume exact authenticated receipt sau internal failure; không cần Human submit decision lần hai.
+Exact completed replay chỉ success sau khi xác minh artifacts/state; receipt khác hoặc byte conflict
+bị reject. Không xóa receipt hay hand-edit state để recover.
+
+Path budget mặc định Windows là 259 UTF-16 code units cho file, 247 cho parent directory; preflight
+không yêu cầu bật registry LongPaths. Projection nội bộ mới dùng approved.json/changes.json và
+draft revisions dùng semantic.json/design.json/cases.json. Existing legacy files được đọc/resume
+in-place; tên canonical promoted artifacts không đổi. Không chạy recovery trên frozen Golden cũ.
 
 ## XMind và Excel
 
@@ -98,3 +111,10 @@ V1 tạo Human-reviewed Test Design và manual testcases, kèm XMind/Excel proje
 Các capability đó thuộc **Automation Test V2**.
 
 `TEST_ONLY` artifact không phải production-approved testware. Project thật vẫn cần Human gate hợp lệ cho snapshot hiện hành trước khi coi testware là approved.
+
+
+## Integrated production contract
+Same-session prepare-design → current-session pinned TEA → finalize-design; prepare-cases → current-session create-test-cases → finalize-cases. Nested Codex is legacy benchmark only, not a production core dependency.
+UI features start from the same approved Delivery Manifest as Dev. Agent supplies --delivery internally during Design preparation; Case preparation inherits that exact manifest.
+Typed SEMANTIC_ORACLE gaps block testware approval; environment, fixture, locator, tooling and observation needs block execution only.
+After a valid Human gate, promote exact semantic snapshots with tooling.lib.testware_promotion. See docs/vi/SDLC_SUITE_CONTRACT.md for the project execution extension and profile/ignore setup.

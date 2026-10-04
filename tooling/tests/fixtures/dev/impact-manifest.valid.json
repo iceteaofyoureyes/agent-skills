@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "change_id": "CHANGE-001",
+  "baseline_ref": {
+    "path": "approved/engineering-handoff.yml",
+    "revision": "ba-rev-7",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "affected_repositories": ["appointments"],
+  "affected_components": ["AppointmentController", "AppointmentService"],
+  "affected_interfaces": ["POST /appointments"],
+  "affected_data": ["Appointment"],
+  "dependencies": [],
+  "constraints": ["Preserve approved BA behavior"],
+  "risk": {
+    "level": "NORMAL",
+    "reasons": ["Local behavior change"]
+  },
+  "unknowns": [
+    {"id": "TECH-001", "kind": "TECHNICAL", "description": "Existing transaction boundary", "blocking": false}
+  ]
+}

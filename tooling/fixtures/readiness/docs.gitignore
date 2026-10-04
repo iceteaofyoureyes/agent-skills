@@ -1,0 +1,4 @@
+.test-kit/runs/
+.test-kit/runtime/
+test-runs/
+.agents/skills/

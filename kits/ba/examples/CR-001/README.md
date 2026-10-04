@@ -1,4 +1,4 @@
-# CR-001: Appointment Scheduling
+# CR-001: Resource Request Submission
 
 Đây là **documentation example** minh họa cách BA Kit đi từ đầu bài thiếu thông tin tới BA baseline/handoff. Nó không phải transcript runtime cố định và không được feed vào fresh-session acceptance.
 
@@ -10,7 +10,10 @@ Semantic spine:
 → 02 Gap Review + Human decisions
 → 03 Approved Business Rules
 → 04 SRS excerpt
-→ 05 Engineering Handoff
+→ baseline candidate → VALIDATED → HUMAN_REVIEW
+→ trusted host supplies exact Human approval receipt
+→ 05 Engineering Handoff VNext boundary example
+→ Knowledge Impact in the candidate/handoff
 
 Derived lane from approved/confirmed sources:
 03 / 04
@@ -25,7 +28,8 @@ Nó minh họa:
 - Human answers được tách khỏi input;
 - Business Rules/SRS có traceability;
 - Draw.io/DOCX là derived delivery artifacts;
-- Engineering Handoff chỉ sau approval.
+- VNext handoff cần proof `APPROVED_BASELINE` chính xác và được installed runtime revalidate.
+- Example không chứa receipt dùng được hay approval giả.
 
 ## Các file
 
@@ -33,10 +37,11 @@ Nó minh họa:
 |---|---|---|
 | [01-input-requirement.md](vi/01-input-requirement.md) | INPUT | Đầu bài intentionally incomplete |
 | [02-gap-review.md](vi/02-gap-review.md) | ILLUSTRATIVE OUTPUT + Human decisions | Gap trước clarification và câu trả lời Human ví dụ |
-| [03-approved-business-rules.md](vi/03-approved-business-rules.md) | ILLUSTRATIVE OUTPUT | Business Rules có evidence/UNKNOWN |
-| [04-srs-excerpt.md](vi/04-srs-excerpt.md) | ILLUSTRATIVE OUTPUT | Functional requirements + traceability |
-| [05-engineering-handoff.yml](vi/05-engineering-handoff.yml) | CONTRACT-VALID EXAMPLE | Handoff schema + real hashes cho adjacent sources |
+| [03-approved-business-rules.md](vi/03-approved-business-rules.md) | ILLUSTRATIVE OUTPUT | BR-* ổn định, evidence và UNKNOWN |
+| [04-srs-excerpt.md](vi/04-srs-excerpt.md) | ILLUSTRATIVE OUTPUT | FR-* ổn định và traceability |
+| [05-engineering-handoff.yml](vi/05-engineering-handoff.yml) | NON-AUTHORITATIVE BOUNDARY EXAMPLE | Cấu trúc VNext, không có receipt hay proof dùng được |
 | [06-delivery-and-visualization.md](vi/06-delivery-and-visualization.md) | USAGE EXAMPLE | Derived Draw.io/DOCX/prototype lane từ BR/SRS |
+| [knowledge-impact-v1.json](knowledge-impact-v1.json) | DERIVED CANDIDATE METADATA | Affected product/domain/testing targets; no technical HOW |
 
 ## Đọc example theo đúng cách
 
@@ -75,13 +80,13 @@ UNKNOWN vẫn phải giữ UNKNOWN.
 
 ### Bước 5 — handoff
 
-**05-engineering-handoff.yml** dùng đúng schema hiện tại và SHA-256 thật của các source example.
+**05-engineering-handoff.yml** minh họa ranh giới Engineering Handoff VNext với placeholder và không có approval receipt. File cố ý không hợp lệ để production validator chấp nhận; trusted host phải cung cấp proof chính xác.
 
-Handoff không chứng minh runtime acceptance PASS.
+Example handoff không chứng minh runtime acceptance hay Human approval.
 
 ## Điều example không chứng minh
 
-- Không chứng minh current PetClinic behavior; brownfield run thật phải discover source.
+- Không chứng minh current SamplePlatform behavior; brownfield run thật phải discover source.
 - Không chứng minh BA Kit runtime luôn sinh đúng wording/ID.
 - Không cung cấp company Word template.
 - Không cung cấp Figma/screenshot/prototype vì input CR-001 không có visual source.

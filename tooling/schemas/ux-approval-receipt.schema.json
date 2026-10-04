@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Canonical Human UX Approval Receipt V1/V2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "feature_id",
+    "decision",
+    "decision_type",
+    "approved_by",
+    "recorded_at_utc",
+    "revision",
+    "immutable",
+    "semantic_snapshot_sha256",
+    "semantic_snapshot_sha256_method",
+    "sources",
+    "source_commit",
+    "source_branch",
+    "reapproval_required_if_source_bytes_change"
+  ],
+  "properties": {
+    "schema_version": {
+      "enum": [
+        1,
+        2
+      ]
+    },
+    "feature_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$"
+    },
+    "decision": {
+      "const": "APPROVE"
+    },
+    "decision_type": {
+      "const": "HUMAN_EXPLICIT_EXACT_SNAPSHOT_APPROVAL"
+    },
+    "approved_by": {
+      "const": "Human"
+    },
+    "recorded_at_utc": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "revision": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$"
+    },
+    "immutable": {
+      "const": true
+    },
+    "semantic_snapshot_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "semantic_snapshot_sha256_method": {
+      "enum": [
+        "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators.",
+        "UX_APPROVED_SOURCES_CANONICAL_JSON_SHA256_V2"
+      ]
+    },
+    "sources": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "minLength": 1
+      },
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "source_commit": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "source_branch": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "prototype_authority": {
+      "const": "REVIEW_EVIDENCE"
+    },
+    "formal_browser_AT_WCAG_testing": {
+      "type": "string"
+    },
+    "conformance_PASS_claimed": {
+      "type": "boolean"
+    },
+    "reapproval_required_if_source_bytes_change": {
+      "const": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schema_version": {
+            "const": 1
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "prototype_authority"
+        ],
+        "properties": {
+          "sources": {
+            "minProperties": 2,
+            "maxProperties": 2
+          },
+          "semantic_snapshot_sha256_method": {
+            "const": "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators."
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "semantic_snapshot_sha256_method": {
+            "const": "UX_APPROVED_SOURCES_CANONICAL_JSON_SHA256_V2"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "sources": {
+            "minProperties": 2
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "prototype_authority"
+        ]
+      }
+    }
+  ]
+}

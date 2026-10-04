@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "status": "ASSEMBLED_WITH_ONE_MINIMAL_UPSTREAM_ADAPTATION",
+  "snapshot_date": "2026-09-25",
+  "packaging": {
+    "target": "OpenAI Agent Plugin (repo/local development first)",
+    "layout": "kits/dev/plugin/{plugin.json,skills/,references/}",
+    "reason": "Preserve Addy upstream relative references without modifying SKILL.md.",
+    "global_install_policy": "Do not write unrelated user/global skills during Dev Kit install/benchmark."
+  },
+  "policy": {
+    "selection_priority": [
+      "EXACT_UPSTREAM",
+      "MINIMAL_ADAPTATION",
+      "PROJECT_OWNED_ONLY_WHEN_NECESSARY"
+    ],
+    "allowed_classifications": [
+      "EXACT_UPSTREAM",
+      "MODIFIED_UPSTREAM",
+      "PROJECT_OWNED",
+      "RUNTIME_DEPENDENCY",
+      "DESIGN_INFLUENCE"
+    ],
+    "vendoring_requires": [
+      "exact_repo",
+      "exact_path",
+      "exact_commit",
+      "license",
+      "dependency_closure",
+      "redistribution_status",
+      "blob_or_hash_evidence"
+    ],
+    "note": "This lock records selected candidates and exact audited inputs. It does not claim runtime acceptance."
+  },
+  "components": {
+    "github-spec-kit": {
+      "role": "workflow_state_and_bundle_engine",
+      "classification": "RUNTIME_DEPENDENCY",
+      "repo": "github/spec-kit",
+      "release": "v1.0.11",
+      "commit": "8147943512404afb9d99c6252cb9bf84369fd0b0",
+      "license": "MIT",
+      "license_blob": "28a50fa22639e32febe14e4ffc7a732b0ba8c90a",
+      "distributed_by_dev_kit": false,
+      "usage": [
+        "workflow engine",
+        "persisted run state/resume",
+        "bundle/distribution primitives"
+      ],
+      "excluded_commands": [
+        "speckit.specify",
+        "speckit.plan",
+        "speckit.tasks",
+        "speckit.analyze",
+        "speckit.converge"
+      ],
+      "exclusion_reason": "Core planning/convergence commands depend on Spec Kit spec.md semantics; Dev Kit preserves Approved BA Baseline as the only WHAT authority."
+    },
+    "addy-agent-skills": {
+      "role": "engineering_behavior_capabilities",
+      "classification": "EXACT_UPSTREAM",
+      "repo": "addyosmani/agent-skills",
+      "release": "0.6.10",
+      "commit": "c004a74784a08295d52749b04cda634125b9a581",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2025 Addy Osmani",
+      "license_blob": "d67778ada6b9cda6227e9130da182c13e73c8b2e",
+      "distributed_by_dev_kit": "VENDORED_EXACT",
+      "selected_skills": {
+        "incremental-implementation": "9c4f49bc841adb3c0f98baaa9eabd435a5b64ef9",
+        "test-driven-development": "8898bcbba4c4f6acca473ece95e82105bd9cfea0",
+        "debugging-and-error-recovery": "356da20365a7cd6825b4ffad14be39280c92cdfc",
+        "code-review-and-quality": "7dfa56362fa65fff450ee5aa02393b85b9c26d85",
+        "security-and-hardening": "c168e65e0d8e2ce1ec48bdaf0c1a76c0a4aa9d30",
+        "api-and-interface-design": "820d6d981f90b7802e0ea8b75bb966a3d78b8d0f",
+        "source-driven-development": "2704f0e130bc4659951aa552373914b2d63d18c9",
+        "performance-optimization": "cbc7e950a6f376d25ac88cf310d5a48555db2ec1",
+        "observability-and-instrumentation": "84d9cb373467fe0e15236e190833ecc90f840c38"
+      },
+      "shared_references": {
+        "references/definition-of-done.md": "35e39f9e15f6dd0ff4725a6e5cbce7f2aa69064a",
+        "references/testing-patterns.md": "bc96e271ad241ca567f06d21c6ecc001455b80f1",
+        "references/security-checklist.md": "b7df3eb04178e4a24bfa405431bf8dee6a89a8c4",
+        "references/performance-checklist.md": "ba9744fe60dbe4f04f3f907029638d923158d7a2",
+        "references/observability-checklist.md": "ad40d7aa3fca5d2091fa45be234c14aee22c3588"
+      },
+      "non_bundled_soft_references": [
+        "git-workflow-and-versioning",
+        "browser-testing-with-devtools",
+        "shipping-and-launch"
+      ]
+    },
+    "superpowers-verification": {
+      "role": "final_evidence_gate",
+      "classification": "EXACT_UPSTREAM_EXISTING_CANONICAL",
+      "repo": "obra/superpowers",
+      "source_path": "skills/verification-before-completion",
+      "current_local_provenance_commit": "3be5aad3dd2400ef23b15680969f4bcd3b6d7b8b",
+      "upstream_current_release_for_reference": "v6.4.1",
+      "upstream_current_commit_for_reference": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "license": "MIT",
+      "policy": "Reuse current canonical local copy in V1; upgrade requires BA+Dev cross-kit regression."
+    },
+    "superpowers-review-package": {
+      "role": "review_diff_packaging_utility",
+      "classification": "EXACT_UPSTREAM_CANDIDATE",
+      "repo": "obra/superpowers",
+      "release": "v6.4.1",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "source_path": "skills/subagent-driven-development/scripts/review-package",
+      "source_blob": "fa7625f053dc852200ddd497662508ff1ae40bb1",
+      "license": "MIT",
+      "license_blob": "abf0390320aa14406af7a520b9b0739fdda9bf08",
+      "distributed_by_dev_kit": "VENDORED_EXACT",
+      "adaptation_policy": "Prefer exact script with explicit OUTFILE; do not import full Superpowers SDD."
+    },
+    "superpowers-scoped-rereview": {
+      "role": "bounded_rereview_design_influence",
+      "classification": "DESIGN_INFLUENCE",
+      "repo": "obra/superpowers",
+      "release": "v6.4.1",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "source_path": "skills/subagent-driven-development/re-review-prompt.md",
+      "license": "MIT",
+      "distributed_by_dev_kit": false,
+      "policy": "Project-owned re-review contract; do not copy the full upstream prompt by default."
+    },
+    "codebase-memory-mcp": {
+      "role": "conditional_code_intelligence",
+      "classification": "RUNTIME_DEPENDENCY",
+      "repo": "DeusData/codebase-memory-mcp",
+      "release": "v0.11.0",
+      "commit": "8972ea69c6ad94b1ef1d4ffbf0a92d78d2db1798",
+      "license": "MIT",
+      "license_blob": "0b95352746a97a8cf2d1f3ba568bc7bb5e514d1f",
+      "distributed_by_dev_kit": false,
+      "invocation": "Only when blast radius/caller/dependency evidence is uncertain; verify important findings against source."
+    },
+    "requirements-gap-auditor": {
+      "role": "spec_readiness_capability",
+      "classification": "EXACT_UPSTREAM_EXISTING_CANONICAL",
+      "repo": "45ck/business-analysis-skills",
+      "source_path": ".agents/skills/requirements-gap-auditor/SKILL.md",
+      "commit": "1fe1950bc4759e732b036c562b0cff99675e1695",
+      "license": "MIT",
+      "policy": "Reuse canonical repo skill. Dev use is readiness-only; it must not mutate approved business semantics."
+    },
+    "addy-planning-and-task-breakdown": {
+      "role": "technical_planning_and_task_breakdown",
+      "classification": "MODIFIED_UPSTREAM",
+      "repo": "addyosmani/agent-skills",
+      "release": "0.6.10",
+      "commit": "c004a74784a08295d52749b04cda634125b9a581",
+      "source_path": "skills/planning-and-task-breakdown/SKILL.md",
+      "source_blob": "296249b64334bcfd1aeaefd27b9e3e5494e38ec0",
+      "local_blob": "670508158bb832d58266deebc833ea9859e2bc2d",
+      "license": "MIT",
+      "distributed_by_dev_kit": "VENDORED_MODIFIED",
+      "local_changes": [
+        "Replace unconditional Human checkpoint with a Dev Kit risk-policy conditional Human/Tech Lead gate.",
+        "Replace unconditional final Human plan approval with risk-based approval; normal-risk work has no mandatory approval gate."
+      ],
+      "unchanged_scope": "Planning mechanics, dependency graph, vertical slicing, task sizing, plan/task templates, acceptance criteria and verification structure remain upstream.",
+      "shared_references": [
+        "references/definition-of-done.md"
+      ]
+    }
+  },
+  "assembly_evidence": {
+    "commit": "920f91d4dba3bccb0e1a1f5bfbc64dc0e8380ba5",
+    "exact_third_party_blob_checks": 17,
+    "result": "PASS",
+    "planning_patch_commit": "4521f7ffc5ecd0b2ade3d73835cb7ecfb715f37f"
+  },
+  "runtime_payload": {
+    "algorithm": "DEV_RUNTIME_CORE_SHA256_V1",
+    "files": {
+      "tooling/lib/dev_kit.py": "eb425b826828b44199452c652bb95736f1346e936006bf8e421c3d7b8a7ad142",
+      "tooling/lib/dev_router.py": "aa22d14daca3896e775c60bf4a3f3f6f36d9bc13bed0c820c54a6fe3e722c4c7",
+      "kits/dev/kit.yaml": "bc687e809ade6ff3bd3ca4587e2d3c0f829ab85b35fe981811707ea60bd871d6",
+      "kits/dev/plugin/plugin.json": "30471bdc3c61ca633ceee9645e528622b5611f8c72f4ad647141bba5e0a0f2ad",
+      "shared/__init__.py": "cfa2e273faa77d861705a491166e4bfc65bb7f304dafbd45c1a3f3fc6ee5ba54",
+      "shared/sdlc/__init__.py": "b32bcf7c86171673ace107616a9a74053dcb3435fb664ee3f4006ac3c0c6ad4d",
+      "shared/sdlc/approvals/__init__.py": "02ae9d010202ab19ab7fc85efefe2b57307eb7915acbb1220cd0c2b7b4b1c8ff",
+      "shared/sdlc/approvals/gate_persistence.py": "7479ed5860d1ca5b11b0e6e8f2be562f02cb181cf46630860d802d19e1956dc5",
+      "shared/sdlc/approvals/invariants.py": "86294be476ad728d1c6e94e82229304098d5a83cbf2ef08160cfd3384e48461e",
+      "shared/sdlc/artifacts/__init__.py": "f3a6068bfd22d339b370f35760366715a4fd13b4213fff79135697bdbf4604aa",
+      "shared/sdlc/artifacts/classes.py": "5530083ee5318930576f09578cc134358e134d2e0594077e2d6de912c6f94856",
+      "shared/sdlc/artifacts/delivery_manifest.py": "db77dbd84a3b6bf3f653d4c75988ac3573b96e632e514fcedc15cbe167bf9375",
+      "shared/sdlc/authority/__init__.py": "00bac0425b66c977513c7f3c2898e71f0e4e2b217551ff4bcf4c3b6f33462170",
+      "shared/sdlc/authority/approved_baseline.py": "853ec30e048ada8f95aacff954a7fc1501a650096269eeb6f1a06a3c03a24398",
+      "shared/sdlc/authority/contracts.py": "b2d8e9d66ea93aa86adfd6bdd5c3e81c85117c5133f7a5cd2b961ac62edf3b5e",
+      "shared/sdlc/compatibility/__init__.py": "82958f288eb2fad5d3aa841bf76a237925ed35143605e6644474dd74aac3b783",
+      "shared/sdlc/findings/__init__.py": "83d38300c75e8cc1ed4a8a797fe986a8f755d3e8430268bd2fbfe1b315e0a3e8",
+      "shared/sdlc/findings/execution_contract.py": "189c9345d1e2b6f3dedaced9da849c0bc2546c3aed20c251cf31864b2e6107b0",
+      "shared/sdlc/findings/taxonomy.py": "bbe4d10b377a4476978bbb59a419546a2dce49f58aca954add87a907b88a4459",
+      "shared/sdlc/promotion/__init__.py": "6e62371c51ca7c332b7ee389ffb6ed243568af71d2b8768eb1d95f4d61d4eb4a",
+      "shared/sdlc/promotion/immutable.py": "7172b1396615415324920dd23c8bc2cb5edd9bcff8c91a818a9f1a40a8743326",
+      "shared/sdlc/provenance/__init__.py": "aa2ec05ff32382fd173823d3d246e03006b77d9e87e168fddfadf561d8247599",
+      "shared/sdlc/provenance/references.py": "c586a861a7dc57f5a5c103fdc8f7aa9b4107bc814bcd559dc5c7599e4ef6c219",
+      "shared/sdlc/provenance/runtime_paths.py": "d903d518431c4ca3e5f26b58fd377cf1f1128b407f2007753f2a3314b93f087a",
+      "shared/sdlc/readiness/__init__.py": "4c8b6a8f71ebb04a802ef443ca8c739357fea151f3610a9f36c64faebb410316",
+      "shared/sdlc/readiness/vocabulary.py": "1acf0d1c4cdaed5609d2a30ef714a532addb5f72e8f9b00ddafb15d376b9373c",
+      "shared/sdlc/readiness/compatibility.py": "010cc01f6e0a5676bc263c710058cb82d8b0221f06acd33a8725e7573bf57d04",
+      "shared/sdlc/schema.py": "8ac66871bef2c6633a9eea0dc3b86be46f0a4141dc4175dca45e6688cb2cca44",
+      "shared/sdlc/topology/__init__.py": "1ee114ed63a0ff66e84febfe4e09d7e6f7dc67bcbd015141e84dcaf95a4f3dee",
+      "shared/sdlc/topology/contract.py": "70fb0713a286f21eb0a9f5f8e1d6f6d4c0b813ec7da25bba22ef01d87afca46b",
+      "shared/sdlc/policy/__init__.py": "623f4ea75e615f6c0707b4842f0babbe783270f9d984d25dfd8ea75ce939c6bb",
+      "shared/sdlc/policy/contract.py": "820fc7fdd91aeab444531eb1eff023238381bcf2f25b69b973e74a65271347d7",
+      "shared/sdlc/foundation/__init__.py": "9adc22ca418db48a530997ff61fbcd82923c3c9788ea58bbfb0290cbeb165c10",
+      "shared/sdlc/foundation/contract.py": "5150d5cfdddeea1f4f8d827a38e5847aeea95318e5e7c014b0012e3d1a0c53b3",
+      "shared/sdlc/foundation/profiles.py": "ec1233b6c5f7c89d1128f51379ba437885f683bc45426a6daf064b23526b235d",
+      "shared/sdlc/foundation/inventory.py": "5334e09c71ae6feed0f869ad763887dfdad93041bcf49a617201f07184774c40",
+      "shared/sdlc/foundation/impact.py": "d33355bf1c26c47860a1d9a477ed6e4a034d88282c3656caaeb5ee1fb3c895e7",
+      "shared/sdlc/foundation/workflow.py": "58cb25a5acac41560505f407331cfe9dc1b6c0fc6dff1d40279e9682204409c0",
+      "shared/sdlc/foundation/producers.py": "2d5659d780264d7b3adc7ff014204ab0fe93056a98d48df2d280a92ec7ce31ff",
+      "shared/sdlc/foundation/cli.py": "26bd5339b3bdcc9dc54268b87d6793daa2360d0dc1dc527a2fb498d49ff68919",
+      "ba-workflow/scripts/contracts.py": "00898f7bcbec77ce61af1b1a507a901775ee9304cb43c2036afca889a4f69fa7",
+      "ba-workflow/scripts/approved_baseline.py": "40396dd4cb01e997eb19b48d7ba9ab2fd3f674b70b83e0e3eb0828d38af3b3c3",
+      "ba-workflow/scripts/delivery_manifest.py": "764105aba6a48e349b1818a3dce77474f286a35353899630b37507b76fb11193"
+    },
+    "sha256": "5cfb242fda99d403e5110e46f1dca14e53436bea4c3ecad9b858c4687ee470a5"
+  }
+}

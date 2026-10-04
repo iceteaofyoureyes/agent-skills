@@ -1,17 +1,27 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "1.1.0",
+  "kit_version": "2.0.0-rc.5",
   "manifest_schema_version": 1,
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "7f2576684d6cb82de8504b603c3ea59eb0db435ef26a31a2097e6af338f14d29",
+      "sha256": "a8517c3c69ae332887c45292443376caa5a31e0fb1cda807a465ee0ecdbf18ef",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
+      "path": ".test-kit/ba-workflow/scripts/approved_baseline.py",
+      "sha256": "40396dd4cb01e997eb19b48d7ba9ab2fd3f674b70b83e0e3eb0828d38af3b3c3",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/ba-workflow/scripts/contracts.py",
-      "sha256": "0f66a8dd0be52d1efb80dbb565d22aaf23400e9a2ee1fd3b129a3ec1a97c2136",
+      "sha256": "00898f7bcbec77ce61af1b1a507a901775ee9304cb43c2036afca889a4f69fa7",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/ba-workflow/scripts/delivery_manifest.py",
+      "sha256": "764105aba6a48e349b1818a3dce77474f286a35353899630b37507b76fb11193",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -40,6 +50,161 @@
       "classification": "PROVENANCE_LICENSE"
     },
     {
+      "path": ".test-kit/shared/__init__.py",
+      "sha256": "cfa2e273faa77d861705a491166e4bfc65bb7f304dafbd45c1a3f3fc6ee5ba54",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/__init__.py",
+      "sha256": "b32bcf7c86171673ace107616a9a74053dcb3435fb664ee3f4006ac3c0c6ad4d",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/approvals/__init__.py",
+      "sha256": "02ae9d010202ab19ab7fc85efefe2b57307eb7915acbb1220cd0c2b7b4b1c8ff",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/approvals/gate_persistence.py",
+      "sha256": "7479ed5860d1ca5b11b0e6e8f2be562f02cb181cf46630860d802d19e1956dc5",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/approvals/invariants.py",
+      "sha256": "86294be476ad728d1c6e94e82229304098d5a83cbf2ef08160cfd3384e48461e",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/artifacts/__init__.py",
+      "sha256": "f3a6068bfd22d339b370f35760366715a4fd13b4213fff79135697bdbf4604aa",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/artifacts/classes.py",
+      "sha256": "5530083ee5318930576f09578cc134358e134d2e0594077e2d6de912c6f94856",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/artifacts/delivery_manifest.py",
+      "sha256": "db77dbd84a3b6bf3f653d4c75988ac3573b96e632e514fcedc15cbe167bf9375",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/authority/__init__.py",
+      "sha256": "00bac0425b66c977513c7f3c2898e71f0e4e2b217551ff4bcf4c3b6f33462170",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/authority/approved_baseline.py",
+      "sha256": "853ec30e048ada8f95aacff954a7fc1501a650096269eeb6f1a06a3c03a24398",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/authority/contracts.py",
+      "sha256": "b2d8e9d66ea93aa86adfd6bdd5c3e81c85117c5133f7a5cd2b961ac62edf3b5e",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/compatibility/__init__.py",
+      "sha256": "82958f288eb2fad5d3aa841bf76a237925ed35143605e6644474dd74aac3b783",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/findings/__init__.py",
+      "sha256": "83d38300c75e8cc1ed4a8a797fe986a8f755d3e8430268bd2fbfe1b315e0a3e8",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/findings/execution_contract.py",
+      "sha256": "189c9345d1e2b6f3dedaced9da849c0bc2546c3aed20c251cf31864b2e6107b0",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/findings/taxonomy.py",
+      "sha256": "bbe4d10b377a4476978bbb59a419546a2dce49f58aca954add87a907b88a4459",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/foundation/__init__.py",
+      "sha256": "9adc22ca418db48a530997ff61fbcd82923c3c9788ea58bbfb0290cbeb165c10",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/foundation/contract.py",
+      "sha256": "5150d5cfdddeea1f4f8d827a38e5847aeea95318e5e7c014b0012e3d1a0c53b3",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/foundation/profiles.py",
+      "sha256": "ec1233b6c5f7c89d1128f51379ba437885f683bc45426a6daf064b23526b235d",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/policy/__init__.py",
+      "sha256": "623f4ea75e615f6c0707b4842f0babbe783270f9d984d25dfd8ea75ce939c6bb",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/policy/contract.py",
+      "sha256": "820fc7fdd91aeab444531eb1eff023238381bcf2f25b69b973e74a65271347d7",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/promotion/__init__.py",
+      "sha256": "6e62371c51ca7c332b7ee389ffb6ed243568af71d2b8768eb1d95f4d61d4eb4a",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/promotion/immutable.py",
+      "sha256": "7172b1396615415324920dd23c8bc2cb5edd9bcff8c91a818a9f1a40a8743326",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/provenance/__init__.py",
+      "sha256": "aa2ec05ff32382fd173823d3d246e03006b77d9e87e168fddfadf561d8247599",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/provenance/references.py",
+      "sha256": "c586a861a7dc57f5a5c103fdc8f7aa9b4107bc814bcd559dc5c7599e4ef6c219",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/provenance/runtime_paths.py",
+      "sha256": "d903d518431c4ca3e5f26b58fd377cf1f1128b407f2007753f2a3314b93f087a",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/readiness/__init__.py",
+      "sha256": "4c8b6a8f71ebb04a802ef443ca8c739357fea151f3610a9f36c64faebb410316",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/readiness/compatibility.py",
+      "sha256": "010cc01f6e0a5676bc263c710058cb82d8b0221f06acd33a8725e7573bf57d04",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/readiness/vocabulary.py",
+      "sha256": "1acf0d1c4cdaed5609d2a30ef714a532addb5f72e8f9b00ddafb15d376b9373c",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/schema.py",
+      "sha256": "8ac66871bef2c6633a9eea0dc3b86be46f0a4141dc4175dca45e6688cb2cca44",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/topology/__init__.py",
+      "sha256": "1ee114ed63a0ff66e84febfe4e09d7e6f7dc67bcbd015141e84dcaf95a4f3dee",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/shared/sdlc/topology/contract.py",
+      "sha256": "70fb0713a286f21eb0a9f5f8e1d6f6d4c0b813ec7da25bba22ef01d87afca46b",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/tooling/__init__.py",
       "sha256": "c9a9a0e113e64b85e1adfd0cd5b67a40994f3a8157a5e4e37f6a3c38e33844c6",
       "classification": "CORE_RUNTIME"
@@ -55,29 +220,54 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/tooling/lib/execution_contract.py",
+      "sha256": "ae05c78a546f8df178257587fecbd292363d2b60eb7cc20bf324bc517736a94e",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/gate_persistence.py",
+      "sha256": "149a8c4c721991b51dfdeaa7ad35ac5ed9da84b29877bf2775e60b59aa777763",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/runtime_paths.py",
+      "sha256": "b57e8221ec5d8ef269cdb146fe58b3fabbb7dbd3c4b0354ea34e076aba34b459",
+      "classification": "CORE_RUNTIME"
+    },
+    {
       "path": ".test-kit/tooling/lib/test_kit_policy.py",
       "sha256": "f686cb7f7c5fb3060e48f90163b86506c5c3ebfbcb46dbe1e6e31341016b057c",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1.py",
-      "sha256": "1ffabc165a04eaf3e35dff57e8319f17833a84a5f71b8cb51faf636df1f42cd1",
+      "sha256": "236e6f2bfb5cc2df52955776c52404ed33a7974ba22773f62f1c30dc030e06ae",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_cases.py",
-      "sha256": "6ca606264c80a384e229493ffa1f0c8fcd1e0a80fcecf6effb38a17f24624912",
+      "sha256": "3f71dad5029a8b624569a1a6c916b2ba5626a9e7dd8c6df0940201b305c21f7f",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_excel.py",
-      "sha256": "1ad62f3093b0c01ac5791dcbc59ee43d3071203b7e69bd12d55004f9a6a997bc",
+      "sha256": "76252b82510ace7ed5a0ae53308cee7e3f723d9a9405ec2e0ea8600c34fcd5fd",
       "classification": "OPTIONAL_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_v1_xmind.py",
       "sha256": "4f263f7d08d57f46e36eb8ec128000764bd9ac01cabd5f0419a94695f3b077ab",
       "classification": "OPTIONAL_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/test_promotion.py",
+      "sha256": "a22ca90d78d3072205d2d6ca14b259fe541b6bdc4e90359a7fb1e291984b15f1",
+      "classification": "CORE_RUNTIME"
+    },
+    {
+      "path": ".test-kit/tooling/lib/testware_promotion.py",
+      "sha256": "e2b07e8c986d5236b12ba39d841a2a364d42d1f16f1bffe0fda3c49892841a28",
+      "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/pins/katalon-create-test-cases-v1.json",
@@ -556,11 +746,11 @@
     },
     {
       "path": "test-kit/SKILL.md",
-      "sha256": "13771ee61f508f54b1a56429aa72b723973d4501b9755603ae680892f84c1fdb",
+      "sha256": "2e2ac3a3b63d5fc2752f26609dfb5840a75be72c25aaaddc8ea48ed87dc48b96",
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 111,
+  "managed_file_count": 149,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "75756c2c36c32f9780ea377f43ab66cd8f9363ea0adfcf377b72141ceba82bba"
+  "payload_tree_sha256": "585565c1e7f354ff0f952a2dfefd1657c6c308b1cd7be7f2aedd609dd84dba6f"
 }

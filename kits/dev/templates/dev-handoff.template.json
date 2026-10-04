@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "change_id": "CHANGE-001",
+  "baseline_ref": {
+    "path": "approved/engineering-handoff.yml",
+    "revision": "ba-rev-1",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "implementation": {
+    "commits": [],
+    "changed_components": []
+  },
+  "requirements_coverage": [],
+  "verification": {
+    "build": [],
+    "tests": [],
+    "static_checks": []
+  },
+  "review": {
+    "full_reviews": 0,
+    "blocking_fix_waves": 0,
+    "scoped_rereviews": 0,
+    "blocking_findings": [],
+    "followups": []
+  },
+  "business_ambiguity": { "status": "NEEDS_BA_CLARIFICATION", "items": ["Pending Spec Readiness"] },
+  "human_gate": { "required": false, "resolved": true },
+  "known_risks": [],
+  "state": "IN_PROGRESS"
+}

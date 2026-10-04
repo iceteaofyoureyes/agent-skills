@@ -11,3 +11,5 @@ __pycache__/
 /coverage.xml
 /htmlcov/
 .uv-cache/
+.devkit/
+/tooling/sdlc-suite-lock.json

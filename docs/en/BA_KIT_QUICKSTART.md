@@ -9,9 +9,11 @@ Review input
 → Human answers
 → Business Rules
 → SRS
+→ select and validate a BA baseline candidate
+→ HUMAN_REVIEW and stop for Human approval
 → Draw.io / prototype / DOCX when needed
-→ Human approval
-→ Engineering Handoff
+→ authenticated approval receipt from the trusted host
+→ revalidate and produce Engineering Handoff VNext
 ~~~
 
 The BA still owns business decisions and stakeholder communication. The agent primarily **discovers, reviews, asks, structures, documents, visualizes, and validates**.
@@ -47,6 +49,19 @@ cd /path/to/your-project
 ~~~
 
 Doctor: **READY** = required capabilities/contracts are present; **DEGRADED** = optional capability missing; **FAIL** = required capability/contract problem.
+Doctor reports installed package capability only. It does not report an approved baseline or feature readiness.
+
+## VNext artifacts and approval boundary
+
+- Runtime state: project `workflow-state-vnext.json` (V2); it records workflow progress and is not business authority.
+- Canonical authority: Human BA Decisions, Business Rules with stable `BR-*` IDs, canonical SRS with stable `FR-*` IDs, and the selected BA Baseline Candidate/Manifest. `BAREF:*` is locator/provenance only.
+- Evidence and gate: exact evidence references and a Human approval receipt supplied and authenticated by the trusted host. BA Kit CLI does not authenticate a person or create approval receipts.
+- Handoff: `engineering-handoff.json` (Engineering Handoff VNext), revalidated against the exact candidate, receipt, and source refs.
+- DOCX, Draw.io, and optional visual outputs are derived artifacts.
+
+If Project Foundation is available, consume it only with its durable manifest, promotion provenance, Foundation approval receipt, and trusted Foundation host authentication. Foundation READY is context, not BA approval.
+
+V1 `workflow-state.json` and `engineering-handoff.yml` can be read as `LEGACY_COMPAT`; they never establish VNext approval.
 
 ## Step 1 — Review the requirement
 
@@ -91,7 +106,7 @@ Template: docs/templates/COMPANY_SRS_TEMPLATE.docx.
 Preserve layout/styles; do not invent missing data.
 ~~~
 
-RC1 **does not bundle a default SRS_TEMPLATE.docx**. See [SRS and DOCX](SRS_DOCX_GUIDE.md).
+The repository does not bundle a default SRS_TEMPLATE.docx. See [SRS and DOCX](SRS_DOCX_GUIDE.md).
 
 ### Draw.io
 
@@ -109,33 +124,27 @@ Create a local prototype from confirmed SRS and visual references for my review.
 This is a visual proposal, not production code.
 ~~~
 
-## Step 5 — Review and approve
+## Step 5 — Validate and stop at Human review
 
 ~~~text
-Review SRS revision SRS-42. Do not edit it.
+Review the exact BA candidate and source revisions. Do not edit them.
 ~~~
 
 or:
 
 ~~~text
-Request changes for SRS-42: ...
+Request changes for candidate revision BA-42: ...
 ~~~
 
-When truly accepted:
-
-~~~text
-I approve BR-42 and SRS-42 as the BA baseline for Engineering.
-~~~
-
-**Continue is not approval.**
+The workflow moves `DRAFT → VALIDATED → HUMAN_REVIEW` and stops. Only a trusted host may supply the exact authenticated Human approval receipt to reach `APPROVED_BASELINE`. `CONTINUE != APPROVE`; `ANSWER != APPROVE`; validator PASS, Foundation READY, and UX approval do not approve the BA baseline.
 
 ## Step 6 — Engineering Handoff
 
 ~~~text
-Create the Engineering Handoff.
+After the trusted host supplies approval, revalidate the exact baseline and create Engineering Handoff VNext (`engineering-handoff.json`).
 ~~~
 
-Only valid after explicit approval and no blocking items.
+Only valid from exact `APPROVED_BASELINE` proof and no blocking items. BA owns WHAT; Engineering owns technical HOW.
 
 ## Visual input
 
@@ -151,13 +160,7 @@ A Figma link is only directly usable when the runtime has a connector/access; ot
 
 ## Example
 
-[CR-001 Appointment Scheduling](../../kits/ba/examples/CR-001/README.md) demonstrates input → gap review → Human decisions → Business Rules → SRS → diagram/DOCX delivery examples → engineering handoff.
-
-## Current RC1 status
-
-Package/install/Doctor and redistribution licensing have passed their respective checks. Manual checks for Requirement, Business Rules, SRS, and Draw.io have been exercised. Final manual validation of DOCX and final approval/handoff validation remain pending; BA Kit 1.0.0-rc.1 is a Public Preview and is not fully accepted.
-
-See [Release status](RELEASE.md).
+[Neutral CR-001 example](../../kits/ba/examples/CR-001/README.md) demonstrates the candidate, review gate, BR/FR identity, derived outputs, and handoff boundary.
 
 ---
 

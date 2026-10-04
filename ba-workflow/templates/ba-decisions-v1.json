@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "feature_id": "<feature-id>",
+  "decisions": [
+    {
+      "id": "<human-decision-id>",
+      "topic": "<named-business-question>",
+      "text": "<exact Human decision; replace this placeholder>",
+      "actor_id": "<host-authenticated-human-id>",
+      "actor_role": "HUMAN",
+      "recorded_at": "<host-recorded-UTC-timestamp>",
+      "input_refs": [
+        {"path": "<evidence-path>", "revision": "<revision>", "sha256": "<64-lowercase-hex>"}
+      ],
+      "affected_ids": ["BR-<stable-id>"],
+      "status": "CONFIRMED",
+      "supersedes": [],
+      "superseded_by": [],
+      "implemented_sources": {}
+    }
+  ]
+}

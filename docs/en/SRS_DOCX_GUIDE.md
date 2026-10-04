@@ -9,7 +9,7 @@ They are not the same layer.
 
 ## 1. Which SRS template does BA Kit use?
 
-BA Kit RC1 currently uses a **functional SRS contract**, not one rigid Markdown template for every feature.
+BA Kit uses a **functional SRS contract**, not one rigid Markdown template for every feature.
 
 The **srs-function-document** skill builds the SRS from:
 
@@ -46,7 +46,7 @@ Not every feature needs every section. The agent must not fill unused template s
 
 **No.**
 
-The BA Kit RC1 production repository currently **does not bundle a default SRS_TEMPLATE.docx**.
+The BA Kit repository currently **does not bundle a default SRS_TEMPLATE.docx**.
 
 That means:
 

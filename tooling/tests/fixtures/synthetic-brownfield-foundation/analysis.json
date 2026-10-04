@@ -1,0 +1,55 @@
+{
+  "sections": {
+    "runtime_view": {
+      "status": "PARTIAL",
+      "owner": "ENGINEERING",
+      "evidence": "CURRENT_SYSTEM",
+      "blocking": false,
+      "references": [
+        {
+          "path": "module/src/catalog.py",
+          "revision": "R1",
+          "sha256": "472530d62c2177e36eb9a16764833ae5961c999794fc9af562e4a65d19e1d0fd"
+        }
+      ]
+    },
+    "solution_strategy": {
+      "status": "PARTIAL",
+      "owner": "ENGINEERING",
+      "evidence": "INFERRED",
+      "blocking": false,
+      "references": [
+        {
+          "path": "module/config.json",
+          "revision": "R1",
+          "sha256": "d51c104b78db39f36903c15de6c3ffe0ca4126fb6a61d9927cc1b1822ad37992"
+        }
+      ]
+    },
+    "architecture_decisions": {
+      "status": "UNKNOWN",
+      "owner": "ENGINEERING",
+      "evidence": "UNKNOWN",
+      "blocking": false,
+      "references": []
+    }
+  },
+  "authority_claims": [
+    {
+      "domain": "product",
+      "reference": {
+        "path": "docs/product.md",
+        "revision": "R1",
+        "sha256": "ed6859e36f1bda300395b21ebc5e0659e8a31d06ca20560c98d37bfd8e627d2b"
+      }
+    },
+    {
+      "domain": "product",
+      "reference": {
+        "path": "module/product.md",
+        "revision": "R1",
+        "sha256": "60b05817d7ca72b69330efd079a9c98d8d36927d40bdb57be17878e50d40db4b"
+      }
+    }
+  ]
+}

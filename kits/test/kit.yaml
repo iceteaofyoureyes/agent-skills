@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "test",
   "name": "Test Kit",
-  "version": "1.1.0",
+  "version": "2.0.0-rc.5",
   "workflow": {
     "skill": "test-kit"
   },
@@ -187,12 +187,241 @@
       "destination": ".test-kit/tooling/xmind/serialize.js",
       "classification": "OPTIONAL_RUNTIME",
       "capability": "xmind_projection"
+    },
+    {
+      "source": "ba-workflow/scripts/approved_baseline.py",
+      "destination": ".test-kit/ba-workflow/scripts/approved_baseline.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "ba-workflow/scripts/delivery_manifest.py",
+      "destination": ".test-kit/ba-workflow/scripts/delivery_manifest.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/testware_promotion.py",
+      "destination": ".test-kit/tooling/lib/testware_promotion.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/gate_persistence.py",
+      "destination": ".test-kit/tooling/lib/gate_persistence.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/runtime_paths.py",
+      "destination": ".test-kit/tooling/lib/runtime_paths.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/__init__.py",
+      "destination": ".test-kit/shared/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/__init__.py",
+      "destination": ".test-kit/shared/sdlc/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/approvals/__init__.py",
+      "destination": ".test-kit/shared/sdlc/approvals/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/approvals/gate_persistence.py",
+      "destination": ".test-kit/shared/sdlc/approvals/gate_persistence.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/approvals/invariants.py",
+      "destination": ".test-kit/shared/sdlc/approvals/invariants.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/artifacts/__init__.py",
+      "destination": ".test-kit/shared/sdlc/artifacts/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/artifacts/classes.py",
+      "destination": ".test-kit/shared/sdlc/artifacts/classes.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/artifacts/delivery_manifest.py",
+      "destination": ".test-kit/shared/sdlc/artifacts/delivery_manifest.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/authority/__init__.py",
+      "destination": ".test-kit/shared/sdlc/authority/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/authority/approved_baseline.py",
+      "destination": ".test-kit/shared/sdlc/authority/approved_baseline.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/authority/contracts.py",
+      "destination": ".test-kit/shared/sdlc/authority/contracts.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/compatibility/__init__.py",
+      "destination": ".test-kit/shared/sdlc/compatibility/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/findings/__init__.py",
+      "destination": ".test-kit/shared/sdlc/findings/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/findings/execution_contract.py",
+      "destination": ".test-kit/shared/sdlc/findings/execution_contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/findings/taxonomy.py",
+      "destination": ".test-kit/shared/sdlc/findings/taxonomy.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/promotion/__init__.py",
+      "destination": ".test-kit/shared/sdlc/promotion/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/provenance/__init__.py",
+      "destination": ".test-kit/shared/sdlc/provenance/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/provenance/references.py",
+      "destination": ".test-kit/shared/sdlc/provenance/references.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/provenance/runtime_paths.py",
+      "destination": ".test-kit/shared/sdlc/provenance/runtime_paths.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/readiness/__init__.py",
+      "destination": ".test-kit/shared/sdlc/readiness/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/readiness/vocabulary.py",
+      "destination": ".test-kit/shared/sdlc/readiness/vocabulary.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/execution_contract.py",
+      "destination": ".test-kit/tooling/lib/execution_contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/promotion/immutable.py",
+      "destination": ".test-kit/shared/sdlc/promotion/immutable.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/readiness/compatibility.py",
+      "destination": ".test-kit/shared/sdlc/readiness/compatibility.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/schema.py",
+      "destination": ".test-kit/shared/sdlc/schema.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/topology/__init__.py",
+      "destination": ".test-kit/shared/sdlc/topology/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/topology/contract.py",
+      "destination": ".test-kit/shared/sdlc/topology/contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/policy/__init__.py",
+      "destination": ".test-kit/shared/sdlc/policy/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/policy/contract.py",
+      "destination": ".test-kit/shared/sdlc/policy/contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/foundation/__init__.py",
+      "destination": ".test-kit/shared/sdlc/foundation/__init__.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/foundation/contract.py",
+      "destination": ".test-kit/shared/sdlc/foundation/contract.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "shared/sdlc/foundation/profiles.py",
+      "destination": ".test-kit/shared/sdlc/foundation/profiles.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
+    },
+    {
+      "source": "tooling/lib/test_promotion.py",
+      "destination": ".test-kit/tooling/lib/test_promotion.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "core"
     }
   ],
   "capabilities": {
     "core": "required",
     "xmind_projection": "optional",
-    "excel_projection": "optional"
+    "excel_projection": "optional",
+    "legacy_nested_invocation": "optional"
   },
   "prerequisites": {
     "python": [
@@ -213,13 +442,6 @@
       "required": true,
       "capability": "core",
       "source": "operator-managed"
-    },
-    {
-      "id": "codex-cli",
-      "version": "operator-managed",
-      "required": true,
-      "capability": "native TEA and Katalon invocation",
-      "source": "TEST_KIT_CODEX_COMMAND, then PATH"
     },
     {
       "id": "bmad-testarch-test-design",
@@ -278,11 +500,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "325bcf777c8483824e4425afd9290fe9883616067669dddcf9f59df051d62b90"
+      "sha256": "320ef6ff11fbdb6c1d2fabac0aca28536645d2a7db47179c4d1763c313c36c82"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "75756c2c36c32f9780ea377f43ab66cd8f9363ea0adfcf377b72141ceba82bba"
+      "sha256": "585565c1e7f354ff0f952a2dfefd1657c6c308b1cd7be7f2aedd609dd84dba6f"
     }
   }
 }

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "project": {
+    "id": "synthetic-catalog"
+  },
+  "repositories": [
+    {
+      "id": "docs",
+      "path": "docs",
+      "repository": "example/catalog-docs",
+      "role": "project_documentation_authority"
+    },
+    {
+      "id": "module",
+      "path": "module",
+      "repository": "example/catalog-module",
+      "role": "application_implementation"
+    }
+  ]
+}

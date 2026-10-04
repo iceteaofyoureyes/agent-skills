@@ -17,6 +17,8 @@ from pathlib import Path
 from typing import Callable, Iterable
 
 from . import test_kit_v1 as foundation
+from . import gate_persistence
+from .runtime_paths import preflight_paths, preflight_runtime_layout, revision_component, internal_artifact
 from .codex_cli import CodexCommand, resolve_codex_command
 
 
@@ -56,7 +58,7 @@ CASE_HEADING = re.compile(r"(?m)^##\s+(TC-[A-Za-z0-9][A-Za-z0-9._-]*)(?:\s+(.+?)
 CASE_SHAPED_HEADING = re.compile(r"(?mi)^#{1,6}\s+TC(?:-[^\s]*)?(?:\s|$).*$")
 CASE_ID_TOKEN = re.compile(r"(?<![\w.-])TC-[A-Za-z0-9][A-Za-z0-9._-]*(?![\w.-])", re.IGNORECASE)
 ANY_HEADING = re.compile(r"(?m)^#{1,6}\s+.+$\n?")
-REF_TOKEN = re.compile(r"(?<![\w.-])(?:FR|BR|TD)-[A-Za-z0-9_-]+|(?<![\w.-])\d+(?:\.\d+)?-(?:UNIT|INT|E2E|EXP)-\d+(?![\w-])")
+REF_TOKEN = re.compile(r"(?<![\w.-])BAREF:(?:SRS|BR):\d+|(?<![\w.-])(?:FR|BR|TD)-[A-Za-z0-9_-]+|(?<![\w.-])\d+(?:\.\d+)?-(?:UNIT|INT|E2E|EXP)-\d+(?![\w-])")
 INVALID_REF = re.compile(r"(?<![\w.-])(?:FR|BR|TD)-[A-Za-z0-9_-]*[A-Za-z_][A-Za-z0-9_-]*")
 STEP_ARROW = re.compile(r"^\s*(\d+)\.\s+(.+?)\s+→\s+(.+?)\s*$")
 
@@ -74,14 +76,16 @@ class CaseStep:
 @dataclass(frozen=True)
 class ExecutionDependency:
     need: str
-    material: bool
+    kind: str
     status: str
     resolution_ref: str | None
+    required: bool = True
 
     def to_dict(self) -> dict:
         return {
             "need": self.need,
-            "material": self.material,
+            "kind": self.kind,
+            "required": self.required,
             "status": self.status,
             "resolution_ref": self.resolution_ref,
         }
@@ -337,7 +341,7 @@ def case_gate_input_refs(
         {"id": design.artifact_id, "revision": design.revision, "sha256": design.sha256}
     ]
     policy_ref = foundation.current_project_policy_ref(run_dir, "CASES") if run_dir is not None else None
-    return refs + ([policy_ref] if policy_ref else [])
+    return refs + (foundation.current_delivery_refs(run_dir) if run_dir is not None else []) + ([policy_ref] if policy_ref else [])
 
 
 def load_design_snapshot(
@@ -348,6 +352,8 @@ def load_design_snapshot(
     canonical_path, workflow_path, semantic_payload_path = map(
         lambda path: Path(path).resolve(), (canonical_path, workflow_path, semantic_payload_path)
     )
+    canonical_path = internal_artifact(canonical_path.parent, 'design.json', canonical_path.name)
+    semantic_payload_path = internal_artifact(semantic_payload_path.parent, 'semantic.json', semantic_payload_path.name)
     workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
     raw_records = json.loads(canonical_path.read_text(encoding="utf-8"))
     if not isinstance(raw_records, list) or any(not isinstance(row, dict) or set(row) != set(foundation.RECORD_FIELDS) for row in raw_records):
@@ -384,11 +390,14 @@ def load_case_review_snapshot(
     semantic_payload_path: str | Path,
     *,
     input_manifest_path: str | Path | None = None,
+    _review_workflow: dict | None = None,
 ) -> tuple[CaseSnapshot, CaseWorkflowState]:
     canonical_path, workflow_path, semantic_payload_path = map(
         lambda path: Path(path).resolve(), (canonical_path, workflow_path, semantic_payload_path)
     )
-    workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
+    canonical_path = internal_artifact(canonical_path.parent, 'cases.json', canonical_path.name)
+    semantic_payload_path = internal_artifact(semantic_payload_path.parent, 'semantic.json', semantic_payload_path.name)
+    workflow = _review_workflow if _review_workflow is not None else json.loads(workflow_path.read_text(encoding="utf-8"))
     raw_records = json.loads(canonical_path.read_text(encoding="utf-8"))
     if not isinstance(raw_records, list) or any(not isinstance(row, dict) or set(row) != set(CASE_RECORD_FIELDS) for row in raw_records):
         raise ValueError("canonical Testcases do not match the frozen schema")
@@ -731,7 +740,7 @@ def adapt_approved_design_to_katalon(
         "## EXECUTION ORACLE",
         "",
         "No approved execution contract was supplied." if not execution_refs else "Approved execution contract sources follow.",
-        "Execution details may only come from the approved sources listed below; otherwise preserve material OPEN dependencies.",
+        "Execution details may only come from the approved sources listed below; otherwise preserve typed OPEN dependencies.",
         "",
     ))
     for ref in execution_refs:
@@ -754,7 +763,7 @@ def adapt_approved_design_to_katalon(
         "Do not look up or access Katalon projects, requirements, existing cases, TestOps, suites, links, runs, or execution.",
         "Do not use current Petclinic code to supply business or interface behavior.",
         "Every case must cite explicit source requirement and design IDs. Keep case-level Test Data separate from steps.",
-        "Write each missing setup, action, interval mapping, or observation detail as a material execution dependency in preconditions, using this exact marker: OPEN execution dependencies: <execution-only detail>.",
+        "Write each missing setup, action, interval mapping, or observation detail as a typed execution dependency in preconditions, using this exact marker: OPEN execution dependencies: [TYPE] <detail>. TYPE is SEMANTIC_ORACLE, ENVIRONMENT_ACCESS, TEST_DATA_FIXTURE, IMPLEMENTATION_LOCATOR, TOOLING or OBSERVABILITY. Only missing approved expected behavior is SEMANTIC_ORACLE.",
         "Where used, preserve the OPEN dependency for interval/start-duration-end setup and observation mapping, and for TC-012 editable-field selection.",
         "",
     ))
@@ -825,8 +834,6 @@ def _parse_explicit_refs(
     field: str,
     allowed_design_ids: Iterable[str] = (),
 ) -> list[str]:
-    if INVALID_REF.search(value):
-        raise ValueError(f"{case_id}: malformed reference in {field}: {value}")
     matches = {(match.start(), match.end()): match.group(0) for match in REF_TOKEN.finditer(value)}
     for design_id in set(allowed_design_ids):
         if isinstance(design_id, str) and design_id:
@@ -867,21 +874,46 @@ def _fold(text: str) -> str:
     return "".join(char for char in value if not unicodedata.combining(char)).replace("đ", "d")
 
 
+DEPENDENCY_TYPES = {
+    "SEMANTIC_ORACLE", "ENVIRONMENT_ACCESS", "TEST_DATA_FIXTURE",
+    "IMPLEMENTATION_LOCATOR", "TOOLING", "OBSERVABILITY",
+}
+
+
+def dependency_kind(need):
+    marker = re.match(r"\[([A-Z_]+)\]\s*(.+)", need)
+    if marker:
+        if marker.group(1) not in DEPENDENCY_TYPES:
+            raise ValueError("unknown execution dependency type")
+        return marker.group(1), marker.group(2)
+    text = _fold(need)
+    # Untyped authority gaps fail closed; known execution needs never redefine the oracle.
+    if any(word in text for word in ("expected behavior", "business decision", "semantic oracle", "ux authority")):
+        return "SEMANTIC_ORACLE", need
+    if any(word in text for word in ("credential", "staging", "network", "base url", "access")):
+        return "ENVIRONMENT_ACCESS", need
+    if any(word in text for word in ("fixture", "seed data", "cleanup", "test data")):
+        return "TEST_DATA_FIXTURE", need
+    if any(word in text for word in ("browser", "device", "runtime", "tooling")):
+        return "TOOLING", need
+    if any(word in text for word in ("observation", "observability", "side effect", "read mapping")):
+        return "OBSERVABILITY", need
+    return "IMPLEMENTATION_LOCATOR", need
+
+
 def _dependencies_for_case(block: str, preamble_dependencies: tuple[str, ...]) -> tuple[ExecutionDependency, ...]:
     notes = list(preamble_dependencies)
     for raw_line in block.splitlines():
         line = _clean(raw_line.lstrip("- "))
-        open_marker = re.search(r"\bOPEN(?:\s+execution\s+dependencies)?\s*:\s*(.+)$", line, re.IGNORECASE)
-        if open_marker:
-            notes.append(_clean(open_marker.group(1)))
+        marker = re.search(r"\bOPEN(?:\s+execution\s+dependencies)?\s*:\s*(.+)$", line, re.IGNORECASE)
+        if marker:
+            notes.append(_clean(marker.group(1)))
         elif _dependency_note(line):
             notes.append(line)
         elif "contract" in _fold(line) and any(token in _fold(line) for token in ("editable", "field", "interval", "duration", "mapping", "observation", "action")):
             notes.append(line)
-    return tuple(
-        ExecutionDependency(need, True, "OPEN", None)
-        for need in dict.fromkeys(note for note in notes if note)
-    )
+    return tuple(ExecutionDependency(text, kind, "OPEN", None)
+                 for kind, text in (dependency_kind(need) for need in dict.fromkeys(note for note in notes if note)))
 
 
 def _parse_case_fields(
@@ -952,7 +984,7 @@ def _parse_case_fields(
             if ref in design_id_set or ref.startswith("TD-")
             or re.match(r"\d+(?:\.\d+)?-(?:UNIT|INT|E2E|EXP)-", ref)
         ]
-        reqs = [ref for ref in refs if ref.startswith(("FR-", "BR-"))]
+        reqs = [ref for ref in refs if ref.startswith(("FR-", "BR-", "BAREF:"))]
         if len(reqs) + len(tds) != len(refs):
             raise ValueError(f"{case_id}: Trace contains an unclassified reference")
         steps_match = occurrences["Bước và kết quả mong đợi"][0]
@@ -1371,10 +1403,10 @@ def validate_testcases(
             findings.append(foundation.Finding("MISSING_EXECUTION_DEPENDENCY", f"{case.test_case_id} needs an explicit execution setup/action/observation dependency"))
         dependency_keys = set()
         for dependency in case.execution_dependencies:
-            if not isinstance(dependency.need, str) or not dependency.need.strip() or not isinstance(dependency.material, bool) or dependency.status not in {"OPEN", "RESOLVED"}:
+            if not isinstance(dependency.need, str) or not dependency.need.strip() or dependency.kind not in DEPENDENCY_TYPES or type(dependency.required) is not bool or dependency.status not in {"OPEN", "RESOLVED", "NOT_REQUIRED"}:
                 findings.append(foundation.Finding("INVALID_EXECUTION_DEPENDENCY", f"{case.test_case_id} has an invalid execution dependency"))
                 continue
-            key = (dependency.need, dependency.material, dependency.status, dependency.resolution_ref)
+            key = (dependency.need, dependency.kind, dependency.status, dependency.resolution_ref)
             if key in dependency_keys:
                 findings.append(foundation.Finding("DUPLICATE_EXECUTION_DEPENDENCY", f"{case.test_case_id} repeats an execution dependency"))
             dependency_keys.add(key)
@@ -1394,20 +1426,20 @@ def validate_testcases(
                         f"{dependency.resolution_ref or '<unknown>'} resolves BA UNKNOWN {question.source_ref} through {case.test_case_id} dependency: {excerpt[:180]}",
                         field="execution_dependencies",
                     ))
-            if dependency.status == "OPEN" and dependency.material:
-                findings.append(foundation.Finding("MATERIAL_OPEN_EXECUTION_DEPENDENCY", f"{case.test_case_id}: {dependency.need}"))
+            if dependency.status == "OPEN" and dependency.required and dependency.kind == "SEMANTIC_ORACLE":
+                findings.append(foundation.Finding("OPEN_SEMANTIC_ORACLE", f"{case.test_case_id}: {dependency.need}"))
     for row in design.records:
         if row.expected_behavior is not None and row.design_id not in covered_designs:
             findings.append(foundation.Finding("UNCOVERED_TD", f"approved Test Design row has no testcase: {row.design_id}"))
     findings.extend(explicit_authority_conflicts)
     return CaseValidatorResult(
-        "PASS" if not any(f.code not in {"MATERIAL_OPEN_EXECUTION_DEPENDENCY"} for f in findings) else "FAIL",
+        "PASS" if not any(f.code not in {"OPEN_SEMANTIC_ORACLE"} for f in findings) else "FAIL",
         tuple(findings), snapshot.artifact_id, snapshot.revision, snapshot.sha256,
     )
 
 
-def has_material_open_dependencies(snapshot: CaseSnapshot) -> bool:
-    return any(dep.material and dep.status == "OPEN" for case in snapshot.records for dep in case.execution_dependencies)
+def has_open_semantic_dependencies(snapshot: CaseSnapshot) -> bool:
+    return any(dep.required and dep.kind == "SEMANTIC_ORACLE" and dep.status == "OPEN" for case in snapshot.records for dep in case.execution_dependencies)
 
 
 def _execution_contract_signature(refs: Iterable[dict]) -> tuple[str, ...]:
@@ -1691,11 +1723,11 @@ def _validate_case_gate_receipt(
             finding = foundation.Finding("HUMAN_ACTOR_NOT_AUTHENTICATED", "host must supply a verified Human actor context bound to the receipt")
             return GateReceiptResult("FAIL", finding, findings=(finding,))
 
-    if receipt["decision"] == "APPROVE" and has_material_open_dependencies(snapshot):
-        findings = tuple(f for f in current_validation.findings if f.code == "MATERIAL_OPEN_EXECUTION_DEPENDENCY")
+    if receipt["decision"] == "APPROVE" and has_open_semantic_dependencies(snapshot):
+        findings = tuple(f for f in current_validation.findings if f.code == "OPEN_SEMANTIC_ORACLE")
         finding = foundation.Finding(
-            "MATERIAL_OPEN_EXECUTION_DEPENDENCY",
-            "material OPEN execution dependencies prevent APPROVED_TESTWARE",
+            "OPEN_SEMANTIC_ORACLE",
+            "OPEN SEMANTIC_ORACLE dependencies prevent APPROVED_TESTWARE",
         )
         return GateReceiptResult("FAIL", finding, human_actor=actor_context, findings=(finding, *findings))
     return GateReceiptResult("PASS", None, human_actor=actor_context)
@@ -1966,10 +1998,11 @@ def apply_case_gate_decision(
     next_revision: str | None = None,
 ) -> CaseGateDecisionResult:
     workflow_dir = Path(workflow_dir).resolve()
+    receipt_bytes = json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
     try:
-        persisted_workflow = json.loads((workflow_dir / "workflow-state.json").read_text(encoding="utf-8"))
+        persisted_workflow = gate_persistence.review_state(workflow_dir, workflow_dir / 'case-gate/receipt.json', receipt_bytes)
     except (OSError, ValueError) as error:
-        finding = foundation.Finding("CASE_WORKFLOW_UNAVAILABLE", str(error))
+        finding = foundation.Finding(getattr(error, 'code', 'CASE_WORKFLOW_UNAVAILABLE'), str(error))
         return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot)
     if persisted_workflow.get("state") != "CASE_REVIEW":
         code = "RECEIPT_REPLAY" if (workflow_dir / "case-gate/receipt.json").is_file() else "INVALID_CASE_GATE_TRANSITION"
@@ -1980,6 +2013,7 @@ def apply_case_gate_decision(
             workflow_dir / "canonical/canonical-testcases.json",
             workflow_dir / "workflow-state.json",
             workflow_dir / "canonical/semantic-payload.json",
+            _review_workflow=persisted_workflow,
         )
     except (OSError, ValueError, KeyError, TypeError, RawOutputIntegrityError) as error:
         code = "RAW_OUTPUT_INTEGRITY_FAILURE" if isinstance(error, RawOutputIntegrityError) else "CASE_WORKFLOW_UNAVAILABLE"
@@ -1995,9 +2029,6 @@ def apply_case_gate_decision(
         != (snapshot.artifact_id, snapshot.revision, snapshot.sha256)
     ):
         finding = foundation.Finding("CASE_RECEIPT_BINDING_MISMATCH", "caller snapshot is not the authoritative persisted CASE_REVIEW artifact")
-        return CaseGateDecisionResult("REJECTED", finding, (finding,), persisted_state, persisted_snapshot)
-    if (workflow_dir / "case-gate/receipt.json").exists():
-        finding = foundation.Finding("RECEIPT_REPLAY", "a Case Gate receipt was already consumed for this review")
         return CaseGateDecisionResult("REJECTED", finding, (finding,), persisted_state, persisted_snapshot)
     state = persisted_state
     snapshot = persisted_snapshot
@@ -2015,8 +2046,8 @@ def apply_case_gate_decision(
     if decision_result.status != "REJECTED":
         try:
             persist_case_gate_decision(workflow_dir, decision_result)
-        except FileExistsError:
-            finding = foundation.Finding("RECEIPT_REPLAY", "another decision already consumed a Case Gate receipt")
+        except (OSError, ValueError) as error:
+            finding = foundation.Finding(getattr(error, 'code', 'CASE_GATE_PERSISTENCE_FAILED'), str(error))
             return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot)
     return decision_result
 
@@ -2035,19 +2066,17 @@ def apply_test_only_case_gate_decision(
 ) -> CaseGateDecisionResult:
     workflow_dir = Path(workflow_dir).resolve()
     try:
-        persisted_workflow = json.loads((workflow_dir / "workflow-state.json").read_text(encoding="utf-8"))
+        receipt = json.loads(Path(fixture_path).read_text(encoding='utf-8'))['receipt']
+        receipt_bytes = json.dumps(receipt, ensure_ascii=False, separators=(',', ':')).encode('utf-8')
+        persisted_workflow = gate_persistence.review_state(workflow_dir, workflow_dir / 'case-gate/receipt.json', receipt_bytes)
     except (OSError, ValueError) as error:
-        finding = foundation.Finding("CASE_WORKFLOW_UNAVAILABLE", str(error))
+        finding = foundation.Finding(getattr(error, "code", "CASE_WORKFLOW_UNAVAILABLE"), str(error))
         return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot, test_only=True)
     if persisted_workflow.get("state") != "CASE_REVIEW":
         code = "RECEIPT_REPLAY" if (workflow_dir / "case-gate/receipt.json").is_file() else "INVALID_CASE_GATE_TRANSITION"
         finding = foundation.Finding(code, "authoritative persisted state is not CASE_REVIEW")
         return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot, test_only=True)
     execution_refs = tuple(execution_contract_refs)
-    checked = validate_test_only_case_gate_fixture(
-        fixture_path, snapshot, design, baseline, state, workflow_dir=workflow_dir,
-        validation=validation, execution_contract_refs=execution_refs,
-    )
     try:
         fixture = json.loads(Path(fixture_path).read_text(encoding="utf-8"))
         receipt = fixture["receipt"]
@@ -2058,6 +2087,7 @@ def apply_test_only_case_gate_decision(
             workflow_dir / "canonical/canonical-testcases.json",
             workflow_dir / "workflow-state.json",
             workflow_dir / "canonical/semantic-payload.json",
+            _review_workflow=persisted_workflow,
         )
     except (OSError, ValueError, KeyError, TypeError, RawOutputIntegrityError) as error:
         code = "RAW_OUTPUT_INTEGRITY_FAILURE" if isinstance(error, RawOutputIntegrityError) else "CASE_WORKFLOW_UNAVAILABLE"
@@ -2068,6 +2098,11 @@ def apply_test_only_case_gate_decision(
         finding = foundation.Finding(code, "authoritative persisted state is not the unconsumed TEST_ONLY CASE_REVIEW")
         return CaseGateDecisionResult("REJECTED", finding, (finding,), persisted_state, persisted_snapshot, test_only=True)
     state, snapshot = persisted_state, persisted_snapshot
+    checked = validate_test_only_case_gate_fixture(
+        fixture_path, snapshot, design, baseline, state, workflow_dir=workflow_dir,
+        validation=validation, execution_contract_refs=execution_refs,
+    )
+
     decision_result = _case_gate_transition(
         receipt, snapshot, design, baseline, state, checked,
         execution_contract_refs=execution_refs, next_revision=next_revision, test_only=True,
@@ -2075,8 +2110,8 @@ def apply_test_only_case_gate_decision(
     if decision_result.status != "REJECTED":
         try:
             persist_case_gate_decision(workflow_dir, decision_result)
-        except FileExistsError:
-            finding = foundation.Finding("RECEIPT_REPLAY", "another decision already consumed a TEST_ONLY Case Gate receipt")
+        except (OSError, ValueError) as error:
+            finding = foundation.Finding(getattr(error, "code", "CASE_GATE_PERSISTENCE_FAILED"), str(error))
             return CaseGateDecisionResult("REJECTED", finding, (finding,), state, snapshot, test_only=True)
     return decision_result
 
@@ -2093,14 +2128,22 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
     evidence_dir = Path(evidence_dir).resolve()
     root_workflow_path = evidence_dir / "workflow-state.json"
     try:
-        root_workflow = json.loads(root_workflow_path.read_text(encoding="utf-8"))
+        root_workflow = gate_persistence.review_state(evidence_dir, evidence_dir / 'case-gate/receipt.json', decision.receipt_bytes)
+        before = json.loads(json.dumps(root_workflow))
     except (OSError, ValueError) as error:
         raise ValueError(f"authoritative Case Review workflow is unavailable: {error}") from error
     if root_workflow.get("state") != "CASE_REVIEW" or root_workflow.get("artifact_sha256") != decision.reviewed_snapshot.sha256:
         raise ValueError("authoritative Case Review state changed before receipt persistence")
     if decision.test_only and not foundation.is_test_only_workspace_path(evidence_dir):
         raise ValueError("TEST_ONLY Case Gate evidence must use a temporary directory or .work/benchmark-runs")
-    _write_exclusive(evidence_dir / "case-gate/receipt.json", decision.receipt_bytes)
+    artifacts = []
+    def add_artifact(path, content):
+        artifacts.append((path, content))
+    human_history = [*before.get('human_gate_history', []), {
+        'event': 'HUMAN_APPROVE' if decision.status == 'STOP_V1' else 'HUMAN_REQUEST_CHANGES',
+        'artifact_revision': decision.reviewed_snapshot.revision,
+        'artifact_sha256': decision.reviewed_snapshot.sha256,
+        'receipt_sha256': decision.receipt_sha256}]
     if decision.status == "STOP_V1":
         approved_record = decision.approved_testware.to_dict()
         if decision.test_only:
@@ -2109,29 +2152,30 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
                 "not_for_production": True,
                 "approved_testware": approved_record,
             }
-        _write_exclusive(
+        add_artifact(
             evidence_dir / "approved-testware.json",
             (json.dumps(approved_record, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
         projection = [record.to_dict() for record in decision.reviewed_snapshot.records]
-        _write_exclusive(
-            evidence_dir / "canonical-testcases-approved-projection.json",
+        add_artifact(
+            internal_artifact(evidence_dir, 'approved.json', 'canonical-testcases-approved-projection.json'),
             (json.dumps(projection, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
     else:
         old_projection = [record.to_dict() for record in decision.reviewed_snapshot.records]
-        _write_exclusive(
-            evidence_dir / "case-gate/old-snapshot-projection.json",
+        add_artifact(
+            internal_artifact(evidence_dir / 'case-gate', 'changes.json', 'old-snapshot-projection.json'),
             (json.dumps(old_projection, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
+        revision_component(decision.next_snapshot.revision)
         revision_dir = evidence_dir / "revisions" / decision.next_snapshot.revision
         draft = decision.next_snapshot.project("DRAFT")
-        _write_exclusive(
-            revision_dir / "canonical/canonical-testcases.json",
+        add_artifact(
+            internal_artifact(revision_dir / 'canonical', 'cases.json', 'canonical-testcases.json'),
             (json.dumps([record.to_dict() for record in draft.records], ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
-        _write_exclusive(revision_dir / "canonical/semantic-payload.json", draft.payload_bytes)
-        _write_exclusive(
+        add_artifact(internal_artifact(revision_dir / 'canonical', 'semantic.json', 'semantic-payload.json'), draft.payload_bytes)
+        add_artifact(
             revision_dir / "workflow-state.json",
             (json.dumps({
                 "state": "DRAFT_CASES",
@@ -2143,7 +2187,7 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
                 "derived_from": {"artifact_id": decision.reviewed_snapshot.artifact_id, "revision": decision.reviewed_snapshot.revision, "sha256": decision.reviewed_snapshot.sha256},
             }, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
         )
-    _write_exclusive(
+    add_artifact(
         evidence_dir / "case-gate/workflow-state.json",
         (json.dumps({
             "state": decision.workflow.state,
@@ -2164,6 +2208,7 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
                 for ref in decision.workflow.input_refs
             ],
             "history": list(decision.state_history),
+            "human_gate_history": human_history,
             "test_only": decision.test_only,
             "project_policy_context": decision.workflow.project_policy_context,
         }, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
@@ -2176,12 +2221,22 @@ def persist_case_gate_decision(evidence_dir: str | Path, decision: CaseGateDecis
         "review_status": decision.workflow.review_status,
         "validation_status": decision.workflow.validation_status,
         "history": list(decision.state_history),
+        "human_gate_history": human_history,
         "test_only": decision.test_only,
+        "case_gate_receipt_mode": "TEST_ONLY" if decision.test_only else "HUMAN_AUTHENTICATED",
+        "case_gate_receipt_evidence": {"path": str(evidence_dir / "case-gate/receipt.json"), "sha256": decision.receipt_sha256},
     })
-    foundation._write_workflow_state_atomic(root_workflow_path, root_workflow, list(decision.state_history))
+    if decision.next_snapshot is not None:
+        root_workflow['derived_from'] = {'artifact_id': decision.reviewed_snapshot.artifact_id,
+                                        'revision': decision.reviewed_snapshot.revision,
+                                        'sha256': decision.reviewed_snapshot.sha256}
+    gate_persistence.commit_gate(evidence_dir, evidence_dir / 'case-gate/receipt.json',
+                                 decision.receipt_bytes, artifacts, before, root_workflow,
+                                 stage='CASE_GATE', transition='APPROVE' if decision.status == 'STOP_V1' else 'REQUEST_CHANGES')
 
 
 def _write_exclusive(path: Path, content: bytes) -> None:
+    preflight_paths([path], stage='CASES', transition='WRITE')
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("xb") as file:
         file.write(content)
@@ -2312,8 +2367,16 @@ def persist_case_review(
         raise ValueError("CASE_REVIEW persistence requires validators bound to the exact testcase snapshot")
     if state.state != "CASE_REVIEW" or (state.artifact_id, state.artifact_revision, state.artifact_sha256) != (snapshot.artifact_id, snapshot.revision, snapshot.sha256):
         raise ValueError("CASE_REVIEW state is not bound to the exact testcase snapshot")
-    run_dir = Path(run_dir)
+    run_dir = Path(run_dir).resolve()
     created_paths: list[Path] = []
+    preflight_runtime_layout(run_dir, 'CASES', 'FINALIZE')
+    policy_path = run_dir / 'inputs/project-policy-context.json'
+    if policy_path.is_file():
+        policy_context = json.loads(policy_path.read_text(encoding='utf-8'))
+        foundation.current_project_policy_ref(run_dir, 'CASES')
+        if state.project_policy_context is not None and state.project_policy_context != policy_context:
+            raise foundation.ProjectPolicyBindingError('Case Review policy context differs from the recorded invocation')
+        state = replace(state, project_policy_context=policy_context)
     authoritative_raw_evidence: tuple[Path, str] | None = None
     raw_evidence_refs = [ref for ref in snapshot.evidence if ref.field == "katalon_raw_output"]
     if raw_evidence_refs:
@@ -2526,11 +2589,282 @@ Use this exact known native raw profile for every case and add no fields or alte
 - Priority: P1.
 - Trace: FR/BR IDs; exact canonical design IDs (for example: FR-001, BR-004; 1.1-UNIT-001). Do not prefix design IDs with TD or add other text.
 
-Make each missing setup, action, interval mapping, or observation detail explicit in the relevant preconditions using this exact marker: OPEN execution dependencies: <execution-only detail>. Do not use free-form OPEN prose as a dependency or turn a BA UNKNOWN into an execution dependency. TC-012 editable-field selection remains OPEN when applicable. No approved execution oracle is included unless its refs appear in the input.
+Make each missing setup, action, interval mapping, or observation detail explicit in the relevant preconditions using this exact marker: OPEN execution dependencies: [TYPE] <detail>. TYPE is SEMANTIC_ORACLE, ENVIRONMENT_ACCESS, TEST_DATA_FIXTURE, IMPLEMENTATION_LOCATOR, TOOLING or OBSERVABILITY. Only missing approved expected behavior is SEMANTIC_ORACLE. Do not use free-form OPEN prose as a dependency or turn a BA UNKNOWN into an execution dependency. TC-012 editable-field selection remains OPEN when applicable. No approved execution oracle is included unless its refs appear in the input.
 
 Write only the completed raw testcase Markdown to {raw_output}. The caller retains raw output, invocation JSONL, stderr, and status; do not create sidecar evidence files.
 Write the completed output with Python 3 pathlib so its UTF-8 bytes are preserved exactly.
 """
+
+
+
+def _load_persisted_design_authorization(
+    design_run_dir: str | Path,
+    baseline: foundation.ApprovedBaseline,
+) -> tuple[foundation.DesignSnapshot, DesignGateAuthorization, dict]:
+    """Trust only a previously persisted HUMAN_AUTHENTICATED Design approval."""
+    design_run = Path(design_run_dir).resolve()
+    design = foundation.load_persisted_design_snapshot(
+        design_run, require_state="APPROVED_DESIGN"
+    )
+    workflow_path = design_run / "workflow-state.json"
+    try:
+        workflow = json.loads(workflow_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        raise ValueError(f"approved Design workflow is unavailable: {error}") from error
+    if workflow.get("design_gate_receipt_mode") != "HUMAN_AUTHENTICATED":
+        raise ValueError("production testcase generation requires a persisted Human-authenticated Design approval")
+
+    receipt_path = design_run / "design-gate/revisions" / design.revision / "receipt.json"
+    try:
+        receipt_bytes = receipt_path.read_bytes()
+        receipt = json.loads(receipt_bytes.decode("utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError) as error:
+        raise ValueError(f"persisted Design Gate receipt is unavailable: {error}") from error
+    finding = _receipt_shape_finding(receipt, "DESIGN_REVIEW")
+    if finding or receipt.get("decision") != "APPROVE":
+        raise ValueError(finding.message if finding else "persisted Design Gate receipt is not APPROVE")
+    if str(receipt.get("actor_id", "")).startswith("TEST_ONLY:"):
+        raise ValueError("TEST_ONLY Design approval is not valid for production testcase generation")
+
+    expected_refs = tuple(
+        (ref["id"], ref["revision"], ref["sha256"])
+        for ref in foundation.design_gate_input_refs(baseline, design_run)
+    )
+    actual_refs = _receipt_refs(receipt)
+    receipt_ref = {
+        "path": str(receipt_path),
+        "sha256": hashlib.sha256(receipt_bytes).hexdigest(),
+    }
+    if (
+        receipt.get("artifact_id") != design.artifact_id
+        or receipt.get("artifact_revision") != design.revision
+        or str(receipt.get("artifact_sha256", "")).lower() != design.sha256
+        or actual_refs != expected_refs
+        or workflow.get("design_gate_receipt_evidence") != receipt_ref
+    ):
+        raise ValueError("persisted Design Gate approval is stale or not bound to the current Design/BA inputs")
+    validation = foundation.validate_design(design, baseline)
+    if validation.status != "PASS":
+        raise ValueError("persisted approved Design no longer passes the frozen validator")
+    authorization = DesignGateAuthorization(
+        design.artifact_id,
+        design.revision,
+        design.sha256,
+        actual_refs,
+        False,
+        str(receipt_path),
+        receipt_ref["sha256"],
+    )
+    return design, authorization, {**receipt_ref, "mode": "HUMAN_AUTHENTICATED"}
+
+
+def prepare_same_session_cases(
+    handoff_path: str | Path,
+    design_run_dir: str | Path,
+    run_dir: str | Path,
+    *,
+    project_root: str | Path,
+    skill_dir: str | Path,
+    execution_oracle_refs: Iterable[dict] = (),
+    delivery_path: str | Path | None = None,
+) -> dict:
+    """Prepare approved Design inputs for same-session create-test-cases execution."""
+    run_dir = Path(run_dir).resolve()
+    preflight_runtime_layout(run_dir, 'CASES', 'PREPARE')
+    project_root = Path(project_root).resolve()
+    skill_dir = Path(skill_dir).resolve()
+    expected_skill = (project_root / ".agents/skills" / KATALON_CAPABILITY).resolve()
+    if not expected_skill.is_dir() or not skill_dir.is_dir() or not expected_skill.samefile(skill_dir):
+        raise RuntimeError("same-session testcase generation must use the project-local pinned create-test-cases skill")
+    skill_files = _verify_pinned_skill(skill_dir)
+    design_delivery = Path(design_run_dir) / "evidence/delivery-input.json"
+    if design_delivery.is_file():
+        frozen = json.loads(design_delivery.read_text(encoding="utf-8"))
+        if delivery_path and Path(delivery_path).resolve() != Path(frozen["path"]).resolve():
+            raise ValueError("Case Delivery Manifest differs from approved Design input")
+        foundation.current_delivery_refs(design_run_dir)
+        _write_if_same_or_absent(run_dir / "evidence/delivery-input.json", design_delivery.read_bytes())
+    elif delivery_path:
+        raise ValueError("Design was not prepared from the requested Delivery Manifest")
+
+    baseline = foundation.load_approved_baseline(handoff_path)
+    design, authorization, receipt_ref = _load_persisted_design_authorization(
+        design_run_dir, baseline
+    )
+    execution_refs = tuple(execution_oracle_refs)
+    katalon_input = adapt_approved_design_to_katalon(
+        design,
+        authorization,
+        baseline,
+        execution_oracle_refs=execution_refs,
+    )
+    policy_context = foundation.persist_project_policy_context(
+        run_dir, project_root, "CASES"
+    )
+    if policy_context and policy_context["policy"]:
+        from .test_kit_policy import non_authoritative_policy_prompt, resolve_project_policy
+        katalon_input = replace(
+            katalon_input,
+            markdown=katalon_input.markdown + "\n" + non_authoritative_policy_prompt(
+                resolve_project_policy(project_root, "CASES"), policy_context["policy"]
+            ),
+        )
+
+    input_path = run_dir / "inputs/approved-test-design.md"
+    _write_if_same_or_absent(input_path, katalon_input.markdown.encode("utf-8"))
+    for source in (*baseline.source_paths.values(), baseline.handoff_path):
+        _write_if_same_or_absent(
+            run_dir / "inputs/baseline" / source.name, source.read_bytes()
+        )
+
+    raw_output = run_dir / "raw-output/test-cases.md"
+    instructions = run_dir / "raw-output/same-session-instructions.md"
+    prompt = f"""$create-test-cases
+
+Execute the installed project-local create-test-cases capability in this current agent session.
+Do not start codex, codexapi, another agent process, or a nested model invocation.
+Pinned skill: {skill_dir / 'SKILL.md'}
+Approved input: {input_path}
+Raw output: {raw_output}
+
+Use the approved canonical Test Design as the coverage oracle and the embedded BUSINESS ORACLE as business authority.
+Do not add, remove, merge, or reinterpret approved coverage. Preserve UNKNOWN/deferred semantics.
+Generate local manual testcase semantics only. Do not access external Katalon/TestOps services.
+Do not inspect application source to invent expected behavior.
+
+Use the pinned skill's manual testcase method and write only its completed raw testcase Markdown to the prepared raw output path.
+If the capability cannot complete from these prepared inputs, stop and report the blocker.
+"""
+    _write_if_same_or_absent(instructions, prompt.encode("utf-8"))
+
+    input_manifest = {
+        "design": {
+            "artifact_id": design.artifact_id,
+            "revision": design.revision,
+            "sha256": design.sha256,
+        },
+        "ba_input_refs": list(katalon_input.ba_refs),
+        "execution_contract_refs": list(katalon_input.execution_refs),
+        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "design_gate_receipt_evidence": receipt_ref,
+        "project_policy_context": policy_context,
+    }
+    _write_if_same_or_absent(
+        run_dir / "inputs/input-manifest.json",
+        (json.dumps(input_manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    manifest = {
+        "schema_version": 1,
+        "mode": "SAME_SESSION",
+        "stage": "CASES",
+        "status": "PREPARED",
+        "feature_id": baseline.feature_id,
+        "ba_revision": baseline.revision,
+        "handoff_path": str(baseline.handoff_path),
+        "handoff_sha256": baseline.handoff_sha256,
+        "design_run_dir": str(Path(design_run_dir).resolve()),
+        "design": input_manifest["design"],
+        "project_root": str(project_root),
+        "skill": {
+            "capability": KATALON_CAPABILITY,
+            "path": str(skill_dir),
+            "commit": KATALON_COMMIT,
+            "files": skill_files,
+        },
+        "project_policy_context": policy_context,
+        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "design_gate_receipt_evidence": receipt_ref,
+        "execution_contract_refs": list(execution_refs),
+        "input_path": str(input_path),
+        "instructions_path": str(instructions),
+        "raw_output_path": str(raw_output),
+    }
+    manifest_path = run_dir / "evidence/same-session-prepare.json"
+    _write_exclusive(
+        manifest_path,
+        (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return {**manifest, "manifest_path": str(manifest_path)}
+
+
+def finalize_same_session_cases(
+    handoff_path: str | Path,
+    run_dir: str | Path,
+    *,
+    raw_cases: str | Path | None = None,
+    artifact_id: str | None = None,
+    revision: str = "1",
+) -> CaseIntegrationResult:
+    """Normalize, validate and submit same-session testcase output to CASE_REVIEW."""
+    run_dir = Path(run_dir).resolve()
+    preflight_runtime_layout(run_dir, 'CASES', 'FINALIZE')
+    prepare_path = run_dir / "evidence/same-session-prepare.json"
+    if not prepare_path.is_file():
+        raise RuntimeError("same-session testcase preparation evidence is missing")
+    prepared = json.loads(prepare_path.read_text(encoding="utf-8"))
+    if prepared.get("mode") != "SAME_SESSION" or prepared.get("stage") != "CASES" or prepared.get("status") != "PREPARED":
+        raise RuntimeError("same-session testcase preparation evidence is invalid")
+
+    baseline = foundation.load_approved_baseline(handoff_path)
+    design, _, receipt_ref = _load_persisted_design_authorization(
+        prepared["design_run_dir"], baseline
+    )
+    if (
+        prepared.get("feature_id") != baseline.feature_id
+        or prepared.get("ba_revision") != baseline.revision
+        or prepared.get("handoff_sha256") != baseline.handoff_sha256
+        or prepared.get("design") != {
+            "artifact_id": design.artifact_id,
+            "revision": design.revision,
+            "sha256": design.sha256,
+        }
+        or prepared.get("design_gate_receipt_evidence") != receipt_ref
+    ):
+        raise RuntimeError("BA baseline or approved Design changed after testcase preparation")
+
+    raw_path = Path(raw_cases).resolve() if raw_cases else Path(prepared["raw_output_path"]).resolve()
+    expected_raw = Path(prepared["raw_output_path"]).resolve()
+    if raw_path != expected_raw or not raw_path.is_file():
+        raise RuntimeError(f"same-session testcase output is missing or not at the prepared path: {expected_raw}")
+    raw_hash = _hash_path(raw_path)
+    manifest = {
+        "mode": "SAME_SESSION",
+        "status": "ARTIFACT_COMPLETE",
+        "raw_output_path": str(raw_path),
+        "raw_output_sha256": raw_hash,
+        "receipt_mode": "HUMAN_AUTHENTICATED",
+        "design_gate_receipt_evidence": receipt_ref,
+        "project_policy_context": prepared.get("project_policy_context"),
+    }
+    result = _finish_case_integration(
+        manifest,
+        design,
+        baseline,
+        run_dir,
+        execution_contract_refs=tuple(prepared.get("execution_contract_refs", [])),
+        artifact_id=artifact_id or f"{baseline.feature_id}-testcases",
+        revision=revision,
+    )
+    if result.status != "CASE_REVIEW":
+        raise RuntimeError(f"testcase finalize failed: {result.status}")
+    summary = {
+        "schema_version": 1,
+        "mode": "SAME_SESSION",
+        "stage": "CASES",
+        "status": result.status,
+        "feature_id": baseline.feature_id,
+        "artifact_id": result.workflow.artifact_id,
+        "artifact_revision": result.workflow.artifact_revision,
+        "artifact_sha256": result.workflow.artifact_sha256,
+        "review_status": result.workflow.review_status,
+        "validation_status": result.workflow.validation_status,
+        "raw_output_path": str(raw_path),
+    }
+    _write_exclusive(
+        run_dir / "evidence/same-session-finalize.json",
+        (json.dumps(summary, ensure_ascii=False, indent=2) + "\n").encode("utf-8"),
+    )
+    return result
 
 
 def invoke_native_katalon(
@@ -2869,6 +3203,15 @@ def _finish_case_integration(
             run_dir, manifest, raw_path, actual_raw_hash or hashlib.sha256(raw_bytes).hexdigest(), integrity_message,
         )
 
+    # Every producer must persist the same raw-output binding consumed by Case Gate.
+    manifest_path = Path(run_dir) / "evidence/invocation-manifest.json"
+    if manifest_path.exists():
+        persisted = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if persisted != manifest:
+            return _case_raw_integrity_failure(run_dir, manifest, raw_path, actual_raw_hash, "invocation manifest drift")
+    else:
+        _write_exclusive(manifest_path, (json.dumps(manifest, ensure_ascii=False, indent=2) + "\n").encode("utf-8"))
+
     verified_path = Path(run_dir) / "evidence/verified-katalon-output.md"
     normalization = normalize_katalon_output_bytes(
         raw_bytes, design, baseline, source_path=verified_path,
@@ -2975,3 +3318,59 @@ def run_katalon_case_integration_test_only(
         execution_contract_refs=execution_refs, artifact_id=artifact_id, revision=revision,
         allow_test_only_execution_oracles=True,
     )
+
+
+def main(argv=None) -> int:
+    import argparse
+    import sys
+
+    parser = argparse.ArgumentParser(description="Test Kit same-session testcase workflow")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    prepare = subparsers.add_parser("prepare-cases")
+    prepare.add_argument("--handoff", type=Path, required=True)
+    prepare.add_argument("--design-run-dir", type=Path, required=True)
+    prepare.add_argument("--run-dir", type=Path, required=True)
+    prepare.add_argument("--project-root", type=Path, required=True)
+    prepare.add_argument("--skill-dir", type=Path, required=True)
+
+    finalize = subparsers.add_parser("finalize-cases")
+    finalize.add_argument("--handoff", type=Path, required=True)
+    finalize.add_argument("--run-dir", type=Path, required=True)
+    finalize.add_argument("--raw-cases", type=Path)
+    finalize.add_argument("--artifact-id")
+    finalize.add_argument("--revision", default="1")
+
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "prepare-cases":
+            result = prepare_same_session_cases(
+                args.handoff,
+                args.design_run_dir,
+                args.run_dir,
+                project_root=args.project_root,
+                skill_dir=args.skill_dir,
+            )
+            print(json.dumps(result, ensure_ascii=False, indent=2))
+        else:
+            result = finalize_same_session_cases(
+                args.handoff,
+                args.run_dir,
+                raw_cases=args.raw_cases,
+                artifact_id=args.artifact_id,
+                revision=args.revision,
+            )
+            print(json.dumps({
+                "status": result.status,
+                "artifact_id": result.workflow.artifact_id if result.workflow else None,
+                "artifact_revision": result.workflow.artifact_revision if result.workflow else None,
+                "artifact_sha256": result.workflow.artifact_sha256 if result.workflow else None,
+            }, ensure_ascii=False, indent=2))
+        return 0
+    except (RuntimeError, ValueError, OSError, json.JSONDecodeError) as error:
+        print(f"FAIL: {error}", file=sys.stderr)
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

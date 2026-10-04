@@ -13,6 +13,11 @@ Test Kit + TEA = HOW DO WE PROVE IT
 
 ## Layers
 
+Integration contracts now physically live in `shared/sdlc`, with adapters
+preserving BA/Test/Dev callers and current semantics. See the
+[Shared SDLC Core Wave 1 migration map](SHARED_SDLC_CORE_WAVE1.md) for ownership,
+installed payloads, and remaining Wave 2 boundaries.
+
 ~~~text
 User intent
     ↓
@@ -68,7 +73,7 @@ The workflow starts at the earliest safe checkpoint rather than forcing every re
 
 | Stage | Question | Status |
 |---|---|---|
-| BA Kit | **WHAT**? | RC1 candidate; remediation |
+| BA Kit | **WHAT**? | VNext packaging candidate; Tier 3 installed-runtime acceptance required; not stable |
 | Engineering Impact | **WHERE / WHO OWNS**? | Planned |
 | Dev Kit + Spec Kit | **HOW**? | Planned |
 | Test Kit V1 | **HOW DO WE PROVE IT**? | Core/XMind/Excel/Packaging V1 Human accepted; package committed |

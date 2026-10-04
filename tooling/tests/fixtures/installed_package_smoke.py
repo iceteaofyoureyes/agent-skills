@@ -77,8 +77,8 @@ next_stage:
   capability: engineering-impact-analysis
 """,
 )
-(project / "_bmad/tea").mkdir(parents=True)
-(project / "_bmad/tea/config.yaml").write_text("version: 1\n", encoding="utf-8")
+assert (project / "_bmad/tea/config.yaml").is_file()
+tea_config_sha = digest(project / "_bmad/tea/config.yaml")
 
 smoke_scenarios = [
     ("TD-001", "Create appointment", "FR-001; BR-001", "A valid request is stored in Scheduled status."),
@@ -454,3 +454,5 @@ next_stage:
     assert excel_result.xlsx_path.is_file()
     print("OPTIONAL_PROJECTIONS: PASS")
 print("INSTALLED_SMOKE: PASS")
+
+assert digest(project / "_bmad/tea/config.yaml") == tea_config_sha

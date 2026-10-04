@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "artifact_type": "BA_BASELINE_CANDIDATE",
+  "feature": {"id": "<feature-id>", "title": "<feature-title>"},
+  "id": "<baseline-id>",
+  "revision": "<revision>",
+  "mode": "GREENFIELD",
+  "sources": {
+    "business_rules": {"path": "<canonical-business-rules.md>", "revision": "<revision>", "sha256": "<64-lowercase-hex>"},
+    "srs": {"path": "<canonical-srs.md>", "revision": "<revision>", "sha256": "<64-lowercase-hex>"},
+    "decisions": {"path": "<ba-decisions-v1.json>", "revision": "<revision>", "sha256": "<64-lowercase-hex>"}
+  },
+  "domain_refs": [],
+  "blocking": ["<replace with reviewed blocking items or an empty list>"],
+  "non_blocking": [],
+  "contradictions": [],
+  "evidence": [],
+  "business_identities": [
+    {"id": "BR-<stable-id>", "semantic_key": "<business-rule-meaning>", "status": "ACTIVE"},
+    {"id": "FR-<stable-id>", "semantic_key": "<functional-requirement-meaning>", "status": "ACTIVE"}
+  ],
+  "coverage_ids": ["BR-<stable-id>", "FR-<stable-id>"],
+  "knowledge_impact": {"schema_version": 1, "areas": {
+    "product": {"affected": false, "targets": []},
+    "domain": {"affected": false, "targets": []},
+    "architecture": {"affected": false, "targets": []},
+    "testing": {"affected": false, "targets": []}
+  }},
+  "semantic_sha256": "<computed-by-canonical-candidate-publisher>"
+}

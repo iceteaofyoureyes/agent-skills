@@ -226,6 +226,8 @@ def _load_approved_collection(directory: str | Path, *, test_only: bool):
 
     canonical_path = root / "canonical-testcases-approved-projection.json"
     if not canonical_path.is_file():
+        canonical_path = root / 'approved.json'
+    if not canonical_path.is_file():
         canonical_path = root / "canonical/canonical-testcases-approved-projection.json"
     semantic_path = root / "semantic-payload.json"
     if not semantic_path.is_file():

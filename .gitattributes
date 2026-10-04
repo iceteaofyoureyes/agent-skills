@@ -25,6 +25,16 @@ tooling/xmind/package-lock.json text eol=lf
 tooling/xmind/serialize.js text eol=lf
 
 ba-workflow/scripts/contracts.py text eol=lf
+ba-workflow/scripts/approved_baseline.py text eol=lf
+ba-workflow/scripts/delivery_manifest.py text eol=lf
+tooling/lib/dev*.py text eol=lf
+tooling/lib/testware_promotion.py text eol=lf
+tooling/lib/gate_persistence.py text eol=lf
+tooling/lib/runtime_paths.py text eol=lf
+tooling/lib/execution_contract.py text eol=lf
+tooling/install_dev_kit.py text eol=lf
+kits/dev/** text eol=lf
+dev-kit/** text eol=lf
 LICENSE text eol=lf
 
 # Reviewed BA and Test Kit evidence hashes bind exact LF bytes.
@@ -33,3 +43,12 @@ benchmark/test-kit/**/*.md text eol=lf
 benchmark/test-kit/**/*.json text eol=lf
 benchmark/test-kit/**/*.yml text eol=lf
 benchmark/test-kit/**/*.yaml text eol=lf
+
+# Canonical UX receipt fixture hashes bind these exact source bytes.
+tooling/tests/fixtures/delivery-ux-canonical/** text eol=lf
+
+# Shared payloads and synthetic exact references are stable across clean checkouts.
+shared/** text eol=lf
+project-foundation/** text eol=lf
+project-foundation/scripts/*.zip binary
+tooling/tests/fixtures/synthetic-*-foundation/** text eol=lf

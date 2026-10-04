@@ -1,0 +1,20 @@
+{
+  "name": "agent-skills-dev-kit",
+  "interface": {
+    "displayName": "Agent Skills Dev Kit"
+  },
+  "plugins": [
+    {
+      "name": "agent-skills-dev-kit",
+      "source": {
+        "source": "local",
+        "path": "./kits/dev/plugin"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

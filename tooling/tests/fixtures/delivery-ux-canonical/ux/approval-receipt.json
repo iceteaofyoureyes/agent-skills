@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "feature_id": "CR-001",
+  "decision": "APPROVE",
+  "decision_type": "HUMAN_EXPLICIT_EXACT_SNAPSHOT_APPROVAL",
+  "approved_by": "Human",
+  "recorded_at_utc": "2026-10-02T17:04:17Z",
+  "revision": "UX-001",
+  "immutable": true,
+  "semantic_snapshot_sha256": "ff4da9472ba3a1b0958635976cf1c61c58633b030ab9089d5b2a6b4ab97d9cf8",
+  "semantic_snapshot_sha256_method": "SHA-256 of UTF-8 canonical JSON mapping the two relative UX artifact paths to individual SHA-256 values; keys sorted, compact separators.",
+  "sources": {
+    "ux/ux-contract.md": "6575ed148fab9947dee327ba12c8c3602d4fa36aa46054cf17da2da353f0855f",
+    "ux/prototype.html": "8c08e5872e5a5b2afd5a71feb989993204256819b6f2a1ca41c5e05945acac2e"
+  },
+  "source_commit": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "source_branch": "synthetic/canonical-ux-approval",
+  "prototype_authority": "REVIEW_EVIDENCE",
+  "formal_browser_AT_WCAG_testing": "NOT_RUN",
+  "conformance_PASS_claimed": false,
+  "reapproval_required_if_source_bytes_change": true
+}

@@ -18,7 +18,7 @@ sys.dont_write_bytecode = True
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "ba-workflow/scripts"))
-from contracts import validate_handoff_file, validate_handoff_text, validate_state_data  # noqa: E402
+from ba_contracts import validate_handoff_file, validate_handoff_text, validate_state_data, read_state, read_handoff  # noqa: E402
 
 
 INSTALL_RECORD = ".ba-kit-install.json"
@@ -277,13 +277,17 @@ def _valid_skill(directory, skill):
     return False
 
 
+def is_skill_payload(path):
+    return "__pycache__" not in Path(path).parts and Path(path).suffix != ".pyc"
+
+
 def tree_hash(directory):
     directory = Path(directory)
     digest = hashlib.sha256()
     for path in sorted(directory.rglob("*")):
         if path.is_symlink():
             raise ValueError(f"refusing to hash symlink: {path}")
-        if path.is_file():
+        if path.is_file() and is_skill_payload(path):
             digest.update(path.relative_to(directory).as_posix().encode("utf-8"))
             digest.update(b"\0")
             with path.open("rb") as stream:
@@ -318,7 +322,7 @@ def _managed_skill_files(source, skill, classification):
     for path in sorted(source.rglob("*"), key=lambda item: item.relative_to(source).as_posix().encode("utf-8")):
         if path.is_symlink():
             raise ValueError(f"refusing to record symlink: {path}")
-        if path.is_file():
+        if path.is_file() and is_skill_payload(path):
             relative = path.relative_to(source).as_posix()
             result[f"{skill}/{relative}"] = {"sha256": _content_hash(path), "classification": classification}
     return result
@@ -496,7 +500,7 @@ def _apply_plan(target_dir, plan, record_path, record):
             stage_path = staged / str(index)
             stage_path.parent.mkdir(parents=True, exist_ok=True)
             if item["kind"] == "skill":
-                shutil.copytree(item["source"], stage_path)
+                shutil.copytree(item["source"], stage_path, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
                 actual = tree_hash(stage_path)
             else:
                 shutil.copyfile(item["source"], stage_path)
@@ -550,7 +554,7 @@ def _apply_plan(target_dir, plan, record_path, record):
             shutil.rmtree(staging, ignore_errors=True)
 
 
-def install(source_root, target_dir, kit_id="ba"):
+def install(source_root, target_dir, kit_id="ba", *, project_root=None):
     source_root = Path(source_root).resolve()
     target_dir = Path(target_dir).expanduser().resolve()
     manifest = load_manifest(source_root, kit_id)
@@ -733,7 +737,18 @@ def install(source_root, target_dir, kit_id="ba"):
     record["managed_files"] = dict(sorted(next_managed_files.items(), key=lambda item: item[0].encode("utf-8")))
     record["managed_file_count"] = len(record["managed_files"])
     _apply_plan(target_dir, plan, record_path, record)
-    return {"installed": installed, "preserved": preserved, "conflicts": sorted(set(conflicts)), "skipped": skipped}
+    tea_project_config = None
+    if kit_id == "test":
+        resolved_project_root = Path(project_root).resolve() if project_root is not None else _infer_project_root_from_target(target_dir)
+        if resolved_project_root is not None:
+            tea_project_config = _ensure_test_tea_project_config(resolved_project_root)
+    return {
+        "installed": installed,
+        "preserved": preserved,
+        "conflicts": sorted(set(conflicts)),
+        "skipped": skipped,
+        "tea_project_config": tea_project_config,
+    }
 
 
 def _prune_empty_parents(path, stop):
@@ -815,6 +830,110 @@ def _skill_names(manifest):
     workflow = manifest["workflow"]["skill"]
     required = [workflow, *manifest["core"], *manifest["skills"]["required"]]
     return required, manifest["skills"]["optional"]
+
+
+TEST_TEA_CONFIG_RELATIVE = Path("_bmad/tea/config.yaml")
+TEST_TEA_REQUIRED_CONFIG_FIELDS = (
+    "user_name",
+    "communication_language",
+    "document_output_language",
+    "output_folder",
+    "test_artifacts",
+    "test_stack_type",
+)
+
+
+def _infer_project_root_from_target(target_dir):
+    target = Path(target_dir).expanduser().resolve()
+    if target.name == "skills" and target.parent.name in {".agents", ".claude"}:
+        return target.parent.parent
+    return None
+
+
+def _tea_project_config_text(project_root):
+    # Keep starter paths portable so this project-owned config can be committed
+    # and shared by every tester regardless of checkout location.
+    Path(project_root).resolve()
+    test_artifacts = ".test-kit/runtime"
+    return (
+        "user_name: Tester\n"
+        "communication_language: Vietnamese\n"
+        "document_output_language: Vietnamese\n"
+        f"output_folder: {test_artifacts}\n"
+        f"test_artifacts: {test_artifacts}\n"
+        "test_stack_type: fullstack\n"
+        "tea_use_playwright_utils: false\n"
+        "tea_use_pactjs_utils: false\n"
+        "tea_pact_mcp: none\n"
+        "tea_browser_automation: none\n"
+        "tea_execution_mode: sequential\n"
+        "tea_capability_probe: false\n"
+    )
+
+
+def _ensure_test_tea_project_config(project_root):
+    project_root = Path(project_root).expanduser().resolve()
+    path = project_root / TEST_TEA_CONFIG_RELATIVE
+    if path.exists() or path.is_symlink():
+        if path.is_symlink() or not path.is_file():
+            raise ValueError(f"TEA project config exists but is not a regular file: {path}")
+        return {"status": "PRESERVED", "path": str(path)}
+
+    for directory in (project_root / "_bmad", project_root / "_bmad/tea"):
+        if directory.exists() or directory.is_symlink():
+            if directory.is_symlink() or not directory.is_dir():
+                raise ValueError(f"refusing to write TEA project config through unsafe path: {directory}")
+        else:
+            directory.mkdir()
+
+    runtime_dir = project_root / ".test-kit/runtime"
+    if runtime_dir.exists() or runtime_dir.is_symlink():
+        if runtime_dir.is_symlink() or not runtime_dir.is_dir():
+            raise ValueError(f"Test Kit runtime path exists but is not a directory: {runtime_dir}")
+    else:
+        runtime_dir.mkdir(parents=True)
+
+    path.write_text(_tea_project_config_text(project_root), encoding="utf-8", newline="\n")
+    return {"status": "CREATED", "path": str(path)}
+
+
+def _flat_yaml_mapping(path):
+    fields = {}
+    for number, raw in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), 1):
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if raw[:1].isspace() or ":" not in raw:
+            raise ValueError(f"line {number}: expected a flat key: value entry")
+        key, value = raw.split(":", 1)
+        key, value = key.strip(), value.strip()
+        if not key or key in fields:
+            raise ValueError(f"line {number}: invalid or duplicate key")
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'"', "'"}:
+            value = value[1:-1]
+        fields[key] = value
+    return fields
+
+
+def _check_test_tea_project_config(project_root):
+    project_root = Path(project_root).expanduser().resolve()
+    path = project_root / TEST_TEA_CONFIG_RELATIVE
+    if path.is_symlink() or not path.is_file():
+        return False, f"TEA_PROJECT_CONFIG_MISSING: {path}"
+    try:
+        fields = _flat_yaml_mapping(path)
+    except (OSError, UnicodeDecodeError, ValueError) as error:
+        return False, f"TEA_PROJECT_CONFIG_INVALID: {error}"
+    missing = [key for key in TEST_TEA_REQUIRED_CONFIG_FIELDS if not fields.get(key)]
+    if missing:
+        return False, "TEA_PROJECT_CONFIG_INVALID: missing/non-empty fields: " + ", ".join(missing)
+    for key in ("output_folder", "test_artifacts"):
+        value = fields[key]
+        if "\\" in value or re.match(r"^[A-Za-z]:", value) or value.startswith("/") or ".." in PurePosixPath(value).parts:
+            return False, f"TEA_PROJECT_CONFIG_INVALID: {key} must be a portable project-relative path"
+        if re.search(r"(?:^|/)(?:design|cases)-\d{8}-\d+(?:/|$)", value):
+            return False, f"TEA_PROJECT_CONFIG_RUN_BOUND: {key} must not point at a specific Test Kit run"
+    return True, str(path)
 
 
 def _dependency_checks(manifest, target_dir):
@@ -902,6 +1021,60 @@ def _with_project_policy(report, target_dir, kit_id, project_root):
     return report
 
 
+def _doctor_ba_vnext(target_dir):
+    """Check the installed BA runtime and its colocated Shared SDLC payload."""
+    runtime = PurePosixPath("ba-workflow")
+    required = (
+        "SKILL.md",
+        "scripts/ba_vnext.py",
+        "scripts/ba_contracts.py",
+        "scripts/validate-state.py",
+        "scripts/validate-handoff.py",
+        "scripts/contracts.py",
+        "scripts/shared-sdlc-core.zip",
+        "templates/workflow-state-vnext.json",
+        "templates/ba-decisions-v1.json",
+        "templates/ba-baseline-candidate-v1.json",
+        "templates/ba-approval-receipt-v1-boundary.json",
+        "templates/engineering-handoff-vnext.json",
+        "templates/workflow-state.json",
+        "templates/engineering-handoff.yml",
+    )
+    failures = []
+    for relative in required:
+        name = (runtime / relative).as_posix()
+        try:
+            path = _target_path(target_dir, name)
+            if path.is_symlink() or not path.is_file():
+                failures.append(f"missing or unsafe: {name}")
+        except (OSError, ValueError) as error:
+            failures.append(f"unsafe: {name}: {error}")
+    if failures:
+        return False, "; ".join(failures)
+
+    scripts = target_dir / "ba-workflow" / "scripts"
+    payload = scripts / "shared-sdlc-core.zip"
+    probe = (
+        "import pathlib, sys; "
+        "scripts=pathlib.Path(sys.argv[1]).resolve(); payload=(scripts/'shared-sdlc-core.zip').resolve(); "
+        "sys.path.insert(0, str(scripts)); "
+        "import ba_vnext, ba_contracts; import shared.sdlc.schema as schema; "
+        "assert pathlib.Path(ba_vnext.__file__).resolve().is_relative_to(scripts); "
+        "assert pathlib.Path(ba_contracts.__file__).resolve().is_relative_to(scripts); "
+        "assert str(payload).lower() in str(pathlib.Path(schema.__file__).resolve()).lower()"
+    )
+    try:
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", probe, str(scripts)],
+            cwd=tempfile.gettempdir(), capture_output=True, text=True, timeout=20,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return False, f"isolated installed-runtime import failed: {error}"
+    if result.returncode:
+        return False, "isolated installed-runtime import failed: " + (result.stderr.strip() or result.stdout.strip())
+    return True, ""
+
+
 def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
     source_root = Path(source_root).resolve()
     target_dir = Path(target_dir).expanduser().resolve()
@@ -944,6 +1117,10 @@ def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
         ok = _valid_skill(target_dir / skill, skill)
         detail = "" if ok else f"unavailable: {target_dir / skill / 'SKILL.md'}"
         checks.append((skill, ok, "optional", detail))
+
+    if kit_id == "ba":
+        vnext_ok, vnext_detail = _doctor_ba_vnext(target_dir)
+        checks.append(("BA VNext installed capability", vnext_ok, "contract", vnext_detail))
 
     record_path = _install_record_path(target_dir, kit_id)
     record_required = bool(manifest.get("files") or manifest.get("install_metadata") or integrity)
@@ -1082,6 +1259,12 @@ def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
                     elif actual != details["sha256"]:
                         checks.append(("MODIFIED_MANAGED_FILE", False, "contract", f"{relative}: expected {details['sha256']}, actual {actual}"))
 
+    if kit_id == "test":
+        resolved_project_root = Path(project_root).resolve() if project_root is not None else _infer_project_root_from_target(target_dir)
+        if resolved_project_root is not None:
+            tea_ok, tea_detail = _check_test_tea_project_config(resolved_project_root)
+            checks.append(("TEA_PROJECT_CONFIG", tea_ok, "contract", tea_detail))
+
     checks.extend(_dependency_checks(manifest, target_dir))
 
     if kit_id == "ba":
@@ -1198,13 +1381,14 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "validate-state":
-            data = json.loads(args.path.read_text(encoding="utf-8"))
-            errors = validate_state_data(data)
+            from shared.sdlc.schema import read_document
+            data = read_document(args.path.read_text(encoding="utf-8"))
+            errors = validate_state_data(data, args.path.parent)
             for error in errors:
                 print(f"INVALID: {error}", file=sys.stderr)
             if errors:
                 return 1
-            print("VALID: workflow state")
+            print("VALID: workflow state; " + read_state(data, args.path.parent)['mode'])
             return 0
         if args.command == "validate-handoff":
             errors = validate_handoff_file(args.path)
@@ -1212,7 +1396,7 @@ def main(argv=None):
                 print(f"INVALID: {error}", file=sys.stderr)
             if errors:
                 return 1
-            print("VALID: engineering handoff and source hashes")
+            print("VALID: engineering handoff and source hashes; " + read_handoff(args.path)['mode'])
             return 0
         if args.command != "uninstall":
             manifest = load_manifest(ROOT, args.kit)
@@ -1231,7 +1415,8 @@ def main(argv=None):
                 return 2
         target = resolve_target(args.agent, args.scope, args.target)
         if args.command == "install":
-            result = install(ROOT, target, args.kit)
+            project_root = Path.cwd() if args.scope == "project" and args.agent != "generic" else None
+            result = install(ROOT, target, args.kit, project_root=project_root)
             if args.kit == "ba":
                 print(f"Installed or verified {len(result['installed'])} BA skills at {target}")
             else:
@@ -1242,6 +1427,10 @@ def main(argv=None):
                 print("Preserved existing skills: " + ", ".join(result["preserved"]))
             if result["skipped"]:
                 print("Optional skills unavailable: " + ", ".join(result["skipped"]))
+            if args.kit == "test" and result.get("tea_project_config"):
+                tea_config = result["tea_project_config"]
+                action = "Created" if tea_config["status"] == "CREATED" else "Preserved existing"
+                print(f"{action} TEA project config: {tea_config['path']}")
             return 0
         if args.command == "uninstall":
             result = uninstall(target, args.kit)
@@ -1250,7 +1439,10 @@ def main(argv=None):
             if result["preserved"]:
                 print("Preserved modified or shared skills: " + ", ".join(result["preserved"]))
             return 0
-        report = doctor(ROOT, target, args.kit, project_root=args.project_root or Path.cwd())
+        doctor_project_root = args.project_root
+        if doctor_project_root is None and args.agent != "generic" and args.scope == "project":
+            doctor_project_root = Path.cwd()
+        report = doctor(ROOT, target, args.kit, project_root=doctor_project_root)
         _print_doctor(report)
         return 1 if report["status"] == "FAIL" else 0
     except (OSError, ValueError, json.JSONDecodeError) as error:

@@ -38,7 +38,7 @@ No. The agent may record observable UI, find mismatches/gaps, and ask the BA. Pe
 
 The canonical SRS follows a functional SRS contract and is managed in Markdown; there is not one rigid Markdown form for every feature.
 
-The RC1 production repository **does not bundle a default SRS_TEMPLATE.docx**.
+The repository **does not bundle a default SRS_TEMPLATE.docx**.
 
 ### Can it create SRS using our company Word template?
 
@@ -99,13 +99,13 @@ Record the discrepancy. CURRENT_SYSTEM is as-is evidence; Confirmed Decisions + 
 
 Engineering Impact resolves WHERE / WHO OWNS. Dev Kit + repo-local Spec Kit then handles HOW.
 
-### Has RC1 passed runtime acceptance?
+### What proves BA VNext acceptance?
 
-No. BA Kit 1.0.0-rc.1 is a Public Preview and is not fully accepted. Manual checks for Requirement, Business Rules, SRS, and Draw.io have been exercised; final manual DOCX validation and final approval/handoff validation remain pending. The first full CR-001 acceptance run returned **BA_KIT_RC1_CHANGES_REQUIRED** as historical defect-finding evidence, not final acceptance.
+Phase 4 requires Tier 3 fresh-install acceptance in addition to deterministic and focused runtime checks. The acceptance installs to a clean target, excludes source-checkout imports, proves the host approval gate, revalidates the exact Engineering Handoff VNext, and checks V1 `LEGACY_COMPAT`. Doctor READY is package capability readiness only. This repository work is not a stable release.
 
 ### Is BA Kit licensing ready?
 
-The BA Kit payload is **BA_KIT_LICENSE_READY** for this curated Public Preview distribution.
+See repository provenance and third-party notices for licensing and redistribution information. No stable BA Kit release is claimed here.
 
 ---
 

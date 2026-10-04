@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "project_fixture": "synthetic-brownfield-foundation",
+  "brownfield": {
+    "domain-discovery": [
+      {
+        "id": "collection-count",
+        "topic": "business_rule",
+        "statement": "Item counting returns the collection length; business meaning requires BA review.",
+        "basis": "OBSERVED",
+        "references": [{"path": "module/src/catalog.py", "revision": "R1", "sha256": "472530d62c2177e36eb9a16764833ae5961c999794fc9af562e4a65d19e1d0fd"}],
+        "status": "PARTIAL",
+        "questions": ["Does this observable behavior represent an intended business rule?"]
+      },
+      {
+        "id": "catalog-term",
+        "topic": "glossary",
+        "statement": "Catalog may denote a collection of items.",
+        "basis": "INFERRED",
+        "references": [{"path": "module/src/catalog.py", "revision": "R1", "sha256": "472530d62c2177e36eb9a16764833ae5961c999794fc9af562e4a65d19e1d0fd"}],
+        "status": "PARTIAL",
+        "questions": ["What is the BA-owned definition of catalog?"]
+      }
+    ],
+    "architecture-discovery": [
+      {
+        "id": "local-storage",
+        "topic": "deployment",
+        "statement": "Configuration declares local storage; runtime host topology remains unknown.",
+        "basis": "OBSERVED",
+        "references": [{"path": "module/config.json", "revision": "R1", "sha256": "d51c104b78db39f36903c15de6c3ffe0ca4126fb6a61d9927cc1b1822ad37992"}],
+        "status": "PARTIAL",
+        "questions": ["Where does the service execute?"]
+      },
+      {
+        "id": "local-pattern",
+        "topic": "architecture_pattern",
+        "statement": "Local configuration suggests a single-process deployment pattern.",
+        "basis": "INFERRED",
+        "references": [{"path": "module/config.json", "revision": "R1", "sha256": "d51c104b78db39f36903c15de6c3ffe0ca4126fb6a61d9927cc1b1822ad37992"}],
+        "status": "PARTIAL",
+        "questions": ["Is this architecture interpretation correct?"]
+      }
+    ],
+    "test-foundation": [
+      {
+        "id": "testing-evidence",
+        "topic": "evidence_expectations",
+        "statement": "The current testing document leaves execution topology unknown.",
+        "basis": "OBSERVED",
+        "references": [{"path": "docs/testing.md", "revision": "R1", "sha256": "539fa2641e27c2e576e3ac5f3392d86907d670c522609a47b677555db6eeff69"}],
+        "status": "PARTIAL",
+        "questions": ["What test execution evidence is available?"]
+      }
+    ]
+  },
+  "greenfield": {
+    "architecture-discovery": [
+      {"id": "target-service", "topic": "solution_strategy", "statement": "Propose a catalog service with a storage adapter.", "basis": "PROPOSED", "references": [], "status": "PARTIAL", "questions": ["Which target does Engineering approve?"]}
+    ],
+    "test-foundation": [
+      {"id": "target-test-split", "topic": "test_split", "statement": "Propose isolated unit checks plus integration checks for adapters.", "basis": "PROPOSED", "references": [], "status": "PARTIAL", "questions": ["Which test split does TEST accept?"]}
+    ]
+  },
+  "adr": {
+    "kind": "RECOVERED",
+    "observations": [
+      {"id": "storage", "topic": "decision", "statement": "The current configuration declares local storage.", "basis": "OBSERVED", "references": [{"path": "module/config.json", "revision": "R1", "sha256": "d51c104b78db39f36903c15de6c3ffe0ca4126fb6a61d9927cc1b1822ad37992"}], "status": "PARTIAL", "questions": ["Historical rationale UNKNOWN; no alternatives recovered."]}
+    ]
+  },
+  "c4": {
+    "elements": [
+      {"kind": "ACTOR", "record": {"id": "reader", "topic": "c4_element", "statement": "Proposed catalog reader.", "basis": "PROPOSED", "references": [], "status": "PARTIAL", "questions": []}},
+      {"kind": "SYSTEM", "record": {"id": "catalog", "topic": "c4_element", "statement": "Proposed catalog system.", "basis": "PROPOSED", "references": [], "status": "PARTIAL", "questions": []}},
+      {"kind": "CONTAINER", "parent": "catalog", "record": {"id": "service", "topic": "c4_element", "statement": "Proposed catalog service.", "basis": "PROPOSED", "references": [], "status": "PARTIAL", "questions": []}}
+    ],
+    "relationships": [
+      {"source": "reader", "target": "catalog", "level": "CONTEXT", "record": {"id": "uses", "topic": "c4_relationship", "statement": "Proposed reader interaction.", "basis": "PROPOSED", "references": [], "status": "PARTIAL", "questions": []}},
+      {"source": "reader", "target": "service", "level": "CONTAINER", "record": {"id": "requests", "topic": "c4_relationship", "statement": "Proposed service request.", "basis": "PROPOSED", "references": [], "status": "PARTIAL", "questions": []}}
+    ]
+  },
+  "arc42_expectations": {"artifact_class": "DERIVED", "section_count": 12, "visible_statuses": ["UNKNOWN", "PARTIAL"]}
+}
