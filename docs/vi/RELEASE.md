@@ -1,8 +1,8 @@
 # Trạng thái phát hành
 
-BA Kit **1.0.0-rc.1** là **Public Preview**, chưa được chấp nhận hoàn toàn.
+BA Kit đang ở packaging candidate trên prerelease line của repository; không tuyên bố stable release. Phase 4 cần Tier 3 fresh-install acceptance với installed runtime được cách ly khỏi source checkout.
 
-Dev Kit vẫn **Planned**. Test Kit V1.1 là Kit riêng, **không** nằm trong BA Kit Public Preview.
+Dev Kit vẫn **Planned**. Test Kit V1.1 là Kit riêng, **không** nằm trong BA Kit.
 
 ## Test Kit V1.1
 
@@ -34,13 +34,13 @@ Bắt đầu tại [Test Kit Quick Start](TEST_KIT_QUICKSTART.md), [Project Cust
 
 Các kiểm tra này chứng minh package/install behavior, không tự chứng minh runtime BA semantics.
 
-## Kiểm tra thủ công cho Public Preview
+## Kiểm tra BA Kit lịch sử
 
 Đã thực hiện kiểm tra thủ công cho Requirement, Business Rules, SRS và Draw.io.
 
-Việc validation thủ công cuối cùng cho DOCX và validation cuối cùng cho approval/handoff vẫn đang chờ.
+Các kiểm tra bên dưới là evidence lịch sử của V1 preview, không mô tả acceptance cho VNext package.
 
-BA Kit 1.0.0-rc.1 vẫn là Public Preview và chưa được chấp nhận hoàn toàn.
+VNext acceptance được quy định trong [BA Kit acceptance](../../kits/ba/acceptance.yaml). Doctor READY chỉ là package capability readiness, không phải BA approval hay feature readiness.
 
 ## SRS/DOCX/Draw.io capability status
 
@@ -60,9 +60,9 @@ BA_KIT_LICENSE_READY
 
 Required/core/optional skills trong BA payload đã có provenance/license status cần thiết cho redistribution.
 
-## Validation còn chờ
+## Acceptance gate của BA VNext
 
-Việc validation thủ công cuối cùng cho DOCX và validation cuối cùng cho approval/handoff vẫn đang chờ. Không mô tả BA Kit 1.0.0-rc.1 là đã được chấp nhận hoàn toàn.
+Tier 1 và Tier 2 không tự hoàn tất Phase 4. Tier 3 phải cài vào target sạch, chạy Doctor, chứng minh approval boundary của VNext, tạo và revalidate Engineering Handoff VNext từ installed runtime, đồng thời giữ nguyên V1 `LEGACY_COMPAT`.
 
 ---
 

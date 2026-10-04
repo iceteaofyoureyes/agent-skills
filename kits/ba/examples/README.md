@@ -1,6 +1,6 @@
 # Ví dụ BA Kit
 
-[Ví dụ CR-001 — Appointment Scheduling](CR-001/README.md) chỉ dành cho tài liệu. Ví dụ minh họa input chưa đầy đủ, gap, quyết định của Human, Business Rules, trích đoạn SRS và handoff hợp lệ theo contract.
+[Ví dụ CR-001 — Resource Request Submission](CR-001/README.md) chỉ dành cho tài liệu. Ví dụ minh họa input chưa đầy đủ, gap, Human Decisions, Business Rules (`BR-*`), canonical SRS (`FR-*`), baseline candidate, HUMAN_REVIEW boundary và cấu trúc Engineering Handoff VNext không có approval giả.
 
 Không đưa các đầu ra đã duyệt trong ví dụ vào fresh-session acceptance. Agent cần tự khám phá gap từ input được phép cung cấp. Câu chữ/ID mẫu không phải transcript chuẩn hay template bắt buộc.
 

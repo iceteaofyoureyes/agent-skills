@@ -9,9 +9,11 @@ Review input
 → Human trả lời
 → Business Rules
 → SRS
+→ chọn và validate BA baseline candidate
+→ HUMAN_REVIEW và dừng chờ Human approval
 → Draw.io / prototype / DOCX khi cần
-→ Human approval
-→ Engineering Handoff
+→ nhận approval receipt đã xác thực từ trusted host
+→ revalidate và tạo Engineering Handoff VNext
 ~~~
 
 BA vẫn sở hữu quyết định nghiệp vụ và trao đổi stakeholder. Agent chủ yếu **discover, review, hỏi, cấu trúc, document, visualize và validate**.
@@ -47,6 +49,19 @@ cd /path/to/your-project
 ~~~
 
 Doctor: **READY** = required capabilities/contracts đạt; **DEGRADED** = thiếu optional capability; **FAIL** = required capability/contract lỗi.
+Doctor chỉ báo capability package đã cài; không xác nhận baseline đã approved hay feature đã sẵn sàng.
+
+## Artifact VNext và ranh giới approval
+
+- Runtime state: `workflow-state-vnext.json` (V2) trong project; ghi tiến độ workflow, không phải business authority.
+- Canonical authority: Human BA Decisions, Business Rules có ID ổn định `BR-*`, canonical SRS có ID ổn định `FR-*`, và BA Baseline Candidate/Manifest được chọn. `BAREF:*` chỉ là locator/provenance.
+- Evidence và gate: exact evidence refs và Human approval receipt do trusted host cung cấp/xác thực. CLI BA Kit không xác thực danh tính và không tạo receipt approval.
+- Handoff: `engineering-handoff.json` (Engineering Handoff VNext), được revalidate theo candidate, receipt và source refs chính xác.
+- DOCX, Draw.io và visual output tùy chọn là derived artifact.
+
+Nếu có Project Foundation, chỉ consume khi có durable manifest, promotion provenance, Foundation approval receipt và trusted Foundation host authentication. Foundation READY chỉ cung cấp context, không phải BA approval.
+
+V1 `workflow-state.json` và `engineering-handoff.yml` chỉ được đọc ở chế độ `LEGACY_COMPAT`; không bao giờ chứng minh VNext approval.
 
 ## Bước 1 — Review requirement
 
@@ -91,7 +106,7 @@ Template: docs/templates/COMPANY_SRS_TEMPLATE.docx.
 Giữ style/layout; không invent dữ liệu thiếu.
 ~~~
 
-RC1 hiện **không bundle SRS_TEMPLATE.docx mặc định**. Xem [SRS và DOCX](SRS_DOCX_GUIDE.md).
+Repository hiện **không bundle SRS_TEMPLATE.docx mặc định**. Xem [SRS và DOCX](SRS_DOCX_GUIDE.md).
 
 ### Draw.io
 
@@ -109,33 +124,27 @@ Từ SRS đã confirmed và visual reference, tạo local prototype để tôi r
 Đây là visual proposal, không phải production code.
 ~~~
 
-## Bước 5 — Review và approve
+## Bước 5 — Validate và dừng ở Human review
 
 ~~~text
-Review SRS revision SRS-42. Không sửa file.
+Review đúng BA candidate và source revision. Không sửa file.
 ~~~
 
 hoặc:
 
 ~~~text
-Request changes cho SRS-42: ...
+Request changes cho candidate revision BA-42: ...
 ~~~
 
-Khi thực sự chấp nhận:
-
-~~~text
-Tôi phê duyệt BR-42 và SRS-42 làm BA baseline cho Engineering.
-~~~
-
-**“Tiếp tục” không phải phê duyệt.**
+Workflow chuyển `DRAFT → VALIDATED → HUMAN_REVIEW` rồi dừng. Chỉ trusted host mới cung cấp Human approval receipt chính xác đã xác thực để chuyển sang `APPROVED_BASELINE`. `CONTINUE != APPROVE`; `ANSWER != APPROVE`; validator PASS, Foundation READY và UX approval không phê duyệt BA baseline.
 
 ## Bước 6 — Engineering Handoff
 
 ~~~text
-Tạo Engineering Handoff.
+Sau khi trusted host cung cấp approval, revalidate đúng baseline rồi tạo Engineering Handoff VNext (`engineering-handoff.json`).
 ~~~
 
-Chỉ hợp lệ sau explicit approval và không còn blocking item.
+Chỉ hợp lệ khi có proof `APPROVED_BASELINE` chính xác và không còn blocking item. BA sở hữu WHAT; Engineering sở hữu technical HOW.
 
 ## Visual input
 
@@ -151,13 +160,7 @@ Figma link chỉ dùng trực tiếp khi runtime có connector/quyền; nếu kh
 
 ## Ví dụ
 
-[CR-001 Appointment Scheduling](../../kits/ba/examples/CR-001/README.md) minh họa input → gap review → Human decisions → Business Rules → SRS → diagram/DOCX delivery examples → engineering handoff.
-
-## Trạng thái RC1 hiện tại
-
-Package/install/Doctor và redistribution licensing đã qua các kiểm tra tương ứng. Đã thực hiện kiểm tra thủ công cho Requirement, Business Rules, SRS và Draw.io. Validation thủ công cuối cùng cho DOCX và validation cuối cùng cho approval/handoff vẫn đang chờ; BA Kit 1.0.0-rc.1 là Public Preview và chưa được chấp nhận hoàn toàn.
-
-Xem [Release status](RELEASE.md).
+[Ví dụ CR-001 trung tính](../../kits/ba/examples/CR-001/README.md) minh họa candidate, review gate, BR/FR identity, derived output và ranh giới handoff.
 
 ---
 

@@ -1,13 +1,13 @@
 # Initial Requirement
 
-Add appointment scheduling between Pet and Veterinarian.
+Add resource request submission between Resource and Coordinator.
 
-Clinic Staff should be able to:
+Service Staff should be able to:
 
-- create an appointment;
-- view appointments;
-- edit or reschedule an appointment;
-- cancel an appointment;
-- complete an appointment.
+- create a request;
+- view requests;
+- edit or reschedule a request;
+- cancel a request;
+- complete a request.
 
-Completing an appointment should integrate with existing Visit behavior.
+Completing a request should integrate with existing Fulfillment Record behavior.

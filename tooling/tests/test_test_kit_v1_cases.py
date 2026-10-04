@@ -13,7 +13,7 @@ from tooling.tests.codex_stub import fake_codex_on_path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-HANDOFF = ROOT / "kits/ba/examples/CR-001/vi/05-engineering-handoff.yml"
+HANDOFF = ROOT / "tooling/tests/fixtures/ba-v1-legacy-compat/05-engineering-handoff.yml"
 DESIGN_DIR = ROOT / "benchmark/test-kit/petclinic/foundation-v1-native-profiled/canonical"
 DESIGN = cases.load_design_snapshot(
     DESIGN_DIR / "canonical-test-design.json",

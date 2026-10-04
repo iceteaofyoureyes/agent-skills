@@ -21,7 +21,7 @@ class SrsFunctionDocumentTests(unittest.TestCase):
     def test_current_system_evidence_is_not_a_target_requirement(self):
         case = BY_ID["current-system-not-promoted"]
         self.assertIn("`CURRENT_SYSTEM` chỉ mô tả hiện trạng hoặc dùng làm context đối chiếu.", SKILL)
-        self.assertTrue(any("does not make 255 characters a target" in item for item in case["pass_if"]))
+        self.assertTrue(any("does not make 255 characters a target Resource Request requirement" in item for item in case["pass_if"]))
 
     def test_confirmed_business_rule_has_traceability(self):
         case = BY_ID["confirmed-rule-traceability"]
@@ -87,8 +87,8 @@ class SrsFunctionDocumentTests(unittest.TestCase):
         self.assertEqual(
             set(full_case["forbidden_ids"]),
             {
-                "pet-context-entry-flow",
-                "standalone-appointment-management-flow",
+                "resource-context-entry-flow",
+                "standalone-request-management-flow",
                 "unsupported-screen-navigation",
                 "api-shape",
                 "database-schema",
@@ -110,16 +110,16 @@ class SrsFunctionDocumentTests(unittest.TestCase):
     def test_cr001_fixture_drives_actual_artifact_evaluation(self):
         from tooling.lib import ba_semantic_evaluator
 
-        business_rules = """BR-P1 Clinic Staff manages appointments.
+        business_rules = """BR-P1 Service Staff manages resource requests.
 BR-P2 Reason/Description is required and has length 1-255 characters.
 BR-P3 Duration must be greater than 0; maximum Duration remains UNKNOWN.
 BR-P4 States are Scheduled, Cancelled, Completed. Create starts Scheduled; only Scheduled can be edited, rescheduled, cancelled, or completed.
 BR-P5 Cancellation releases the slot; there is no hard delete.
-BR-P6 Completing a Scheduled appointment creates exactly one new Visit; an existing Visit is not reused.
+BR-P6 Completing a Scheduled request creates exactly one new Fulfillment Record; an existing Fulfillment Record is not reused.
 """
-        srs = """When checking for scheduling conflicts while rescheduling an Appointment, exclude that Appointment from the conflict check.
-Completing a Scheduled appointment creates exactly one new Visit.
-An existing Visit shall not be linked or reused.
+        srs = """When rescheduling a Resource Request, exclude that Resource Request itself from the conflict check.
+Completing a Scheduled request creates exactly one new Fulfillment Record.
+An existing Fulfillment Record shall not be linked or reused.
 The maximum Duration remains UNKNOWN.
 """
         report = ba_semantic_evaluator.evaluate_artifacts(
@@ -127,8 +127,8 @@ The maximum Duration remains UNKNOWN.
         )
         statuses = {(item["semantic_id"], item["artifact"]): item["status"] for item in report["results"]}
         self.assertEqual(statuses[("reschedule-excludes-itself", "srs")], "MATCH")
-        self.assertEqual(statuses[("complete-exactly-one-new-visit", "srs")], "MATCH")
-        self.assertEqual(statuses[("existing-visit-not-reused", "srs")], "MATCH")
+        self.assertEqual(statuses[("complete-exactly-one-new-fulfillment-record", "srs")], "MATCH")
+        self.assertEqual(statuses[("existing-fulfillment-record-not-reused", "srs")], "MATCH")
         self.assertEqual(statuses[("maximum-duration-unknown", "srs")], "UNKNOWN_PRESERVED")
 
         missing = ba_semantic_evaluator.evaluate_artifacts(
@@ -139,14 +139,14 @@ The maximum Duration remains UNKNOWN.
 
         invented = ba_semantic_evaluator.evaluate_artifacts(
             business_rules,
-            "Staff can create an appointment from the Pet profile.",
+            "Staff can create a Resource Request from the Resource profile.",
             "srs-invention-guard-probe",
         )
         self.assertIn("UNSUPPORTED_INVENTION", {item["status"] for item in invented["results"]})
 
         screen = ba_semantic_evaluator.evaluate_artifacts(
             business_rules,
-            "## Thiết kế giao diện\n| Appointment Form | Enter Pet and time |",
+            "## Thiết kế giao diện\n| Resource Request Form | Enter Resource and time |",
             "srs-invention-guard-probe",
         )
         screen_statuses = {item["semantic_id"]: item["status"] for item in screen["results"]}
@@ -162,25 +162,25 @@ The maximum Duration remains UNKNOWN.
     def test_business_rule_probe_rejects_optional_omitted_or_changed_description_bounds(self):
         from tooling.lib import ba_semantic_evaluator
 
-        rules = """BR-P1 Clinic Staff manages appointments.
+        rules = """BR-P1 Service Staff manages resource requests.
 BR-P2 Reason/Description is required and has length 1-255 characters.
 BR-P3 Duration must be greater than 0; maximum Duration remains UNKNOWN.
 BR-P4 States are Scheduled, Cancelled, Completed. Create starts Scheduled; only Scheduled can be edited, rescheduled, cancelled, or completed.
 BR-P5 Cancellation releases the slot; there is no hard delete.
-BR-P6 Completing a Scheduled appointment creates exactly one new Visit; an existing Visit is not reused.
+BR-P6 Completing a Scheduled request creates exactly one new Fulfillment Record; an existing Fulfillment Record is not reused.
 """
         report = ba_semantic_evaluator.evaluate_artifacts(rules, "", "business-rule-completeness-probe")
         statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
         self.assertEqual(statuses["description-required-1-255"], "MATCH")
         self.assertEqual(statuses["only-supplied-business-rules"], "MATCH")
-        self.assertEqual(statuses["existing-visit-not-reused"], "MATCH")
+        self.assertEqual(statuses["existing-fulfillment-record-not-reused"], "MATCH")
 
-        negative_delete = rules.replace("there is no hard delete", "an Appointment is not hard-deleted")
+        negative_delete = rules.replace("there is no hard delete", "a Resource Request is not hard-deleted")
         report = ba_semantic_evaluator.evaluate_artifacts(negative_delete, "", "business-rule-completeness-probe")
         statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
         self.assertEqual(statuses["no-hard-delete"], "MATCH")
 
-        cannot_hard_delete = rules.replace("there is no hard delete", "an Appointment cannot be hard deleted")
+        cannot_hard_delete = rules.replace("there is no hard delete", "a Resource Request cannot be hard deleted")
         report = ba_semantic_evaluator.evaluate_artifacts(cannot_hard_delete, "", "business-rule-completeness-probe")
         statuses = {item["semantic_id"]: item["status"] for item in report["results"] if item["artifact"] == "business_rules"}
         self.assertEqual(statuses["no-hard-delete"], "MATCH")
@@ -208,9 +208,9 @@ BR-P6 Completing a Scheduled appointment creates exactly one new Visit; an exist
     def test_gap_review_fixture_checks_material_questions_in_generated_review(self):
         from tooling.lib import ba_semantic_evaluator
 
-        gap_review = """Should rescheduling exclude the same Appointment from its conflict check?
-When completing an Appointment, should the system create exactly one new Visit or reuse an existing Visit?
-Which fields and actions belong in the appointment list, and which filters, sort order, and pagination are required?
+        gap_review = """Should rescheduling exclude the same Resource Request from its conflict check?
+When completing a Resource Request, should the system create exactly one new Fulfillment Record or reuse an existing one?
+Which fields and actions belong in the resource request list, and which filters, sort order, and pagination are required?
 """
         complete = ba_semantic_evaluator.evaluate_artifacts("", "", "cr001-gap-review", gap_review=gap_review)
         self.assertTrue(complete["passed"])
@@ -220,7 +220,7 @@ Which fields and actions belong in the appointment list, and which filters, sort
         )
         statuses = {item["semantic_id"]: item["status"] for item in incomplete["results"]}
         self.assertEqual(statuses["gap-reschedule-self-exclusion"], "MISSING_REQUIRED_BEHAVIOR")
-        self.assertEqual(statuses["gap-visit-lifecycle"], "MISSING_REQUIRED_BEHAVIOR")
+        self.assertEqual(statuses["gap-fulfillment-record-lifecycle"], "MISSING_REQUIRED_BEHAVIOR")
         self.assertEqual(statuses["gap-list-fields-actions"], "MISSING_REQUIRED_BEHAVIOR")
 
 

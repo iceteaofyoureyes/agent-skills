@@ -129,8 +129,11 @@ Doctor BA Kit kiểm tra:
 - manifest/composition;
 - required/optional skill directories;
 - Agent Skills frontmatter;
-- workflow-state/source-authority contracts;
-- engineering-handoff contract.
+- V1/VNext workflow-state và source-authority contracts;
+- engineering-handoff contract;
+- `ba_vnext.py`, `ba_contracts.py`, validators và VNext templates đã cài;
+- isolated import Shared SDLC payload từ skill đã cài;
+- canonical SRS contract và atomic BA skill bắt buộc.
 
 | Status | Ý nghĩa |
 |---|---|
@@ -142,9 +145,11 @@ FAIL exit 1; READY/DEGRADED exit 0.
 
 ### Quan trọng với BA Kit: READY không đồng nghĩa mọi tool runtime đã cài
 
-Doctor BA Kit **không phải dependency manager cho external tooling** và không chứng minh runtime acceptance. Doctor Test Kit có thêm kiểm tra package integrity và dependency được khai báo; nó cũng không tự cài dependency.
+Doctor BA Kit **không phải dependency manager cho external tooling**, và không chứng minh Human approval, baseline đã approved, feature readiness hay full runtime acceptance. READY chỉ xác nhận package capability closure. Doctor Test Kit có thêm kiểm tra package integrity và dependency được khai báo; nó cũng không tự cài dependency.
 
 Ví dụ một installation có thể READY nhưng vẫn thiếu tool để export Word/PNG/browser.
+
+Phase 4 còn yêu cầu Tier 3 fresh-install acceptance: cài vào target sạch, chạy Doctor, rồi thực hiện VNext lifecycle và revalidate handoff với import được cách ly khỏi source checkout.
 
 ## Runtime prerequisite theo capability
 

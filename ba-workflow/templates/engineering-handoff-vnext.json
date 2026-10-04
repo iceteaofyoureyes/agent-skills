@@ -2,7 +2,7 @@
   "schema_version": 2,
   "feature": {"id": "FEATURE-ID", "title": "Feature title"},
   "ba_baseline": {
-    "status": "APPROVED_BASELINE",
+    "status": "<set to APPROVED_BASELINE only after trusted-host receipt validation>",
     "id": "BASELINE-ID",
     "revision": "REVISION",
     "semantic_sha256": "<exact candidate semantic SHA-256>",

@@ -8,14 +8,14 @@ Semantic sources:
 
 - BR-008: Scheduled, Cancelled, Completed; create → Scheduled; actions only from Scheduled;
 - BR-009: Cancel releases the slot;
-- BR-010: Complete creates exactly one Visit;
+- BR-010: Complete creates exactly one Fulfillment Record;
 - BR-011: no hard delete.
 
 Example prompt:
 
 ~~~text
 From BR-008..BR-011 in 03-approved-business-rules.md,
-create docs/diagrams/CR-001-appointment-lifecycle.drawio.
+create docs/diagrams/CR-001-request-lifecycle.drawio.
 
 Requirements:
 - editable .drawio;
@@ -33,7 +33,7 @@ Scheduled
   ├── Cancel ───→ Cancelled
   │               releases slot
   └── Complete ─→ Completed
-                  creates exactly one Visit
+                  creates exactly one Fulfillment Record
 ~~~
 
 The diagram is derived. Change BR/SRS first when lifecycle semantics change.
@@ -43,15 +43,15 @@ The diagram is derived. Change BR/SRS first when lifecycle semantics change.
 Semantic sources: BR-003..BR-007 and BR-013.
 
 ~~~text
-Create a business flowchart for create/reschedule Appointment.
+Create a business flowchart for create/reschedule Resource Request.
 Show business decisions only:
 - required data;
 - future start;
 - duration > 0;
-- same-Veterinarian Scheduled conflict;
+- same-Coordinator Scheduled conflict;
 - [start,end), touching allowed;
 - reschedule excludes itself;
-- only a non-conflicting appointment is saved.
+- only a non-conflicting request is saved.
 
 Do not describe API, transaction, DB constraint, or locking.
 ~~~
@@ -98,7 +98,7 @@ Do not describe it as a company-template SRS.
 
 The CR-001 fixture contains no screenshot/Figma source, so it does **not fabricate UI**.
 
-If a real project supplies an Appointment screenshot:
+If a real project supplies a Resource Request screenshot:
 
 ~~~text
 Review the screenshot against the canonical SRS.

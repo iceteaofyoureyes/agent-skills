@@ -1021,6 +1021,60 @@ def _with_project_policy(report, target_dir, kit_id, project_root):
     return report
 
 
+def _doctor_ba_vnext(target_dir):
+    """Check the installed BA runtime and its colocated Shared SDLC payload."""
+    runtime = PurePosixPath("ba-workflow")
+    required = (
+        "SKILL.md",
+        "scripts/ba_vnext.py",
+        "scripts/ba_contracts.py",
+        "scripts/validate-state.py",
+        "scripts/validate-handoff.py",
+        "scripts/contracts.py",
+        "scripts/shared-sdlc-core.zip",
+        "templates/workflow-state-vnext.json",
+        "templates/ba-decisions-v1.json",
+        "templates/ba-baseline-candidate-v1.json",
+        "templates/ba-approval-receipt-v1-boundary.json",
+        "templates/engineering-handoff-vnext.json",
+        "templates/workflow-state.json",
+        "templates/engineering-handoff.yml",
+    )
+    failures = []
+    for relative in required:
+        name = (runtime / relative).as_posix()
+        try:
+            path = _target_path(target_dir, name)
+            if path.is_symlink() or not path.is_file():
+                failures.append(f"missing or unsafe: {name}")
+        except (OSError, ValueError) as error:
+            failures.append(f"unsafe: {name}: {error}")
+    if failures:
+        return False, "; ".join(failures)
+
+    scripts = target_dir / "ba-workflow" / "scripts"
+    payload = scripts / "shared-sdlc-core.zip"
+    probe = (
+        "import pathlib, sys; "
+        "scripts=pathlib.Path(sys.argv[1]).resolve(); payload=(scripts/'shared-sdlc-core.zip').resolve(); "
+        "sys.path.insert(0, str(scripts)); "
+        "import ba_vnext, ba_contracts; import shared.sdlc.schema as schema; "
+        "assert pathlib.Path(ba_vnext.__file__).resolve().is_relative_to(scripts); "
+        "assert pathlib.Path(ba_contracts.__file__).resolve().is_relative_to(scripts); "
+        "assert str(payload).lower() in str(pathlib.Path(schema.__file__).resolve()).lower()"
+    )
+    try:
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", probe, str(scripts)],
+            cwd=tempfile.gettempdir(), capture_output=True, text=True, timeout=20,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return False, f"isolated installed-runtime import failed: {error}"
+    if result.returncode:
+        return False, "isolated installed-runtime import failed: " + (result.stderr.strip() or result.stdout.strip())
+    return True, ""
+
+
 def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
     source_root = Path(source_root).resolve()
     target_dir = Path(target_dir).expanduser().resolve()
@@ -1063,6 +1117,10 @@ def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
         ok = _valid_skill(target_dir / skill, skill)
         detail = "" if ok else f"unavailable: {target_dir / skill / 'SKILL.md'}"
         checks.append((skill, ok, "optional", detail))
+
+    if kit_id == "ba":
+        vnext_ok, vnext_detail = _doctor_ba_vnext(target_dir)
+        checks.append(("BA VNext installed capability", vnext_ok, "contract", vnext_detail))
 
     record_path = _install_record_path(target_dir, kit_id)
     record_required = bool(manifest.get("files") or manifest.get("install_metadata") or integrity)

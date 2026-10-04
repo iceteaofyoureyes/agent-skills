@@ -1,4 +1,4 @@
-# CR-001: Appointment Scheduling
+# CR-001: Resource Request Submission
 
 This is a **documentation example** showing how BA Kit can move from an incomplete brief to a BA baseline/handoff. It is not a fixed runtime transcript and must not be fed into fresh-session acceptance.
 
@@ -10,7 +10,10 @@ Semantic spine:
 → 02 Gap Review + Human decisions
 → 03 Approved Business Rules
 → 04 SRS excerpt
-→ 05 Engineering Handoff
+→ baseline candidate → VALIDATED → HUMAN_REVIEW
+→ trusted host supplies exact Human approval receipt
+→ 05 Engineering Handoff VNext boundary example
+→ Knowledge Impact in the candidate/handoff
 
 Derived lane from approved/confirmed sources:
 03 / 04
@@ -25,7 +28,8 @@ It demonstrates:
 - Human answers are separate from the original input;
 - Business Rules/SRS preserve traceability;
 - Draw.io/DOCX are derived delivery artifacts;
-- Engineering Handoff follows approval.
+- VNext handoff requires exact `APPROVED_BASELINE` proof and installed-runtime revalidation.
+- the example contains no usable receipt or fabricated approval.
 
 ## Files
 
@@ -33,10 +37,11 @@ It demonstrates:
 |---|---|---|
 | [01-input-requirement.md](01-input-requirement.md) | INPUT | Intentionally incomplete brief |
 | [02-gap-review.md](02-gap-review.md) | ILLUSTRATIVE OUTPUT + Human decisions | Pre-clarification gaps and example Human answers |
-| [03-approved-business-rules.md](03-approved-business-rules.md) | ILLUSTRATIVE OUTPUT | Business Rules with evidence/UNKNOWN |
-| [04-srs-excerpt.md](04-srs-excerpt.md) | ILLUSTRATIVE OUTPUT | Functional requirements + traceability |
-| [05-engineering-handoff.yml](05-engineering-handoff.yml) | CONTRACT-VALID EXAMPLE | Current handoff schema + real adjacent-source hashes |
+| [03-approved-business-rules.md](03-approved-business-rules.md) | ILLUSTRATIVE OUTPUT | Stable BR-* identity, evidence and UNKNOWN |
+| [04-srs-excerpt.md](04-srs-excerpt.md) | ILLUSTRATIVE OUTPUT | Stable FR-* identity and traceability |
+| [05-engineering-handoff.yml](05-engineering-handoff.yml) | NON-AUTHORITATIVE BOUNDARY EXAMPLE | VNext fields; no approval receipt or usable proof |
 | [06-delivery-and-visualization.md](06-delivery-and-visualization.md) | USAGE EXAMPLE | Derived Draw.io/DOCX/prototype lane from BR/SRS |
+| [knowledge-impact-v1.json](../knowledge-impact-v1.json) | DERIVED CANDIDATE METADATA | Affected product/domain/testing targets; no technical HOW |
 
 ## How to read it
 
@@ -44,12 +49,12 @@ It demonstrates:
 2. **02-gap-review.md** shows the kinds of questions BA Kit should surface. The Human decisions are later supplied evidence, not agent inference.
 3. **03** and **04** show Human decision → Business Rule → Functional Requirement.
 4. **06** explains derived Draw.io/DOCX/visual lanes.
-5. **05** shows the approved handoff contract.
+5. **05** shows the VNext handoff boundary only. Placeholders intentionally fail production validation; the trusted host supplies the approval receipt.
 
 ## What this example does not prove
 
-- It does not assert current PetClinic behavior; real brownfield work must discover source.
-- It does not prove runtime wording/IDs.
+- It does not assert current SamplePlatform behavior; real brownfield work must discover source.
+- It does not prove runtime wording/IDs or approval.
 - It does not include a company Word template.
 - It does not include Figma/screenshots because CR-001 input has no visual source.
 - It does not decide target API/DB/architecture.

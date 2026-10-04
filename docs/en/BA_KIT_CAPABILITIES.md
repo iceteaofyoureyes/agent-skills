@@ -12,7 +12,7 @@ BA Kit owns **WHAT — what the system must do**. Technical ownership and implem
 | Current source/project | Brownfield discovery and CURRENT_SYSTEM evidence | Current behavior is evidence, not automatically target behavior |
 | Existing SRS/BR/Markdown | Review or controlled update | Preserve unaffected approved semantics |
 | Existing DOCX | Document-only review/edit or delivery | If canonical Markdown exists, do not change business meaning only in DOCX |
-| Word .docx template | Produce SRS/DOCX in an organization layout | RC1 does **not bundle a default SRS_TEMPLATE.docx** |
+| Word .docx template | Produce SRS/DOCX in an organization layout | The repository does **not bundle a default SRS_TEMPLATE.docx** |
 | Screenshot/image/PDF export | Visual evidence, UI description, gap finding, diagram reconstruction | Only claim what is observable; hidden rules still need Human confirmation |
 | Figma | Visual source when the runtime has access/integration | Otherwise export screenshot/PDF/local artifacts |
 | Existing HTML prototype/UI | Interaction/state review and SRS UI description | A prototype is not business authority |
@@ -97,7 +97,7 @@ See [SRS and DOCX](SRS_DOCX_GUIDE.md).
 - comments/review workflows;
 - quality gates and OOXML inspection.
 
-BA Kit RC1 **does not include a built-in company SRS Word template**. If the organization has one, provide the .docx and select it as the delivery template.
+BA Kit **does not include a built-in company SRS Word template**. If the organization has one, provide the .docx and select it as the delivery template.
 
 The semantic source remains the canonical BA baseline; the Word template controls document structure/presentation only.
 
@@ -158,16 +158,19 @@ Operations are distinct:
 
 ### 10. Engineering Handoff
 
-After explicit Human approval of the BA baseline and resolution of all blocking items, BA Kit creates **engineering-handoff.yml** containing:
+After the lifecycle reaches `HUMAN_REVIEW`, the workflow stops for the Human. A trusted host supplies and authenticates the exact approval receipt; only then may the baseline reach `APPROVED_BASELINE`. BA Kit revalidates that proof and creates **Engineering Handoff VNext** (`engineering-handoff.json`) containing:
 
 - feature identity;
-- approved immutable revision;
-- Business Rules/SRS/decision source paths + SHA-256;
+- exact candidate manifest and immutable semantic hash;
+- BA Decisions, Business Rules (`BR-*`) and canonical SRS (`FR-*`) refs + SHA-256;
+- host-authenticated approval receipt ref;
 - open items;
 - downstream policy;
 - next stage = engineering-impact-analysis.
 
-It does not contain repo/module owners, FE/BE owners, API/DB/event design, locking, or transaction strategy.
+It does not contain repo/module owners, FE/BE owners, API/DB/event design, locking, or transaction strategy. BA owns WHAT; Engineering owns HOW. `CONTINUE != APPROVE`; `ANSWER != APPROVE`; validator PASS, Foundation READY, and UX approval do not approve a BA baseline.
+
+Runtime `workflow-state-vnext.json` (V2) records progress and is not business authority. Canonical authority is BA Decisions + BR + SRS + the selected candidate/manifest. The approval receipt is host supplied. DOCX, Draw.io and optional visual outputs are derived. V1 state and `.yml` handoff remain `LEGACY_COMPAT` and never establish VNext approval. Project Foundation context requires its durable manifest, promotion provenance, approval receipt and trusted Foundation host authentication.
 
 ## Source of truth by artifact type
 
@@ -192,7 +195,7 @@ Derived artifacts such as DOCX, Draw.io, or prototypes **may not silently change
 
 ## Required and optional capabilities
 
-Required in BA Kit RC1:
+Required in the BA Kit composition:
 
 - verification-before-completion
 - codebase-discovery
@@ -212,7 +215,7 @@ Optional:
 - playwright
 - web-accessibility
 
-Doctor may report **DEGRADED** when optional capabilities are missing; required capabilities/contracts must still be present for READY.
+Doctor checks the installed VNext scripts, templates, canonical SRS and isolated Shared SDLC payload import, alongside required atomic skills. **READY** means package capability closure only; it does not mean Human approval, approved BA baseline, or feature readiness. It may report **DEGRADED** when optional capabilities are missing.
 
 ## Outside BA Kit scope
 

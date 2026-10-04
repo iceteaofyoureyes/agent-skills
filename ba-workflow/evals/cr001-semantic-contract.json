@@ -1,40 +1,40 @@
 {
   "schema_version": 1,
   "runtime_probes": {
-    "discovery": "Use the codebase-discovery skill for a tiny read-only probe. Do not invoke automatic or remote review services, subagents, or MCP tools. Read src/visit.py directly using local read-only filesystem access (Python standard library is acceptable). Report only behaviors visible in that source as CURRENT_SYSTEM, and state which target appointment behavior remains UNKNOWN. Do not infer appointment rules from Visit.",
-    "srs_preservation": "Use the srs-function-document skill. CONFIRMED baseline: When rescheduling an Appointment, exclude that Appointment itself from the conflict check. Completing a Scheduled Appointment creates exactly one new Visit; never link or reuse an existing Visit. Duration must be greater than 0. Maximum Duration remains UNKNOWN. Write only a concise functional SRS fragment in English. Preserve UNKNOWN. Do not choose technical design or invent screens, navigation, entry flows, API, database, locking, transaction, or service ownership.",
-    "srs_invention_guard": "Use the srs-function-document skill. CONFIRMED: Clinic Staff may create an Appointment associated with one Pet. No navigation, screen, entry point, or management flow has been decided. Write a concise functional SRS fragment in English using only these facts. Do not invent how the user reaches or manages the feature, and do not add technical design.",
-    "business_rules": "Use the business-rule-extractor skill. CONFIRMED decisions: (1) Clinic Staff is the Appointment actor. (2) Reason/Description is required and has length 1–255 characters. (3) Duration must be greater than 0 and Maximum Duration remains UNKNOWN. (4) States are Scheduled, Cancelled, Completed; create starts Scheduled; only Scheduled can be edited, rescheduled, cancelled, or completed. (5) Cancellation releases the slot; no hard delete. (6) Completing a Scheduled Appointment creates exactly one new Visit and does not reuse an existing Visit. Output exactly six Business Rule rows with IDs BR-P1 through BR-P6, one decision per row, and no additional rules. Respond in English. Do not add technical design."
+    "discovery": "Use the codebase-discovery skill for a tiny read-only probe. Do not invoke automatic or remote review services, subagents, or MCP tools. Read src/resource_event.py directly using local read-only filesystem access (Python standard library is acceptable). Report only behaviors visible in that source as CURRENT_SYSTEM, and state which target request behavior remains UNKNOWN. Do not infer request rules from ResourceEvent.",
+    "srs_preservation": "Use the srs-function-document skill. CONFIRMED baseline: When rescheduling a Resource Request, exclude that Resource Request itself from the conflict check. Completing a Scheduled Resource Request creates exactly one new Fulfillment Record; never link or reuse an existing Fulfillment Record. Duration must be greater than 0. Maximum Duration remains UNKNOWN. Write only a concise functional SRS fragment in English. Preserve UNKNOWN. Do not choose technical design or invent screens, navigation, entry flows, API, database, locking, transaction, or service ownership.",
+    "srs_invention_guard": "Use the srs-function-document skill. CONFIRMED: Service Staff may create a Resource Request associated with one Resource. No navigation, screen, entry point, or management flow has been decided. Write a concise functional SRS fragment in English using only these facts. Do not invent how the user reaches or manages the feature, and do not add technical design.",
+    "business_rules": "Use the business-rule-extractor skill. CONFIRMED decisions: (1) Service Staff is the Resource Request actor. (2) Reason/Description is required and has length 1–255 characters. (3) Duration must be greater than 0 and Maximum Duration remains UNKNOWN. (4) States are Scheduled, Cancelled, Completed; create starts Scheduled; only Scheduled can be edited, rescheduled, cancelled, or completed. (5) Cancellation releases the slot; no hard delete. (6) Completing a Scheduled Resource Request creates exactly one new Fulfillment Record and does not reuse an existing Fulfillment Record. Output exactly six Business Rule rows with IDs BR-P1 through BR-P6, one decision per row, and no additional rules. Respond in English. Do not add technical design."
   },
   "cases": {
     "cr001-semantic-regression": {
       "check_ids": [
-        "clinic-staff-actor",
-        "appointment-distinct-from-visit",
-        "appointment-required-fields",
+        "service-staff-actor",
+        "request-distinct-from-fulfillment-record",
+        "request-required-fields",
         "future-start-asia-ho-chi-minh",
         "duration-greater-than-zero",
         "maximum-duration-unknown",
         "description-required-1-255",
-        "same-veterinarian-scheduled-conflict",
+        "same-coordinator-scheduled-conflict",
         "half-open-interval",
         "touching-intervals-allowed",
         "reschedule-excludes-itself",
-        "appointment-states",
+        "request-states",
         "create-starts-scheduled",
         "only-scheduled-mutable-actionable",
         "cancel-releases-slot",
-        "complete-exactly-one-new-visit",
-        "existing-visit-not-reused",
+        "complete-exactly-one-new-fulfillment-record",
+        "existing-fulfillment-record-not-reused",
         "no-hard-delete",
         "management-list-fields-and-actions",
         "list-filter-sort-pagination",
-        "no-pet-overlap-rule",
+        "no-resource-overlap-rule",
         "concurrent-business-outcome-only"
       ],
       "forbidden_ids": [
-        "pet-context-entry-flow",
-        "standalone-appointment-management-flow",
+        "resource-context-entry-flow",
+        "standalone-request-management-flow",
         "unsupported-screen-navigation",
         "api-shape",
         "database-schema",
@@ -46,8 +46,8 @@
     "srs-preservation-probe": {
       "check_ids": [
         "reschedule-excludes-itself",
-        "complete-exactly-one-new-visit",
-        "existing-visit-not-reused",
+        "complete-exactly-one-new-fulfillment-record",
+        "existing-fulfillment-record-not-reused",
         "maximum-duration-unknown",
         "duration-greater-than-zero"
       ],
@@ -64,8 +64,8 @@
       "check_ids": [],
       "default_artifacts": ["srs"],
       "forbidden_ids": [
-        "pet-context-entry-flow",
-        "standalone-appointment-management-flow",
+        "resource-context-entry-flow",
+        "standalone-request-management-flow",
         "unsupported-screen-navigation",
         "api-shape",
         "database-schema",
@@ -76,17 +76,17 @@
     },
     "business-rule-completeness-probe": {
       "check_ids": [
-        "clinic-staff-actor",
+        "service-staff-actor",
         "description-required-1-255",
         "duration-greater-than-zero",
         "maximum-duration-unknown",
-        "appointment-states",
+        "request-states",
         "create-starts-scheduled",
         "only-scheduled-mutable-actionable",
         "cancel-releases-slot",
         "no-hard-delete",
-        "complete-exactly-one-new-visit",
-        "existing-visit-not-reused",
+        "complete-exactly-one-new-fulfillment-record",
+        "existing-fulfillment-record-not-reused",
         "only-supplied-business-rules"
       ],
       "default_artifacts": ["business_rules"],
@@ -99,14 +99,14 @@
       ]
     },
     "local-discovery-probe": {
-      "check_ids": ["local-visit-evidence", "target-appointment-unknown"],
+      "check_ids": ["local-fulfillment-record-evidence", "target-request-unknown"],
       "default_artifacts": ["srs"],
-      "forbidden_ids": ["appointment-target-invention"]
+      "forbidden_ids": ["request-target-invention"]
     },
     "cr001-gap-review": {
       "check_ids": [
         "gap-reschedule-self-exclusion",
-        "gap-visit-lifecycle",
+        "gap-fulfillment-record-lifecycle",
         "gap-list-fields-actions"
       ],
       "default_artifacts": ["gap_review"],
@@ -114,27 +114,27 @@
     }
   },
   "checks": {
-    "clinic-staff-actor": {
+    "service-staff-actor": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
-      "groups": [["Clinic Staff", "nhân viên phòng khám"]]
+      "groups": [["Service Staff", "nhân viên đơn vị dịch vụ"]]
     },
-    "appointment-distinct-from-visit": {
+    "request-distinct-from-fulfillment-record": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
       "groups": [[
-        "Appointment.{0,80}(?:distinct|separate|not the same).{0,50}Visit",
-        "Appointment is planned.{0,100}Visit records",
-        "Appointment và Visit là hai khái niệm",
-        "Appointment là lịch.{0,100}Visit (?:ghi nhận|là)"
+        "Resource Request.{0,80}(?:distinct|separate|not the same).{0,50}Fulfillment Record",
+        "Resource Request is planned.{0,100}Fulfillment Record records",
+        "Resource Request và Fulfillment Record là hai khái niệm",
+        "Resource Request là lịch.{0,100}Fulfillment Record (?:ghi nhận|là)"
       ]]
     },
-    "appointment-required-fields": {
+    "request-required-fields": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
       "groups": [
-        ["Pet", "thú cưng"],
-        ["Veterinarian", "bác sĩ thú y"],
+        ["Resource", "tài nguyên"],
+        ["Coordinator", "điều phối viên"],
         ["Start datetime", "Start date/time", "ngày giờ bắt đầu"],
         ["Duration", "thời lượng"],
         ["Reason", "Description", "lý do", "mô tả"]
@@ -157,8 +157,8 @@
     "maximum-duration-unknown": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
-      "groups": [["(?:maximum(?: appointment)? duration|maximum Duration|giới hạn (?:trên|tối đa).{0,20}(?:Duration|thời lượng)).{0,60}(?:UNKNOWN|TBD|unresolved|chưa xác nhận|chưa được xác nhận|chưa được xác định)"]],
-      "contradiction_any": ["(?:maximum(?: appointment)? duration|maximum Duration|giới hạn (?:trên|tối đa).{0,20}(?:Duration|thời lượng)).{0,40}\\d+\\s*(?:min(?:ute)?s?|hours?|phút|giờ)", "maximum Duration\\s*(?:is|=|:|là)\\s*\\d+"],
+      "groups": [["(?:maximum(?: request)? duration|maximum Duration|giới hạn (?:trên|tối đa).{0,20}(?:Duration|thời lượng)).{0,60}(?:UNKNOWN|TBD|unresolved|chưa xác nhận|chưa được xác nhận|chưa được xác định)"]],
+      "contradiction_any": ["(?:maximum(?: request)? duration|maximum Duration|giới hạn (?:trên|tối đa).{0,20}(?:Duration|thời lượng)).{0,40}\\d+\\s*(?:min(?:ute)?s?|hours?|phút|giờ)", "maximum Duration\\s*(?:is|=|:|là)\\s*\\d+"],
       "status_on_match": "UNKNOWN_PRESERVED"
     },
     "description-required-1-255": {
@@ -171,10 +171,10 @@
       ],
       "contradiction_any": ["(?:Reason|Description|mô tả|lý do).{0,45}(?:optional|nullable|not required|tùy chọn|không bắt buộc)", "(?:optional|nullable|tùy chọn).{0,45}(?:Reason|Description|mô tả|lý do)", "(?:Reason|Description|mô tả|lý do).{0,45}1\\s*(?:-|–|to|đến)\\s*(?:200|250|300)\\b"]
     },
-    "same-veterinarian-scheduled-conflict": {
+    "same-coordinator-scheduled-conflict": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
-      "groups": [["Scheduled", "đã đặt"], ["same Veterinarian", "same Vet", "same veterinarian", "cùng.{0,20}Veterinarian", "cùng bác sĩ thú y"], ["conflict", "overlap", "overlapping", "trùng", "xung đột"]]
+      "groups": [["Scheduled", "đã đặt"], ["same Coordinator", "same Vet", "same coordinator", "cùng.{0,20}Coordinator", "cùng điều phối viên"], ["conflict", "overlap", "overlapping", "trùng", "xung đột"]]
     },
     "half-open-interval": {
       "kind": "required",
@@ -193,13 +193,13 @@
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
       "groups": [[
-        "reschedul.{0,80}(?:excludes?|excluding|except|does not count|exclude itself).{0,60}(?:current appointment|same appointment|appointment itself|itself)",
-        "(?:exclude|excluding|except).{0,60}(?:current appointment|same appointment|appointment being rescheduled|itself)",
-        "reschedul.{0,100}exclude.{0,60}(?:that|this) Appointment(?: itself)?",
-        "(?:đổi lịch|reschedule).{0,80}(?:loại trừ|không tính|bỏ qua).{0,40}(?:chính appointment|lịch hẹn hiện tại|appointment đang đổi lịch|chính nó)"
+        "reschedul.{0,80}(?:excludes?|excluding|except|does not count|exclude itself).{0,60}(?:current request|same request|request itself|itself)",
+        "(?:exclude|excluding|except).{0,60}(?:current request|same request|request being rescheduled|itself)",
+        "reschedul.{0,100}exclude.{0,60}(?:that|this) Resource Request(?: itself)?",
+        "(?:đổi lịch|reschedule).{0,80}(?:loại trừ|không tính|bỏ qua).{0,40}(?:chính request|yêu cầu đăng ký hiện tại|request đang đổi lịch|chính nó)"
       ]]
     },
-    "appointment-states": {
+    "request-states": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
       "groups": [["Scheduled"], ["Cancelled"], ["Completed"]]
@@ -207,7 +207,7 @@
     "create-starts-scheduled": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
-      "groups": [["create.{0,60}Scheduled", "new Appointment.{0,60}Scheduled", "tạo mới.{0,60}Scheduled", "tạo.{0,60}trạng thái Scheduled"]]
+      "groups": [["create.{0,60}Scheduled", "new Resource Request.{0,60}Scheduled", "tạo mới.{0,60}Scheduled", "tạo.{0,60}trạng thái Scheduled"]]
     },
     "only-scheduled-mutable-actionable": {
       "kind": "required",
@@ -226,19 +226,19 @@
       "artifacts": ["business_rules", "srs"],
       "groups": [["cancel|cancelled|cancellation|hủy"], ["release.{0,30}slot|slot.{0,30}available|does not hold.{0,20}time|giải phóng.{0,20}(?:khung giờ|slot)|không giữ chỗ"]]
     },
-    "complete-exactly-one-new-visit": {
+    "complete-exactly-one-new-fulfillment-record": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
       "groups": [
         ["complet|hoàn tất"],
         ["exactly one|one new|a single new|đúng một|duy nhất một"],
-        ["new Visit|new visit|Visit mới|Visit mới được tạo"]
+        ["new Fulfillment Record|new fulfillment record|Fulfillment Record mới|Fulfillment Record mới được tạo"]
       ]
     },
-    "existing-visit-not-reused": {
+    "existing-fulfillment-record-not-reused": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
-      "groups": [["do not (?:link|reuse|use).{0,40}existing Visit|not reuse.{0,30}existing Visit|existing Visit.{0,40}not (?:be )?(?:linked|reused|used)|không.{0,35}(?:liên kết|dùng lại).{0,30}Visit đã tồn tại"]]
+      "groups": [["do not (?:link|reuse|use).{0,40}existing Fulfillment Record|not reuse.{0,30}existing Fulfillment Record|existing Fulfillment Record.{0,40}not (?:be )?(?:linked|reused|used)|không.{0,35}(?:liên kết|dùng lại).{0,30}Fulfillment Record đã tồn tại"]]
     },
     "no-hard-delete": {
       "kind": "required",
@@ -250,8 +250,8 @@
       "artifacts": ["business_rules", "srs"],
       "groups": [
         ["(?:list|danh sách).{0,100}(?:Owner|chủ nuôi)", "(?:Owner|chủ nuôi).{0,100}(?:list|danh sách)"],
-        ["(?:list|danh sách).{0,100}(?:Pet|thú cưng)", "(?:Pet|thú cưng).{0,100}(?:list|danh sách)"],
-        ["(?:list|danh sách).{0,100}(?:Veterinarian|bác sĩ thú y)", "(?:Veterinarian|bác sĩ thú y).{0,100}(?:list|danh sách)"],
+        ["(?:list|danh sách).{0,100}(?:Resource|tài nguyên)", "(?:Resource|tài nguyên).{0,100}(?:list|danh sách)"],
+        ["(?:list|danh sách).{0,100}(?:Coordinator|điều phối viên)", "(?:Coordinator|điều phối viên).{0,100}(?:list|danh sách)"],
         ["(?:list|danh sách).{0,100}(?:Start datetime|start time|ngày giờ bắt đầu)"],
         ["(?:list|danh sách).{0,100}(?:Status|trạng thái)"],
         ["view.{0,20}(?:list|detail)|list.{0,20}detail|xem.{0,20}(?:danh sách|chi tiết)"],
@@ -263,62 +263,62 @@
       "artifacts": ["business_rules", "srs"],
       "groups": [
         ["filter.{0,30}(?:date|date range)|date.{0,30}filter|lọc.{0,20}(?:ngày|khoảng ngày)"],
-        ["filter.{0,30}Veterinarian|Veterinarian.{0,30}filter|lọc.{0,50}(?:bác sĩ|Veterinarian)"],
-        ["filter.{0,30}Pet|Pet.{0,30}filter|lọc.{0,50}(?:thú cưng|Pet)"],
+        ["filter.{0,30}Coordinator|Coordinator.{0,30}filter|lọc.{0,50}(?:bác sĩ|Coordinator)"],
+        ["filter.{0,30}Resource|Resource.{0,30}filter|lọc.{0,50}(?:tài nguyên|Resource)"],
         ["filter.{0,30}Status|Status.{0,30}filter|lọc.{0,50}(?:trạng thái|Status)"],
         ["ascending|increasing order|tăng dần"],
         ["Start datetime|start time|ngày giờ bắt đầu"],
         ["20.{0,20}(?:per page|each page|per-page|mỗi trang)"],
         ["default.{0,25}Scheduled|Scheduled.{0,25}default|mặc định.{0,25}Scheduled"],
         ["All|tất cả"],
-        ["empty state|no results|no appointments match|danh sách trống|không có appointment phù hợp"]
+        ["empty state|no results|no requests match|danh sách trống|không có request phù hợp"]
       ]
     },
-    "no-pet-overlap-rule": {
+    "no-resource-overlap-rule": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
-      "groups": [["Pet|thú cưng"], ["overlap|overlapping|chồng lấn"], ["allowed|no prohibition|no rule|not prohibited|được phép|không áp dụng quy tắc|không cấm"]],
-      "contradiction_any": ["Pet.{0,45}(?:must not|cannot|prohibited|không được).{0,25}(?:overlap|chồng lấn)", "appointment.{0,35}same Pet.{0,35}(?:must not|cannot|prohibited).{0,25}overlap"]
+      "groups": [["Resource|tài nguyên"], ["overlap|overlapping|chồng lấn"], ["allowed|no prohibition|no rule|not prohibited|được phép|không áp dụng quy tắc|không cấm"]],
+      "contradiction_any": ["Resource.{0,45}(?:must not|cannot|prohibited|không được).{0,25}(?:overlap|chồng lấn)", "request.{0,35}same Resource.{0,35}(?:must not|cannot|prohibited).{0,25}overlap"]
     },
     "concurrent-business-outcome-only": {
       "kind": "required",
       "artifacts": ["business_rules", "srs"],
       "groups": [
-        ["only.{0,35}non-conflicting Appointment.{0,35}(?:saved|save)|non-conflicting Appointment.{0,35}only.{0,20}saved|chỉ.{0,35}(?:Appointment|dữ liệu).{0,35}không xung đột.{0,35}(?:lưu|được phép lưu)"],
+        ["only.{0,35}non-conflicting Resource Request.{0,35}(?:saved|save)|non-conflicting Resource Request.{0,35}only.{0,20}saved|chỉ.{0,35}(?:Resource Request|dữ liệu).{0,35}không xung đột.{0,35}(?:lưu|được phép lưu)"],
         ["conflicting.{0,25}(?:rejected|not saved)|conflict.{0,25}(?:reject|not save)|xung đột.{0,25}(?:từ chối|không lưu)"]
       ]
     },
-    "local-visit-evidence": {
+    "local-fulfillment-record-evidence": {
       "kind": "required",
       "artifacts": ["srs"],
       "groups": [
         ["CURRENT_SYSTEM"],
-        ["Visit"],
-        ["Pet"],
+        ["Fulfillment Record"],
+        ["Resource"],
         ["date|ngày"],
         ["description|mô tả"]
       ]
     },
-    "target-appointment-unknown": {
+    "target-request-unknown": {
       "kind": "required",
       "artifacts": ["srs"],
-      "groups": [["UNKNOWN"], ["Appointment|appointment"], ["target|lịch hẹn mới|quy tắc nghiệp vụ"]],
+      "groups": [["UNKNOWN"], ["Resource Request|request"], ["target|yêu cầu đăng ký mới|quy tắc nghiệp vụ"]],
       "status_on_match": "UNKNOWN_PRESERVED"
     },
-    "appointment-target-invention": {
+    "request-target-invention": {
       "kind": "forbidden",
       "artifacts": ["srs"],
-      "patterns": ["CONFIRMED.{0,80}Appointment.{0,80}(?:must|shall|will|is required|bắt buộc|được phép)", "Appointment.{0,80}(?:must|shall|will|is required|bắt buộc|được phép).{0,50}(?:status|duration|conflict|trạng thái|thời lượng|xung đột)"]
+      "patterns": ["CONFIRMED.{0,80}Resource Request.{0,80}(?:must|shall|will|is required|bắt buộc|được phép)", "Resource Request.{0,80}(?:must|shall|will|is required|bắt buộc|được phép).{0,50}(?:status|duration|conflict|trạng thái|thời lượng|xung đột)"]
     },
     "gap-reschedule-self-exclusion": {
       "kind": "required",
       "artifacts": ["gap_review"],
-      "groups": [["reschedul.{0,100}(?:exclud|same appointment|itself)", "(?:exclude|excluding).{0,60}(?:same appointment|appointment itself|itself)", "(?:đổi lịch|reschedule).{0,80}(?:loại trừ|không tính|bỏ qua).{0,40}(?:chính appointment|lịch hẹn hiện tại|chính nó)"]]
+      "groups": [["reschedul.{0,100}(?:exclud|same request|itself)", "(?:exclude|excluding).{0,60}(?:same request|request itself|itself)", "(?:đổi lịch|reschedule).{0,80}(?:loại trừ|không tính|bỏ qua).{0,40}(?:chính request|yêu cầu đăng ký hiện tại|chính nó)"]]
     },
-    "gap-visit-lifecycle": {
+    "gap-fulfillment-record-lifecycle": {
       "kind": "required",
       "artifacts": ["gap_review"],
-      "groups": [["complet.{0,120}(?:Appointment|lịch hẹn).{0,120}(?:create|new|reuse|link).{0,50}Visit", "complet.{0,120}Visit.{0,100}(?:create|new|reuse|link)", "(?:hoàn tất|khi hoàn tất).{0,100}(?:Appointment|lịch hẹn).{0,100}(?:tạo|dùng lại|liên kết).{0,50}Visit"]]
+      "groups": [["complet.{0,120}(?:Resource Request|yêu cầu đăng ký).{0,120}(?:create|new|reuse|link).{0,50}Fulfillment Record", "complet.{0,120}Fulfillment Record.{0,100}(?:create|new|reuse|link)", "(?:hoàn tất|khi hoàn tất).{0,100}(?:Resource Request|yêu cầu đăng ký).{0,100}(?:tạo|dùng lại|liên kết).{0,50}Fulfillment Record"]]
     },
     "gap-list-fields-actions": {
       "kind": "required",
@@ -332,35 +332,35 @@
         ["pagination|page size|phân trang|mỗi trang"]
       ]
     },
-    "pet-context-entry-flow": {
+    "resource-context-entry-flow": {
       "kind": "forbidden",
       "artifacts": ["business_rules", "srs"],
-      "patterns": ["Appointment.{0,35}(?:is|can be|must be|will be).{0,25}(?:created|scheduled|booked).{0,30}(?:from|through|via).{0,35}(?:Pet profile|Pet details|Pet page)", "(?:create|book|schedule).{0,35}Appointment.{0,30}(?:from|through|via).{0,35}(?:Pet profile|Pet details|Pet page)", "(?:lịch hẹn|Appointment).{0,40}(?:được|có thể|phải).{0,25}(?:tạo|đặt).{0,30}(?:từ|qua).{0,35}(?:hồ sơ Pet|chi tiết Pet|trang Pet)"]
+      "patterns": ["Resource Request.{0,35}(?:is|can be|must be|will be).{0,25}(?:created|scheduled|booked).{0,30}(?:from|through|via).{0,35}(?:Resource profile|Resource details|Resource page)", "(?:create|book|schedule).{0,35}Resource Request.{0,30}(?:from|through|via).{0,35}(?:Resource profile|Resource details|Resource page)", "(?:yêu cầu đăng ký|Resource Request).{0,40}(?:được|có thể|phải).{0,25}(?:tạo|đặt).{0,30}(?:từ|qua).{0,35}(?:hồ sơ Resource|chi tiết Resource|trang Resource)"]
     },
-    "standalone-appointment-management-flow": {
+    "standalone-request-management-flow": {
       "kind": "forbidden",
       "artifacts": ["business_rules", "srs"],
-      "patterns": ["(?:dedicated|standalone).{0,35}(?:appointment management|appointment page|management flow|entry point).{0,50}(?:is provided|is required|will|must|available|opens|navigate)", "(?:appointment management|management page).{0,35}(?:dedicated|standalone).{0,40}(?:is|will|must|available)", "(?:quản lý|đặt lịch).{0,35}(?:độc lập|riêng).{0,35}(?:Appointment|lịch hẹn).{0,35}(?:được cung cấp|sẽ|phải)"]
+      "patterns": ["(?:dedicated|standalone).{0,35}(?:request management|request page|management flow|entry point).{0,50}(?:is provided|is required|will|must|available|opens|navigate)", "(?:request management|management page).{0,35}(?:dedicated|standalone).{0,40}(?:is|will|must|available)", "(?:quản lý|gửi yêu cầu).{0,35}(?:độc lập|riêng).{0,35}(?:Resource Request|yêu cầu đăng ký).{0,35}(?:được cung cấp|sẽ|phải)"]
     },
     "unsupported-screen-navigation": {
       "kind": "forbidden",
       "artifacts": ["business_rules", "srs"],
-      "patterns": ["(?im)^\\s*#{1,6}.*(?:UI design|Thiết kế giao diện)", "(?m)^\\s*\\|\\s*Appointment (?:List|Detail|Form|Search/Filters|Status Actions)\\s*\\|", "(?:calendar (?:view|screen|page)|new appointment (?:tab|menu|screen|page)|navigation item.{0,30}appointment).{0,60}(?:is required|must|shall|will|provides|opens|is the default)", "(?:use|open|navigate to|show|provide).{0,50}(?:calendar (?:view|screen|page)|new appointment (?:tab|menu|screen|page))", "(?:màn hình lịch|menu.{0,20}(?:Appointment|đặt lịch)).{0,50}(?:được yêu cầu|phải|sẽ|mở|hiển thị)"]
+      "patterns": ["(?im)^\\s*#{1,6}.*(?:UI design|Thiết kế giao diện)", "(?m)^\\s*\\|\\s*Resource Request (?:List|Detail|Form|Search/Filters|Status Actions)\\s*\\|", "(?:calendar (?:view|screen|page)|new request (?:tab|menu|screen|page)|navigation item.{0,30}request).{0,60}(?:is required|must|shall|will|provides|opens|is the default)", "(?:use|open|navigate to|show|provide).{0,50}(?:calendar (?:view|screen|page)|new request (?:tab|menu|screen|page))", "(?:màn hình lịch|menu.{0,20}(?:Resource Request|gửi yêu cầu)).{0,50}(?:được yêu cầu|phải|sẽ|mở|hiển thị)"]
     },
     "api-shape": {
       "kind": "forbidden",
       "artifacts": ["business_rules", "srs"],
-      "patterns": ["\\b(?:GET|POST|PUT|PATCH|DELETE)\\s+/[A-Za-z0-9_/-]*appointments?", "(?:API|endpoint).{0,60}(?:request body|payload|HTTP|POST|GET|PUT|PATCH|DELETE)"]
+      "patterns": ["\\b(?:GET|POST|PUT|PATCH|DELETE)\\s+/[A-Za-z0-9_/-]*requests?", "(?:API|endpoint).{0,60}(?:request body|payload|HTTP|POST|GET|PUT|PATCH|DELETE)"]
     },
     "database-schema": {
       "kind": "forbidden",
       "artifacts": ["business_rules", "srs"],
-      "patterns": ["(?:database|DB) schema.{0,70}(?:contains|includes|uses|requires|will|must|shall)", "CREATE TABLE.{0,60}Appointment", "foreign key.{0,50}Appointment", "migration.{0,50}Appointment"]
+      "patterns": ["(?:database|DB) schema.{0,70}(?:contains|includes|uses|requires|will|must|shall)", "CREATE TABLE.{0,60}Resource Request", "foreign key.{0,50}Resource Request", "migration.{0,50}Resource Request"]
     },
     "locking-strategy": {
       "kind": "forbidden",
       "artifacts": ["business_rules", "srs"],
-      "patterns": ["(?:use|uses|will use|must use|implement|apply).{0,50}(?:pessimistic|optimistic|Redis|row-level).{0,20}(?:lock|locking)", "(?:pessimistic|optimistic|Redis|row-level) lock(?:ing)? (?:is chosen|will be used|is required)", "SELECT FOR UPDATE", "lock the Veterinarian", "khóa hàng.{0,30}Veterinarian"]
+      "patterns": ["(?:use|uses|will use|must use|implement|apply).{0,50}(?:pessimistic|optimistic|Redis|row-level).{0,20}(?:lock|locking)", "(?:pessimistic|optimistic|Redis|row-level) lock(?:ing)? (?:is chosen|will be used|is required)", "SELECT FOR UPDATE", "lock the Coordinator", "khóa hàng.{0,30}Coordinator"]
     },
     "transaction-strategy": {
       "kind": "forbidden",
@@ -370,7 +370,7 @@
     "service-ownership": {
       "kind": "forbidden",
       "artifacts": ["business_rules", "srs"],
-      "patterns": ["(?:frontend|backend).{0,40}(?:owns|will implement|is responsible for)", "AppointmentService will", "AppointmentService must", "service ownership is assigned to", "(?:frontend|backend) phụ trách"]
+      "patterns": ["(?:frontend|backend).{0,40}(?:owns|will implement|is responsible for)", "Resource RequestService will", "Resource RequestService must", "service ownership is assigned to", "(?:frontend|backend) phụ trách"]
     },
     "only-supplied-business-rules": {
       "kind": "exact_ids",

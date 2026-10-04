@@ -38,7 +38,7 @@ Không. Agent có thể ghi điều **quan sát được**, tìm mismatch/gap v�
 
 Canonical SRS hiện theo functional SRS contract và được quản lý ở Markdown; không có một Markdown form cố định cho mọi feature.
 
-RC1 production repo **không bundle SRS_TEMPLATE.docx mặc định**.
+Repository **không bundle SRS_TEMPLATE.docx mặc định**.
 
 ### Có tạo SRS theo template Word công ty được không?
 
@@ -99,13 +99,13 @@ Ghi discrepancy. CURRENT_SYSTEM là as-is evidence; Confirmed Decisions + Approv
 
 Engineering Impact — xác định WHERE / WHO OWNS. Sau đó mới tới Dev Kit + repo-local Spec Kit cho HOW.
 
-### Runtime RC1 hiện PASS chưa?
+### Điều gì chứng minh BA VNext đã được acceptance?
 
-Chưa. BA Kit 1.0.0-rc.1 là Public Preview và chưa được chấp nhận hoàn toàn. Đã thực hiện kiểm tra thủ công cho Requirement, Business Rules, SRS và Draw.io; validation thủ công cuối cùng cho DOCX và validation cuối cùng cho approval/handoff vẫn đang chờ. Lần chạy full CR-001 đầu tiên trả **BA_KIT_RC1_CHANGES_REQUIRED** và chỉ là evidence lịch sử tìm lỗi, không phải final acceptance.
+Phase 4 yêu cầu Tier 3 fresh-install acceptance bên cạnh deterministic và focused runtime tests. Acceptance cài vào target sạch, chặn import từ source checkout, chứng minh approval gate của host, revalidate đúng Engineering Handoff VNext và kiểm tra V1 `LEGACY_COMPAT`. Doctor READY chỉ xác nhận package capability. Đây không phải stable release.
 
 ### License BA Kit đã ổn chưa?
 
-Payload BA Kit là **BA_KIT_LICENSE_READY** cho bản phân phối Public Preview đã được tuyển chọn này.
+Xem repository provenance và third-party notices để biết thông tin license/redistribution. Tài liệu này không tuyên bố stable BA Kit release.
 
 ---
 

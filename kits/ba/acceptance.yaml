@@ -5,24 +5,38 @@ feedback_loop:
     run_for_each_change: true
     commands:
       - python -m unittest tooling.tests.test_ba_kit -v
+      - python -m unittest tooling.tests.test_ba_vnext -v
+      - python -m unittest tooling.tests.test_ba_vnext_installed_acceptance -v
       - python -m unittest tooling.tests.test_srs_function_document -v
   tier_2_focused_runtime:
     cases:
-      - local code discovery and CURRENT_SYSTEM evidence
-      - SRS confirmed-semantic preservation and UNKNOWN retention
-      - SRS unsupported-entry-flow guard
+      - Project Foundation context consumes durable manifest, promotion provenance, approval receipt and trusted host authentication
+      - CURRENT_SYSTEM evidence remains distinct from target behavior
+      - named Human ANSWER resolves only its named question
+      - stable BR-* and FR-* identity is preserved; retired IDs cannot be reused
+      - exact candidate/source/hash validation and rejection of stale proof
+      - CONTINUE, ANSWER, validator PASS, Foundation READY and UX approval cannot approve a BA baseline
+      - exact host-authenticated approval receipt is required for Engineering Handoff VNext
+      - BAREF:* remains locator/provenance only
+      - SRS confirmed-semantic preservation, UNKNOWN retention and unsupported-entry-flow guard
       - Business Rule required-description bounds
     isolated_ephemeral_session_per_probe: true
     bounded_timeout_seconds: 120
     optional_review_service_required: false
   tier_3_fresh_session_e2e:
-    run_for_release_acceptance_only: true
+    run_for_phase_4_completion: true
     requires_clean_semantic_context: true
-  tier_3_required_for_rc1_pass: true
-  tier_1_or_tier_2_can_mark_rc1_pass: false
+    installed_runtime_isolation_required: true
+    flow: install -> doctor -> VNext state -> Decisions/BR/SRS -> candidate -> VALIDATED -> HUMAN_REVIEW -> prove no self approval -> synthetic trusted-host approval -> APPROVED_BASELINE -> Engineering Handoff VNext -> revalidate installed handoff -> V1 LEGACY_COMPAT
+  tier_3_required_for_phase_4_completion: true
+  tier_1_or_tier_2_can_mark_phase_4_complete: false
 automated:
   - command: python -m unittest tooling.tests.test_ba_kit -v
     proves: manifest resolution, state/handoff contracts, idempotent install, safe uninstall
+  - command: python -m unittest tooling.tests.test_ba_vnext -v
+    proves: frozen lifecycle, exact approval proof, Foundation binding, stable FR/BR identity and locator-only BAREF behavior
+  - command: python -m unittest tooling.tests.test_ba_vnext_installed_acceptance -v
+    proves: installed runtime isolation, Doctor closure, no self approval, host-supplied approval, exact handoff revalidation and V1 LEGACY_COMPAT
   - command: python tooling/lib/ba_kit.py doctor ba --target <temporary-skills-directory>
     proves: required skills and contracts resolve without Skills Manager
   - command: python tooling/lib/ba_kit.py install ba --agent generic --target <temporary-skills-directory>
@@ -34,7 +48,7 @@ manual:
     expected: unrelated state is byte-for-byte preserved; repeated install is idempotent
   - case: uninstall BA Kit
     expected: only unchanged BA-managed skill directories are removed; modified/shared/unrelated files are preserved and reported
-  - case: CR-001 clean-session semantic workflow
+  - case: neutral CR-001 clean-session semantic workflow
     expected: continuation never approves; unknowns remain open; no technical ownership/design is invented
-  - case: explicit final BA approval and engineering handoff
-    expected: handoff contains immutable revision/source hashes and no implementation ownership fields
+  - case: trusted-host BA approval and Engineering Handoff VNext
+    expected: exact candidate/receipt/source proof is revalidated; no implementation ownership fields are added

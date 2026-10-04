@@ -12,7 +12,7 @@ BA Kit chịu trách nhiệm phần **WHAT — hệ thống cần làm gì**. Te
 | Source code/project hiện tại | Brownfield discovery, xác định CURRENT_SYSTEM | Current behavior là evidence, không tự thành target requirement |
 | SRS/BR/Markdown hiện có | Review, update có kiểm soát | Giữ nguyên phần đã approved nếu không có quyết định mới |
 | DOCX hiện có | Review/edit document-only hoặc delivery | Nếu đã có canonical Markdown thì không sửa riêng DOCX để đổi nghiệp vụ |
-| Word template .docx | Xuất SRS/DOCX theo layout/template của tổ chức | RC1 **không bundle SRS_TEMPLATE.docx mặc định** |
+| Word template .docx | Xuất SRS/DOCX theo layout/template của tổ chức | Repository **không bundle SRS_TEMPLATE.docx mặc định** |
 | Screenshot/image/PDF export | Visual evidence, mô tả UI, tìm gap, dựng lại sơ đồ | Chỉ kết luận điều nhìn thấy; hidden rules vẫn phải hỏi Human |
 | Figma | Visual source khi runtime có connector/quyền truy cập | Nếu không có connector, dùng screenshot/PDF export/local artifact |
 | HTML prototype/UI hiện có | Review interaction/state, mô tả lại trong SRS | Không coi prototype là business authority |
@@ -98,7 +98,7 @@ Xem [SRS và DOCX](SRS_DOCX_GUIDE.md).
 - comments/review workflows;
 - quality gate và kiểm tra OOXML.
 
-BA Kit RC1 **không có một company SRS Word template mặc định trong repository**. Nếu tổ chức có template, hãy cung cấp file .docx và chọn nó làm delivery template.
+BA Kit **không có company SRS Word template mặc định trong repository**. Nếu tổ chức có template, hãy cung cấp file .docx và chọn nó làm delivery template.
 
 Semantic source vẫn là canonical BA baseline; Word template chỉ điều khiển cấu trúc/trình bày.
 
@@ -160,16 +160,19 @@ Operation được phân biệt:
 
 ### 10. Engineering Handoff
 
-Sau khi Human phê duyệt rõ ràng BA baseline và không còn blocking item, BA Kit tạo **engineering-handoff.yml** gồm:
+Sau lifecycle `HUMAN_REVIEW`, workflow dừng chờ Human. Trusted host cung cấp và xác thực đúng approval receipt; chỉ sau đó baseline mới chuyển thành `APPROVED_BASELINE`. BA Kit revalidate proof rồi tạo **Engineering Handoff VNext** (`engineering-handoff.json`) gồm:
 
 - feature identity;
-- approved immutable revision;
-- Business Rules/SRS/decision source path + SHA-256;
+- đúng candidate manifest và immutable semantic hash;
+- ref + SHA-256 của BA Decisions, Business Rules (`BR-*`) và canonical SRS (`FR-*`);
+- ref của approval receipt đã được host xác thực;
 - open items;
 - downstream policy;
 - next stage = engineering-impact-analysis.
 
-Handoff không chứa repo/module owner, FE/BE owner, API/DB/event design, locking hoặc transaction strategy.
+Handoff không chứa repo/module owner, FE/BE owner, API/DB/event design, locking hoặc transaction strategy. BA sở hữu WHAT; Engineering sở hữu HOW. `CONTINUE != APPROVE`; `ANSWER != APPROVE`; validator PASS, Foundation READY và UX approval không phê duyệt BA baseline.
+
+Runtime `workflow-state-vnext.json` (V2) ghi tiến độ, không phải business authority. Canonical authority là BA Decisions + BR + SRS + candidate/manifest được chọn. Approval receipt do host cung cấp. DOCX, Draw.io và visual output tùy chọn là derived. V1 state và handoff `.yml` vẫn ở chế độ `LEGACY_COMPAT`, không chứng minh VNext approval. Project Foundation cần durable manifest, promotion provenance, approval receipt và trusted Foundation host authentication.
 
 ## Source of truth theo loại artifact
 
@@ -194,7 +197,7 @@ Một artifact derived như DOCX, Draw.io hay prototype **không được tự t
 
 ## Required và optional capability
 
-Required trong BA Kit RC1:
+Required trong BA Kit composition:
 
 - verification-before-completion
 - codebase-discovery
@@ -214,7 +217,7 @@ Optional:
 - playwright
 - web-accessibility
 
-Doctor có thể báo **DEGRADED** nếu optional capability thiếu; core BA workflow vẫn cần required capabilities để READY.
+Doctor kiểm tra script/template VNext đã cài, canonical SRS, isolated import của Shared SDLC payload và atomic skill bắt buộc. **READY** chỉ xác nhận package capability; không đồng nghĩa Human approval, BA baseline approved hay feature readiness. Doctor có thể báo **DEGRADED** nếu optional capability thiếu.
 
 ## Không thuộc BA Kit
 

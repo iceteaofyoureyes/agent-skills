@@ -62,7 +62,7 @@ XMind và Excel là bản chiếu tùy chọn từ canonical artifacts, không p
 
 BA Kit quản lý **canonical functional SRS ở Markdown** và có capability xuất/edit DOCX.
 
-RC1 hiện **không bundle SRS_TEMPLATE.docx mặc định**. Nếu công ty/project có Word template, cung cấp file .docx và chọn nó làm delivery template; template không được override business semantics.
+Repository không bundle SRS_TEMPLATE.docx mặc định. Nếu công ty/project có Word template, cung cấp file .docx và chọn nó làm delivery template; template không được override business semantics.
 
 Xem [SRS và DOCX](docs/vi/SRS_DOCX_GUIDE.md).
 
@@ -78,7 +78,7 @@ Xem [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md).
 
 | Kit | Trạng thái | Phạm vi |
 |---|---|---|
-| **BA Kit** | **1.0.0-rc.1 Public Preview** | **WHAT** |
+| **BA Kit** | **VNext packaging candidate; Tier 3 fresh-install acceptance required; not a stable release** | **WHAT** |
 | **Dev Kit** | Planned | Engineering Impact + **HOW** |
 | **Test Kit V1.1** | V1 core + XMind/Excel + Packaging + Project Customization & Policy Layer **Human accepted**; manifest `1.1.0`, chưa có public release/tag | **HOW DO WE PROVE IT** |
 
@@ -127,7 +127,7 @@ BA Kit và Test Kit có thể cùng cài. Xem [hướng dẫn cài cả hai Kit]
 
 ## Trạng thái hiện tại
 
-Đã thực hiện kiểm tra thủ công cho Requirement, Business Rules, SRS và Draw.io. Việc validation thủ công cuối cùng cho DOCX và validation cuối cùng cho approval/handoff vẫn đang chờ. BA Kit 1.0.0-rc.1 là Public Preview, chưa được chấp nhận hoàn toàn.
+BA Kit đang ở trạng thái packaging candidate, không phải stable release. Phase 4 completion yêu cầu Tier 3 fresh-install acceptance với runtime import được cách ly khỏi source checkout. Doctor READY chỉ xác nhận package capability; approval vẫn do trusted host xác thực theo đúng BA candidate.
 
 
 

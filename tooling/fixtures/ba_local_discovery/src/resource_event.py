@@ -2,12 +2,12 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Visit:
-    pet_id: int
+class ResourceEvent:
+    resource_id: int
     date: str
     description: str
 
 
 @dataclass
-class Pet:
-    visits: list[Visit]
+class Resource:
+    events: list[ResourceEvent]

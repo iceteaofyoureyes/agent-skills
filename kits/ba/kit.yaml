@@ -23,5 +23,24 @@
       "web-accessibility"
     ]
   },
-  "outputs": ["workflow-state.json", "engineering-handoff.yml"]
+  "capabilities": {
+    "baseline_lifecycle": "DRAFT -> VALIDATED -> HUMAN_REVIEW -> APPROVED_BASELINE",
+    "canonical_authority": ["BA Decisions", "Business Rules (BR-*)", "canonical SRS (FR-*)", "BA Baseline Candidate/Manifest"],
+    "runtime": ["workflow-state V2"],
+    "evidence_and_gate": ["host-authenticated BA Human approval receipt", "exact evidence refs"],
+    "handoff": ["Engineering Handoff VNext"],
+    "derived": ["DOCX", "Draw.io", "optional prototype/visual outputs"],
+    "legacy": "V1 workflow state and handoff are LEGACY_COMPAT; they never establish VNext approval"
+  },
+  "outputs": [
+    "workflow-state-vnext.json (RUNTIME; not business authority)",
+    "BA Decisions V1",
+    "Business Rules (BR-*)",
+    "canonical SRS (FR-*)",
+    "BA Baseline Candidate/Manifest V1",
+    "host-supplied BA Human approval receipt V1 (evidence input)",
+    "Engineering Handoff VNext",
+    "derived DOCX / Draw.io / optional visual outputs",
+    "V1 workflow-state.json and engineering-handoff.yml (LEGACY_COMPAT only)"
+  ]
 }

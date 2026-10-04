@@ -76,7 +76,7 @@ Workflow không bắt mọi request chạy full pipeline; nó bắt đầu từ 
 
 | Stage | Question | Status |
 |---|---|---|
-| BA Kit | **WHAT**? | 1.0.0-rc.1 Public Preview; trạng thái BA riêng |
+| BA Kit | **WHAT**? | VNext packaging candidate; cần Tier 3 fresh-install acceptance; chưa stable release |
 | Engineering Impact | **WHERE / WHO OWNS**? | Planned |
 | Dev Kit + Spec Kit | **HOW**? | Planned |
 | Test Kit V1 | **HOW DO WE PROVE IT**? | Core, XMind, Excel, Packaging V1 Human accepted; package đã commit |

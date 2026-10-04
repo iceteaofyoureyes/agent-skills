@@ -112,7 +112,7 @@ Preserve template layout/styles.
 If a section lacks confirmed data, keep UNKNOWN or report it; do not invent it.
 ~~~
 
-BA Kit RC1 **does not bundle a default SRS Word template**.
+The repository **does not bundle a default SRS Word template**.
 
 ## Scenario 9 — Review/edit an existing DOCX
 
@@ -196,7 +196,7 @@ Expected: immutable revision, source path + SHA-256, open items, downstream poli
 Continue.
 ~~~
 
-The workflow reads **workflow-state.json** and performs the next valid action. It does not answer questions for the Human, approve artifacts, or bypass blocking gates.
+The workflow reads **workflow-state-vnext.json** (V2 runtime) and performs the next valid action. V1 `workflow-state.json` is read only as `LEGACY_COMPAT`. Runtime state is not business authority; the workflow does not answer questions for the Human, approve artifacts, or bypass blocking gates.
 
 ## Full working flow
 

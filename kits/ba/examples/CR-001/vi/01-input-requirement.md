@@ -1,13 +1,13 @@
 # Yêu cầu ban đầu
 
-Thêm khả năng đặt lịch hẹn giữa Pet và Veterinarian.
+Thêm khả năng đặt yêu cầu đăng ký giữa Resource và Coordinator.
 
-Clinic Staff cần có thể:
+Service Staff cần có thể:
 
-- tạo lịch hẹn;
-- xem danh sách lịch hẹn;
+- tạo yêu cầu đăng ký;
+- xem danh sách yêu cầu đăng ký;
 - chỉnh sửa hoặc đổi lịch;
-- hủy lịch hẹn;
-- hoàn tất lịch hẹn.
+- hủy yêu cầu đăng ký;
+- hoàn tất yêu cầu đăng ký.
 
-Khi hoàn tất lịch hẹn, cần tích hợp với hành vi Visit hiện có.
+Khi hoàn tất yêu cầu đăng ký, cần tích hợp với hành vi Fulfillment Record hiện có.

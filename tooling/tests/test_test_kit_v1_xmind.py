@@ -16,7 +16,7 @@ from tooling.lib import test_kit_v1_xmind as xmind
 
 
 ROOT = Path(__file__).resolve().parents[2]
-BASELINE = ROOT / "kits/ba/examples/CR-001/vi/05-engineering-handoff.yml"
+BASELINE = ROOT / "tooling/tests/fixtures/ba-v1-legacy-compat/05-engineering-handoff.yml"
 FIXTURE = ROOT / "benchmark/test-kit/petclinic/fixtures/test-design-v1"
 NON_APPROVED_FIXTURE = ROOT / "benchmark/test-kit/petclinic/foundation-v1-native-profiled"
 

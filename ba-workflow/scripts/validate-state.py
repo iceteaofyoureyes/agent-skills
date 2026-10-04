@@ -9,7 +9,7 @@ from shared.sdlc.schema import read_document
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Validate BA workflow-state.json")
+    parser = argparse.ArgumentParser(description="Validate BA V1 compatibility or VNext workflow state")
     parser.add_argument("path", type=Path)
     args = parser.parse_args()
     try:

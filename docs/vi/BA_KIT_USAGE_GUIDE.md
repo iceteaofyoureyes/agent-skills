@@ -114,7 +114,7 @@ Giữ style/layout của template.
 Section nào chưa có dữ liệu confirmed thì để UNKNOWN hoặc report; không tự invent.
 ~~~
 
-BA Kit RC1 **không bundle template SRS Word mặc định**.
+Repository **không bundle template SRS Word mặc định**.
 
 ## Tình huống 9 — Review/edit existing DOCX
 
@@ -200,7 +200,7 @@ Expected: immutable revision, source path + SHA-256, open items, downstream poli
 Tiếp tục.
 ~~~
 
-Workflow đọc **workflow-state.json**, xác định next valid action và tiếp tục. Nó không trả lời câu hỏi thay Human, tự approve hoặc bỏ qua blocking gate.
+Workflow đọc **workflow-state-vnext.json** (V2 runtime) để xác định next valid action. V1 `workflow-state.json` chỉ được đọc ở chế độ `LEGACY_COMPAT`. Runtime state không phải business authority; workflow không trả lời thay Human, tự approve hay bỏ qua blocking gate.
 
 ## Một flow làm việc đầy đủ
 

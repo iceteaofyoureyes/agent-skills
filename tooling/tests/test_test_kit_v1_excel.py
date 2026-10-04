@@ -18,7 +18,7 @@ from tooling.lib import test_kit_v1_excel as excel
 
 
 ROOT = Path(__file__).resolve().parents[2]
-BASELINE = ROOT / "kits/ba/examples/CR-001/vi/05-engineering-handoff.yml"
+BASELINE = ROOT / "tooling/tests/fixtures/ba-v1-legacy-compat/05-engineering-handoff.yml"
 TESTWARE = ROOT / "benchmark/test-kit/petclinic/fixtures/test-only-approved-testware-v1"
 ARCHIVED_TESTWARE = TESTWARE
 DESIGN = ROOT / "benchmark/test-kit/petclinic/fixtures/test-design-v1"

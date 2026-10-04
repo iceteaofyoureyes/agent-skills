@@ -29,7 +29,7 @@ installed, source, project = map(Path, sys.argv[1:4])
 assert Path(design.__file__).resolve().is_relative_to(installed.resolve())
 assert Path(cases.__file__).resolve().is_relative_to(installed.resolve())
 assert Path(persistence.__file__).resolve().is_relative_to(installed.resolve())
-bundle = design.adapt_ba_to_tea(source/'kits/ba/examples/CR-001/vi/05-engineering-handoff.yml')
+bundle = design.adapt_ba_to_tea(source/'tooling/tests/fixtures/ba-v1-legacy-compat/05-engineering-handoff.yml')
 raw = source/'benchmark/test-kit/petclinic/tea-test-design/raw-output/test-design/test-design-epic-1.md'
 assert design.normalize_tea_output(raw, bundle.baseline).status == 'NORMALIZED'
 snapshot = design.DesignSnapshot.create((design.CanonicalTestDesign(

@@ -78,7 +78,10 @@ Doctor checks:
 - required/optional skill directories;
 - Agent Skills frontmatter;
 - workflow-state/source-authority contracts;
-- Engineering Handoff contract.
+- Engineering Handoff contract;
+- installed `ba_vnext.py`, `ba_contracts.py`, validators and VNext templates;
+- isolated Shared SDLC payload imports from the installed skill folder;
+- canonical SRS contract and required atomic BA skills.
 
 | Status | Meaning |
 |---|---|
@@ -90,9 +93,11 @@ FAIL exits 1; READY/DEGRADED exit 0.
 
 ### Important: READY does not mean every external runtime tool is installed
 
-Doctor is currently **not an external dependency manager** and does not prove runtime acceptance.
+Doctor is **not an external dependency manager** and does not prove Human approval, approved baseline, feature readiness, or full runtime acceptance. READY confirms package capability closure only.
 
 An installation may be READY while lacking tools needed for Word export, Draw.io export, or browser rendering.
+
+Phase 4 completion also requires the Tier 3 fresh-install acceptance: install to a clean target, run Doctor, then execute the VNext lifecycle and exact handoff revalidation with imports isolated from the source checkout.
 
 ## Runtime prerequisites by capability
 
