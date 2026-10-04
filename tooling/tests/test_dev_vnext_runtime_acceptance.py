@@ -91,13 +91,13 @@ class RuntimeAcceptanceTests(unittest.TestCase):
             'base_revision':self.git(repo_id, 'rev-parse', 'HEAD'),
             'allowed_write_paths':['src', 'tests'], 'read_only_evidence_paths':[]})
 
-    def request(self, *, maintenance=False, risk=None, run_id='RUN-1'):
+    def request(self, *, maintenance=False, risk=None, run_id='RUN-1', checks=None):
         data = {'run_id':run_id, 'change_id':'CHANGE-1',
             'summary':'Implement neutral module result',
             'authority_mode':'TECHNICAL_MAINTENANCE' if maintenance else 'FEATURE_DELIVERY',
             'repositories':copy.deepcopy(self.repositories),
             'repository_roots':copy.deepcopy(self.repository_roots),
-            'checks':[{'name':category.lower(), 'category':category,
+            'checks':copy.deepcopy(checks) if checks is not None else [{'name':category.lower(), 'repository_id':'core', 'category':category,
                 'command':[sys.executable, 'tests/check_native.py', category]}
                 for category in contracts.CHECK_CATEGORIES],
             'upstream':None if maintenance else self.upstream}
@@ -120,9 +120,9 @@ class RuntimeAcceptanceTests(unittest.TestCase):
             'write_scope':{r['id']:r['allowed_write_paths'] for r in state['repositories']},
             'knowledge_impact':copy.deepcopy(self.handoff['knowledge_impact'])}
 
-    def planned(self, *, high=False, material_ed=False):
+    def planned(self, *, high=False, material_ed=False, run_id='RUN-1', checks=None):
         risk = {'level':'HIGH_RISK', 'categories':['PUBLIC_API'], 'reasons':['public response boundary']} if high else None
-        state = self.runtime.start(self.request(risk=risk))
+        state = self.runtime.start(self.request(risk=risk, run_id=run_id, checks=checks))
         self.assertEqual(state['lifecycle'], 'INTAKE')
         state = self.runtime.validate_authority()
         self.assertEqual(state['lifecycle'], 'AUTHORITY_VALIDATED')
@@ -183,14 +183,14 @@ class RuntimeAcceptanceTests(unittest.TestCase):
         return [{'id':identity, 'status':'COVERED', 'code_refs':[code], 'test_refs':[test]}
                 for identity in ('BR-001', 'FR-001')]
 
-    def finish(self, *, maintenance=False):
+    def finish(self, *, maintenance=False, coverage=None):
         if not maintenance:
             self.runtime.record_review([self.ba.ref('review-evidence.json')])
         self.runtime.verify()
         self.assertEqual(self.runtime.load()['lifecycle'], 'VERIFYING')
         if not maintenance:
             self.assertIn('ENGINEERING_REVIEW', [event['to'] for event in self.runtime.load()['history']])
-        return self.runtime.finalize([] if maintenance else self.coverage())
+        return self.runtime.finalize([] if maintenance else (coverage if coverage is not None else self.coverage()))
 
     def test_normal_full_runtime_path_keeps_ba_authority_bytes_unchanged(self):
         protected = [self.upstream, self.handoff['ba_baseline']['manifest'],
@@ -354,6 +354,51 @@ class RuntimeAcceptanceTests(unittest.TestCase):
         self.assertEqual(handoff['repository_revisions'], revisions)
         self.assertEqual({row['repository_id']:row['revision'] for row in handoff['implementation']}, revisions)
         self.assertTrue(all(row['changed_paths'] == ['src/module.py'] for row in handoff['implementation']))
+
+    def test_heterogeneous_multi_repo_checks_only_execute_in_their_bound_repository(self):
+        self.add_repository('api')
+        checks = [
+            {'name':'core-unit','repository_id':'core','category':'UNIT',
+             'command':[sys.executable,'-c',"from pathlib import Path; assert Path.cwd().name == 'core'"]},
+            {'name':'api-component','repository_id':'api','category':'COMPONENT',
+             'command':[sys.executable,'-c',"from pathlib import Path; assert Path.cwd().name == 'api'"]},
+        ]
+        state = self.planned(checks=checks, run_id='RUN-HETEROGENEOUS')
+        self.assertEqual([row['repository_id'] for row in state['checks']], ['core','api'])
+        self.approve(state)
+        self.implement()
+        handoff = self.finish()
+        self.assertEqual(handoff['state'], 'READY_FOR_TEST')
+        self.assertEqual(set(handoff['repository_revisions']), {'core','api'})
+        rows = {row['name']:row for row in handoff['engineering_verification']['checks']}
+        for name, repository_id in (('core-unit','core'),('api-component','api')):
+            row = rows[name]
+            self.assertEqual(row['repository_id'], repository_id)
+            self.assertEqual((row['status'],row['exit_code']), ('PASS',0))
+            evidence = json.loads((self.root/row['evidence_ref']['path']).read_text(encoding='utf-8'))
+            self.assertEqual(evidence['repository_id'], repository_id)
+            self.assertEqual(evidence['command'], row['command'])
+            self.assertEqual((evidence['status'],evidence['exit_code']), ('PASS',0))
+            self.assertEqual(evidence['snapshot_sha256'], handoff['technical_snapshot']['sha256'])
+            self.assertEqual(evidence['implementation_revision'], handoff['repository_revisions'][repository_id])
+            self.assertEqual([execution['repository_id'] for execution in evidence['executions']], [repository_id])
+
+    def test_failing_scoped_check_in_one_repository_blocks_handoff(self):
+        self.add_repository('api')
+        checks = [
+            {'name':'core-unit','repository_id':'core','category':'UNIT',
+             'command':[sys.executable,'-c',"from pathlib import Path; assert Path.cwd().name == 'core'"]},
+            {'name':'api-component','repository_id':'api','category':'COMPONENT',
+             'command':[sys.executable,'-c','raise SystemExit(7)']},
+        ]
+        self.planned(checks=checks, run_id='RUN-SCOPED-FAILURE')
+        self.approve(self.runtime.state)
+        self.implement()
+        self.runtime.record_review([self.ba.ref('review-evidence.json')])
+        verification = self.runtime.verify()
+        self.assertEqual([row['status'] for row in verification['checks']], ['PASS','FAIL'])
+        with self.assertRaises(ValueError):
+            self.runtime.finalize(self.coverage())
 
     def test_maintenance_fast_path_finishes_without_ba_or_feature_coverage(self):
         # The fixture's maintenance baseline already has the correct behavior;

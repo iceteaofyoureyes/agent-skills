@@ -32,7 +32,7 @@ class DevRuntimePersistenceTests(unittest.TestCase):
             repositories=[dict(id='core', role='IMPLEMENTATION', base_revision=self.base,
                 allowed_write_paths=['src'], read_only_evidence_paths=[])],
             repository_roots={'core':str(self.repo)},
-            checks=[dict(name='unit', category='UNIT', command=[sys.executable,'-c','print("fresh")'])],
+            checks=[dict(name='unit', repository_id='core', category='UNIT', command=[sys.executable,'-c','print("fresh")'])],
             maintenance=dict(kind='MECHANICAL', no_what_change=True, discovered_changes=[],
                 evidence_refs=[self.runtime.reference('evidence.txt', 'EVIDENCE-1')]))
 
@@ -105,6 +105,14 @@ class DevRuntimePersistenceTests(unittest.TestCase):
         bad = copy.deepcopy(self.request)
         bad['repository_roots']['core']=str(self.repo/'src')
         with self.assertRaises(ValueError): self.runtime.start(bad)
+
+    def test_single_repository_check_without_target_is_canonicalized_before_persist(self):
+        request = copy.deepcopy(self.request)
+        request['checks'][0].pop('repository_id')
+        self.runtime.start(request)
+        self.assertEqual(self.runtime.state['checks'][0]['repository_id'], 'core')
+        persisted = json.loads((self.root/'.devkit/runs/RUN-1/start-request.json').read_text())
+        self.assertEqual(persisted['checks'][0]['repository_id'], 'core')
 
     def test_selected_run_does_not_switch_to_current_run(self):
         self.runtime.start(self.request)

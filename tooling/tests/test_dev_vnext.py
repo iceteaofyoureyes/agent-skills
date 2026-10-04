@@ -24,20 +24,50 @@ class DevVNextTests(unittest.TestCase):
         self.upstream = self.ba.ref('handoff.json')
         self.repos = [{'id':'core','role':'IMPLEMENTATION','base_revision':'a'*40,
                        'allowed_write_paths':['src','tests'], 'read_only_evidence_paths':['docs']}]
-        self.checks = [{'name':'unit','category':'UNIT','command':['python','-m','unittest']}]
+        self.checks = [{'name':'unit','repository_id':'core','category':'UNIT','command':['python','-m','unittest']}]
         self.context = {'ba_authenticator':self.ba_auth}
         self.produced = {'core':'b'*40}
         self.ba.put('code.json', {'example':'synthetic implementation'})
         self.ba.put('test.json', {'example':'synthetic unit evidence'})
         self.ba.put('review.json', {'example':'consolidated review evidence'})
 
-    def start(self, repos=None, maintenance=False):
+    def start(self, repos=None, maintenance=False, checks=None):
         return dev.new_state(run_id='RUN-1', change_id='CHANGE-1', summary='Collection request implementation',
             authority_mode='TECHNICAL_MAINTENANCE' if maintenance else 'FEATURE_DELIVERY',
-            repositories=repos or self.repos, checks=self.checks,
+            repositories=repos or self.repos, checks=self.checks if checks is None else checks,
             upstream=None if maintenance else self.upstream,
             maintenance={'kind':'MECHANICAL','evidence_refs':[self.ba.ref('review.json')],
                          'no_what_change':True,'discovered_changes':[]} if maintenance else None)
+
+    def test_checks_require_an_implementation_repository_and_canonicalize_single_repo(self):
+        unscoped = [{'name':'unit','category':'UNIT','command':['python','-m','unittest']}]
+        self.assertEqual(self.start(checks=unscoped)['checks'][0]['repository_id'], 'core')
+
+        with self.assertRaises(ValueError):
+            self.start(checks=[dict(unscoped[0], repository_id='unknown')])
+
+        read_only = self.repos + [{'id':'docs','role':'READ_ONLY','base_revision':'c'*40,
+            'allowed_write_paths':[],'read_only_evidence_paths':['docs']}]
+        with self.assertRaises(ValueError):
+            self.start(repos=read_only, checks=[dict(unscoped[0], repository_id='docs')])
+
+        multiple = self.repos + [{'id':'client','role':'IMPLEMENTATION','base_revision':'c'*40,
+            'allowed_write_paths':['client'],'read_only_evidence_paths':[]}]
+        with self.assertRaises(ValueError):
+            self.start(repos=multiple, checks=unscoped)
+
+    def test_snapshot_binds_the_exact_check_repository(self):
+        repositories = self.repos + [{'id':'client','role':'IMPLEMENTATION','base_revision':'c'*40,
+            'allowed_write_paths':['client'],'read_only_evidence_paths':[]}]
+        checks = [dict(self.checks[0]), {'name':'client-unit','repository_id':'client',
+            'category':'UNIT','command':['python','-m','unittest']}]
+        state = self.planned(repos=repositories, checks=checks)
+        snapshot = dev._data(state['artifacts']['snapshot'], self.root)
+        snapshot['checks'][0]['repository_id'] = 'client'
+        self.ba.put('snapshot-check-rebind.json', snapshot)
+        rebound = self.ba.ref('snapshot-check-rebind.json', state['artifacts']['snapshot']['revision'])
+        with self.assertRaises(ValueError):
+            dev.validate_snapshot(rebound, self.root, state, **self.context)
 
     def impact(self, state, risk='NORMAL', categories=None):
         return {'schema_version':2,'change_id':state['change_id'], 'upstream_ref':state['upstream'],
@@ -59,8 +89,8 @@ class DevVNextTests(unittest.TestCase):
             'consequences':['compatibility retained'],'risk':'HIGH_RISK','materiality':'MATERIAL',
             'approval_requirement':'HUMAN','supersedes':[],'superseded_by':[]}
 
-    def planned(self, high=False, repos=None):
-        state = dev.advance(self.start(repos), 'AUTHORITY_VALIDATED', self.root, **self.context)
+    def planned(self, high=False, repos=None, checks=None):
+        state = dev.advance(self.start(repos, checks=checks), 'AUTHORITY_VALIDATED', self.root, **self.context)
         data = self.impact(state, 'HIGH_RISK' if high or repos else 'NORMAL',
                            ['PUBLIC_API'] if high else (['CROSS_REPOSITORY'] if repos else []))
         self.ba.put('impact.json', data)
@@ -98,7 +128,7 @@ class DevVNextTests(unittest.TestCase):
     def verification(self, state, revisions):
         return {'snapshot_sha256':state['artifacts']['snapshot']['sha256'],
             'repository_revisions':revisions,'recorded_at':STAMP,
-            'checks':[{'name':'unit','category':'UNIT','command':self.checks[0]['command'],
+            'checks':[{'name':'unit','repository_id':'core','category':'UNIT','command':self.checks[0]['command'],
                        'status':'PASS','exit_code':0,'evidence_ref':self.ba.ref('test.json')}]}
 
     def review(self, state, revisions):

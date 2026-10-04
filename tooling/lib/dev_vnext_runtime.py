@@ -378,6 +378,8 @@ class DevRuntime:
         allowed = {'run_id','change_id','summary','authority_mode','repositories','checks','upstream','delivery','maintenance','repository_roots','risk'}
         if set(request)-allowed: raise ValueError('unsupported start fields: '+', '.join(sorted(set(request)-allowed)))
         state = self._request_state(request)
+        request=copy.deepcopy(request)
+        request['checks']=copy.deepcopy(state['checks'])
         for check in state['checks']: dev.identifier(check['name'])
         dev.validate_state(state,self.root,**self.context)
         identities = self._identities(state['repositories'],request.get('repository_roots',{}))
@@ -604,23 +606,26 @@ class DevRuntime:
         if self.metadata['review']['repository_revisions']!=revisions: raise ValueError('review revision drift')
         results=[]
         for check in self.state['checks']:
-            executions=[]
-            for repository_id in revisions:
-                root=self._repository(repository_id)
-                before=self._outputs()
-                try:
-                    process=subprocess.run(check['command'],cwd=root,capture_output=True,text=True,encoding='utf-8',errors='replace',shell=False)
-                    exit_code,stdout,stderr=process.returncode,process.stdout,process.stderr
-                except OSError as exc:
-                    exit_code,stdout,stderr=127,'',str(exc)
-                if self._outputs()!=before: raise ValueError('repository-native check mutated implementation revision/scope')
-                executions.append(dict(repository_id=repository_id,argv=check['command'],exit_code=exit_code,stdout=stdout,stderr=stderr))
-            exit_code=next((row['exit_code'] for row in executions if row['exit_code']),0)
+            repository_id=check['repository_id']
+            root=self._repository(repository_id)
+            before=self._outputs()
+            try:
+                process=subprocess.run(check['command'],cwd=root,capture_output=True,text=True,encoding='utf-8',errors='replace',shell=False)
+                exit_code,stdout,stderr=process.returncode,process.stdout,process.stderr
+            except OSError as exc:
+                exit_code,stdout,stderr=127,'',str(exc)
+            if self._outputs()!=before: raise ValueError('repository-native check mutated implementation revision/scope')
+            status='PASS' if exit_code==0 else 'FAIL'
+            implementation_revision=revisions[repository_id]
+            executions=[dict(repository_id=repository_id,implementation_revision=implementation_revision,
+                argv=check['command'],exit_code=exit_code,stdout=stdout,stderr=stderr)]
             evidence=dict(artifact_class='EVIDENCE',name=check['name'],category=check['category'],command=check['command'],
+                          repository_id=repository_id,implementation_revision=implementation_revision,
+                          status=status,exit_code=exit_code,
                           snapshot_sha256=self.state['artifacts']['snapshot']['sha256'],repository_revisions=revisions,
                           recorded_at=_stamp(),executions=executions)
             ref=self._artifact('evidence/checks/'+check['name']+'-'+str(len(list((self.run_directory/'evidence/checks').glob('*.json'))))+'.json',evidence)
-            results.append({**check,'exit_code':exit_code,'status':'PASS' if exit_code==0 else 'FAIL','evidence_ref':ref})
+            results.append({**check,'exit_code':exit_code,'status':status,'evidence_ref':ref})
         verification=dict(snapshot_sha256=self.state['artifacts']['snapshot']['sha256'],repository_revisions=revisions,recorded_at=_stamp(),checks=results)
         self.metadata['verification']=verification
         self._save()

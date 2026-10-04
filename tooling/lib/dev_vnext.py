@@ -60,7 +60,8 @@ RISK = object_schema({'level':enum(RISK_ORDER),'categories':{'type':'array','ite
 REPOSITORY = object_schema({'id':STRING,'role':enum(('IMPLEMENTATION','READ_ONLY')),
     'base_revision':STRING,'allowed_write_paths':STRINGS,'read_only_evidence_paths':STRINGS})
 REPOSITORIES = {'type':'array','items':REPOSITORY,'minItems':1}
-CHECK = object_schema({'name':STRING,'category':enum(CHECK_CATEGORIES),'command':{'type':'array','items':STRING,'minItems':1}})
+CHECK = object_schema({'name':STRING,'repository_id':STRING,'category':enum(CHECK_CATEGORIES),
+    'command':{'type':'array','items':STRING,'minItems':1}})
 CHECKS = {'type':'array','items':CHECK,'minItems':1}
 UNKNOWN = object_schema({'id':STRING,'description':STRING,'blocking':{'type':'boolean'}})
 IMPACT_V2 = object_schema({'schema_version':V2,'change_id':STRING,'upstream_ref':NULLABLE_REF,
@@ -197,9 +198,13 @@ def _repositories(rows):
                 raise ValueError('write scope overlaps read-only evidence')
 
 
-def _checks(checks):
+def _checks(checks, repositories):
     _check(checks,CHECKS)
     unique([row['name'] for row in checks],'engineering check')
+    roles={row['id']:row['role'] for row in repositories}
+    for row in checks:
+        if roles.get(row['repository_id'])!='IMPLEMENTATION':
+            raise ValueError('engineering check requires an implementation repository')
 
 
 def _overlap(left, right):
@@ -443,6 +448,14 @@ def validate_transition(previous, current):
 
 def new_state(*, run_id, change_id, summary, authority_mode, repositories, checks,
               upstream=None, delivery=None, maintenance=None):
+    repositories=copy.deepcopy(repositories)
+    _repositories(repositories)
+    implementation_repositories=[row for row in repositories if row['role']=='IMPLEMENTATION']
+    checks=copy.deepcopy(checks)
+    if len(implementation_repositories)==1 and isinstance(checks,list):
+        for row in checks:
+            if isinstance(row,dict) and 'repository_id' not in row:
+                row['repository_id']=implementation_repositories[0]['id']
     data = {'schema_version':2,'artifact_class':'RUNTIME','run_id':run_id,'change_id':change_id,
         'summary':summary,'authority_mode':authority_mode,'lifecycle':'INTAKE',
         'risk':{'level':'TRIVIAL' if authority_mode == 'TECHNICAL_MAINTENANCE' else 'NORMAL','categories':[],'reasons':[]},
@@ -450,7 +463,7 @@ def new_state(*, run_id, change_id, summary, authority_mode, repositories, check
         'checks':copy.deepcopy(checks),'artifacts':{},'gates':{},'open_items':[],'engineering_gap':{},'history':[],
         'review_budget':{key:0 for key in REVIEW_LIMITS},'verification':{}}
     if maintenance is not None: data['maintenance'] = copy.deepcopy(maintenance)
-    _check(data,STATE_V2); _repositories(data['repositories']); _checks(data['checks'])
+    _check(data,STATE_V2); _checks(data['checks'],data['repositories'])
     identifier(run_id); identifier(change_id)
     if upstream is not None: _ref(upstream)
     if delivery is not None: _ref(delivery)
@@ -490,7 +503,7 @@ def _gap_binding(state, result, root, **context):
 def validate_state(state, root=None, **context):
     _check(state,STATE_V2)
     identifier(state['run_id']); identifier(state['change_id'])
-    _risk(state['risk']); _repositories(state['repositories']); _checks(state['checks']); _budget(state['review_budget'])
+    _risk(state['risk']); _repositories(state['repositories']); _checks(state['checks'],state['repositories']); _budget(state['review_budget'])
     for ref in [*state['artifacts'].values(),*state['gates'].values(),*_all_refs(state['verification'])]: _ref(ref,root)
     if state['upstream'] is not None: _ref(state['upstream'],root)
     if state['authority_mode'] == 'FEATURE_DELIVERY' and state['upstream'] is None:
