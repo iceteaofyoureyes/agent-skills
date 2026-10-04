@@ -15,7 +15,7 @@ The host runtime calls the public functions from `tooling.lib.test_kit_vnext` an
 
 1. Read project `AGENTS.md`, the feature's exact Engineering Handoff VNext and any project Test Policy. Do not require a Delivery Manifest.
 2. Revalidate the BA handoff through the canonical BA VNext reader and trusted Human authenticator. Reject legacy BA V1 as production authority.
-3. Start a persisted VNext run with `prepare_vnext_design`. It records the exact BA baseline, approval receipt and source refs. Approved UX context is optional; require it when feature metadata requires it or a Design assertion depends on approved interaction/presentation semantics. A prototype remains `REVIEW_EVIDENCE`.
+3. Start a persisted VNext run with `prepare_vnext_design`. It records the exact BA baseline, approval receipt and source refs. UX is required only when the exact authority context explicitly sets `ux_required: true`. If optional UX is supplied and consumed, validate and bind its exact approved contract, receipt, feature/revision, source bytes and snapshot hash. A prototype remains `REVIEW_EVIDENCE`.
 4. Read the prepared instructions and pinned `bmad-testarch-test-design/SKILL.md`. Run TEA in this agent session and save its raw completed output only at the prepared path.
 5. Run `finalize_vnext_design`. It preserves canonical Test Design fields and raw TEA evidence, validates FR/BR-only trace, and reaches `DESIGN_REVIEW` only on validator PASS. PASS is not approval.
 6. Present the exact persisted Design and stop for an explicit Human Gate receipt. The receipt binds the exact artifact ID, revision, hash and current input refs. `REQUEST_CHANGES` creates a new immutable revision.
@@ -30,7 +30,7 @@ Never infer approval from `CONTINUE`, `ANSWER`, `REVIEW`, `PASS`, generated outp
 
 - BA owns business WHAT; canonical trace contains only `BR-*` and `FR-*`.
 - `BAREF:*` is locator evidence and cannot appear in canonical `requirement_refs`.
-- Approved UX owns interaction/presentation semantics and cannot override BA behavior.
+- Exact approved UX context supplies optional/required UX authority, but cannot override BA behavior. Generic words in Design or testcase prose never infer a UX requirement. Free-form BA/UX/Test semantic consistency remains Human review responsibility; the runtime validates exact identities and bytes, not natural-language equivalence.
 - Dev Handoff V2 and implementation are technical context, not business or UX oracles.
 - TEA, Katalon and project Test Policy are advisory/guidance only.
 - Preserve unresolved BA `UNKNOWN` outcomes. Do not invent a concrete testcase result.

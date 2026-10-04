@@ -1,0 +1,77 @@
+schema_version: 1
+kit: test
+contract: Test Kit Manual VNext / Phase 6
+completion_guard:
+  tier_3_fresh_installed_runtime_required: true
+  tier_1_or_tier_2_can_mark_phase_6_complete: false
+tiers:
+  tier_1_deterministic:
+    run_for_each_test_change: true
+    commands:
+      - python -m unittest tooling.tests.test_test_kit_vnext -v
+      - python -m unittest tooling.tests.test_test_kit_vnext_schemas -v
+      - python -m unittest tooling.tests.test_test_kit_v1 -v
+      - python -m unittest tooling.tests.test_test_kit_v1_case_gate -v
+      - python -m unittest tooling.tests.test_test_kit_v1_cases -v
+      - python -m unittest tooling.tests.test_test_kit_policy -v
+      - python -m unittest tooling.tests.test_test_kit_policy_doctor -v
+      - python -m unittest tooling.tests.test_test_kit_customization -v
+      - python -m unittest tooling.tests.test_test_kit_customization_excel -v
+      - python -m unittest tooling.tests.test_test_kit_v1_xmind -v
+      - python -m unittest tooling.tests.test_test_kit_v1_excel -v
+      - python -m unittest tooling.tests.test_kit_packaging -v
+      - python -m unittest tooling.tests.test_ba_vnext -v
+      - python -m unittest tooling.tests.test_dev_vnext -v
+      - python -m unittest tooling.tests.test_ba_vnext_installed_acceptance -v
+      - python -m unittest tooling.tests.test_dev_vnext_installed_acceptance -v
+      - python -m unittest tooling.tests.test_project_foundation -v
+      - python -m unittest tooling.tests.test_sdlc_acceptance -v
+      - python -m unittest discover -s tooling/tests -p "test_*.py"
+      - python -m unittest tooling.tests.test_test_kit_vnext_installed_acceptance -v
+      - git diff --check
+  tier_2_focused_runtime:
+    cases:
+      - Exact BA Engineering Handoff VNext Human authority and source byte revalidation
+      - Canonical BR/FR-only trace; BAREF is rejected as a canonical reference
+      - Design and Case gates bind exact snapshots and all consumed authority refs
+      - Validation PASS and agent callbacks cannot self-approve either gate
+      - UNKNOWN/deferred requirements stay unresolved; material required execution dependencies block Case approval
+      - UX is required only by explicit ux_required; field/input/page prose cannot infer UX authority
+      - Exact approved UX contract, receipt, revision, source hashes, snapshot hash and trusted Human authentication are revalidated
+      - Stale UX, prototype-only UX and unauthenticated UX approval fail closed
+      - Optional Dev context remains technical and cannot redefine BA WHAT
+      - Request-changes requires a new revision; persistence and resume revalidate exact refs
+      - XMind derives only from APPROVED_DESIGN; Excel derives only from APPROVED_TESTWARE
+      - Approved Testware VNext HANDOFF_MANIFEST binds exact refs and APPROVED_TESTWARE is terminal for Phase 6
+      - Delivery Manifest is not required or authoritative; V1 is LEGACY_COMPAT with vnext_authority=false
+      - Doctor READY means package/capability readiness only; optional projections may be DEGRADED
+    isolated_ephemeral_session_per_probe: true
+    bounded_timeout_seconds: 120
+    optional_review_service_required: false
+  tier_3_fresh_installed_runtime:
+    run_for_phase_6_completion: true
+    requires_external_working_directory: true
+    python_isolated_mode_required: true
+    pythonpath_must_be_absent: true
+    installed_runtime_imports_only: true
+    flow: >-
+      Install Test Kit into a clean project; run Doctor; validate isolated imports from the installed
+      Test package; authenticate a synthetic TEST_ONLY BA Handoff host fixture; prepare and finalize
+      a neutral Design; prove validation PASS does not approve; authenticate the exact Human Design
+      receipt; prepare and finalize Cases; prove validation PASS does not approve; authenticate the
+      exact Human Case receipt; reach APPROVED_TESTWARE; re-read and revalidate the HANDOFF_MANIFEST,
+      BR/FR-only trace and exact hashes; prove no BAREF and no execution or VERIFIED claim; run Doctor
+      again; inspect V1 as LEGACY_COMPAT; and exercise explicit UX-required and optional-context cases.
+    required_for_phase_6_completion: true
+automated:
+  - command: python -m unittest tooling.tests.test_test_kit_vnext_installed_acceptance -v
+    proves: >-
+      Fresh Test Kit install, isolated installed runtime, full Design and Case Human Gates,
+      explicit UX authority behavior, exact Approved Testware VNext manifest and V1 compatibility.
+manual:
+  - case: fresh project install without optional projection dependencies
+    expected: core VNext remains usable; Doctor reports optional projection gaps as DEGRADED
+  - case: neutral VNext example
+    expected: a real BA Engineering Handoff and two authenticated Human Gate decisions are required
+  - case: uninstall Test Kit after local project edits
+    expected: only unchanged files owned by the Test package are removed; edits and unrelated files remain

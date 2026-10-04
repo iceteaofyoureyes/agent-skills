@@ -499,7 +499,8 @@ def design_gate_input_refs(run_dir: str | Path, baseline: ApprovedBaseline | Non
     context = _read_authority_context(run_dir)
     if context is None:
         raise TestAuthorityError("VNext Test Authority context is missing")
-    baseline = baseline or design.load_approved_baseline(context["ba"]["handoff"]["path"])
+    if baseline is None:
+        raise TestAuthorityError("an already revalidated VNext baseline is required; legacy BA fallback is disabled")
     return design.design_gate_input_refs(baseline, run_dir)
 
 
@@ -1090,59 +1091,16 @@ def validate_vnext_design(snapshot: design.DesignSnapshot, authority: TestAuthor
         if any(ref.upper().startswith("BAREF:") for ref in record.requirement_refs)
     ]
     ux = authority.ux_context
-    ux_required = authority.ux_required or any(
-        _ux_claims((row.scenario_title, row.expected_behavior))
-        for row in snapshot.records
-    )
-    if ux_required and not ux:
-        findings.append(design.Finding("UX_APPROVAL_REQUIRED", "interaction or presentation assertions require an exact approved UX context"))
+    if authority.ux_required and not ux:
+        findings.append(design.Finding("UX_APPROVAL_REQUIRED", "feature requires exact approved UX context"))
     if ux:
         try:
-            contract_text = Path(ux["contract_path"]).read_text(encoding="utf-8")
-            if _sha(Path(ux["contract_path"])) != ux["contract_ref"]["sha256"]:
-                raise ValueError("approved UX semantic contract bytes changed")
-        except (OSError, ValueError, KeyError) as error:
+            contract_path = Path(ux["contract_path"])
+            if _sha(contract_path) != ux["contract_ref"]["sha256"]:
+                raise ValueError("approved UX contract bytes changed")
+        except (OSError, ValueError, KeyError, TypeError) as error:
             findings.append(design.Finding("UX_CONTEXT_STALE", str(error)))
-            contract_text = ""
-        for row in snapshot.records:
-            claims = _ux_claims((row.scenario_title, row.expected_behavior))
-            if not claims:
-                continue
-            if not all(_text_is_supported_by_ux(claim, contract_text) for claim in claims):
-                findings.append(design.Finding("UX_ASSERTION_UNSUPPORTED", f"{row.design_id} interaction/presentation assertion is not supported by approved UX semantics", field="expected_behavior"))
-            if _ux_conflicts_with_assertion(" ".join(claims), contract_text):
-                findings.append(design.Finding("BA_UX_CONTRADICTION", f"{row.design_id} conflicts with approved BA/UX semantics", field="expected_behavior"))
     return design.validate_design(snapshot, authority.baseline, explicit_authority_conflicts=findings)
-
-
-_UX_ASSERTION = re.compile(r"\b(?:button|control|screen|page|modal|dialog|menu|label|visible|hidden|enabled|disabled|shown|displayed|navigation|interaction|presentation|layout|focus|selected|confirmation message|link|checkbox|radio|dropdown|combobox|input|field|placeholder|tooltip|tab|card|panel|icon|badge|toast|alert|hover|click|tap|drag|drop|cursor|keyboard|mouse|screen reader)\b", re.IGNORECASE)
-_UX_STOP_WORDS = {"the", "a", "an", "is", "are", "be", "to", "of", "for", "and", "or", "with", "when", "then", "this", "that", "must", "should", "only", "not"}
-_UX_OPPOSITES = (("visible", "hidden"), ("shown", "hidden"), ("enabled", "disabled"), ("selected", "unselected"), ("open", "closed"), ("expanded", "collapsed"))
-
-
-def _requires_ux_assertion(text: str) -> bool:
-    return bool(_UX_ASSERTION.search(text or ""))
-
-
-def _ux_claims(values) -> list[str]:
-    return [value for value in values if isinstance(value, str) and _requires_ux_assertion(value)]
-
-
-def _text_is_supported_by_ux(assertion: str, ux_text: str) -> bool:
-    tokens = {word for word in re.findall(r"[a-z0-9]+", assertion.casefold()) if len(word) > 2 and word not in _UX_STOP_WORDS}
-    approved = {word for word in re.findall(r"[a-z0-9]+", ux_text.casefold()) if len(word) > 2 and word not in _UX_STOP_WORDS}
-    return bool(tokens) and tokens.issubset(approved)
-
-
-def _ux_conflicts_with_assertion(assertion: str, ux_text: str) -> bool:
-    assertion_words = set(re.findall(r"[a-z0-9]+", assertion.casefold()))
-    ux_words = set(re.findall(r"[a-z0-9]+", ux_text.casefold()))
-    for positive, negative in _UX_OPPOSITES:
-        if (positive in assertion_words and negative in ux_words) or (negative in assertion_words and positive in ux_words):
-            shared = (assertion_words & ux_words) - {positive, negative} - _UX_STOP_WORDS
-            if shared:
-                return True
-    return False
 
 
 def validate_vnext_cases(
@@ -1163,43 +1121,15 @@ def validate_vnext_cases(
         if any(ref.upper().startswith("BAREF:") for ref in record.requirement_refs)
     ]
     ux = authority.ux_context
-    ux_text = ""
     if authority.ux_required and not ux:
         findings.append(cases.foundation.Finding("UX_APPROVAL_REQUIRED", "feature requires exact approved UX context"))
     if ux:
         try:
             contract_path = Path(ux["contract_path"])
-            ux_text = contract_path.read_text(encoding="utf-8")
             if _sha(contract_path) != ux["contract_ref"]["sha256"]:
-                raise ValueError("approved UX semantic contract bytes changed")
+                raise ValueError("approved UX contract bytes changed")
         except (OSError, ValueError, KeyError, TypeError) as error:
             findings.append(cases.foundation.Finding("UX_CONTEXT_STALE", str(error)))
-            ux_text = ""
-    for record in snapshot.records:
-        claims = _ux_claims((
-            record.name, record.objective, record.preconditions, record.test_data,
-            *(step.action + " " + step.expected_result for step in record.steps),
-        ))
-        if not claims:
-            continue
-        if not ux:
-            findings.append(cases.foundation.Finding(
-                "UX_APPROVAL_REQUIRED",
-                f"{record.test_case_id} asserts interaction or presentation semantics without approved UX context",
-            ))
-            continue
-        if not all(_text_is_supported_by_ux(claim, ux_text) for claim in claims):
-            findings.append(cases.foundation.Finding(
-                "UX_ASSERTION_UNSUPPORTED",
-                f"{record.test_case_id} interaction/presentation assertion is not supported by approved UX semantics",
-                field="steps",
-            ))
-        if _ux_conflicts_with_assertion(" ".join(claims), ux_text):
-            findings.append(cases.foundation.Finding(
-                "BA_UX_CONTRADICTION",
-                f"{record.test_case_id} conflicts with approved BA/UX semantics",
-                field="steps",
-            ))
     base = cases.validate_testcases(
         snapshot, approved_design, authority.baseline,
         execution_contract_refs=execution_contract_refs,

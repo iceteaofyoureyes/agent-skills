@@ -46,17 +46,20 @@ Human BA vẫn sở hữu business decision, stakeholder/customer communication 
 
 Chi tiết: [Khả năng BA Kit](docs/vi/BA_KIT_CAPABILITIES.md).
 
-## Test Kit V1.1 là gì?
+## Test Kit Manual VNext
 
-**Test Kit V1.1** hỗ trợ tester làm phần **HOW DO WE PROVE IT** từ BA baseline đã duyệt. V1.1 giữ nguyên workflow/gate của V1 và bổ sung project-owned testing policy có snapshot/hash để hướng dẫn agent theo convention của từng project:
+Test Kit nhận **Engineering Handoff VNext** có exact BA Human approval proof và tạo manual testware qua hai Human Gate:
 
 ~~~text
-Approved BA Baseline → TEA analysis → Canonical Test Design
-→ Human Design Gate → Canonical manual Testcases
-→ Human Case Gate → APPROVED_TESTWARE → STOP_V1
+Engineering Handoff VNext → Canonical Test Design → Human Design Gate
+→ APPROVED_DESIGN → Canonical Testcases → Human Case Gate → APPROVED_TESTWARE
 ~~~
 
-XMind và Excel là bản chiếu tùy chọn từ canonical artifacts, không phải nguồn chuẩn. V1.1 thêm [Project Customization & Policy](docs/vi/TEST_KIT_CUSTOMIZATION.md): rule project chỉ là non-authoritative testing guidance, không override BA/Design/execution authority. Test Kit không sinh/chạy Playwright/API automation; execution, evidence và triage thuộc Automation Test V2. Xem [README đi cùng package](kits/test/README.md), rồi bắt đầu tại [Test Kit Quick Start](docs/vi/TEST_KIT_QUICKSTART.md), [customization](docs/vi/TEST_KIT_CUSTOMIZATION.md), [khả năng](docs/vi/TEST_KIT_CAPABILITIES.md), [tình huống sử dụng](docs/vi/TEST_KIT_USAGE_GUIDE.md), [workflow/Human Gates](docs/vi/TEST_KIT_WORKFLOW.md) và [ví dụ CR-001](kits/test/examples/CR-001/README.md).
+Trace chuẩn chỉ gồm `BR-*`/`FR-*`; `BAREF:*` chỉ là locator/provenance. `APPROVED_TESTWARE` kết thúc manual lane Phase 6, không đồng nghĩa `EXECUTION_READY`, test PASS, `VERIFIED` hay `READY_TO_MERGE`. Automation/execution bắt đầu từ Phase 7+.
+
+UX chỉ bắt buộc khi VNext authority context ghi rõ `ux_required: true`; từ `field`, `input`, `page` không suy ra UX. UX context được tiêu thụ phải có exact Human approval và source/snapshot hash. Dev Handoff V2 là technical context tùy chọn, không định nghĩa BA WHAT. Project Test Policy và TEA/Katalon không cấp authority. XMind/Excel là projection một chiều. V1 đọc theo `LEGACY_COMPAT`, `vnext_authority=false`; Delivery Manifest không bắt buộc.
+
+Bắt đầu tại [Quick Start VNext](docs/vi/TEST_KIT_QUICKSTART.md), [capabilities](docs/vi/TEST_KIT_CAPABILITIES.md), [usage](docs/vi/TEST_KIT_USAGE_GUIDE.md), [workflow](docs/vi/TEST_KIT_WORKFLOW.md), [customization](docs/vi/TEST_KIT_CUSTOMIZATION.md) và [neutral VNext example](kits/test/examples/vnext/neutral/README.md). Appointment/CR-001 là lịch sử V1, không phải ví dụ mặc định.
 
 ## SRS template và DOCX
 
@@ -80,7 +83,7 @@ Xem [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md).
 |---|---|---|
 | **BA Kit** | **VNext packaging candidate; Tier 3 fresh-install acceptance required; not a stable release** | **WHAT** |
 | **Dev Kit** | Planned | Engineering Impact + **HOW** |
-| **Test Kit V1.1** | V1 core + XMind/Excel + Packaging + Project Customization & Policy Layer **Human accepted**; manifest `1.1.0`, chưa có public release/tag | **HOW DO WE PROVE IT** |
+| **Test Kit Manual VNext** | `2.0.0-rc.6` prerelease candidate; Phase 6 completion requires Tier 3 installed acceptance and full regression | **HOW DO WE PROVE IT** |
 
 ## Bắt đầu
 
@@ -104,16 +107,16 @@ Xem [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md).
 
 Xem [Cài đặt](docs/vi/INSTALLATION.md).
 
-## Cài Test Kit V1.1
+## Cài Test Kit Manual VNext
 
-Chạy từ project Codex với Python 3.10+ và Codex CLI:
+Chạy từ project Codex với Python 3.10+:
 
 ~~~powershell
 & 'C:\tools\agent-skills\tooling\install.ps1' test --agent codex --scope project
 & 'C:\tools\agent-skills\tooling\doctor.ps1' test --agent codex --scope project
 ~~~
 
-BA Kit và Test Kit có thể cùng cài. Xem [hướng dẫn cài cả hai Kit](docs/vi/INSTALLATION.md).
+Doctor `READY` chỉ xác nhận package/core capability; không có nghĩa BA/Design/Case approval hoặc execution readiness. `DEGRADED` chỉ capability tùy chọn thiếu; `FAIL` là package/core integrity lỗi. BA Kit và Test Kit có thể cùng cài. Xem [Installation](docs/vi/INSTALLATION.md).
 
 ## Tài liệu chuyên sâu
 
@@ -135,6 +138,6 @@ BA Kit đang ở trạng thái packaging candidate, không phải stable release
 
 [BA Kit documentation — English](docs/en/README.md)
 
-[Test Kit V1.1 overview — English](docs/en/TEST_KIT_README.md)
+[Test Kit Manual VNext overview — English](docs/en/TEST_KIT_README.md)
 
-Human acceptance của framework không tự phê duyệt Test Design/Testcases của một project thật. `TEST_ONLY` artifact không phải production testware; Human Gate vẫn phải xác thực đúng snapshot. Xem [Release status](docs/vi/RELEASE.md).
+Framework/package readiness không tự phê duyệt Test Design/Testcases của project. Mỗi gate cần trusted Human receipt cho đúng snapshot và input refs. Xem [Release status](docs/vi/RELEASE.md).

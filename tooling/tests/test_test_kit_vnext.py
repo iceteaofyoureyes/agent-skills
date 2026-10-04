@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import unittest
+from unittest import mock
 
 from tooling.lib import test_kit_v1 as v1
 from tooling.lib import test_kit_v1_cases as v1_cases
@@ -246,6 +247,10 @@ None.
         self.assertIn('"state": "DESIGN_REVIEW"', design_resumed.stdout)
         snapshot = v1.load_persisted_design_snapshot(run_dir, require_state="DESIGN_REVIEW")
         authority = self.authority()
+        with mock.patch.object(vnext.design, "load_approved_baseline") as legacy_reader:
+            with self.assertRaisesRegex(vnext.TestAuthorityError, "already revalidated VNext baseline"):
+                vnext.design_gate_input_refs(run_dir)
+            legacy_reader.assert_not_called()
         receipt = {
             "gate": "DESIGN_REVIEW", "decision": "APPROVE",
             "artifact_id": snapshot.artifact_id, "artifact_revision": snapshot.revision,
@@ -444,7 +449,7 @@ None.
         self.assertFalse(legacy_testware["vnext_authority"])
         self.assertIn("approved-testware.json", legacy_testware["artifacts"])
 
-    def test_missing_ux_blocks_assertions_that_depend_on_interaction_semantics(self):
+    def test_explicit_ux_requirement_blocks_without_approved_context(self):
         authority = self.authority()
         authority = vnext.replace(authority, ux_required=True)
 
@@ -453,7 +458,18 @@ None.
         self.assertEqual(result.status, "FAIL")
         self.assertIn("UX_APPROVAL_REQUIRED", {finding.code for finding in result.findings})
 
-    def test_case_interaction_assertions_require_the_same_approved_ux_context(self):
+    def test_ux_words_in_business_and_technical_prose_do_not_require_ux(self):
+        authority = self.authority()
+        for title, expected in (
+            ("API response field contains the request ID", "API response field is returned"),
+            ("Input payload includes a member name", "Input payload is retained"),
+            ("Page number is preserved", "The requested page number is returned"),
+        ):
+            with self.subTest(title=title):
+                result = vnext.validate_vnext_design(self.ux_design(title, expected), authority)
+                self.assertEqual(result.status, "PASS", result.findings)
+
+    def test_case_ux_words_do_not_require_context_unless_explicitly_required(self):
         authority = self.authority()
         design = v1.DesignSnapshot.create((
             v1.CanonicalTestDesign(
@@ -469,26 +485,28 @@ None.
         )
         snapshot = v1_cases.CaseSnapshot.create((case,), artifact_id="FEATURE-1-cases", revision="1")
 
-        missing = vnext.validate_vnext_cases(snapshot, design, authority)
+        without_ux = vnext.validate_vnext_cases(snapshot, design, authority)
+        self.assertEqual(without_ux.status, "PASS", without_ux.findings)
 
-        self.assertEqual(missing.status, "FAIL")
-        self.assertIn("UX_APPROVAL_REQUIRED", {finding.code for finding in missing.findings})
+        required = vnext.validate_vnext_cases(snapshot, design, vnext.replace(authority, ux_required=True))
+        self.assertEqual(required.status, "FAIL")
+        self.assertIn("UX_APPROVAL_REQUIRED", {finding.code for finding in required.findings})
         request, receipt, _ = self.ux_request()
         approved_ux = vnext.load_approved_ux_context(
             request, feature_id="FEATURE-1",
             human_actor_authenticator=lambda actor, actual: actor == "Human" and actual == receipt,
         )
         approved = vnext.validate_vnext_cases(
-            snapshot, design, vnext.replace(authority, ux_context=approved_ux, ux_required=True),
+            snapshot, design, vnext.replace(authority, ux_context=approved_ux, ux_required=False),
         )
         self.assertEqual(approved.status, "PASS", approved.findings)
         invented = v1_cases.CaseSnapshot.create((
             v1_cases.replace(case, name="Submit control changes to blue"),
         ), artifact_id="FEATURE-1-cases-blue", revision="1")
-        unsupported = vnext.validate_vnext_cases(
-            invented, design, vnext.replace(authority, ux_context=approved_ux, ux_required=True),
+        human_review = vnext.validate_vnext_cases(
+            invented, design, vnext.replace(authority, ux_context=approved_ux, ux_required=False),
         )
-        self.assertIn("UX_ASSERTION_UNSUPPORTED", {finding.code for finding in unsupported.findings})
+        self.assertEqual(human_review.status, "PASS", human_review.findings)
 
     def test_exact_approved_ux_context_supports_interaction_assertion(self):
         request, receipt, _ = self.ux_request()
@@ -600,11 +618,12 @@ None.
                         request, feature_id="FEATURE-1", human_actor_authenticator=drifting_host,
                     )
 
-    def test_unauthenticated_ux_human_and_ba_ux_contradiction_fail(self):
+    def test_unauthenticated_ux_human_fails(self):
         request, _, _ = self.ux_request()
         with self.assertRaisesRegex(vnext.TestAuthorityError, "trusted Human authentication"):
             vnext.load_approved_ux_context(request, feature_id="FEATURE-1", human_actor_authenticator=lambda *_: False)
 
+    def test_free_form_ux_consistency_is_left_to_human_review(self):
         request, receipt, _ = self.ux_request("The submit control is disabled for eligible members.\n")
         context = vnext.load_approved_ux_context(
             request, feature_id="FEATURE-1",
@@ -614,7 +633,7 @@ None.
         result = vnext.validate_vnext_design(
             self.ux_design("Submit control enabled for eligible members."), authority,
         )
-        self.assertIn("BA_UX_CONTRADICTION", {finding.code for finding in result.findings})
+        self.assertEqual(result.status, "PASS", result.findings)
 
     def test_ba_unknown_stays_deferred_and_cannot_become_a_case_result(self):
         srs = self.ba.root / "srs.md"

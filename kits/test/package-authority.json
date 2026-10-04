@@ -1,13 +1,18 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.5",
+  "kit_version": "2.0.0-rc.6",
   "manifest_schema_version": 1,
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "a8517c3c69ae332887c45292443376caa5a31e0fb1cda807a465ee0ecdbf18ef",
+      "sha256": "7fa43fb7a210bbf80c7df00d30d85d9957cf25e17ebb6470da40662d4cdaa0a4",
       "classification": "OPERATOR_DOCUMENTATION"
+    },
+    {
+      "path": ".test-kit/acceptance.yaml",
+      "sha256": "0cf38e971e2b4636c99c0f8318f6db360186929bf68732a0fff96762d038f00c",
+      "classification": "ACCEPTANCE_CONTRACT"
     },
     {
       "path": ".test-kit/ba-workflow/scripts/approved_baseline.py",
@@ -35,6 +40,21 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/examples/legacy-v1/README.md",
+      "sha256": "8387cb83a7aebfa16497fe70f6082bedd847e42cbd919b64b9e1019f8a0256d5",
+      "classification": "LEGACY_COMPAT_EXAMPLE"
+    },
+    {
+      "path": ".test-kit/examples/legacy-v1/workflow-state.json",
+      "sha256": "986e47b5fdbf1bba27e8da84123ca8d13ec78a2909690c678ec6d9f5a4e6a0ab",
+      "classification": "LEGACY_COMPAT_FIXTURE"
+    },
+    {
+      "path": ".test-kit/examples/vnext/neutral/README.md",
+      "sha256": "4ea6cfc410e7dedca896468bc8020c5f5e9dd748a1b13b2cdb86f1872fed00c0",
+      "classification": "OPERATOR_EXAMPLE"
+    },
+    {
       "path": ".test-kit/licenses/README.md",
       "sha256": "4c3d41776296e5d72acad3df41e473c9f10f63f892d48ae670fba42050790fd0",
       "classification": "PROVENANCE_LICENSE"
@@ -58,6 +78,16 @@
       "path": ".test-kit/licenses/tea-test-design-v1.LICENSE",
       "sha256": "d63b6198ba078d9494407eb94e2d86adf6350195301bb5ded4ba24e36bce8b55",
       "classification": "PROVENANCE_LICENSE"
+    },
+    {
+      "path": ".test-kit/schemas/approved-testware-vnext-handoff-manifest.schema.json",
+      "sha256": "4aa737f4c89e791eec8c412e191561be197bbc2729c3600ce6910abd6209474b",
+      "classification": "PUBLIC_SCHEMA"
+    },
+    {
+      "path": ".test-kit/schemas/test-authority-context-vnext.schema.json",
+      "sha256": "426c2356ff43a1b0e9e944161205ca22667dff4f79459f0fa008f6ea95abe1b9",
+      "classification": "PUBLIC_SCHEMA"
     },
     {
       "path": ".test-kit/shared/__init__.py",
@@ -225,6 +255,11 @@
       "classification": "CORE_RUNTIME"
     },
     {
+      "path": ".test-kit/templates/ux-context-request.template.json",
+      "sha256": "427be7c29d6d2b796ca19cff185cbd4023fdca12a47f03876b0e85f3ffc2b6eb",
+      "classification": "OPERATOR_TEMPLATE"
+    },
+    {
       "path": ".test-kit/tooling/__init__.py",
       "sha256": "c9a9a0e113e64b85e1adfd0cd5b67a40994f3a8157a5e4e37f6a3c38e33844c6",
       "classification": "CORE_RUNTIME"
@@ -286,7 +321,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_kit_vnext.py",
-      "sha256": "64a99a9d1e832d1935d544658302f1debf8818d2ff4e54489202c1e3fe57c626",
+      "sha256": "d9181afad42890b9e4e484e52995f4030ac49f739301c86c9861205c3baa3cfd",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -776,11 +811,11 @@
     },
     {
       "path": "test-kit/SKILL.md",
-      "sha256": "83bb2074dd8fa15150ffc36f1fb8dc3e21201a300a6164e72635e8b28b04962f",
+      "sha256": "659bc1dceb367a638e6ce4a072d220fd16d14191d5e6e27cfacd5e8c00cc6a48",
       "classification": "REQUIRED_SKILL"
     }
   ],
-  "managed_file_count": 155,
+  "managed_file_count": 162,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "0a431ff9d7c5c20c1f0ae0d6c2d80bc8d70e9eabc867be0abda312524d4e264f"
+  "payload_tree_sha256": "53780f70a58a2d25b3c97c9947378e0c5718bb0c816575f89e4a20832ae85ace"
 }

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "id": "test",
-  "name": "Test Kit",
-  "version": "2.0.0-rc.5",
+  "name": "Test Kit Manual VNext",
+  "version": "2.0.0-rc.6",
   "workflow": {
     "skill": "test-kit"
   },
@@ -451,6 +451,48 @@
       "destination": ".test-kit/tooling/lib/test_promotion.py",
       "classification": "CORE_RUNTIME",
       "capability": "core"
+    },
+    {
+      "source": "kits/test/acceptance.yaml",
+      "destination": ".test-kit/acceptance.yaml",
+      "classification": "ACCEPTANCE_CONTRACT",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/schemas/test-authority-context-vnext.schema.json",
+      "destination": ".test-kit/schemas/test-authority-context-vnext.schema.json",
+      "classification": "PUBLIC_SCHEMA",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/schemas/approved-testware-vnext-handoff-manifest.schema.json",
+      "destination": ".test-kit/schemas/approved-testware-vnext-handoff-manifest.schema.json",
+      "classification": "PUBLIC_SCHEMA",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/templates/ux-context-request.template.json",
+      "destination": ".test-kit/templates/ux-context-request.template.json",
+      "classification": "OPERATOR_TEMPLATE",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/examples/vnext/neutral/README.md",
+      "destination": ".test-kit/examples/vnext/neutral/README.md",
+      "classification": "OPERATOR_EXAMPLE",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/examples/legacy-v1/README.md",
+      "destination": ".test-kit/examples/legacy-v1/README.md",
+      "classification": "LEGACY_COMPAT_EXAMPLE",
+      "capability": "core"
+    },
+    {
+      "source": "kits/test/examples/legacy-v1/workflow-state.json",
+      "destination": ".test-kit/examples/legacy-v1/workflow-state.json",
+      "classification": "LEGACY_COMPAT_FIXTURE",
+      "capability": "core"
     }
   ],
   "capabilities": {
@@ -536,11 +578,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "b4c826c66169d3fea79c2e32a551d65d3dfb7c4668769e75661aa271b0d78184"
+      "sha256": "ceddbbc9091c8dabc80f716ffaf2cdfbd9c7375809aff54d5f07d34c1fcaa37f"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "0a431ff9d7c5c20c1f0ae0d6c2d80bc8d70e9eabc867be0abda312524d4e264f"
+      "sha256": "53780f70a58a2d25b3c97c9947378e0c5718bb0c816575f89e4a20832ae85ace"
     }
   }
 }

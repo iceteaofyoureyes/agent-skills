@@ -34,10 +34,18 @@ class TestKitPackagingTests(unittest.TestCase):
         with mock.patch.dict(os.environ, {"TEST_KIT_CODEX_COMMAND": str(stub)}):
             return ba_kit.doctor(source_root, target, "test")
 
+    def _assert_test_core_ready(self, report):
+        optional_missing = any(not ok and kind == "dependency" for _, ok, kind, _ in report["checks"])
+        self.assertEqual(report["status"], "DEGRADED" if optional_missing else "READY", report)
+        self.assertEqual(report["version"], "2.0.0-rc.6")
+        self.assertEqual(report["readiness"]["scope"], "PACKAGE_CAPABILITY_ONLY")
+        vnext_check = next(row for row in report["checks"] if row[0] == "Test VNext installed capability")
+        self.assertTrue(vnext_check[1], vnext_check)
+
     def test_test_manifest_resolves_explicit_runtime_only_closure(self):
         manifest = ba_kit.load_manifest(ROOT, "test")
         self.assertEqual(manifest["id"], "test")
-        self.assertEqual(manifest["version"], "2.0.0-rc.5")
+        self.assertEqual(manifest["version"], "2.0.0-rc.6")
         self.assertEqual(manifest["capabilities"]["core"], "required")
         self.assertEqual(manifest["capabilities"]["xmind_projection"], "optional")
         self.assertEqual(manifest["capabilities"]["excel_projection"], "optional")
@@ -336,7 +344,7 @@ class TestKitPackagingTests(unittest.TestCase):
             authority_hash = hashlib.sha256(authority_path.read_bytes()).hexdigest()
             self.assertEqual(authority_hash, manifest["integrity"]["authority"]["sha256"])
             report = self._doctor_with_stub(target)
-            self.assertEqual(report["status"], "READY", report["checks"])
+            self._assert_test_core_ready(report)
             payload = Path(temp) / "payload-only"
             for item in authority["managed_files"]:
                 destination = payload / item["path"]
@@ -386,7 +394,9 @@ class TestKitPackagingTests(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(doctor.returncode, 0, doctor.stdout + doctor.stderr)
-            self.assertIn("STATUS: READY", doctor.stdout)
+            self.assertRegex(doctor.stdout, r"STATUS: (READY|DEGRADED)")
+            self.assertIn("SCOPE: PACKAGE/CAPABILITY ONLY", doctor.stdout)
+            self.assertIn("Version: 2.0.0-rc.6", doctor.stdout)
 
     def test_doctor_reports_modified_skill_file_and_reinstall_keeps_drift(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -483,7 +493,7 @@ class TestKitPackagingTests(unittest.TestCase):
             reordered = json.loads(json.dumps(original_record))
             reordered["managed_files"] = dict(reversed(list(reordered["managed_files"].items())))
             record_path.write_text(json.dumps(reordered), encoding="utf-8")
-            self.assertEqual(self._doctor_with_stub(target)["status"], "READY")
+            self._assert_test_core_ready(self._doctor_with_stub(target))
 
             incomplete_authority = json.loads(json.dumps(original_authority))
             incomplete_authority["managed_files"] = [entry for entry in incomplete_authority["managed_files"] if entry["path"] != tea_file]
@@ -540,7 +550,7 @@ class TestKitPackagingTests(unittest.TestCase):
             self.assertEqual(authority_sha, definition["integrity"]["authority"]["sha256"])
             self.assertEqual(authority["payload_tree_sha256"], definition["integrity"]["payload"]["sha256"])
             absent_source = Path(temp) / "source-is-not-needed"
-            self.assertEqual(self._doctor_with_stub(target, absent_source)["status"], "READY")
+            self._assert_test_core_ready(self._doctor_with_stub(target, absent_source))
 
             original_definition = definition_path.read_bytes()
             for pin in ("authority", "payload"):
@@ -707,8 +717,12 @@ class TestKitPackagingTests(unittest.TestCase):
                 mock.patch("importlib.util.find_spec", return_value=None),
             ):
                 report = ba_kit.doctor(ROOT, target, "test")
-            self.assertEqual(report["status"], "READY")
+            self.assertEqual(report["status"], "DEGRADED")
             self.assertTrue(any(name == "DEPENDENCY_MISSING" and kind == "dependency" for name, _, kind, _ in report["checks"]))
+            self.assertEqual(report["readiness"]["scope"], "PACKAGE_CAPABILITY_ONLY")
+            self.assertEqual(report["readiness"]["approved_design"], "NOT_EVALUATED")
+            self.assertEqual(report["readiness"]["approved_testware"], "NOT_EVALUATED")
+            self.assertEqual(report["readiness"]["execution"], "NOT_EVALUATED")
 
             with (
                 mock.patch.dict(os.environ, {"TEST_KIT_CODEX_COMMAND": "", "PATH": ""}),
@@ -716,7 +730,7 @@ class TestKitPackagingTests(unittest.TestCase):
             ):
                 report = ba_kit.doctor(ROOT, target, "test")
             # Audit R3.2: same-session production core has no nested Codex dependency.
-            self.assertEqual(report["status"], "READY")
+            self.assertEqual(report["status"], "DEGRADED")
             self.assertFalse(any(name == "DEPENDENCY_MISSING" and "Codex" in detail for name, _, _, detail in report["checks"]))
 
     def test_ba_and_test_ownership_is_independent_in_both_uninstall_orders(self):
@@ -740,7 +754,7 @@ class TestKitPackagingTests(unittest.TestCase):
             codex_stub.write_bytes(b"stub")
             with mock.patch.dict(os.environ, {"TEST_KIT_CODEX_COMMAND": str(codex_stub)}):
                 self.assertEqual(ba_kit.doctor(ROOT, target, "ba")["status"], "READY")
-                self.assertEqual(ba_kit.doctor(ROOT, target, "test")["status"], "READY")
+                self._assert_test_core_ready(ba_kit.doctor(ROOT, target, "test"))
             result = ba_kit.uninstall(target, "test")
             self.assertIn(".test-kit/tooling/lib/test_kit_v1.py", result["removed"])
             self.assertFalse((target / ".test-kit-install.json").exists())
@@ -776,7 +790,7 @@ class TestKitPackagingTests(unittest.TestCase):
             codex_stub.write_bytes(b"stub")
             with mock.patch.dict(os.environ, {"TEST_KIT_CODEX_COMMAND": str(codex_stub)}):
                 self.assertEqual(ba_kit.doctor(ROOT, target, "ba")["status"], "READY")
-                self.assertEqual(ba_kit.doctor(ROOT, target, "test")["status"], "READY")
+                self._assert_test_core_ready(ba_kit.doctor(ROOT, target, "test"))
 
             result = ba_kit.uninstall(target, "test")
             self.assertIn(".test-kit/tooling/lib/test_kit_v1.py", result["removed"])
@@ -796,14 +810,14 @@ class TestKitPackagingTests(unittest.TestCase):
             codex_stub.write_bytes(b"stub")
             with mock.patch.dict(os.environ, {"TEST_KIT_CODEX_COMMAND": str(codex_stub)}):
                 self.assertEqual(ba_kit.doctor(ROOT, target, "ba")["status"], "READY")
-                self.assertEqual(ba_kit.doctor(ROOT, target, "test")["status"], "READY")
+                self._assert_test_core_ready(ba_kit.doctor(ROOT, target, "test"))
 
             ba_kit.uninstall(target, "ba")
             self.assertFalse(ba_record_path.exists())
             self.assertTrue(test_record_path.exists())
             self.assertTrue((target / ".test-kit/tooling/lib/test_kit_v1.py").is_file())
             with mock.patch.dict(os.environ, {"TEST_KIT_CODEX_COMMAND": str(codex_stub)}):
-                self.assertEqual(ba_kit.doctor(ROOT, target, "test")["status"], "READY")
+                self._assert_test_core_ready(ba_kit.doctor(ROOT, target, "test"))
 
     def test_standalone_test_uninstall_removes_managed_assets_and_keeps_unrelated_file(self):
         with tempfile.TemporaryDirectory() as temp:

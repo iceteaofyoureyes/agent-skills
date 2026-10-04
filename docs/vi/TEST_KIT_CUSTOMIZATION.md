@@ -1,10 +1,10 @@
-# Tùy chỉnh Test Kit V1.1 theo project
+# Tùy chỉnh Test Kit Manual VNext theo project
 
-V1.1 bổ sung rule và Excel template do project sở hữu. Agent dùng rule trong Test Design và manual testcase generation, lưu đúng bytes vào run evidence và bind policy SHA-256 vào Human Gate. Canonical schemas, authority và điểm dừng `APPROVED_TESTWARE` → `STOP_V1` giữ nguyên.
+Project Test Policy cho phép nhóm ghi lại quy ước generation/review. Đây là guidance không có authority: không thể thay Engineering Handoff VNext, Human approval, Design, UX hay execution oracle.
 
-## 1. Khởi tạo
+## Khởi tạo policy
 
-Cài Test Kit vào project theo [Quick Start](TEST_KIT_QUICKSTART.md). Từ project root, dùng runtime đã cài:
+Cài Test Kit trước theo [Quick Start](TEST_KIT_QUICKSTART.md). Từ project root, dùng runtime đã cài để tạo starter nếu nhóm cần:
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path '.agents\skills\.test-kit').Path
@@ -18,29 +18,16 @@ python -m tooling.lib.test_kit_policy bootstrap --project-root .
 <path-to-agent-skills>/tooling/doctor.sh test --agent codex --scope project
 ```
 
-Bootstrap tạo các file starter còn thiếu và bridge TEA project-owned; giữ nguyên nội dung đã có. Starter chỉ là guidance bảo thủ, không đặt business rule. Đọc và sửa starter theo conventions của nhóm, rồi commit cùng project.
+Project root chứa `.test-kit/project.yaml` và các rule do nhóm sở hữu. Runtime/package đã cài nằm dưới `.agents/skills/.test-kit/`; không sửa pinned skills để cấu hình convention dự án.
 
-```text
-<project-root>/
-├── .test-kit/
-│   ├── project.yaml
-│   └── rules/
-│       ├── common.md
-│       ├── test-design.md
-│       └── testcases.md
-└── _bmad/custom/bmad-testarch-test-design.toml
-```
+Starter policy chỉ nên ghi cách trình bày, cách nhóm review, dữ liệu được phép dùng và quy ước làm việc. Không ghi thêm business rule, expected result, quyết định BA, approval receipt hoặc authority.
 
-`.test-kit/` ở project root chứa policy của nhóm. `.agents/skills/.test-kit/` chứa runtime/package đã cài. Không sửa pinned skill để cấu hình project.
-
-Không có `.test-kit/project.yaml` thì runtime dùng `NO_PROJECT_POLICY`, giữ luồng V1 và không tự tìm arbitrary local rules. Personal TEA override vẫn bị chặn trong production.
-
-## 2. Hợp đồng `project.yaml`
+## Schema `project.yaml`
 
 ```yaml
 schema_version: 1
 profile:
-  id: portal-testing
+  id: resource-testing
   revision: "1"
 rules:
   common:
@@ -54,135 +41,30 @@ templates:
     path: templates/testcases.xlsx
 ```
 
-`profile.id` và `profile.revision` là chuỗi không rỗng; quote revision để tránh số YAML. Giữ ID ổn định, tăng revision khi nhóm thay đổi policy. Khi chưa dùng Excel template, viết `templates: {}`.
+Root chỉ nhận `schema_version`, `profile`, `rules`, `templates`. Profile gồm `id`, `revision`; categories của rules là `common`, `test_design`, `testcases`; templates chỉ hỗ trợ `excel`. Nếu chưa dùng Excel template, để `templates: {}`.
 
-Root chỉ nhận `schema_version`, `profile`, `rules`, `templates`; profile chỉ có `id`, `revision`; rules chỉ có `common`, `test_design`, `testcases`; templates chỉ có `excel`, với `path`. Field/category lạ bị từ chối. V1.1 không hỗ trợ `templates.xmind`.
+Mỗi rule path phải là relative path duy nhất trong `.test-kit/`, trỏ tới regular UTF-8 file. Absolute path, `..`, symlink/reparse escape, file thiếu hoặc duplicate đều bị từ chối. Excel template phải nằm trong cùng tree và có đuôi `.xlsx`.
 
-Mỗi rule path là relative path từ `.test-kit/`, trỏ tới regular file UTF-8. Absolute path, `..`, symlink/reparse escape, file thiếu và duplicate resolved file đều fail closed. Template nằm trong cùng tree, tồn tại và có đuôi `.xlsx`. Giữ thứ tự danh sách: runtime không tự sort rule.
+## Giới hạn authority
 
-## 3. Viết rules
+Thứ tự authority không thay đổi:
 
-`common.md` áp dụng cho cả Design và Cases. Ví dụ:
+1. Engineering Handoff VNext và exact BA Human proof quyết định business WHAT.
+2. UX chỉ là authority khi context VNext ghi `ux_required: true`; context được cung cấp phải có exact Human approval, feature/revision và source/snapshot hashes.
+3. Approved Design quyết định phạm vi coverage được đưa vào Cases.
+4. Execution/interface oracle được duyệt quyết định chi tiết thực thi trong phạm vi được cấp.
+5. Project Test Policy chỉ hướng dẫn cách làm; không override các nguồn trên.
 
-```markdown
-# Quy ước chung
-- Viết tiếng Việt; giữ nguyên FR/BR IDs và thuật ngữ nghiệp vụ từ BA.
-- Chỉ dùng dữ liệu tổng hợp hoặc fixture đã được project cho phép.
-- Giữ UNKNOWN và báo conflict; không tự điền business behavior.
-```
+Runtime bind bytes/ref chính xác và fail khi nguồn stale. Nó không tuyên bố dùng NLP để kết luận policy prose tương đương hoặc mâu thuẫn với BA/UX. Human review quyết định semantic consistency. Các từ như `button`, `field`, `input`, `page` không tự yêu cầu UX. Prototype luôn là `REVIEW_EVIDENCE`.
 
-`test-design.md` hướng dẫn cách phân tích/biểu diễn coverage:
+Policy không được trả lời BA `UNKNOWN`, invent expected result, thay execution oracle, bypass validator hoặc tự approve. Policy hash được snapshot vào run/gate khi được tiêu thụ; thay rule sau review làm stale input và cần review đúng revision mới.
 
-```markdown
-# Test Design
-- Xem xét boundary và negative coverage của FR/BR đã duyệt.
-- Giữ riêng expected behavior và câu hỏi BA còn mở.
-- Với boundary chưa được BA quyết định, giữ deferred/UNKNOWN.
-```
+## TEA bridge, Excel và Doctor
 
-`testcases.md` hướng dẫn generation trong semantic boundary của approved Design:
+Team có thể dùng `_bmad/custom/bmad-testarch-test-design.toml` để truyền persistent facts cho TEA. Tránh personal override; nếu host báo restriction, project owner cần review và chuyển quy ước cần thiết sang policy team-owned. Runtime không tự xóa file cá nhân.
 
-```markdown
-# Manual testcases
-- Giữ ID theo raw profile TC-...; đặt name theo CR-001 - <hành vi> - <điều kiện>.
-- Viết objective, preconditions, actions và expected results bằng tiếng Việt.
-- Mỗi case kiểm tra một điều kiện, nhưng phải có đủ flow để tự thực hiện.
-- Chỉ decomposition scenario đã duyệt; không thêm business coverage.
-- Giữ material OPEN execution dependency nếu thiếu approved oracle.
-```
+Excel template chỉ đổi presentation. Excel là `DERIVED` từ `APPROVED_TESTWARE`; không import ngược thành canonical testcase hoặc approval. XMind dùng pinned profile, cũng là projection một chiều từ `APPROVED_DESIGN`.
 
-Rule có thể định hướng priority trong P0–P3, naming, atomicity, boundary/negative coverage và data safety. Rule không thay field set hoặc raw profile; naming convention áp dụng vào `name`, còn IDs và trace giữ hợp đồng runtime.
+Doctor `READY` chỉ có nghĩa package/core capability sẵn sàng. Nó không có nghĩa BA approved, `APPROVED_DESIGN`, `APPROVED_TESTWARE` hay execution ready. Dependency XMind/Excel thiếu được báo `DEGRADED`; integrity/core failure được báo `FAIL`.
 
-## 4. Authority và conflict
-
-| Nguồn | Quyền quyết định |
-|---|---|
-| Approved BA Baseline | Business authority, FR/BR, UNKNOWN |
-| Approved Canonical Test Design | Coverage authority |
-| Approved Execution / Interface Oracle | Setup, action, observation details |
-| Project Test Policy | Testing/generation guidance không có authority |
-
-Invocation ghi rõ `TESTING POLICY / NON-AUTHORITATIVE GUIDANCE`. Authoritative source thắng khi có conflict. Policy không được trả lời UNKNOWN, invent expected result, thay execution oracle, bypass validator hay auto-approve. Không có cơ chế “last rule wins”.
-
-Ví dụ BA CR-001 nói maximum appointment duration còn `UNKNOWN`. Rule “Use 120 minutes as maximum appointment duration” không cấp authority cho ngưỡng 120. Design phải giữ câu hỏi/deferred; testcase không được assert ngưỡng đó. Validator findings hoặc Human review chặn conflict. Runtime giữ các validator V1, không dùng NLP để chứng nhận mọi câu natural-language policy đều an toàn.
-
-## 5. TEA project bridge và personal override
-
-Design dùng upstream `workflow.persistent_facts` trong:
-
-```text
-_bmad/custom/bmad-testarch-test-design.toml
-```
-
-Bridge cho profile ở trên:
-
-```toml
-[workflow]
-persistent_facts = [
-  "file:{project-root}/.test-kit/rules/common.md",
-  "file:{project-root}/.test-kit/rules/test-design.md"
-]
-```
-
-Bridge phải giữ common trước Design-specific và khớp rule list của profile. Runtime không sửa pinned `customize.toml`, không ghi đè team customization có sẵn, không làm mất persistent facts khác. Customization có sẵn phải qua kiểm tra consistency; nếu thiếu/sai/ambiguous, sửa project-owned TOML theo finding rồi chạy Doctor lại. Khi đổi đường dẫn hoặc thứ tự Design rules, cập nhật bridge cùng profile.
-
-File `_bmad/custom/bmad-testarch-test-design.user.toml` bị chặn với `PERSONAL_TEA_CUSTOMIZATION_NOT_ALLOWED`, kể cả project chưa có profile. Runtime không delete/overwrite file. Muốn production run, Human/project owner cần xử lý personal customization, chuyển convention cần thiết sang team policy có kiểm soát và review bridge. V1.1 không có production opt-in để bỏ qua restriction này.
-
-## 6. Snapshot, evidence và stale policy
-
-Runtime resolve hai snapshot độc lập:
-
-| Stage | Thứ tự rules | Ref ID |
-|---|---|---|
-| DESIGN | common → test_design | `TEST_POLICY:DESIGN:<profile-id>` |
-| CASES | common → testcases | `TEST_POLICY:CASES:<profile-id>` |
-
-Mỗi entry giữ logical path và SHA-256 của exact file bytes. Identity profile, stage, ordered entries được serialize deterministic compact JSON rồi SHA-256. Design còn ghi identity của effective team customization; thay đổi team input phải được kiểm tra lại. Templates chỉ là presentation, không vào testing-policy digest.
-
-Đổi nội dung, newline, revision hoặc thứ tự rule có thể đổi snapshot SHA dù ID không đổi. Cùng identity, ordered paths và exact bytes cho cùng SHA. Đừng tự tính lại hash để làm receipt cũ hợp lệ.
-
-Run evidence:
-
-```text
-<run-dir>/inputs/project-policy/
-├── policy-snapshot.json
-└── rules/...
-```
-
-Snapshot/manifest ghi profile ID/revision, stage, policy ref/SHA, logical rule path, evidence path và từng file SHA; Design ghi team TOML/hash khi effective. Rule được copy bằng exact bytes. File project đổi sau invocation không mutate bản copy của run. Persistence idempotent khi bytes giống hệt và từ chối overwrite khác bytes.
-
-Design Gate bind current BA refs + DESIGN policy ref. Case Gate bind current BA refs + exact approved Design ref + CASES policy ref; approved execution-oracle contract vẫn được kiểm tra riêng như V1.
-
-Nếu policy liên quan đổi sau `DESIGN_REVIEW`/`CASE_REVIEW`, `APPROVE` bị từ chối stale. Quay lại generation/revalidation/revision/review thích hợp với policy hiện hành trong run mới; không sửa evidence cũ hoặc tái dùng receipt. Sửa `common.md` ảnh hưởng cả hai stage; sửa `testcases.md` ảnh hưởng Cases; sửa Design rules/team customization ảnh hưởng Design và cần current Design authorization khi đi tiếp. `PASS`, `OK`, `CONTINUE`, `Next` không có nghĩa `APPROVE`.
-
-## 7. Excel project template
-
-Copy workbook nhóm vào `.test-kit/templates/testcases.xlsx` rồi khai báo `templates.excel.path`. Exporter chọn:
-
-```text
-HUMAN_SUPPLIED_APPROVED_TEMPLATE → PROJECT_TEMPLATE → DEFAULT_TEMPLATE
-```
-
-Human template explicit thắng; nếu không có, workbook trong project profile được dùng; chỉ khi không có cả hai mới dùng default. Workbook được chọn mà missing/type/path/semantic mapping không an toàn sẽ fail closed; projection báo `CANNOT_PROJECT_TEMPLATE`, không silent fallback.
-
-Existing Excel inspector vẫn kiểm tra unambiguous headers và supported row model; presentation không đổi canonical semantics, ordered steps, scoped Test Data, trace hoặc gate state. Template byte/hash được giữ trong projection evidence; sửa template không thay policy SHA hoặc cấp business authority. Core Doctor chỉ kiểm tra path/type; Excel mapping inspection cần optional Excel dependencies và diễn ra khi xuất. XMind giữ pinned profile, không có project/Human XMind template hoặc reverse import.
-
-## 8. Doctor và troubleshooting
-
-Chạy từ project root hoặc truyền `--project-root <project-root>` khi inspect target ở nơi khác. Doctor hiển thị nhóm `Project policy (project-owned inputs)` riêng với package integrity.
-
-| Finding/tình huống | Cách xử lý |
-|---|---|
-| `NO_PROJECT_POLICY` | Luồng V1 hợp lệ; bootstrap nếu nhóm muốn policy |
-| YAML/schema error, unknown field | Sửa theo schema 1; không thêm XMind category |
-| Missing/invalid UTF-8 rule | Tạo đúng file, lưu UTF-8, commit cùng profile |
-| Duplicate/path traversal/escape | Dùng unique relative path nằm trong `.test-kit/` |
-| `TEA_BRIDGE_MISSING` hoặc bridge inconsistency | Bootstrap nếu chưa có bridge; sửa TOML đã có theo ordered Design rules |
-| `PERSONAL_TEA_CUSTOMIZATION_NOT_ALLOWED` | Project owner xử lý file personal; runtime không xóa file |
-| Stale policy tại gate | Review artifact với current policy trong revision/run thích hợp |
-| `CANNOT_PROJECT_TEMPLATE` | Sửa mapping/type workbook đã chọn, rồi export lại; không fallback |
-| `MODIFIED_MANAGED_FILE` | Drift trong installed package; khôi phục đúng pinned package, không sửa hash |
-
-User edit rule hợp lệ có thể đổi policy SHA nhưng không phải package drift. Doctor không approve policy text hoặc testware; Human vẫn review canonical snapshot và authority conflicts.
-
-Xem [ví dụ CR-001](../../kits/test/examples/CR-001/customization/README.md), [Usage Guide](TEST_KIT_USAGE_GUIDE.md) và [Workflow/Human Gates](TEST_KIT_WORKFLOW.md). V1.1 dừng ở readiness cho Human acceptance; Automation Test V2 là lane riêng.
+Nếu không có `.test-kit/project.yaml`, runtime báo `NO_PROJECT_POLICY` và vẫn có thể chạy với guidance mặc định. Xem [neutral VNext example](../../kits/test/examples/vnext/neutral/README.md), [Usage Guide](TEST_KIT_USAGE_GUIDE.md) và [Workflow/Human Gates](TEST_KIT_WORKFLOW.md). Appointment/CR-001 là nội dung V1 lịch sử, không phải ví dụ mặc định.

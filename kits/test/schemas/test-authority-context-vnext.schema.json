@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.invalid/kits/test/test-authority-context-vnext.schema.json",
+  "title": "Test Authority Context VNext",
+  "description": "Persisted runtime binding for an already Human-approved BA Engineering Handoff and exact optional UX/Dev context. This context is not itself an approval receipt.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "mode", "project_root", "feature_id", "ba", "refs", "byte_refs", "ux_refs", "dev_refs", "project_policy_ref", "ux_required", "ux_context", "dev_context"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "artifact_class": {"const": "RUNTIME"},
+    "mode": {"const": "VNEXT"},
+    "project_root": {"type": "string", "minLength": 1},
+    "feature_id": {"type": "string", "minLength": 1},
+    "ba": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handoff", "baseline", "approval_receipt", "baseline_identity"],
+      "properties": {
+        "handoff": {"$ref": "#/$defs/byteRef"},
+        "baseline": {"$ref": "#/$defs/byteRef"},
+        "approval_receipt": {"$ref": "#/$defs/byteRef"},
+        "baseline_identity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "revision", "semantic_sha256"],
+          "properties": {
+            "id": {"type": "string", "minLength": 1},
+            "revision": {"type": "string", "minLength": 1},
+            "semantic_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    },
+    "refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}, "uniqueItems": true},
+    "byte_refs": {"type": "array", "items": {"$ref": "#/$defs/byteRef"}, "uniqueItems": true},
+    "ux_refs": {"oneOf": [{"type": "null"}, {"type": "array", "items": {"$ref": "#/$defs/ref"}}]},
+    "dev_refs": {"oneOf": [{"type": "null"}, {"type": "array", "items": {"$ref": "#/$defs/ref"}}]},
+    "project_policy_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/ref"}]},
+    "ux_required": {"type": "boolean"},
+    "ux_context": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/uxContext"}]},
+    "dev_context": {"oneOf": [{"type": "null"}, {"type": "object"}]}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision", "sha256"],
+      "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "byteRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision", "sha256", "path"],
+      "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "path": {"type": "string", "minLength": 1}}
+    },
+    "uxContext": {
+      "type": "object",
+      "required": ["root", "contract_path", "contract_ref", "approval_receipt_ref", "source_refs", "refs", "receipt", "receipt_sha256", "snapshot_sha256", "prototype_authority", "request"],
+      "properties": {
+        "root": {"type": "string"}, "contract_path": {"type": "string"},
+        "contract_ref": {"$ref": "#/$defs/byteRef"}, "approval_receipt_ref": {"$ref": "#/$defs/byteRef"},
+        "source_refs": {"type": "array", "items": {"$ref": "#/$defs/byteRef"}}, "refs": {"type": "array", "items": {"$ref": "#/$defs/byteRef"}},
+        "receipt": {"type": "object"}, "receipt_sha256": {"$ref": "#/$defs/sha256"}, "snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "prototype_authority": {"const": "REVIEW_EVIDENCE"}, "request": {"$ref": "#/$defs/uxRequest"}
+      }
+    },
+    "uxRequest": {
+      "type": "object", "additionalProperties": false, "required": ["root", "contract", "approval_receipt"],
+      "properties": {
+        "root": {"type": "string", "minLength": 1},
+        "contract": {"type": "object", "additionalProperties": false, "required": ["path", "revision", "sha256"], "properties": {"path": {"type": "string"}, "revision": {"type": "string"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+        "approval_receipt": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"type": "string"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+        "prototype": {"oneOf": [{"type": "null"}, {"type": "object", "additionalProperties": false, "required": ["path", "sha256", "authority"], "properties": {"path": {"type": "string"}, "sha256": {"$ref": "#/$defs/sha256"}, "authority": {"const": "REVIEW_EVIDENCE"}}}]}
+      }
+    }
+  }
+}

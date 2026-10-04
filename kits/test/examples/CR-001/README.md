@@ -1,4 +1,7 @@
-# CR-001 — Appointment Scheduling: ví dụ Test Kit V1
+# Historical V1 LEGACY_COMPAT: CR-001 Appointment Scheduling
+
+This material is retained as V1 history. It is not the default Test VNext example or an authority source.
+
 
 Đây là **documentation example**, không phải raw TEA/Katalon output, runtime golden fixture, Human receipt thật hay production approval. Nó dùng đúng semantic spine của [BA Kit CR-001](../../../ba/examples/CR-001/README.md) để một tester thấy luồng từ BA authority tới manual testware. ID `TD-DOC-*`/`TC-DOC-*` bên dưới chỉ là minh họa; runtime giữ nguyên ID thực tế từ output đã chuẩn hóa.
 

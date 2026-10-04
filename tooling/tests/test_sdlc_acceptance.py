@@ -233,7 +233,10 @@ class FreshSyntheticAcceptance(unittest.TestCase):
 
             skills = docs / ".agents/skills"
             ba_kit.install(ROOT, skills, "test", project_root=docs)
-            self.assertEqual(ba_kit.doctor(ROOT, skills, "test", project_root=docs)["status"], "READY")
+            doctor = ba_kit.doctor(ROOT, skills, "test", project_root=docs)
+            self.assertIn(doctor["status"], {"READY", "DEGRADED"}, doctor)
+            self.assertEqual(doctor["readiness"]["scope"], "PACKAGE_CAPABILITY_ONLY")
+            self.assertTrue(next(row for row in doctor["checks"] if row[0] == "Test VNext installed capability")[1])
             run = docs / ".test-kit/runs/CR-001/design-inline-ids"
             prepared = design.prepare_same_session_design(
                 handoff, run, project_root=docs, skill_dir=skills / "bmad-testarch-test-design",
@@ -272,7 +275,13 @@ class FreshSyntheticAcceptance(unittest.TestCase):
             skills = docs / ".agents/skills"
             for kit in ("ba", "test"):
                 ba_kit.install(ROOT, skills, kit, project_root=docs)
-                self.assertEqual(ba_kit.doctor(ROOT, skills, kit, project_root=docs)["status"], "READY")
+                doctor = ba_kit.doctor(ROOT, skills, kit, project_root=docs)
+                if kit == "test":
+                    self.assertIn(doctor["status"], {"READY", "DEGRADED"}, doctor)
+                    self.assertEqual(doctor["readiness"]["scope"], "PACKAGE_CAPABILITY_ONLY")
+                    self.assertTrue(next(row for row in doctor["checks"] if row[0] == "Test VNext installed capability")[1])
+                else:
+                    self.assertEqual(doctor["status"], "READY", doctor)
             git(docs, "add", ".")
             git(docs, "commit", "-m", "Synthetic inputs and stable team configuration")
             config = ref(docs / "_bmad/tea/config.yaml")
