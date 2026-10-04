@@ -9,6 +9,43 @@ BA Kit is not a rigid pipeline that forces every request through every stage. It
 
 ## Core semantic flow
 
+New BA writes use the normative lifecycle:
+
+```text
+DRAFT → VALIDATED → HUMAN_REVIEW → APPROVED_BASELINE
+```
+
+Validation PASS is evidence only. HUMAN_REVIEW freezes the exact manifest,
+revision and input hashes; APPROVED_BASELINE requires an external receipt bound
+to that identity/revision/semantic SHA-256 and authenticated by the trusted Human
+host. ANSWER, CONTINUE, generation, Foundation READY and UX approval never grant
+BA approval. Changed candidate bytes require a new revision and new approval.
+
+Workflow state schema 2 is RUNTIME. Business Rules/SRS stages below are activity
+metadata. New handoff schema 2 binds exact candidate + receipt + Decisions/BR/SRS,
+Shared Foundation Knowledge Impact and optional exact Foundation context, and
+revalidates proof on consumption. V1 state/handoff remain LEGACY_COMPAT with
+insufficient evidence for new approval. Historical Shared Core imports, Delivery
+Manifest V2, UX receipt V2 and atomic skills retain their contracts.
+
+BR-* = Business Rule; FR-* = Functional Requirement. Preserve stable IDs and
+retain retired identities; BAREF:* is a structural locator only, never mandatory
+coverage. Confirmed Human decisions must bind updated BR/SRS before readiness.
+BA owns WHAT; technical owners, API/event/DB design, service boundaries,
+locking/transactions and architecture decisions belong downstream.
+
+Consume Foundation inventory/context where available. CURRENT_SYSTEM and
+INFERRED never establish target requirements automatically; material differences
+become gaps until Human clarification. Greenfield begins with Human intent and
+explicit questions/decisions. A full Foundation is optional for bounded feature
+analysis. Knowledge Impact binds product/domain/architecture/testing affected
+flags and targets to baseline/handoff, routing technical assessment downstream.
+
+Trusted hosts use [the executable VNext contracts](../../ba-workflow/references/baseline-vnext.md).
+Read-only validator CLIs cannot authenticate Human approval and fail closed for
+VNext approved state/handoff without that trusted host. Derived artifact refs
+require refresh after candidate changes; approved snapshot bytes remain immutable.
+
 ~~~mermaid
 flowchart TD
     A[BA Input / Requirement / CR] --> B{Current system matters?}
@@ -74,7 +111,7 @@ When the semantic baseline changes, affected derived artifacts must be reviewed/
 | SRS | Create/update functional SRS | Review/request changes | Canonical SRS |
 | Draw.io/DOCX/Prototype | Create derived artifacts | Visual/document review | .drawio, DOCX, prototype |
 | Approval | Never self-approve | APPROVE/REJECT/REQUEST_CHANGES | Gate decision |
-| Handoff | Validate baseline/hashes | Confirm approved baseline | engineering-handoff.yml |
+| Handoff | Revalidate exact baseline/receipt/sources | Authenticate exact baseline decision | engineering-handoff.json (VNext) |
 
 ## Gap areas BA Kit should consider
 
@@ -157,13 +194,13 @@ Do not change a derived artifact alone and treat it as a new business rule.
 
 Prototype/Figma-derived outputs may need a separate Human visual review.
 
-Visual approval confirms the stated presentation/interaction scope; it does **not automatically approve the BA baseline** unless the Human explicitly names the approval target/revision.
+Visual approval confirms the stated presentation/interaction scope. BA baseline approval requires its separate exact trusted-host authenticated receipt.
 
 ## Engineering Handoff Gate
 
 Create the handoff only when:
 
-- the exact Business Rules/SRS revisions were explicitly approved;
+- the exact candidate is APPROVED_BASELINE with a trusted-host authenticated receipt;
 - no blocking item remains;
 - source paths/hashes are valid;
 - no technical ownership/design fields are present.

@@ -1,0 +1,27 @@
+{
+  "schema_version": 2,
+  "artifact_class": "RUNTIME",
+  "feature": {"id": "FEATURE-ID", "title": "Feature title"},
+  "mode": "GREENFIELD",
+  "operation": "CREATE",
+  "lifecycle": "DRAFT",
+  "activity": "REQUIREMENT_REVIEW",
+  "candidate_revision": "UNSELECTED",
+  "artifacts": {},
+  "authoritative_inputs": [],
+  "evidence": [],
+  "gaps": [],
+  "gates": {},
+  "pending": [],
+  "source_of_truth": {"semantic": "BA_DECISIONS_BR_SRS", "visual": "SEPARATE_UX_GATE", "delivery": "DERIVED"},
+  "knowledge_impact": {
+    "schema_version": 1,
+    "areas": {
+      "product": {"affected": false, "targets": []},
+      "domain": {"affected": false, "targets": []},
+      "architecture": {"affected": false, "targets": []},
+      "testing": {"affected": false, "targets": []}
+    }
+  },
+  "history": []
+}

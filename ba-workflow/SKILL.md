@@ -11,7 +11,7 @@ You own routing and checkpoint safety. Atomic skills own detailed discovery, ana
 
 1. Read the project `workflow-state.json` if present. If it is absent, classify the request and start at the earliest safe checkpoint; do not invent prior approvals.
 2. Classify the request as `CREATE`, `EDIT`, `REVIEW`, or a continuation. A continuation resumes the recorded operation and stage.
-3. Identify the feature mode: brownfield, greenfield, or document-only. Use `codebase-discovery` when current system behavior matters.
+3. Identify the feature mode: brownfield, greenfield, document-only, or visual-assisted. Consume exact Project Foundation context when present; use bounded `codebase-discovery` for missing feature detail when current system behavior matters.
 4. Resolve the requested artifact and its semantic, visual, or delivery source of truth.
 5. Check pending questions, actions and Human Gates before writing. A review is read-only.
 6. Route through `references/routing-contract.md`; ask one concise clarification only when the target or a material business decision is unknown.
@@ -34,10 +34,12 @@ The canonical state shape and safe update rules are in `references/workflow-stat
 python <ba-workflow-skill-folder>/scripts/validate-state.py <workflow-state.json>
 ```
 
-Create `engineering-handoff.yml` only after the BA baseline is explicitly approved for engineering. The format, integrity checks and downstream boundary are in `references/engineering-handoff.md`; validate it with:
+New work uses `DRAFT → VALIDATED → HUMAN_REVIEW → APPROVED_BASELINE`. Business Rules/SRS stages are activity metadata. Use `scripts/ba_vnext.py` through the trusted host and the exact contracts in `references/baseline-vnext.md`. Validation never grants approval. HUMAN_REVIEW freezes exact candidate bytes/revision/inputs; edits require a new revision and invalidate prior approval and derived routing.
+
+Create VNext `engineering-handoff.json` (or supported YAML) only from an exact authenticated APPROVED_BASELINE. See `references/engineering-handoff.md`. CLI checks legacy compatibility or fails closed when VNext authentication is unavailable:
 
 ```text
-python <ba-workflow-skill-folder>/scripts/validate-handoff.py <engineering-handoff.yml>
+python <ba-workflow-skill-folder>/scripts/validate-handoff.py <engineering-handoff.json>
 ```
 
 ## Capability routes

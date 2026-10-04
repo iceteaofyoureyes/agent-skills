@@ -1,0 +1,29 @@
+{
+  "schema_version": 2,
+  "feature": {"id": "FEATURE-ID", "title": "Feature title"},
+  "ba_baseline": {
+    "status": "APPROVED_BASELINE",
+    "id": "BASELINE-ID",
+    "revision": "REVISION",
+    "semantic_sha256": "<exact candidate semantic SHA-256>",
+    "manifest": {"path": "<candidate path>", "revision": "REVISION", "sha256": "<exact manifest byte SHA-256>"}
+  },
+  "approval_receipt": {"path": "<authenticated receipt path>", "revision": "REVISION", "sha256": "<exact receipt byte SHA-256>"},
+  "authoritative_sources": {
+    "business_rules": {"path": "<canonical BR Markdown>", "revision": "REVISION", "sha256": "<exact SHA-256>"},
+    "srs": {"path": "<canonical SRS Markdown>", "revision": "REVISION", "sha256": "<exact SHA-256>"},
+    "decisions": {"path": "<BA Decisions JSON>", "revision": "REVISION", "sha256": "<exact SHA-256>"}
+  },
+  "knowledge_impact": {
+    "schema_version": 1,
+    "areas": {
+      "product": {"affected": false, "targets": []},
+      "domain": {"affected": false, "targets": []},
+      "architecture": {"affected": false, "targets": []},
+      "testing": {"affected": false, "targets": []}
+    }
+  },
+  "open_items": {"blocking": [], "non_blocking": []},
+  "policy": {"downstream_may_change_business_semantics": false, "downstream_may_make_technical_design_decisions": true},
+  "next_stage": {"capability": "engineering-impact-analysis"}
+}

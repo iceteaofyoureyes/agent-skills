@@ -1,7 +1,17 @@
 # Engineering handoff
 
-`engineering-handoff.yml` is the last BA-owned boundary. Create it only after the BA baseline has an explicit approval for engineering. Include immutable revision/provenance and SHA-256 values for the approved Business Rules, canonical SRS and BA decisions. Keep blocking and non-blocking open items separate.
+New writes use **Engineering Handoff schema_version 2** via `ba_vnext.make_handoff`. It consumes only APPROVED_BASELINE with exact authenticated proof. See [VNext contracts](baseline-vnext.md) and `templates/engineering-handoff-vnext.json`.
+
+Bind feature id/title, baseline id/revision/semantic SHA and manifest ref, exact receipt ref, Decisions/BR/SRS refs, Shared Foundation Knowledge Impact, optional Foundation and explicit open items. Blocking items must be empty. Policy permits downstream technical design and prohibits changing business semantics; next capability remains engineering-impact-analysis (Engineering Impact / Dev workflow).
+
+`validate_handoff` revalidates candidate, all exact source bytes, receipt and trusted-host Human authentication on every read. APPROVED_FOR_ENGINEERING or APPROVED_BASELINE text alone never proves approval. Candidate/source/Foundation/receipt drift invalidates handoff. Hashes prove integrity, not Human identity.
 
 The handoff may authorize downstream technical design, but it must not specify implementation repository/module ownership, service ownership, API/event shapes, database design, locking, or transaction strategy. Do not add frontend/backend owner fields.
 
-Required fields and policy are in `templates/engineering-handoff.yml`. The current validator requires `open_items.blocking` to be an empty inline list and `open_items.non_blocking` to be an inline YAML list; use the inline form shown by the template. It checks required fields and SHA-256 syntax, and when given a file verifies that each relative authoritative-source path exists and matches its recorded digest. A handoff with unresolved blocking items or without `APPROVED_FOR_ENGINEERING` must not be presented as ready.
+Unknown fields fail closed recursively. Knowledge Impact routes product/domain to BA and architecture/testing to downstream owners without specifying a technical solution. UX and derived delivery remain separate gates.
+
+Refs are portable and relative to the feature root. Place the handoff at that root or invoke host APIs with the exact root. Trusted hosts call `ba_contracts.read_handoff(path, human_actor_authenticator=..., foundation_authenticator=...)`. CLI fails closed for VNext approval without a trusted authenticator; there is no approval flag.
+
+## V1 compatibility
+
+Schema_version 1 `engineering-handoff.yml`, its template and old Shared Core reader remain available. The BA adapter validates legacy sources and reports LEGACY_COMPAT, vnext_approval=False, insufficient evidence for new approval. Existing status text is not converted to a receipt. Historical contracts.py, approved_baseline.py and delivery_manifest.py imports retain their Shared Core identity. Delivery Manifest V2, UX receipt V2 and Dev/Test workflows are unchanged.

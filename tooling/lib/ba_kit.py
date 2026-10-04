@@ -18,7 +18,7 @@ sys.dont_write_bytecode = True
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "ba-workflow/scripts"))
-from contracts import validate_handoff_file, validate_handoff_text, validate_state_data  # noqa: E402
+from ba_contracts import validate_handoff_file, validate_handoff_text, validate_state_data, read_state, read_handoff  # noqa: E402
 
 
 INSTALL_RECORD = ".ba-kit-install.json"
@@ -1323,13 +1323,14 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "validate-state":
-            data = json.loads(args.path.read_text(encoding="utf-8"))
-            errors = validate_state_data(data)
+            from shared.sdlc.schema import read_document
+            data = read_document(args.path.read_text(encoding="utf-8"))
+            errors = validate_state_data(data, args.path.parent)
             for error in errors:
                 print(f"INVALID: {error}", file=sys.stderr)
             if errors:
                 return 1
-            print("VALID: workflow state")
+            print("VALID: workflow state; " + read_state(data, args.path.parent)['mode'])
             return 0
         if args.command == "validate-handoff":
             errors = validate_handoff_file(args.path)
@@ -1337,7 +1338,7 @@ def main(argv=None):
                 print(f"INVALID: {error}", file=sys.stderr)
             if errors:
                 return 1
-            print("VALID: engineering handoff and source hashes")
+            print("VALID: engineering handoff and source hashes; " + read_handoff(args.path)['mode'])
             return 0
         if args.command != "uninstall":
             manifest = load_manifest(ROOT, args.kit)
