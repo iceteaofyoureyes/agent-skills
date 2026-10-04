@@ -6,10 +6,10 @@
     "revision": "ba-rev-7",
     "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   },
-  "affected_repositories": ["appointments"],
-  "affected_components": ["AppointmentController", "AppointmentService"],
-  "affected_interfaces": ["POST /appointments"],
-  "affected_data": ["Appointment"],
+  "affected_repositories": ["sample-service"],
+  "affected_components": ["SampleController", "SampleService"],
+  "affected_interfaces": ["POST /items"],
+  "affected_data": ["SampleRecord"],
   "dependencies": [],
   "constraints": ["Preserve approved BA behavior"],
   "risk": {

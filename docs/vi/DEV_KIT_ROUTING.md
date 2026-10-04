@@ -1,88 +1,47 @@
-# Dev Kit V1 — Routing và Risk Policy
+# Dev Kit VNext — Routing và Authority Modes
 
-## Mục tiêu
+Dev routing dựa trên exact Engineering Handoff VNext, repository identities,
+observed Git bases, write scopes, checks và risk. Feature title, Delivery
+Manifest, local approval text hoặc workflow choice không tạo authority.
 
-Giữ default path gọn nhưng tăng depth theo evidence/risk. Router không được kích hoạt skill chỉ vì skill đang installed.
+## Authority modes
 
-## Risk level
+| Mode | Điều kiện | Phạm vi |
+|---|---|---|
+| `FEATURE_DELIVERY` | Exact authenticated Engineering Handoff VNext | Engineering Impact, planning, ED-*, implementation, review, checks, coverage và Dev Handoff |
+| `TECHNICAL_MAINTENANCE` | Exact nonbehavioral maintenance evidence; `no_what_change=true` | Mechanical/docs/config change trong một implementation repository |
 
-### TRIVIAL
+Nếu maintenance phát hiện business behavior, security, public contract hoặc
+cross-repository change, runtime chuyển `BLOCKED`. Tạo FEATURE_DELIVERY bằng
+authority chính xác trước khi tiếp tục.
 
-Điển hình:
-- docs;
-- rename;
-- mechanical mapping;
-- tiny config;
-- non-behavioral local edit.
+## Risk và gate
 
-Không có public contract/security/schema/cross-component risk.
+- NORMAL reversible local HOW: lập plan, xác nhận snapshot rồi implementation; không có Human gate thừa.
+- HIGH_RISK category hoặc active material ED: exact Human/Tech Lead receipt cần được host xác thực, gắn toàn bộ snapshot.
+- Multi-repository work nâng risk và vẫn giữ exact base, scope, owner và check theo từng repository.
+- Risk escalation buộc replan; approval cũ không thể authorize snapshot mới.
 
-### NORMAL
+Human gate không phải bước chọn `approve` trong Spec Kit. Spec Kit `1.0.11`
+chỉ vận chuyển workflow state/bundle; chỉ trusted host mới xác thực exact
+technical receipt. BA Human approval là proof của Engineering Handoff VNext,
+không được Dev tạo hoặc diễn giải lại.
 
-Feature/bug thông thường trong một repo/module, có behavior change nhưng không chạm high-risk boundaries.
+## Gap và sở hữu WHAT
 
-### HIGH_RISK
+WHAT ambiguity dùng Engineering Gap V2, dừng ở `UPSTREAM_GAP` và quay về BA/Human.
+Resume cần resolution evidence cùng replacement Engineering Handoff VNext được
+xác thực. Không dùng V1 `NEEDS_BA_CLARIFICATION` làm workflow VNext.
 
-Một hoặc nhiều:
-- auth/authz/security boundary;
-- sensitive data/PII;
-- schema/migration;
-- public API/event compatibility;
-- cross-service/repo;
-- concurrency/locking/transaction;
-- deployment topology;
-- major architecture change.
+ED-* giữ kỹ thuật trong phạm vi Dev. Nếu một quyết định thay đổi business WHAT,
+không biến nó thành ED; ghi Engineering Gap và chờ BA authority cập nhật.
 
-Runtime nhận các signal có cấu trúc qua `--signal` (`auth`, `security`, `sensitive_data`, `pii`, `database_migration`, `public_api`, `event_contract`, `cross_repo`, `concurrency`, `major_architecture`, `deployment_topology`). Summary cũng được dò từ khóa high-risk; explicit signal được ưu tiên vì ít mơ hồ hơn.
+## Terminal route
 
-`docs`, `rename`, `mechanical` và `config` chỉ được xếp TRIVIAL khi không có behavior change hoặc high-risk signal. Các kind còn lại mặc định NORMAL.
+Sau một consolidated review theo bounded budget, fresh repository-scoped checks
+và exact FR/BR coverage, Dev tạo Handoff V2 ở `READY_FOR_TEST`. Đây không phải
+`VERIFIED`, Tester PASS hay merge approval.
 
-## Conditional routing
-
-```text
-failure/test red
-  → debugging-and-error-recovery
-
-security-sensitive
-  → security-and-hardening
-
-API/interface/event contract
-  → api-and-interface-design
-
-external framework/API uncertainty
-  → source-driven-development
-
-performance requirement/regression
-  → performance-optimization
-
-production endpoint/job/queue/external I/O where telemetry matters
-  → observability-and-instrumentation
-
-uncertain blast radius
-  → codebase-memory-mcp
-  → verify important findings against source
-```
-
-Route và capability list được kiểm tra bởi `devkit start`; TRIVIAL chạy direct `start → edit → finish-trivial`, còn NORMAL/HIGH_RISK chọn workflow YAML tương ứng. NORMAL không có Human gate. Mỗi HIGH_RISK route yêu cầu plan gate theo V1 policy.
-
-Initial route là provisional. Engineering Impact có thể nâng NORMAL lên HIGH_RISK, nhưng không được hạ HIGH_RISK xuống NORMAL. Vì Spec Kit workflows có gate khác nhau, escalation dừng run NORMAL với `HIGH_RISK_REENTRY_REQUIRED`; tạo run HIGH_RISK mới với cùng Approved BA Baseline và các `--signal` tương ứng trước implementation.
-
-## Human gates
-
-Human/Tech Lead gate không bắt buộc cho mọi normal task. Mandatory gate policy nên áp dụng ít nhất cho:
-- breaking public contract;
-- schema migration có migration/rollback risk;
-- security/auth boundary;
-- cross-service architecture;
-- deployment topology;
-- plan/design thay đổi đáng kể sau implementation discovery.
-
-## Context purity
-
-Daily mode:
-- unrelated global skills/hooks/plugins → WARN/DEGRADED.
-
-Benchmark mode:
-- unrelated global methodology skills/hooks/plugins → FAIL.
-
-Dev Doctor sau này phải inventory project/user skills, hooks, plugins và MCP servers để phát hiện overlap.
+V1 artifacts chỉ đọc dưới `LEGACY_COMPAT` và luôn có
+`vnext_authority=false`. Delivery Manifest giữ
+`DEFERRED_NON_AUTHORITATIVE`.

@@ -1,0 +1,258 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "enum": [
+        2
+      ]
+    },
+    "id": {
+      "type": "string",
+      "pattern": "ED-(?:[A-Za-z0-9]+-)*\\d+"
+    },
+    "change_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "topic": {
+      "type": "string",
+      "minLength": 1
+    },
+    "authority_scope": {
+      "type": "string",
+      "enum": [
+        "FEATURE_LOCAL"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "PUBLIC_API",
+        "SECURITY",
+        "PERSISTENCE_SCHEMA",
+        "DESTRUCTIVE_MIGRATION",
+        "DISTRIBUTED_TRANSACTION",
+        "CONCURRENCY",
+        "DESTRUCTIVE_DATA",
+        "DEPLOYMENT_TOPOLOGY",
+        "CROSS_COMPONENT",
+        "CROSS_REPOSITORY",
+        "MAJOR_DEPENDENCY",
+        "PLATFORM",
+        "MATERIAL_DEVIATION",
+        "SERVICE_BOUNDARY",
+        "PUBLIC_INTEGRATION_STRATEGY",
+        "CROSS_PROJECT_ARCHITECTURE",
+        "LOCAL_DESIGN"
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PROPOSED",
+        "APPROVED",
+        "SUPERSEDED"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "[0-9a-f]{64}"
+          },
+          "revision": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "upstream_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "[0-9a-f]{64}"
+          },
+          "revision": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "affected_repositories": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "affected_components": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "affected_interfaces": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "affected_data": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "consequences": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "risk": {
+      "type": "string",
+      "enum": [
+        "TRIVIAL",
+        "NORMAL",
+        "HIGH_RISK"
+      ]
+    },
+    "materiality": {
+      "type": "string",
+      "enum": [
+        "MATERIAL"
+      ]
+    },
+    "approval_requirement": {
+      "type": "string",
+      "enum": [
+        "HUMAN"
+      ]
+    },
+    "approval_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "[0-9a-f]{64}"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "ED-(?:[A-Za-z0-9]+-)*\\d+"
+      }
+    },
+    "superseded_by": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "ED-(?:[A-Za-z0-9]+-)*\\d+"
+      }
+    },
+    "adr_ref": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "[0-9a-f]{64}"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "change_id",
+    "topic",
+    "authority_scope",
+    "category",
+    "decision",
+    "status",
+    "evidence_refs",
+    "upstream_refs",
+    "affected_repositories",
+    "affected_components",
+    "affected_interfaces",
+    "affected_data",
+    "alternatives",
+    "consequences",
+    "risk",
+    "materiality",
+    "approval_requirement",
+    "supersedes",
+    "superseded_by"
+  ],
+  "additionalProperties": false
+}

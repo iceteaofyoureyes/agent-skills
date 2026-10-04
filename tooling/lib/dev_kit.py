@@ -1,4 +1,4 @@
-"""Standard-library runtime, artifact checks, and Doctor for Dev Kit V1."""
+"""Standard-library Dev Kit contracts plus read-only V1 LEGACY_COMPAT support."""
 
 from __future__ import annotations
 
@@ -554,19 +554,46 @@ def validate_provenance(root):
             files = payload['files']
             actual = {}
             for relative in files:
-                path = (root / relative).resolve()
-                if not path.is_relative_to(root.resolve()) or path.is_symlink():
+                candidate = root / relative
+                path = candidate.resolve()
+                info = candidate.lstat()
+                if (Path(relative).is_absolute() or '..' in Path(relative).parts
+                    or not path.is_relative_to(root.resolve()) or candidate.is_symlink()
+                    or bool(getattr(info, 'st_file_attributes', 0) & 0x400)):
                     raise ValueError('unsafe runtime provenance path')
                 actual[relative] = hashlib.sha256(path.read_bytes()).hexdigest()
             digest = hashlib.sha256(json.dumps(actual, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
-            if payload['algorithm'] != 'DEV_RUNTIME_CORE_SHA256_V1' or actual != files or digest != payload['sha256']:
+            if (payload.get('algorithm') != 'DEV_RUNTIME_PACKAGE_SHA256_V2'
+                or payload.get('runtime') != 'dev-kit-v2'
+                or payload.get('self_excluded') != 'kits/dev/provenance.lock.json'
+                or actual != files or digest != payload['sha256']):
                 raise ValueError('Dev installed payload digest mismatch')
         except (OSError, ValueError, KeyError, TypeError) as error:
             errors.append(f'Dev runtime payload provenance invalid: {error}')
     if lock.get("schema_version") != 1 or lock.get("status") != "ASSEMBLED_WITH_ONE_MINIMAL_UPSTREAM_ADAPTATION":
         errors.append("provenance lock schema/status differs from the frozen assembly")
+    packaging = lock.get('packaging', {})
+    if (packaging.get('version') != kit.get('version') or packaging.get('runtime') != 'dev-kit-v2'
+        or packaging.get('runtime_root') != '~/.devkit/runtime/v2'
+        or packaging.get('business_what_authority') != kit.get('authority', {}).get('business_what')
+        or packaging.get('terminal_dev_readiness') != 'READY_FOR_TEST'
+        or packaging.get('v1_compatibility') != 'LEGACY_COMPAT'
+        or packaging.get('delivery_manifest') != 'DEFERRED_NON_AUTHORITATIVE'):
+        errors.append('provenance package metadata differs from the VNext kit manifest')
     if set(kit.get("runtime_dependencies", {})) != {"spec_kit", "codebase_memory_mcp"}:
         errors.append("kit.yaml declares an unexpected runtime dependency")
+    if (kit.get('name') != 'Dev Kit VNext' or kit.get('version') != '0.4.0-rc.1'
+        or kit.get('runtime', {}).get('external_project_runtime_root') != '~/.devkit/runtime/v2'
+        or kit.get('authority', {}).get('business_what') != 'Engineering Handoff VNext backed by exact APPROVED_BASELINE proof'
+        or kit.get('compatibility', {}).get('v1') != 'LEGACY_COMPAT; read-only inspection and no VNext authority'
+        or kit.get('compatibility', {}).get('delivery_manifest') != 'DEFERRED_NON_AUTHORITATIVE'):
+        errors.append('kit.yaml does not describe the frozen Dev VNext package boundary')
+    try:
+        plugin = json.loads((root / 'kits/dev/plugin/plugin.json').read_text(encoding='utf-8'))
+        if plugin.get('version') != kit.get('version'):
+            errors.append('plugin and kit versions differ')
+    except (OSError, json.JSONDecodeError):
+        errors.append('cannot read Dev plugin package metadata')
     spec = components.get("github-spec-kit", {})
     kit_spec = kit.get("runtime_dependencies", {}).get("spec_kit", {})
     if (spec.get("release"), spec.get("commit"), spec.get("license"), spec.get("classification"), spec.get("distributed_by_dev_kit")) != (
@@ -662,14 +689,14 @@ def validate_provenance(root):
     repository_notice = root / "THIRD_PARTY_NOTICES.md"
     try:
         notice_text = repository_notice.read_text(encoding="utf-8")
-        if "Dev Kit V1 plugin payload" not in notice_text or "addyosmani/agent-skills" not in notice_text or "obra/superpowers" not in notice_text:
+        if "Dev Kit VNext plugin payload" not in notice_text or "addyosmani/agent-skills" not in notice_text or "obra/superpowers" not in notice_text:
             errors.append("repository THIRD_PARTY_NOTICES.md is missing Dev Kit payload attribution")
     except OSError as error:
         errors.append(f"cannot read repository third-party notice: {error}")
     for required in kit.get("shared_skills", {}).get("required", []):
         if not (root / required / "SKILL.md").is_file():
             errors.append(f"required canonical shared skill is missing: {required}")
-    review_budget = kit.get("review_budget", {})
+    review_budget = kit.get("execution", {}).get("review_budget", {})
     budget_contract = {
         "full_reviews": review_budget.get("max_full_reviews"),
         "blocking_fix_waves": review_budget.get("max_blocking_fix_waves"),
@@ -683,27 +710,26 @@ def validate_provenance(root):
 def validate_workflow_package(root):
     root = Path(root)
     errors = []
+    from tooling.lib.dev_vnext_spec_kit import FORBIDDEN_COMMANDS, workflow_document
+
     paths = {
         "normal": root / "kits/dev/plugin/workflows/dev-normal.workflow.yml",
         "high-risk": root / "kits/dev/plugin/workflows/dev-high-risk.workflow.yml",
     }
     for depth, path in paths.items():
         try:
-            content = path.read_text(encoding="utf-8")
-        except OSError:
+            content = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
             errors.append(f"missing workflow definition: {path}")
             continue
-        for forbidden in ("speckit.specify", "speckit.plan", "speckit.tasks", "speckit.analyze", "speckit.converge"):
-            if forbidden in content:
+        serialized = json.dumps(content, sort_keys=True)
+        for forbidden in FORBIDDEN_COMMANDS:
+            if forbidden in serialized:
                 errors.append(f"forbidden Spec Kit feature command {forbidden} in {path.name}")
-        if content.count("id: consolidated-review") != 1 or content.count("id: one-blocking-fix-wave") != 1 or content.count("id: optional-scoped-rereview") != 1:
-            errors.append(f"{depth} workflow violates the 1/1/1 review budget")
-        if 'speckit_version: "==1.0.11"' not in content:
+        if "spec.md" in serialized or content != workflow_document(high_risk=depth == "high-risk"):
+            errors.append(f"{depth} workflow differs from the canonical Dev VNext transport")
+        if content.get("requires", {}).get("speckit_version") != "==1.0.11":
             errors.append(f"{depth} workflow does not pin Spec Kit v1.0.11")
-        if (depth == "normal") != ("type: gate" not in content):
-            errors.append(f"{depth} workflow has the wrong Human gate policy")
-    if (root / "kits/dev/plugin/workflows/dev-trivial.workflow.yml").exists():
-        errors.append("TRIVIAL must use the direct check path, not a Spec Kit workflow")
     return errors
 
 
@@ -1515,7 +1541,7 @@ def _print_doctor(report, as_json=False):
 
 def _legacy_main(argv=None):
     """Historical regression entrypoint; public VNext CLI never dispatches mutations here."""
-    parser = argparse.ArgumentParser(description="Dev Kit V1 runtime and contract checks")
+    parser = argparse.ArgumentParser(description="Dev Kit V1 compatibility runtime and contract checks")
     commands = parser.add_subparsers(dest="command", required=True)
     router = commands.add_parser("route", help="Internal natural-intent delivery router")
     router.add_argument("--delivery", type=Path, required=True)
@@ -1549,7 +1575,17 @@ def _legacy_main(argv=None):
     gate_parser.add_argument("--choice", required=True)
     gate_parser.add_argument("--workflow-run-id", required=True)
     schema_parser = commands.add_parser("schema")
-    schema_parser.add_argument("name", choices=("impact-manifest", "dev-handoff", "start-request"))
+    schema_parser.add_argument("name", choices=(
+        "start-request", "engineering-impact", "engineering-gap", "engineering-decision",
+        "dev-state", "technical-approval", "dev-handoff",
+        "legacy/start-request", "legacy/impact-manifest", "legacy/dev-handoff",
+    ))
+    template_parser = commands.add_parser("template")
+    template_parser.add_argument("name", choices=(
+        "start-request", "engineering-impact", "engineering-gap", "engineering-decision",
+        "technical-approval", "dev-handoff", "legacy/start-request",
+        "legacy/impact-manifest", "legacy/dev-handoff",
+    ))
     commands.add_parser("runtime-root")
     workflow_path_parser = commands.add_parser("workflow")
     workflow_path_parser.add_argument("depth", choices=("normal", "high-risk"))
@@ -1633,8 +1669,34 @@ def _legacy_main(argv=None):
             print(json.dumps(result, indent=2))
             return 0
         if args.command == "schema":
-            filename = "start-request.schema.json" if args.name == "start-request" else f"{args.name}.schema.json"
+            legacy = args.name.startswith("legacy/")
+            name = args.name.removeprefix("legacy/")
+            filename = {
+                "start-request": "start-request.schema.json" if legacy else "start-request-v2.schema.json",
+                "impact-manifest": "impact-manifest.schema.json",
+                "engineering-impact": "engineering-impact-v2.schema.json",
+                "engineering-gap": "engineering-gap-v2.schema.json",
+                "engineering-decision": "engineering-decision-v2.schema.json",
+                "dev-state": "dev-state-v2.schema.json",
+                "technical-approval": "technical-approval-v2.schema.json",
+                "dev-handoff": "dev-handoff.schema.json" if legacy else "dev-handoff-v2.schema.json",
+            }[name]
             path = KIT_ROOT / "kits/dev/schemas" / filename
+            print(path.read_text(encoding="utf-8"), end="")
+            return 0
+        if args.command == "template":
+            legacy = args.name.startswith("legacy/")
+            name = args.name.removeprefix("legacy/")
+            filename = {
+                "start-request": "start-request.template.json" if legacy else "start-request-v2.template.json",
+                "impact-manifest": "impact-manifest.template.json",
+                "engineering-impact": "engineering-impact-v2.template.json",
+                "engineering-gap": "engineering-gap-v2.template.json",
+                "engineering-decision": "engineering-decision-v2.template.json",
+                "technical-approval": "technical-approval-v2.boundary.md",
+                "dev-handoff": "dev-handoff.template.json" if legacy else "dev-handoff-v2.shape.md",
+            }[name]
+            path = KIT_ROOT / "kits/dev/templates" / filename
             print(path.read_text(encoding="utf-8"), end="")
             return 0
         if args.command == "runtime-root":
@@ -1680,8 +1742,12 @@ def _legacy_main(argv=None):
 def main(argv=None):
     """New runs use VNext; V1 artifacts are available for explicit inspection."""
     argv = list(sys.argv[1:] if argv is None else argv)
-    # Read-only package diagnostics remain available before Wave 3 packaging.
-    if argv and argv[0] in {"doctor", "provenance", "runtime-root", "schema"}:
+    if argv and argv[0] == "doctor":
+        sys.path.insert(0, str(KIT_ROOT))
+        from tooling.lib.dev_vnext_doctor import main as doctor_main
+        return doctor_main(argv[1:])
+    # Schema/template inspection is package discovery; V1 stays explicit LEGACY_COMPAT.
+    if argv and argv[0] in {"provenance", "runtime-root", "schema", "template"}:
         return _legacy_main(argv)
     sys.path.insert(0, str(KIT_ROOT))
     from tooling.lib.dev_vnext_cli import main as vnext_main

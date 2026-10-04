@@ -1,63 +1,77 @@
-# Dev Kit V1 — Foundation
+# Dev Kit VNext
 
-> Status: **READY_FOR_SOL_REVIEW**. Chưa phải RC/release.
+Dev Kit VNext begins from an exact **Engineering Handoff VNext** backed by
+`APPROVED_BASELINE` proof. BA retains business WHAT; Dev owns repository scope,
+Engineering Impact V2, technical decisions and implementation HOW.
 
-Dev Kit chịu trách nhiệm phần **WHERE / WHO OWNS + HOW** sau khi nhận **Approved BA Baseline**. Dev Kit không sở hữu business semantics và không được tự thay đổi WHAT.
+## Install and inspect
 
-## Default execution contract
+Install to a temporary user-scope home with:
 
-```text
-Approved BA Baseline
-  → Spec Readiness
-  → Planning Preflight + lightweight Engineering Impact
-  → Technical Plan / Tasks (risk-gated Addy planner)
-  → Incremental Implementation
-  → ONE consolidated review
-  → ONE blocking-fix wave
-  → optional ONE scoped re-review
-  → fresh deterministic verification
-  → Dev Handoff / READY_FOR_TEST
+```powershell
+python -I tooling/install_dev_kit.py --source-root . --install-home <user-home>/.devkit
 ```
 
-Nguyên tắc chính:
+The installer writes `runtime/v2` and a `bin/devkit` launcher. Existing
+`runtime/v1` content is retained. The launcher runs Python in isolated mode;
+the package has no imports from the checkout. `devkit doctor` reports package
+and capability readiness only.
 
-- planning hấp thụ uncertainty trước implementation;
-- capability không đồng nghĩa workflow stage;
-- default path phải ngắn, risk mới làm workflow sâu hơn;
-- business ambiguity phải quay lại BA/Human;
-- review budget bị giới hạn để tránh review spiral;
-- deterministic evidence được ưu tiên hơn repeated LLM judgement;
-- Human/Tech Lead gate chỉ bắt buộc khi risk surface yêu cầu.
+Inspect the V2 contract and neutral templates:
 
-## Tài liệu canonical
+```text
+devkit schema start-request
+devkit schema engineering-impact
+devkit schema engineering-gap
+devkit schema engineering-decision
+devkit schema dev-state
+devkit schema technical-approval
+devkit schema dev-handoff
+devkit template start-request
+devkit template engineering-impact
+```
 
-- [Kiến trúc](../../docs/vi/DEV_KIT_ARCHITECTURE.md)
-- [Capability selection](../../docs/vi/DEV_KIT_CAPABILITIES.md)
-- [Workflow](../../docs/vi/DEV_KIT_WORKFLOW.md)
-- [Routing](../../docs/vi/DEV_KIT_ROUTING.md)
-- [Review & verification](../../docs/vi/DEV_KIT_REVIEW_AND_VERIFICATION.md)
-- [Benchmark](../../docs/vi/DEV_KIT_BENCHMARK.md)
-- [Usage Guide](../../docs/vi/DEV_KIT_USAGE_GUIDE.md)
-- [Composition/provenance lock](provenance.lock.json)
+V1 artifacts remain explicit read-only compatibility surfaces:
+`devkit schema legacy/start-request`, `devkit schema legacy/impact-manifest`,
+and `devkit schema legacy/dev-handoff`. Their authority mode is
+`LEGACY_COMPAT`; they do not grant VNext authority.
 
-## Runtime paths
+## VNext workflow
 
-- Codex local marketplace: [`.agents/plugins/marketplace.json`](../../.agents/plugins/marketplace.json)
-- NORMAL/HIGH_RISK workflows are installed at user scope and listed by `devkit workflow normal|high-risk`; their source is `plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`
-- Các bước shell của Spec Kit cần `devkit_command` tương thích với shell; trên Windows dùng launcher `.cmd` đã cài (`.ps1` dành cho lệnh PowerShell trực tiếp).
-- Entry path chuẩn cho agent: sao chép `templates/start-request.template.json` thành `.devkit/start-request.json`, chỉnh sửa, chạy `devkit validate-start-request .devkit/start-request.json`, rồi `devkit start --request .devkit/start-request.json`.
-- TRIVIAL: start trước khi sửa; chạy `finish-trivial` sau khi sửa. Lệnh chạy lại deterministic checks và kết thúc với `COMPLETED` hoặc `NEEDS_REPLAN`; không có Spec Kit workflow, formal plan hay full review.
-- NORMAL: sau `READY_FOR_PLANNING`, tiếp tục Spec Readiness → preflight/Impact → plan/tasks → `plan-check` → `implementation-ready normal` rồi mới sửa.
-- HIGH_RISK: tiếp tục qua readiness, impact, plan/tasks, `plan-check` và Human/Tech Lead gate thật của Spec Kit. Không tự approve.
-- External-project runtime installer: `../../tooling/install_dev_kit.py`; it installs only the runtime helper/BA contract parser, schemas, templates and workflow definitions under `~/.devkit/runtime/v1`
-- JSON schemas/templates: `schemas/`, `templates/`; inspect them with `devkit schema start-request|impact-manifest|dev-handoff`
-- Run state/evidence: `.specify/workflows/runs/` and `.devkit/runs/`
-- Doctor/validators: `../../tooling/lib/dev_kit.py`
+```text
+Engineering Handoff VNext
+  → authenticate exact BA authority and revalidate Foundation proof
+  → FEATURE_DELIVERY / Engineering Impact V2
+  → technical plan, tasks, ED-* decisions and exact snapshot
+  → Human/Tech Lead gate only when required by HIGH_RISK or active material ED
+  → IMPLEMENTATION_READY → scoped source changes
+  → one consolidated review and bounded blocking-fix path
+  → fresh repository-scoped checks
+  → exact FR/BR code and test coverage
+  → Dev Handoff V2 / READY_FOR_TEST
+```
 
-Nếu request validation thất bại, sửa tệp JSON rồi xác thực lại; chưa có run nào được tạo. Nếu `start` thất bại trước khi trả về run directory, sửa request rồi thử lại. Sau khi start thành công, tiếp tục cùng run thay vì tạo thêm một active run. Lỗi Angular `spawn EPERM` trong worker là giới hạn bên ngoài của host; giữ nguyên bằng chứng và không làm yếu check đã cấu hình.
+The second authority mode, `TECHNICAL_MAINTENANCE`, is limited to verified
+nonbehavioral maintenance evidence. It cannot authorize business behavior.
+Engineering Gap pauses work until resolution evidence and a replacement
+Engineering Handoff VNext are revalidated. ED-* records preserve exact
+engineering decisions; required approval binds the exact technical snapshot.
 
-Không vendor hoặc upgrade upstream component nếu chưa cập nhật provenance, license/notice và dependency closure trong cùng change.
+Checks name a repository and execute at its bound root. Coverage is the exact
+approved BR/FR set; BAREF is only a locator. Review is bounded to one full
+review, one blocking-fix wave and one optional scoped rereview. `READY_FOR_TEST`
+is a Dev handoff boundary, not `VERIFIED`, business acceptance or merge approval.
 
-## Spec Kit V1 boundary
+GitHub Spec Kit `1.0.11` is workflow state and bundle transport only. Its
+feature-spec commands remain excluded; it cannot become WHAT authority or
+approve a technical gate. Delivery Manifest remains
+`DEFERRED_NON_AUTHORITATIVE`.
 
-Spec Kit is reused as workflow/state/bundle infrastructure. Dev Kit V1 deliberately does not call core `speckit.specify/plan/tasks/analyze/converge`; those commands assume Spec Kit's own `spec.md` semantics. The Approved BA Baseline remains the only WHAT authority.
+## Package records
+
+- [Package manifest](kit.yaml)
+- [V2 acceptance contract](acceptance.yaml)
+- [Provenance and dependency lock](provenance.lock.json)
+- [Neutral VNext outline](examples/neutral-vnext.md)
+- [Engineering architecture](../../docs/vi/DEV_KIT_ARCHITECTURE.md)
+- [Operational workflow](../../docs/vi/DEV_KIT_WORKFLOW.md)

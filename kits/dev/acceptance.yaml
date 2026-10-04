@@ -1,0 +1,59 @@
+schema_version: 1
+kit: dev
+contract: Dev Kit VNext / Dev lifecycle V2
+completion_guard:
+  tier_3_fresh_installed_runtime_required: true
+  tier_1_or_tier_2_can_mark_phase_5_complete: false
+tiers:
+  tier_1_deterministic:
+    run_for_each_dev_change: true
+    commands:
+      - python -m unittest tooling.tests.test_dev_kit -v
+      - python -m unittest tooling.tests.test_dev_vnext -v
+      - python -m unittest tooling.tests.test_dev_vnext_runtime -v
+      - python -m unittest tooling.tests.test_dev_vnext_runtime_acceptance -v
+      - python -m unittest tooling.tests.test_dev_vnext_cli -v
+      - python -m unittest tooling.tests.test_dev_vnext_spec_kit -v
+      - python -m unittest tooling.tests.test_dev_vnext_installed_acceptance -v
+  tier_2_focused_runtime:
+    cases:
+      - Exact authenticated Engineering Handoff VNext; BA WHAT remains immutable
+      - Project Foundation proof dependencies revalidate through the installed BA reader
+      - FEATURE_DELIVERY NORMAL path reaches IMPLEMENTATION_READY without an unnecessary Human gate
+      - HIGH_RISK cannot reach IMPLEMENTATION_READY without exact authenticated Human or Tech Lead receipt
+      - Engineering Gap blocks writes and resumes only with resolution evidence and replacement Handoff
+      - Risk escalation invalidates stale approval and requires replanning
+      - Heterogeneous and multi-repository checks remain bound to exact bases and scopes
+      - Consolidated review, one blocking fix wave and optional one scoped rereview stay bounded
+      - Verification is fresh and repository-scoped
+      - Coverage is the exact FR/BR set; BAREF is locator only
+      - READY_FOR_TEST is distinct from VERIFIED, merge readiness and business acceptance
+      - Spec Kit transports workflow state and cannot supply WHAT or technical approval
+      - Doctor READY means PACKAGE/CAPABILITY READY only
+      - V1 reads as LEGACY_COMPAT with vnext_authority=false
+      - DELIVERY_MANIFEST remains DEFERRED_NON_AUTHORITATIVE
+    isolated_ephemeral_session_per_probe: true
+    bounded_timeout_seconds: 120
+    optional_review_service_required: false
+  tier_3_fresh_install:
+    run_for_phase_5_completion: true
+    installed_runtime_isolation_required: true
+    requires_external_working_directory: true
+    python_isolated_mode_required: true
+    pythonpath_must_be_absent: true
+    flow: >-
+      Install V2 into a temporary user home; run installed Doctor; load all Dev VNext,
+      BA VNext and Shared SDLC modules from runtime/v2; authenticate a synthetic exact
+      Engineering Handoff host receipt; start FEATURE_DELIVERY; validate authority;
+      create Impact, Plan, tasks and snapshot; prove NORMAL reaches IMPLEMENTATION_READY
+      without an extra gate; mutate a neutral repository; perform one consolidated
+      review; run repository-scoped native checks; create exact FR/BR coverage; finalize
+      and revalidate Dev Handoff V2 at READY_FOR_TEST; prove no VERIFIED claim; inspect
+      V1 as LEGACY_COMPAT; and prove HIGH_RISK cannot reach IMPLEMENTATION_READY without
+      a host-authenticated technical receipt.
+automated:
+  - command: python -m unittest tooling.tests.test_dev_vnext_installed_acceptance -v
+    proves: >-
+      Fresh V2 install, Doctor closure, isolated installed imports, exact BA authority,
+      NORMAL and HIGH_RISK gate behavior, repository-scoped implementation, review,
+      verification, FR/BR coverage, READY_FOR_TEST and V1 LEGACY_COMPAT.

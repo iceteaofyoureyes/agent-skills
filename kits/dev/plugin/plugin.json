@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-skills-dev-kit",
-  "version": "0.3.0-rc.4",
-  "description": "Curated engineering capabilities, natural intent router and bounded Spec Kit workflows. Synthetic acceptance required.",
+  "version": "0.4.0-rc.1",
+  "description": "Dev lifecycle V2 for exact Engineering Handoff VNext authority, repository-scoped implementation and READY_FOR_TEST handoff.",
   "author": {
     "name": "iceteaofyoureyes",
     "url": "https://github.com/iceteaofyoureyes"

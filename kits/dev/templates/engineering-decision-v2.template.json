@@ -1,0 +1,29 @@
+{
+  "schema_version": 2,
+  "id": "ED-001",
+  "change_id": "EXAMPLE-CHANGE",
+  "topic": "Local technical choice",
+  "authority_scope": "FEATURE_LOCAL",
+  "category": "LOCAL_DESIGN",
+  "decision": "REPLACE_WITH_PROPOSED_ENGINEERING_DECISION",
+  "status": "PROPOSED",
+  "evidence_refs": [
+    {
+      "path": "REPLACE_WITH_EXACT_EVIDENCE_PATH",
+      "revision": "REPLACE_WITH_EXACT_REVISION",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "upstream_refs": [],
+  "affected_repositories": ["REPOSITORY-1"],
+  "affected_components": ["REPLACE_WITH_COMPONENT"],
+  "affected_interfaces": [],
+  "affected_data": [],
+  "alternatives": ["REPLACE_WITH_CONSIDERED_ALTERNATIVE"],
+  "consequences": ["REPLACE_WITH_TECHNICAL_CONSEQUENCE"],
+  "risk": "NORMAL",
+  "materiality": "MATERIAL",
+  "approval_requirement": "HUMAN",
+  "supersedes": [],
+  "superseded_by": []
+}

@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "gap_id": "GAP-EXAMPLE",
+  "finding_kind": "SPEC_GAP",
+  "feature_id": "FEATURE-EXAMPLE",
+  "engineering_handoff_ref": {
+    "path": "REPLACE_WITH_EXACT_ENGINEERING_HANDOFF_PATH",
+    "revision": "REPLACE_WITH_EXACT_REVISION",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "affected_business_ids": ["FR-001"],
+  "evidence_refs": [
+    {
+      "path": "REPLACE_WITH_EXACT_EVIDENCE_PATH",
+      "revision": "REPLACE_WITH_EXACT_REVISION",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }
+  ],
+  "question": "State the unresolved approved outcome without proposing a business answer.",
+  "blocking_scope": {"REPOSITORY-1": ["src"]},
+  "discovered_at": "2000-01-01T00:00:00Z",
+  "status": "OPEN"
+}

@@ -1,7 +1,7 @@
 {
   "name": "agent-skills-dev-kit",
   "interface": {
-    "displayName": "Agent Skills Dev Kit"
+    "displayName": "Agent Skills Dev Kit VNext"
   },
   "plugins": [
     {

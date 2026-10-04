@@ -1,145 +1,137 @@
-schema_version: "1.0"
-workflow:
-  id: "dev-high-risk"
-  name: "Dev Kit — High-Risk Change"
-  version: "1.0.0"
-  author: "Agent Skills Dev Kit"
-  description: "Normal Dev workflow with deep impact, a Human/Tech Lead plan gate, and only triggered specialists."
-requires:
-  speckit_version: "==1.0.11"
-inputs:
-  integration:
-    type: string
-    default: "auto"
-    prompt: "Agent integration (auto uses the initialized project integration)"
-  devkit_command:
-    type: string
-    default: "devkit"
-    prompt: "Shell-compatible Dev Kit runtime command; on Windows use the installed devkit.cmd, not devkit.ps1"
-steps:
-  - id: confirm-high-risk-route
-    type: shell
-    run: '"{{ inputs.devkit_command }}" assert-workflow high-risk'
-  - id: readiness-and-deep-impact
-    type: prompt
-    integration: "{{ inputs.integration }}"
-    prompt: |
-      Run Dev Kit Spec Readiness for the active run in .devkit/current.json. Read input.json and the Approved BA
-      Baseline at the recorded path. Use requirements-gap-auditor for readiness only. Do not edit, copy, summarize
-      into another source of truth, or reinterpret the baseline. If user-visible behavior is unresolved, write
-      spec-readiness.json with NEEDS_BA_CLARIFICATION and the questions; do not plan or implement. Otherwise write
-      READY_FOR_PLANNING with no business ambiguities. Perform deep Engineering Impact, verify ownership and blast
-      radius from source, and create impact-manifest.json per the schema printed by `{{ inputs.devkit_command }} schema impact-manifest`. Use
-      codebase-memory-mcp only if native source inspection cannot establish dependencies/callers. Record technical
-      facts and unknowns only. Never write into an Approved BA Baseline path.
-      Treat input.json's validated authority_precedence as the approval source: APPROVED_FOR_ENGINEERING plus
-      exact BA hashes approves the immutable BA snapshot, and a valid Delivery Manifest V2 plus its exact Human
-      UX receipt approves the bound UX snapshot. APPROVAL STATE != INLINE LIFECYCLE TEXT. Historical DRAFT,
-      PENDING_HUMAN_REVIEW, or next_stage wording inside those exact approved bytes does not revoke approval.
-      open_items.blocking remains blocking by contract. Do not promote open_items.non_blocking into business
-      ambiguity; when later validated manifest evidence satisfies its old UX dependency, classify it as
-      SUPERSEDED_BY_DELIVERY_MANIFEST. Still stop for a semantic contradiction between approved rules,
-      an UNKNOWN/TBD that forces Dev to choose WHAT, missing/invalid approval evidence, hash drift, or a real
-      blocking item. Resolve WHAT only through BA/Human authority.
-  - id: enforce-readiness-and-impact
-    type: shell
-    run: '"{{ inputs.devkit_command }}" preflight'
-  - id: plan
-    type: prompt
-    integration: "{{ inputs.integration }}"
-    prompt: |
-      Use planning-and-task-breakdown for the active run. Resolve its change_id from .devkit/current.json and write
-      dev-plan.md and dev-tasks.md at .devkit/runs/<change_id>/dev-plan.md and .devkit/runs/<change_id>/dev-tasks.md.
-      Do not write either file at the project root.
-      Reference the Approved BA Baseline; do not copy or reinterpret its business semantics. Cover technical scope, owners, impact,
-      architecture/code decisions, data/interface/dependency constraints, implementation slices, tests, verification,
-      and technical unknowns. Load only specialists whose capability triggers match the impact. A Human/Tech Lead
-      approval gate follows before implementation. For bugs, design the regression test first. Do not edit the baseline.
-      Each file must begin with a `devkit-planning-metadata` JSON comment containing the active change_id, the exact
-      baseline_ref object from that run's input.json, and business_ambiguity set to CLEAR. Keep technical planning
-      content after the metadata.
-  - id: enforce-planning-artifacts
-    type: shell
-    run: '"{{ inputs.devkit_command }}" plan-check'
-  - id: human-tech-lead-plan-gate
-    type: gate
-    message: "Review dev-plan.md, dev-tasks.md, and impact-manifest.json. Approve to proceed; reject to stop for replanning."
-    options: [approve, reject]
-    on_reject: abort
-  - id: record-human-plan-approval
-    type: shell
-    run: '"{{ inputs.devkit_command }}" gate-approved --choice "{{ steps.human-tech-lead-plan-gate.output.choice }}" --workflow-run-id "{{ context.run_id }}"'
-  - id: authorize-high-risk-implementation
-    type: shell
-    run: '"{{ inputs.devkit_command }}" implementation-ready high-risk'
-  - id: implementation
-    type: prompt
-    integration: "{{ inputs.integration }}"
-    prompt: |
-      Implement the approved technical plan using incremental-implementation. Use test-driven-development for behavior
-      changes and regression tests first for bugs. Activate only specialists whose trigger matches: security-and-hardening,
-      api-and-interface-design, source-driven-development, performance-optimization, observability-and-instrumentation.
-      If an unexpected failure occurs, then use debugging-and-error-recovery. Keep slices small, verify focused checks, and do not edit the
-      Approved BA Baseline. Stop before review; the workflow owns the one consolidated review.
-  - id: focused-checks
-    type: shell
-    run: '"{{ inputs.devkit_command }}" verify focused'
-  - id: claim-one-full-review
-    type: shell
-    run: '"{{ inputs.devkit_command }}" claim full_reviews'
-  - id: consolidated-review
-    type: prompt
-    integration: "{{ inputs.integration }}"
-    prompt: |
-      Use code-review-and-quality to perform exactly one consolidated full review for the active run. Read its
-      Approved BA Baseline reference, impact manifest, plan/tasks, diff, and focused-check results. Invoke only
-      relevant specialists. Write review.json with BLOCKING and FOLLOW_UP finding classes. Follow-ups never expand
-      scope. Do not start fixes or a second full review.
-  - id: validate-review
-    type: shell
-    run: '"{{ inputs.devkit_command }}" review-check'
-  - id: claim-one-fix-wave
-    type: shell
-    run: '"{{ inputs.devkit_command }}" claim blocking_fix_waves'
-  - id: one-blocking-fix-wave
-    type: prompt
-    integration: "{{ inputs.integration }}"
-    prompt: |
-      Read review.json. If it has no BLOCKING findings, do no work and write fix-result.json with performed=false,
-      no remaining blockers, and materially_changed=false. Otherwise fix every blocker in one wave and write the
-      remaining BLOCKING findings and whether logic/risk materially changed. Do not run a second full review. If major
-      blockers remain, stop for HUMAN_TECH_LEAD_REVIEW. Never edit the Approved BA Baseline.
-  - id: enforce-fix-budget
-    type: shell
-    run: '"{{ inputs.devkit_command }}" fix-check'
-  - id: claim-optional-scoped-rereview
-    type: shell
-    run: '"{{ inputs.devkit_command }}" claim scoped_rereviews'
-  - id: optional-scoped-rereview
-    type: prompt
-    integration: "{{ inputs.integration }}"
-    prompt: |
-      Read lifecycle.json and fix-result.json. If materially_changed is false, do not invoke review; write a skipped
-      scoped-rereview.json. If one scoped rereview was claimed, review only previous blockers and the fix diff. Set
-      full_feature_review=false and list every prior finding ID reviewed plus any new blocking finding. Never perform
-      another feature-wide review.
-  - id: validate-scoped-rereview
-    type: shell
-    run: '"{{ inputs.devkit_command }}" rereview-check'
-  - id: fresh-verification
-    type: shell
-    run: '"{{ inputs.devkit_command }}" verify fresh'
-  - id: prepare-handoff
-    type: shell
-    run: '"{{ inputs.devkit_command }}" prepare-handoff'
-  - id: complete-handoff
-    type: prompt
-    integration: "{{ inputs.integration }}"
-    prompt: |
-      Complete dev-handoff.json for the active run. Add commit IDs if available and requirements_coverage mapping each
-      accepted BA requirement ID to code/test evidence. Preserve generated baseline reference, review counts/findings,
-      Human/Tech Lead gate choice and workflow evidence, and verification evidence. The validator derives final state; do not set it yourself
-      and do not modify the Approved BA Baseline. Invoke verification-before-completion before the success claim.
-  - id: enforce-ready-for-test
-    type: shell
-    run: '"{{ inputs.devkit_command }}" handoff'
+{
+  "schema_version": "1.0",
+  "workflow": {
+    "id": "dev-vnext-high-risk",
+    "name": "Dev VNext Runtime",
+    "version": "2.0.0",
+    "author": "Agent Skills Dev Kit",
+    "description": "Workflow transport for exact Engineering Handoff authority; terminal Dev state READY_FOR_TEST."
+  },
+  "requires": {
+    "speckit_version": "==1.0.11"
+  },
+  "inputs": {
+    "devkit_command": {
+      "type": "string",
+      "default": "devkit"
+    },
+    "integration": {
+      "type": "string",
+      "default": "auto"
+    },
+    "run_dir": {
+      "type": "string",
+      "default": ""
+    },
+    "run_id": {
+      "type": "string",
+      "default": ""
+    },
+    "host": {
+      "type": "string",
+      "default": ""
+    },
+    "technical_choice": {
+      "type": "string",
+      "default": ""
+    },
+    "technical_receipt_ref": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "steps": [
+    {
+      "id": "validate-authority",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" validate-authority"
+    },
+    {
+      "id": "engineering-impact",
+      "type": "prompt",
+      "integration": "{{ inputs.integration }}",
+      "prompt": "Inspect source and the exact Engineering Handoff VNext. Create Engineering Impact V2 at impact.json inside the active run. Record technical facts, knowledge impact, unknowns, repository base revisions and explicit write paths. Do not fabricate answers or decide WHAT. A WHAT gap must use raise-gap and route BA/Human. Preserve APPROVAL STATE != INLINE LIFECYCLE TEXT: APPROVED_FOR_ENGINEERING or PENDING_HUMAN_REVIEW prose is not authority; revalidate exact canonical proof. open_items.blocking is a blocker; open_items.non_blocking does not alone establish a semantic contradiction. V1 SUPERSEDED_BY_DELIVERY_MANIFEST is read-only LEGACY_COMPAT and supplies no VNext authority."
+    },
+    {
+      "id": "bind-impact",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" impact --artifact \"{{ inputs.run_dir }}/impact.json\""
+    },
+    {
+      "id": "technical-plan",
+      "type": "prompt",
+      "integration": "{{ inputs.integration }}",
+      "prompt": "Write dev-plan.md and dev-tasks.md in the active run, referencing upstream authority and engineering impact. Use incremental slices, focused tests and regression-first TDD. Record active material ED exact refs. Write engineering-decision-refs.json as an array of exact ED refs (empty when no material ED). Do not duplicate BR/FR business prose or expand repository/write scope."
+    },
+    {
+      "id": "bind-plan",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" plan --plan \"{{ inputs.run_dir }}/dev-plan.md\" --tasks \"{{ inputs.run_dir }}/dev-tasks.md\" --decision-refs \"{{ inputs.run_dir }}/engineering-decision-refs.json\""
+    },
+    {
+      "id": "human-tech-lead-plan-gate",
+      "type": "gate",
+      "message": "Review the exact impact, ED set, plan/tasks, repository bases, write scope and risk. This choice is only workflow transport. Supply an exact authenticated Human/Tech Lead receipt through the trusted host before implementation.",
+      "options": [
+        "approve",
+        "reject"
+      ],
+      "on_reject": "abort",
+      "verdict_input": "technical_choice"
+    },
+    {
+      "id": "bind-authenticated-technical-receipt",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" bind-technical-approval --artifact \"{{ inputs.technical_receipt_ref }}\""
+    },
+    {
+      "id": "implementation-ready",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" implementation-ready"
+    },
+    {
+      "id": "begin-implementation",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" begin-implementation"
+    },
+    {
+      "id": "implementation",
+      "type": "prompt",
+      "integration": "{{ inputs.integration }}",
+      "prompt": "Implement only the bound technical plan, with focused tests for incremental slices. Every runtime-controlled write must use write-source or authorize-write for its exact repository/path. Stop and raise-gap for WHAT ambiguity; use escalate-risk/replan for new material risk. Stop before the single consolidated review."
+    },
+    {
+      "id": "consolidated-review",
+      "type": "prompt",
+      "integration": "{{ inputs.integration }}",
+      "prompt": "Perform exactly one consolidated full review against exact upstream authority, snapshot and implementation revisions. Write review-evidence.json and review-ref.json inside the run. Record blocking findings in blocking-findings.json. WHAT/spec findings require an Engineering Gap artifact, never a code-first workaround. For blockers use one begin-fix-wave followed by at most one scoped rereview; never another full review."
+    },
+    {
+      "id": "record-consolidated-review",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" review --evidence-ref \"{{ inputs.run_dir }}/review-ref.json\" --findings \"{{ inputs.run_dir }}/blocking-findings.json\""
+    },
+    {
+      "id": "bounded-blocking-resolution",
+      "type": "prompt",
+      "integration": "{{ inputs.integration }}",
+      "prompt": "If blocking findings exist, claim begin-fix-wave once, fix only those findings through the mutation guard, and submit one scoped review with exact evidence and remaining blockers. If no blockers, do no work. No second full review or unapproved scope expansion."
+    },
+    {
+      "id": "fresh-engineering-verification",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" verify"
+    },
+    {
+      "id": "coverage",
+      "type": "prompt",
+      "integration": "{{ inputs.integration }}",
+      "prompt": "Write coverage.json mapping every exact approved BR/FR ID to code and test evidence. Do not invent requirement IDs, claim downstream acceptance or modify the final handoff directly."
+    },
+    {
+      "id": "canonical-dev-handoff",
+      "type": "shell",
+      "run": "\"{{ inputs.devkit_command }}\" --host \"{{ inputs.host }}\" --run-id \"{{ inputs.run_id }}\" finalize --coverage \"{{ inputs.run_dir }}/coverage.json\""
+    }
+  ]
+}

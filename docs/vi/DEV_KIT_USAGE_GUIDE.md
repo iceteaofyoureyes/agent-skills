@@ -1,264 +1,111 @@
-# Dev Kit V1 — Hướng dẫn sử dụng
+# Dev Kit VNext — Hướng dẫn sử dụng
 
-Dev Kit nhận **Approved BA Baseline** làm WHAT authority, rồi xác định phạm vi kỹ thuật, ownership, cách triển khai và evidence. Dev Kit không sửa hoặc diễn giải lại business semantics.
+## Cài đặt
 
-## Operator flow của integration candidate 0.2.0-rc.1
-
-Human chỉ nói: `Implement <feature> từ delivery manifest đã approve.` Dùng router `dev-kit`; agent đọc governance, resolve approved BA/UX/delivery, inspect target và quality gate, tự tạo/validate request rồi start/resume run. Human chỉ thấy material ambiguity, HIGH_RISK plan gate, blocking review, NEEDS_REPLAN hoặc terminal handoff.
-
-Các lệnh bên dưới là internal API/reference cho agent và maintainer. Human không copy/edit start-request JSON, signals/checks hoặc chọn run paths. Setup tự động profile: `python -m tooling.prepare_agent_profile --destination <fresh-profile> --register`; host dùng CODEX_HOME riêng. Xem [suite contract](SDLC_SUITE_CONTRACT.md).
-
-## 1. Yêu cầu môi trường
-
-- Python 3.8+ và Git cho Dev Kit CLI/direct TRIVIAL path.
-- GitHub Spec Kit CLI đúng `v1.0.11` và một agent integration đã khởi tạo cho NORMAL/HIGH_RISK workflow/resume. Spec Kit cần Python 3.11+; TRIVIAL direct path không cần Spec Kit.
-- V1 không gọi `speckit.specify`, `speckit.plan`, `speckit.tasks`, `speckit.analyze` hoặc `speckit.converge` và không tạo `spec.md`.
-- NORMAL/HIGH_RISK cần một BA Engineering Handoff đã được duyệt, cùng các nguồn business mà handoff tham chiếu.
-
-## 2. Cài plugin
-
-Repository có marketplace local tại `.agents/plugins/marketplace.json`. Từ Codex CLI ở root repository:
+Cài VNext từ checkout tin cậy vào user-scope home:
 
 ```powershell
-codex plugin marketplace add .
-codex plugin marketplace list
+python -I tooling/install_dev_kit.py --source-root . --install-home <user-home>/.devkit
 ```
 
-Lệnh CLI đăng ký marketplace source trong user config. Để cài và thử plugin local, mở ChatGPT desktop app → Plugins Directory → chọn marketplace và plugin → Install. Sau đó mở agent session mới. Plugin source vẫn là `kits/dev/plugin/` trong repository. Xem [OpenAI plugin marketplace documentation](https://developers.openai.com/plugins/build/plugins#marketplace-metadata).
+Runtime ở `~/.devkit/runtime/v2`; launcher ở `~/.devkit/bin/devkit` (Windows
+có `devkit.ps1` và `devkit.cmd`). Installer tạo manifest với package version,
+exact file hashes và Python executable. Cài lại là idempotent; V1 runtime không
+bị xóa. Thêm launcher directory vào PATH nếu cần.
 
-Gỡ plugin trong Plugins Directory của ChatGPT desktop app, sau đó gỡ marketplace source khỏi Codex user config:
-
-```powershell
-codex plugin marketplace remove agent-skills-dev-kit
-```
-
-Cài runtime helper một lần từ checkout Dev Kit. Runtime nằm ngoài target project; installer chép shared BA/delivery reader, router, schemas/templates, workflows và pinned package sources đủ cho installed Doctor:
-
-```powershell
-# Chạy trong checkout agent-skills
-python tooling/install_dev_kit.py
-$env:PATH = "$HOME\.devkit\bin;$env:PATH"
-devkit runtime-root
-```
-
-Với Bash, thêm `$HOME/.devkit/bin` vào `PATH`. Để giữ cấu hình cho terminal mới, thêm thư mục này vào user PATH của hệ điều hành.
-Agent plugin/skills được cài riêng qua marketplace như trên. Target project chỉ nhận `.devkit/` và `.specify/` state.
-
-Khởi tạo Spec Kit một lần nếu sẽ chạy NORMAL/HIGH_RISK và project chưa có workflow state:
-
-```powershell
-specify --version
-specify init
-```
-
-`specify init` chuẩn bị project/runtime integration. Không chạy các feature-spec commands bị loại trừ ở trên.
-
-## 3. Bắt đầu một change
-
-Chạy từ root của **target project**. Đây là structured internal API trên Windows và Bash; ordinary Human flow dùng natural router ở trên:
-
-1. Sao chép template đã cài đặt rồi chỉnh sửa như một tệp JSON thông thường. Mỗi check lưu lệnh dưới dạng mảng `argv`; không truyền JSON qua shell argument.
-
-PowerShell:
-
-```powershell
-$devKitRoot = devkit runtime-root
-New-Item -ItemType Directory -Force .devkit | Out-Null
-Copy-Item (Join-Path $devKitRoot 'kits/dev/templates/start-request.template.json') '.devkit/start-request.json'
-```
-
-Bash:
-
-```bash
-mkdir -p .devkit
-cp "$(devkit runtime-root)/kits/dev/templates/start-request.template.json" .devkit/start-request.json
-```
-
-Chỉnh sửa `.devkit/start-request.json` để đặt `schema_version`, `change_id`, `kind`, `summary`, `signals`, `baseline` và `checks`.
-2. Xác thực tệp mà chưa tạo run:
+Doctor kiểm tra package và capability closure:
 
 ```text
-devkit validate-start-request .devkit/start-request.json
+devkit doctor --json
 ```
 
-3. Khởi chạy run và ghi lại route/run directory được trả về:
+`READY` ở Doctor chỉ nghĩa `PACKAGE/CAPABILITY READY`. Nó không phê duyệt một
+feature và không thay thế `READY_FOR_TEST`.
+
+## Khám phá V2 schemas/templates
 
 ```text
-devkit start --request .devkit/start-request.json
+devkit schema start-request
+devkit schema engineering-impact
+devkit schema engineering-gap
+devkit schema engineering-decision
+devkit schema dev-state
+devkit schema technical-approval
+devkit schema dev-handoff
+devkit template start-request
+devkit template engineering-impact
+devkit template engineering-gap
+devkit template engineering-decision
+devkit template technical-approval
+devkit template dev-handoff
 ```
 
-Xem hợp đồng request bằng `devkit schema start-request`. Validator báo lỗi cụ thể khi thiếu field, có field không hỗ trợ, category không hợp lệ, `argv` rỗng hoặc giá trị sai định dạng. Trước khi tạo artifact trong `.devkit/`, `start` cũng kiểm tra baseline đã được duyệt và SHA-256 đã ghi nhận. NORMAL và HIGH_RISK cần build check cùng test check; TRIVIAL cần ít nhất một deterministic check. Các lệnh trong `argv` chạy trực tiếp với `shell=False`.
+Copy `kits/dev/templates/start-request-v2.template.json` vào project và thay
+mọi placeholder bằng exact refs, repository identity, observed Git base, scope
+và checks. Template không tạo Human authority. Technical approval template là
+boundary document; host system phải xác thực real Human/Tech Lead receipt.
 
-Trình đọc chấp nhận cả UTF-8 và UTF-8 có BOM, bao gồm đầu ra mặc định của PowerShell `Set-Content -Encoding utf8`.
+V1 inspection yêu cầu prefix `legacy/`, ví dụ
+`devkit schema legacy/start-request`. Mọi V1 artifact được gắn
+`LEGACY_COMPAT` và không cấp authority VNext.
 
-Dạng `start` dùng flags cũ vẫn được hỗ trợ để tương thích; agent nên dùng request file để dữ liệu có cấu trúc không phải đi qua ranh giới quoting của shell.
+## Chạy FEATURE_DELIVERY
 
-## 4. Chạy theo risk depth
-
-### TRIVIAL
-
-Ví dụ docs, rename hoặc thay đổi cơ khí không làm đổi behavior:
-
-Tạo request file với `kind=docs`, `baseline=null` và static check `git diff --check`. Xác thực rồi khởi chạy trước khi sửa. Sau đó chỉ thực hiện thay đổi được yêu cầu và chạy:
+Lấy exact Engineering Handoff VNext từ BA, bao gồm proof `APPROVED_BASELINE` và
+Project Foundation binding nếu có. Xác nhận repository roots và Git bases bằng
+Git; không suy scope từ feature name hay Delivery Manifest. Trusted host cung
+cấp callback xác thực BA Human proof:
 
 ```text
-devkit finish-trivial
+devkit --project-root <project-root> --host <trusted-host-module> start --request .devkit/start-request.json
+devkit --project-root <project-root> --host <trusted-host-module> validate-authority
+devkit --project-root <project-root> --host <trusted-host-module> impact-template
 ```
 
-Không báo hoàn tất cho đến khi `finish-trivial` trả về `COMPLETED`. Check thất bại sẽ trả về `NEEDS_REPLAN`. Đường đi này chạy lại deterministic checks; không thêm formal plan, full review, Spec Kit, CBM hoặc specialist stage.
+Hoàn thành Engineering Impact V2 rồi ingest artifact:
 
-### NORMAL
-
-Ví dụ feature hoặc bug thông thường:
-
-Trước tiên xác thực và khởi chạy request file. Sau đó chạy workflow `dev-normal` đã cài từ target project bằng Spec Kit integration đã khởi tạo.
-
-Đặt workflow input `devkit_command` thành `devkit` nếu thư mục `bin` của runtime đã có trong `PATH`. Nếu truyền đường dẫn Windows tường minh, dùng `devkit.cmd`; Spec Kit chạy các bước `shell` qua Windows command shell nên `devkit.ps1` chỉ dùng cho lệnh PowerShell trực tiếp.
-
-Tiếp tục sau `start`; `READY_FOR_PLANNING` là trạng thái bắt đầu workflow, không phải hoàn tất implementation. Workflow chạy Spec Readiness, planning preflight/Impact, technical plan/tasks, deterministic plan gate, implementation, focused checks,
-một full review, nhiều nhất một blocking fix wave, optional một scoped re-review, fresh verification và Dev Handoff. NORMAL không có
-Human plan approval gate bắt buộc. Bug phải có regression test trước fix; behavior change dùng TDD ở seam có ý nghĩa. Mỗi plan/task
-file phải có one-line JSON `devkit-planning-metadata` header với `change_id`, `baseline_ref` copy chính xác từ `input.json`, và
-`business_ambiguity: CLEAR`, sau đó có nội dung kỹ thuật không rỗng.
-
-### HIGH_RISK
-
-Ví dụ endpoint có auth hoặc thay đổi schema:
-
-Đặt `public_api` và/hoặc risk signal phù hợp trong request file, xác thực rồi chạy `devkit start --request`. Xác nhận route trả về là `HIGH_RISK`, sau đó chạy workflow `dev-high-risk` đã cài. Workflow thực hiện readiness và deep impact, xác thực plan/tasks rồi dừng tại Human/Tech Lead gate của Spec Kit. Không implementation trước gate và không tự động approve.
-
-Router kích hoạt `security-and-hardening` cho auth/security/sensitive data/PII và `api-and-interface-design` cho public API/event contract. HIGH_RISK có Human/Tech Lead plan gate. `codebase-memory-mcp` chỉ được dùng khi source reading chưa đủ xác định blast radius.
-
-Bug thông thường ở NORMAL depth bắt đầu bằng regression test:
-
-Với bug thông thường, tạo request file với `kind=bug`, đường dẫn Approved BA Baseline và các mảng `argv` cho build/tests. Xác thực và khởi chạy, sau đó tiếp tục NORMAL workflow qua `preflight`, plan/tasks, `plan-check` và `implementation-ready normal` trước khi sửa code.
-
-Route cho thay đổi nhiều repository:
-
-Với thay đổi nhiều repository, thêm `cross_repo` vào `signals`, cùng các check và Approved BA Baseline trong request file. Xác thực và khởi chạy request, xác nhận HIGH_RISK rồi làm theo HIGH_RISK workflow đến Human Gate.
-
-## 5. Routing signals
-
-`--signal` nhận `auth`, `security`, `sensitive_data`, `pii`, `database_migration`, `public_api`, `event_contract`, `cross_repo`, `concurrency`, `major_architecture`, `deployment_topology`, `performance`, `observability`, `external_api_uncertainty`, `uncertain_blast_radius`. Summary text cũng được quét theo risk terms; explicit signal là cách chắc chắn hơn.
-
-`--kind config` mặc định là non-behavioral; nếu đổi config làm đổi behavior, thêm `--behavior-change` để route sang NORMAL.
-
-Conditional skills:
-
-Initial route là provisional. Nếu source inspection trong NORMAL phát hiện HIGH_RISK, `preflight` dừng với
-`HIGH_RISK_REENTRY_REQUIRED`; không thể tiếp tục run NORMAL vào implementation. Tạo run mới với cùng baseline và
-`--signal` tương ứng Impact reasons (ví dụ `public_api`, `database_migration`, `cross_repo`), rồi chạy HIGH_RISK
-workflow. Run mới áp dụng capability routing và Human/Tech Lead gate trước implementation. Impact không được hạ
-HIGH_RISK xuống NORMAL.
-
-- unexpected failure → `debugging-and-error-recovery`;
-- auth/security/trust boundary/sensitive data → `security-and-hardening`;
-- API/interface/event contract → `api-and-interface-design`;
-- framework/API uncertainty → `source-driven-development`;
-- measured/requested performance concern → `performance-optimization`;
-- production endpoint/job/queue needing telemetry → `observability-and-instrumentation`;
-- uncertain callers/dependencies → optional `codebase-memory-mcp`.
-
-Installed capability không có nghĩa là workflow phải invoke capability đó. Performance và observability không tự bật chỉ vì change là HIGH_RISK.
-
-## 6. Business ambiguity
-
-Nếu đã biết business decision còn thiếu, chặn trước khi tạo workflow:
-
-Trong request file, đặt `business_ambiguities` thành danh sách gồm `refund timing is undecided`; đặt `baseline` thành `null` nếu chưa có Approved BA Baseline. Sau đó chạy `devkit validate-start-request .devkit/start-request.json` và `devkit start --request .devkit/start-request.json`.
-
-Lệnh trả `NEEDS_BA_CLARIFICATION` và exit code 12. Nếu gap auditor phát hiện ambiguity trong Spec Readiness, preflight lưu `NEEDS_BA_CLARIFICATION` rồi dừng trước planning. Sau khi BA cập nhật/duyệt baseline, tạo run mới với baseline revision mới; không tiếp tục run dựa trên baseline cũ.
-
-## 7. Review và recovery
-
-- Full review chỉ chạy một lần. Các `claim` step và lifecycle budget từ chối lần thứ hai.
-- Fix prompt gom mọi BLOCKING finding vào một wave. FOLLOW_UP không mở rộng scope.
-- Scoped re-review chỉ được claim khi fix đổi logic/risk; scope là blockers cũ và fix diff.
-- Còn blocker sau fix/re-review → `NEEDS_REPLAN` hoặc `HUMAN_TECH_LEAD_REVIEW`; không bắt đầu review loop mới.
-- Nếu workflow lỗi bất ngờ, xem `specify workflow status`, run ID và `.devkit/runs/<change_id>/lifecycle.json`; dùng `specify workflow resume <run-id>` để tiếp tục tại top-level step đã lưu.
-- High-risk gate cần operator trả lời trong interactive terminal. Nếu run dừng ở gate vì không có TTY, resume từ terminal tương tác và chọn `approve` hoặc `reject`; workflow không nhận Human verdict qua prompt input của agent.
-- Workflow definitions không đặt gate bên trong nhánh lồng nhau, để resume không chạy lại plan hoặc review trước gate.
-
-Ví dụ consolidated review trả một BLOCKING finding và một FOLLOW_UP:
-
-```json
-{
-  "full_review_performed": true,
-  "blocking_findings": [
-    {"id": "REV-001", "class": "BLOCKING", "description": "Authorization check is missing"}
-  ],
-  "followups": [
-    {"id": "REV-002", "class": "FOLLOW_UP", "description": "Unrelated naming cleanup"}
-  ]
-}
+```text
+devkit --project-root <project-root> --host <trusted-host-module> impact --artifact <impact-v2.json>
+devkit --project-root <project-root> --host <trusted-host-module> plan --plan <dev-plan.md> --tasks <dev-tasks.md> --decision-ref <ed-v2.json> --revision <exact-revision>
+devkit --project-root <project-root> --host <trusted-host-module> technical-gate-required
 ```
 
-REV-001 đi vào một fix wave. REV-002 được giữ ngoài scope. Nếu report chỉ có FOLLOW_UP, workflow ghi `performed=false` và không làm cleanup đó.
+Plan/tasks được snapshot cùng ED refs, risk, repository bases và write scopes.
+NORMAL local HOW không cần gate thừa. HIGH_RISK hoặc active material ED cần
+exact authenticated Human/Tech Lead technical receipt:
 
-High-risk approval step đọc `steps.human-tech-lead-plan-gate.output.choice` và workflow run ID từ Spec Kit context, sau đó
-đối chiếu verdict với `.specify/workflows/runs/<run_id>/state.json`. Handoff ghi choice, run ID, state path và hash plan/tasks.
-Đây là evidence/audit trail trong workspace; người có quyền sửa local files vẫn có thể thay đổi state, nên nó không phải chữ ký
-mật mã hay bảo đảm chống giả mạo.
-
-## 8. Artifacts và state
-
-| Nội dung | Đường dẫn |
-|---|---|
-| Spec Kit workflow state/log | `.specify/workflows/runs/<run-id>/` |
-| Dev run inputs, route, lifecycle, budget | `.devkit/runs/<change_id>/` |
-| Impact Manifest | `.devkit/runs/<change_id>/impact-manifest.json` |
-| Readiness result | `.devkit/runs/<change_id>/spec-readiness.json` |
-| Technical plan/tasks | `.devkit/runs/<change_id>/dev-plan.md`, `dev-tasks.md`; require one-line metadata header and non-empty content |
-| Full review/fix/re-review | `review.json`, `fix-result.json`, `scoped-rereview.json` trong cùng run dir |
-| Final handoff | `.devkit/runs/<change_id>/dev-handoff.json` |
-| Installed JSON Schemas/templates | `devkit schema impact-manifest`, `devkit schema dev-handoff`; stored under `~/.devkit/runtime/v1/kits/dev/` |
-
-`dev-plan.md` và `dev-tasks.md` bắt đầu bằng comment metadata một dòng JSON; copy `change_id` và `baseline_ref` từ active
-`input.json`, đặt ambiguity thành CLEAR, rồi ghi phần kỹ thuật bên dưới:
-
-```markdown
-<!-- devkit-planning-metadata
-{"change_id":"CR-042","baseline_ref":{"path":"docs/approved/engineering-handoff.yml","revision":"ba-rev-7","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"business_ambiguity":"CLEAR"}
--->
-
-# Technical plan or tasks
+```text
+devkit --project-root <project-root> --host <trusted-host-module> bind-technical-approval --artifact <host-authenticated-receipt-ref.json>
+devkit --project-root <project-root> --host <trusted-host-module> implementation-ready
 ```
 
-V1 chỉ cho phép một run Dev đang active per working tree; dùng worktree riêng nếu cần chạy changes đồng thời. Trong target repository, thêm `.devkit/` vào `.gitignore` nếu không muốn commit local run state.
+Request JSON, local receipt giả và Spec Kit `approve` choice không xác thực gate.
+Human host phải bind receipt vào exact technical snapshot.
 
-## 9. Dev Doctor
+## Implementation và handoff
 
-Human-readable:
+Sau `implementation-ready`, chạy `begin-implementation`, rồi dùng `write-source`/
+`authorize-write` cho từng path. Mỗi check có repository ID và chạy tại root
+tương ứng. Ghi đúng một consolidated review bằng `review --evidence-ref`; xử lý
+blocking finding trong một fix wave và tối đa một scoped rereview. Chạy fresh checks:
 
-```powershell
-python tooling/lib/dev_kit.py doctor --mode daily --project-root <target-project>
-python tooling/lib/dev_kit.py provenance
+```text
+devkit --project-root <project-root> verify
+devkit --project-root <project-root> finalize --coverage <exact-fr-br-coverage.json>
+devkit --project-root <project-root> status
 ```
 
-Machine-readable:
+Coverage phải bằng exact approved BR-* và FR-* set; mỗi requirement cần code và
+test refs. `BAREF:*` chỉ là locator. Dev Handoff V2 kết thúc ở
+`READY_FOR_TEST`, không tuyên bố `VERIFIED`, business acceptance hay merge
+readiness.
 
-```powershell
-python tooling/lib/dev_kit.py doctor --mode daily --project-root <target-project> --json
-python tooling/lib/dev_kit.py doctor --mode benchmark --project-root <target-project> --json
-```
+## Gap, replan và maintenance
 
-Doctor/provenance là maintenance commands trong Dev Kit source checkout; khi gọi Doctor cho target khác, `--project-root` trỏ vào target đó. Doctor kiểm tra composition/plugin marketplace, schemas/fixtures, Spec Kit runtime, shared skills, selected blobs/licenses/notices, planner patch, review budget, workflow exclusions và context purity. Nó quét Codex `.agents/skills`, `.codex/skills`, `.codex/plugins` và `.codex/config.toml` ở project/user scope. Daily contamination là WARN/DEGRADED. Benchmark mode trả FAIL khi có relevant methodology contamination. `CONTEXT_PURITY` là `CLEAN` hoặc `DEGRADED`.
+- WHAT ambiguity: `raise-gap`; runtime dừng `UPSTREAM_GAP`. Chờ BA/Human resolution và replacement Engineering Handoff VNext trước `resume-gap`.
+- Risk hoặc snapshot thay đổi: `escalate-risk`/`replan`; dựng lại Impact, plan/tasks và snapshot. Receipt cũ không authorize snapshot mới.
+- Nonbehavioral maintenance: `TECHNICAL_MAINTENANCE` với exact evidence và `no_what_change=true`; phát hiện behavior/security/public-contract/cross-repo work sẽ `BLOCKED`.
 
-## 10. Failure/recovery examples
-
-| Trường hợp | Kết quả / hành động |
-|---|---|
-| NORMAL Impact phát hiện public API/schema/cross-service risk | Dừng ở preflight; tạo run ID mới với HIGH_RISK `--signal` tương ứng và chạy high-risk gate trước implementation. |
-| Build/test đỏ sau implementation | Workflow dừng; giữ output trong lifecycle/run state, dùng debugging capability nếu cần, sửa nguyên nhân rồi resume step lỗi. |
-| Business behavior chưa rõ | `NEEDS_BA_CLARIFICATION`; quay lại BA, tạo run mới từ baseline được duyệt. |
-| Blocking review finding | Chạy một fix wave; nếu vẫn còn blocker, `NEEDS_REPLAN`/`HUMAN_TECH_LEAD_REVIEW`. |
-| FOLLOW_UP finding | Ghi follow-up, giữ ngoài scope hiện tại. |
-| Baseline hash đổi giữa workflow | Runtime dừng với lỗi immutability; xác minh BA approval rồi tạo run mới. |
-| Agent session/workflow bị ngắt | `specify workflow resume <run-id>`; Spec Kit giữ state theo step. |
-
-## 11. Giới hạn và release state
-
-- Artifact format là JSON để validator chạy bằng Python standard library; schema files là JSON Schema.
-- Runtime installer cài helper/schema/workflow closure vào user scope `~/.devkit/runtime/v1`; target chỉ cần `devkit` trong PATH và ghi state vào `.devkit/` cùng `.specify/`.
-- Context Doctor quét các đường dẫn Codex chuẩn; custom `CODEX_HOME` hoặc marketplace/host registry ngoài các đường dẫn này có thể chưa được nhìn thấy.
-- Petclinic benchmark, fresh-session acceptance và Sol review chưa chạy trong phase này. Trạng thái là `READY_FOR_SOL_REVIEW`, không phải RC/release.
+Spec Kit `1.0.11` chỉ workflow state/pause/resume/bundle transport. Delivery
+Manifest giữ `DEFERRED_NON_AUTHORITATIVE`. Xem [acceptance contract](../../kits/dev/acceptance.yaml)
+và [neutral example](../../kits/dev/examples/neutral-vnext.md) trước khi tích hợp.

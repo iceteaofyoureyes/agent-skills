@@ -1,0 +1,32 @@
+{
+  "schema_version": 2,
+  "run_id": "EXAMPLE-RUN",
+  "change_id": "EXAMPLE-CHANGE",
+  "summary": "Implement one approved behavior within a named repository scope",
+  "authority_mode": "FEATURE_DELIVERY",
+  "repositories": [
+    {
+      "id": "REPOSITORY-1",
+      "role": "IMPLEMENTATION",
+      "base_revision": "REPLACE_WITH_OBSERVED_GIT_REVISION",
+      "allowed_write_paths": ["src", "tests"],
+      "read_only_evidence_paths": []
+    }
+  ],
+  "checks": [
+    {
+      "name": "repository-unit-checks",
+      "repository_id": "REPOSITORY-1",
+      "category": "UNIT",
+      "command": ["python", "-m", "unittest"]
+    }
+  ],
+  "upstream": {
+    "path": "REPLACE_WITH_EXACT_ENGINEERING_HANDOFF_PATH",
+    "revision": "REPLACE_WITH_EXACT_REVISION",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "repository_roots": {
+    "REPOSITORY-1": "REPLACE_WITH_EXTERNAL_REPOSITORY_ROOT"
+  }
+}

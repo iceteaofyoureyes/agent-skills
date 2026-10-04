@@ -89,6 +89,11 @@ GAP_V2 = object_schema({'schema_version':V2,'gap_id':STRING,
 MAINTENANCE = object_schema({'kind':enum(('DOCUMENTATION','RENAME','MECHANICAL','TOOLING_CONFIG')),
     'evidence_refs':{'type':'array','items':REFERENCE,'minItems':1},
     'no_what_change':{'type':'boolean','enum':(True,)},'discovered_changes':STRINGS})
+START_REQUEST_V2 = object_schema({'run_id':STRING,'change_id':STRING,'summary':STRING,
+    'schema_version':V2,'authority_mode':enum(MODES),'repositories':REPOSITORIES,'checks':CHECKS,
+    'upstream':NULLABLE_REF,'delivery':NULLABLE_REF,'maintenance':MAINTENANCE,
+    'repository_roots':STRING_MAP,'risk':RISK},
+    optional=('schema_version','upstream','delivery','maintenance','repository_roots','risk'))
 EVENT = object_schema({'from':enum(LIFECYCLE),'to':enum(LIFECYCLE),
     'action':enum(('ADVANCE','IMPACT','PLAN','FINALIZE','GAP','REPLAN','BLOCK','ESCALATE','APPROVAL','RESOLVE_GAP')),
     'before_sha256':HASH,'after_sha256':HASH})

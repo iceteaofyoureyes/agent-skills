@@ -147,7 +147,7 @@ This index records third-party components and license locations. Third-party ski
 
 srs-function-document is now a project-owned behavioral reimplementation under MIT; the previous unknown-origin implementation was replaced and its origin was not recovered. See docs/en/PROVENANCE.md. Other non-BA skill imports and the tracked .skills-manager metadata still need provenance/license decisions before whole-repository redistribution.
 
-## Dev Kit V1 plugin payload
+## Dev Kit VNext plugin payload
 
 The Dev Kit assembly under `kits/dev/plugin/` carries its own `THIRD_PARTY_NOTICES.md` and license copies. The entries below summarize the content physically distributed by that plugin payload.
 
@@ -174,4 +174,4 @@ The Dev Kit assembly under `kits/dev/plugin/` carries its own `THIRD_PARTY_NOTIC
 - Local changes: none; exact blob fa7625f053dc852200ddd497662508ff1ae40bb1.
 - License location: kits/dev/plugin/licenses/SUPERPOWERS_LICENSE.txt
 
-GitHub Spec Kit and codebase-memory-mcp are Dev Kit runtime dependencies and are not redistributed in this plugin payload. Spec Kit V1 is used for workflow/state/bundle infrastructure, not its core feature-spec planning commands. The canonical requirements-gap-auditor and verification-before-completion remain shared repository skills rather than files duplicated into the Dev Kit plugin.
+GitHub Spec Kit 1.0.11 and codebase-memory-mcp are Dev Kit runtime dependencies and are not redistributed in this plugin payload. Spec Kit transports VNext workflow state and bundles; its feature-spec planning commands remain excluded. The canonical requirements-gap-auditor and verification-before-completion remain shared repository skills rather than files duplicated into the Dev Kit plugin.
