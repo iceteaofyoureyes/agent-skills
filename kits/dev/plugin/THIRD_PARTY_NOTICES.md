@@ -1,6 +1,6 @@
 # Dev Kit plugin third-party notices
 
-This file covers third-party content physically included in this plugin assembly.
+This file covers third-party content physically included in the Dev Kit VNext plugin assembly.
 
 ## Addy Agent Skills
 - Source: https://github.com/addyosmani/agent-skills

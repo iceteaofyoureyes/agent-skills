@@ -1,89 +1,52 @@
-# Dev Kit V1 — Review và Verification Contract
-
-## Mục tiêu
-
-Review đủ sâu nhưng bounded. Quality không được tạo bằng cách nối nhiều reviewer loops.
+# Dev Kit VNext — Review và Verification
 
 ## Consolidated review
 
-Chỉ một full independent review cho normal/high-risk feature candidate. Reviewer nhận:
-- Approved BA Baseline/ref;
-- Engineering Impact summary;
-- implementation plan/tasks;
-- BASE/HEAD hoặc review package;
-- test/build evidence.
+FEATURE_DELIVERY có review budget cố định:
 
-Review axes:
-1. requirement/spec fidelity;
-2. correctness/error paths;
-3. scope creep;
-4. architecture/codebase fit;
-5. simplicity/maintainability;
-6. security baseline;
-7. performance risk;
-8. test quality and verification story.
+| Bước | Tối đa |
+|---|---:|
+| Consolidated full engineering review | 1 |
+| Blocking-fix wave | 1 |
+| Optional scoped rereview | 1 |
 
-Specialist skill có thể được consulted trong cùng review nếu risk trigger rõ; không mặc định spawn reviewer riêng.
+Review kiểm tra implementation so với exact technical snapshot, Engineering
+Impact, ED decisions, repository bases và scope. Chuyển phát hiện WHAT thành
+Engineering Gap; không để review tự sửa business authority. Chỉ mở blocking-fix
+wave cho blocking finding. Runtime kiểm soát snapshot drift và giới hạn số lượt.
 
-## Finding classes
+## Repository-scoped fresh checks
 
-### BLOCKING
-- Critical;
-- correctness defect;
-- security vulnerability;
-- approved requirement missing/wrong;
-- breaking compatibility not approved;
-- verification evidence invalid.
+Mỗi check có `name`, `repository_id`, `category` và `command`. Runtime chạy
+command ở root của repository tương ứng và ghi lại exact bases, implementation
+revision, command, result, snapshot và evidence ref. Một check không được đổi
+source hoặc scope. Hỗ trợ `BUILD`, `STATIC`, `LINT`, `TYPECHECK`, `UNIT`,
+`COMPONENT` và `MODULE_LOCAL_INTEGRATION`.
 
-Phải fix trước handoff.
+Fresh verification chạy sau consolidated review/fix trên implementation revision
+đã được review. Thay đổi source sau review buộc phải review lại theo giới hạn;
+thay đổi bases/scope/risk yêu cầu replan. Chỉ deterministic PASS cùng exact
+evidence mới đủ điều kiện cho handoff.
 
-### FOLLOW_UP / NON-BLOCKING
-- optional simplification;
-- unrelated cleanup;
-- future improvement;
-- low-confidence nit không ảnh hưởng current task.
+## FR/BR coverage
 
-Không được mở rộng current task để xử lý tất cả.
+Coverage phải bằng exact set approved BR-* và FR-* của upstream baseline. Mỗi
+hàng `COVERED` cần ít nhất một code ref và một test ref. ID thiếu/thừa, trùng,
+hoặc BAREF locator đều không thể thay thế BR/FR identity.
 
-## Fix policy
+## READY_FOR_TEST
 
-Một implementer/fixer xử lý toàn bộ blocking findings trong **one fix wave**.
+Dev Handoff V2 chỉ được phát hành sau authority/snapshot validation, required
+technical gate, review budget, fresh check results và exact coverage. Runtime
+đọc lại và validate Handoff trước khi công bố trạng thái.
 
-Không dùng một fixer/subagent riêng cho từng finding nếu không có lý do kỹ thuật đặc biệt.
+`READY_FOR_TEST` nghĩa là engineering work đã bàn giao Tester. Nó không có nghĩa
+`VERIFIED`, Tester PASS, business/system acceptance, hay `READY_TO_MERGE`.
+Doctor kiểm tra PACKAGE/CAPABILITY READY và không quyết định trạng thái feature.
 
-Runtime lưu `review_budget` trong `.devkit/runs/<change_id>/lifecycle.json`. Workflow phải claim `full_reviews`, `blocking_fix_waves` và `scoped_rereviews` trước stage tương ứng; claim thứ hai vượt ngưỡng sẽ dừng run. Fix/re-review prompt là no-op khi không có blocker/material change.
+## Spec Kit và compatibility
 
-## Scoped re-review
-
-Chỉ chạy nếu fix materially changes logic/risk surface hoặc prior finding cần judgement confirmation.
-
-Scope:
-- verdict từng blocking finding cũ;
-- inspect fix diff cho breakage mới;
-- không fresh-review toàn bộ feature;
-- issue hoàn toàn ngoài fix diff là out-of-scope/non-blocking.
-
-## Final verification
-
-Trước `READY_FOR_TEST`:
-1. xác định command/evidence chứng minh claim;
-2. chạy fresh repository-native build/test/static checks phù hợp;
-3. đọc output/exit code;
-4. report failures trung thực;
-5. chỉ claim success khi evidence đủ.
-
-`devkit verify fresh` chạy lại mọi argv build/tests/static đã cấu hình, không dùng shell interpolation, sau review/fix stages. Dev Handoff giữ tất cả build results trong một list; một kết quả FAIL/NOT_RUN chặn `READY_FOR_TEST`, kể cả khi các build khác PASS. Handoff dựng state từ mọi verification result, review findings, requirements coverage, ambiguity và Human gate; model không tự đặt `READY_FOR_TEST`.
-
-`verification-before-completion` là owner của evidence-before-claim, nhưng deterministic project tooling mới là proof.
-
-## Stop rule
-
-```text
-1 full review
-→ 1 blocking fix wave
-→ 0–1 scoped re-review
-→ verify
-→ STOP
-```
-
-Nếu vẫn còn blocker lớn: `NEEDS_REPLAN` hoặc Human/Tech Lead decision.
+GitHub Spec Kit `1.0.11` vận chuyển workflow state và bundle. Feature-spec
+commands bị loại trừ; Human choice trong workflow không phải technical receipt.
+V1 review/handoff artifacts chỉ là `LEGACY_COMPAT`. Delivery Manifest giữ
+`DEFERRED_NON_AUTHORITATIVE`.

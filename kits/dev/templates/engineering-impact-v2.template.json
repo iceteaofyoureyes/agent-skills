@@ -1,0 +1,39 @@
+{
+  "schema_version": 2,
+  "change_id": "EXAMPLE-CHANGE",
+  "upstream_ref": {
+    "path": "REPLACE_WITH_EXACT_ENGINEERING_HANDOFF_PATH",
+    "revision": "REPLACE_WITH_EXACT_REVISION",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "repository_base_revisions": {
+    "REPOSITORY-1": "REPLACE_WITH_OBSERVED_GIT_REVISION"
+  },
+  "affected_repositories": [
+    {
+      "id": "REPOSITORY-1",
+      "role": "IMPLEMENTATION",
+      "base_revision": "REPLACE_WITH_OBSERVED_GIT_REVISION",
+      "allowed_write_paths": ["src", "tests"],
+      "read_only_evidence_paths": []
+    }
+  ],
+  "affected_components": ["REPLACE_WITH_TECHNICAL_COMPONENT"],
+  "affected_interfaces": [],
+  "affected_data": [],
+  "dependencies": [],
+  "constraints": [],
+  "risk": {"level": "NORMAL", "categories": [], "reasons": []},
+  "technical_unknowns": [],
+  "upstream_gaps": [],
+  "write_scope": {"REPOSITORY-1": ["src", "tests"]},
+  "knowledge_impact": {
+    "schema_version": 1,
+    "areas": {
+      "product": {"affected": false, "targets": []},
+      "domain": {"affected": false, "targets": []},
+      "architecture": {"affected": false, "targets": []},
+      "testing": {"affected": false, "targets": []}
+    }
+  }
+}

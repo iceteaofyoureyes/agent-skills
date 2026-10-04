@@ -1,99 +1,78 @@
-# Dev Kit V1 — Kiến trúc
+# Dev Kit VNext — Kiến trúc
 
-## Mục tiêu
+Dev Kit VNext biến một **Engineering Handoff VNext** đã được xác thực thành
+thay đổi kỹ thuật có phạm vi, review, kiểm tra mới nhất và Dev Handoff. BA giữ
+quyền sở hữu WHAT; Dev chỉ quyết định HOW trong các repository và write scope
+đã khai báo.
 
-Dev Kit nhận **Approved BA Baseline** và chịu trách nhiệm:
+## Ranh giới authority
 
-```text
-BA Kit = WHAT
-Dev Kit = WHERE / WHO OWNS + HOW
-Test Kit = HOW DO WE PROVE IT
-```
-
-Dev Kit không được biến implementation reasoning thành business truth mới.
-
-## Authority
-
-| Concern | Authority |
+| Trách nhiệm | Authority / bằng chứng |
 |---|---|
-| Business behavior / WHAT | Approved BA Baseline |
-| Technical ownership / blast radius | Dev Engineering Impact |
-| Implementation design / HOW | Dev Plan |
-| Code correctness evidence | deterministic verification + consolidated review |
-| Final business acceptance | Human/Test Kit downstream |
+| Business WHAT | Engineering Handoff VNext gắn với exact `APPROVED_BASELINE` proof |
+| Engineering Impact | Engineering Impact V2 gắn upstream, repository bases, write scope và risk |
+| Quyết định kỹ thuật | ED-*; quyết định có material approval requirement cần receipt riêng |
+| Quyền bắt đầu sửa | Dev lifecycle V2 và exact technical snapshot |
+| Kết quả Dev | Dev Handoff V2 ở `READY_FOR_TEST` |
+| Quyết định tiếp theo | Tester, Human và quy trình tích hợp sở hữu ngoài Dev Kit |
 
-Business ambiguity làm thay đổi user-visible behavior phải trả về `NEEDS_BA_CLARIFICATION`. Technical ambiguity có thể được giải quyết trong planning nếu không thay đổi approved semantics.
+Request, tên trạng thái, workflow choice hoặc Doctor không tự xác thực Human.
+Trusted host xác thực exact BA Human proof và Project Foundation proof nếu có.
+Human/Tech Lead receipt kỹ thuật phải gắn với snapshot cụ thể khi risk hoặc ED
+yêu cầu.
 
-## Kiến trúc capability
+## Hai authority mode
+
+- `FEATURE_DELIVERY` yêu cầu Engineering Handoff VNext exact. Dev phân tích
+  Engineering Impact V2, lập plan/tasks và chỉ sửa trong repository scope đã
+  ràng buộc.
+- `TECHNICAL_MAINTENANCE` yêu cầu bằng chứng maintenance chính xác và
+  `no_what_change=true`. Nó không thể mở rộng thành thay đổi business behavior.
+
+Engineering Gap dừng write và planning khi nội dung WHAT chưa rõ. Chỉ resume khi
+có resolution evidence và Engineering Handoff VNext thay thế được xác thực lại;
+Impact, plan và snapshot được dựng lại. ED-* lưu lựa chọn kỹ thuật, evidence,
+phạm vi ảnh hưởng và trạng thái approval.
+
+## Runtime V2
+
+Runtime nằm tại `~/.devkit/runtime/v2`, launcher tại `~/.devkit/bin/devkit`.
+V2 đóng gói Dev runtime, BA VNext reader, Shared SDLC, Project Foundation proof
+dependencies, schemas/templates, plugin skills và provenance. Launcher dùng
+`python -I`; runtime không import từ checkout hoặc `runtime/v1`.
+
+V1 schemas/templates và readers còn dùng cho inspection tương thích với nhãn
+`LEGACY_COMPAT`. Chúng không tạo authority VNext. Cài V2 không xóa
+`~/.devkit/runtime/v1`.
+
+GitHub Spec Kit `1.0.11` là workflow state/pause/resume/bundle transport.
+`speckit.specify`, `plan`, `tasks`, `analyze` và `converge` bị loại khỏi Dev
+workflow vì không phải WHAT authority. Workflow choice không phải technical
+approval.
+
+## Readiness và ownership
+
+Mọi engineering check gắn với một implementation repository và chạy tại root
+của repository đó. Runtime ghi nhận exact Git base, implementation revision,
+write scope, command và evidence. Coverage chứa chính xác các `BR-*` và `FR-*`
+được duyệt; `BAREF:*` chỉ là locator.
+
+Dev giới hạn công việc review ở một consolidated review, một blocking-fix wave
+và tối đa một scoped rereview. Sau đó fresh repository-scoped checks và coverage
+được gắn vào Dev Handoff V2. `READY_FOR_TEST` nghĩa là Dev handoff đã đủ
+engineering evidence; nó không có nghĩa `VERIFIED`, approved business result,
+hoặc `READY_TO_MERGE`.
+
+Delivery Manifest giữ nguyên:
 
 ```text
-Approved BA Baseline
-        │
-        ▼
-Spec Readiness
-        │
-        ▼
-Planning Preflight
-  ├─ relevant code/context
-  ├─ lightweight Engineering Impact
-  ├─ risk classification
-  ├─ implementation approach
-  └─ test strategy
-        │
-        ▼
-Risk-gated technical plan/tasks
-        │
-        ▼
-Incremental Implementation
-        │
-        ▼
-ONE Consolidated Review
-        │
-        ▼
-ONE Blocking Fix Wave
-        │
-        ├─ low/normal fix → verify
-        └─ material risk change → ONE scoped re-review → verify
-        │
-        ▼
-Dev Handoff / READY_FOR_TEST
+DEFERRED_NON_AUTHORITATIVE
 ```
 
-Conditional capabilities không tạo mandatory stages. Security, API, source-grounding, performance, observability, debugging và CBM chỉ được activate khi trigger/risk phù hợp.
+## Discovery
 
-## Community reuse
-
-- **GitHub Spec Kit**: workflow/state/bundle engine; runtime dependency. V1 không dùng core `specify/plan/tasks/analyze/converge` vì các command đó dựa trên Spec Kit `spec.md`, có nguy cơ tạo WHAT song song với Approved BA Baseline.
-- **Addy Agent Skills**: technical planning + atomic engineering behavior. `planning-and-task-breakdown` được minimal-adapt đúng 2 dòng Human-gate để tuân risk policy của Dev Kit.
-- **Superpowers verification-before-completion**: final evidence-before-claim gate.
-- **Superpowers review-package**: candidate utility để đóng gói BASE..HEAD cho reviewer.
-- **codebase-memory-mcp**: conditional structural evidence, không phải source of truth.
-- **requirements-gap-auditor**: reuse canonical skill ở Dev Intake, readiness-only.
-
-## Project-owned phần tối thiểu
-
-- BA→Dev authority boundary;
-- risk classifier;
-- Engineering Impact contract;
-- routing policy;
-- bounded review budget;
-- Dev Handoff contract;
-- Doctor/context-purity policy;
-- benchmark/evals;
-- release evidence.
-
-## Runtime V1
-
-- `kits/dev/plugin/workflows/dev-normal.workflow.yml` và `dev-high-risk.workflow.yml` dùng workflow/pause/resume state của Spec Kit `v1.0.11`; TRIVIAL chạy bằng direct check path.
-- `tooling/lib/dev_kit.py` là policy adapter nhỏ cho routing, baseline hash guard, review-budget claims, deterministic checks, schemas và Doctor; `tooling/install_dev_kit.py` đóng gói runtime closure vào user scope ngoài target. Dev Kit không tạo workflow engine thứ hai.
-- Workflow gọi shell/prompt/gate primitives và không gọi `speckit.specify/plan/tasks/analyze/converge`.
-- Codex local marketplace trỏ vào plugin root `kits/dev/plugin/`; installer chỉ đưa helper/parser/schema/template/workflow files vào `~/.devkit/runtime/v1`, giữ skills trong plugin. Khi workflow chạy từ external target CWD, Dev artifacts nằm ở target `.devkit/runs/<change_id>/`, còn authoritative Spec Kit run state ở target `.specify/workflows/runs/<run_id>/`.
-- Plugin và workflow đã được hiện thực hóa, nhưng benchmark/fresh-session acceptance còn NOT_RUN. Trạng thái hiện tại là chờ Sol review, không phải RC.
-
-## Nguyên tắc chống over-engineering workflow
-
-1. Capability available không có nghĩa capability phải chạy.
-2. Normal path phải ngắn hơn high-risk path.
-3. Không spawn independent reviewer sau mỗi slice.
-4. Không full-review lại từ đầu sau fix.
-5. Nếu sau bounded fix/re-review vẫn còn blocker lớn: `NEEDS_REPLAN` hoặc Human/Tech Lead review, không loop vô hạn.
+- V2 schema: `devkit schema start-request|engineering-impact|engineering-gap|engineering-decision|dev-state|technical-approval|dev-handoff`
+- V2 template/boundary: `devkit template start-request|engineering-impact|engineering-gap|engineering-decision|technical-approval|dev-handoff`
+- V1 compatibility: `devkit schema legacy/start-request` và các tên `legacy/*` tương ứng
+- Acceptance contract: [`kits/dev/acceptance.yaml`](../../kits/dev/acceptance.yaml)
+- Package/provenance: [`kits/dev/kit.yaml`](../../kits/dev/kit.yaml), [`kits/dev/provenance.lock.json`](../../kits/dev/provenance.lock.json)

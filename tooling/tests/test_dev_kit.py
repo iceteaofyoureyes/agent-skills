@@ -2,6 +2,7 @@ import json
 import hashlib
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -55,12 +56,20 @@ def _start_normal_run(project, signals=()):
 
 def _run_cli(project, *args):
     return subprocess.run(
-        [sys.executable, str(ROOT / "tooling/lib/dev_kit.py"), *map(str, args)],
+        _legacy_cli_command(ROOT, *args),
         cwd=project,
         capture_output=True,
         text=True,
         shell=False,
     )
+
+
+def _legacy_cli_command(runtime_root, *args):
+    # Exercise frozen historical assertions through the explicit private V1
+    # regression entrypoint. Production CLI defaults to VNext/read-only legacy.
+    return [sys.executable, "-c",
+            "import runpy,sys; raise SystemExit(runpy.run_path(sys.argv[1])['_legacy_main'](sys.argv[2:]))",
+            str(runtime_root / "tooling/lib/dev_kit.py"), *map(str,args)]
 
 
 def _write_start_request(project, *, change_id, kind, summary, signals=(), baseline=None, checks=None):
@@ -169,7 +178,7 @@ class DevKitTests(unittest.TestCase):
             handoff = dev_kit.prepare_handoff(project)
             self.assertEqual([item["name"] for item in handoff["verification"]["build"]], ["build-1", "build-2"])
             self.assertEqual(handoff["verification"]["build"][1]["status"], "FAIL")
-            handoff["implementation"]["changed_components"] = ["appointments"]
+            handoff["implementation"]["changed_components"] = ["sample-service"]
             handoff["requirements_coverage"] = [{"requirement_id": "FR-001", "status": "COVERED", "evidence": ["tests"]}]
             self.assertNotEqual(dev_kit._derive_handoff_state(handoff), "READY_FOR_TEST")
             handoff["verification"]["build"][1].update(status="PASS", exit_code=0)
@@ -202,7 +211,7 @@ class DevKitTests(unittest.TestCase):
             project, run_dir, inputs = _start_normal_run(Path(temp) / "normal")
             impact_path = run_dir / "impact-manifest.json"
             impact = dev_kit._read_json(impact_path)
-            impact["affected_interfaces"] = ["public appointment API"]
+            impact["affected_interfaces"] = ["public sample API"]
             impact["risk"] = {"level": "HIGH_RISK", "reasons": ["public_api", "database_migration", "cross_repo"]}
             dev_kit.write_artifact(impact_path, impact)
             result = dev_kit.preflight(project)
@@ -326,45 +335,22 @@ class DevKitTests(unittest.TestCase):
             installed = install_dev_kit.install(ROOT, install_home)
             runtime_root = Path(installed["runtime_root"]).resolve()
             workflow_command = Path(installed["workflow_command"]).resolve()
+            self.assertEqual(runtime_root, (install_home / "runtime/v2").resolve())
             self.assertNotEqual(os.path.commonpath((str(runtime_root), str(target.resolve()))), str(target.resolve()))
             self.assertFalse((target / "tooling/lib/dev_kit.py").exists())
-            # R3.4: installed runtime carries pinned package composition for its own Doctor.
             self.assertTrue((runtime_root / "kits/dev/plugin/skills").exists())
             self.assertTrue(workflow_command.is_file())
             self.assertEqual(workflow_command.suffix.lower(), ".cmd" if os.name == "nt" else "")
             self.assertTrue((runtime_root / "kits/dev/schemas/start-request.schema.json").is_file())
             self.assertTrue((runtime_root / "kits/dev/templates/start-request.template.json").is_file())
+            self.assertTrue((runtime_root / "kits/dev/schemas/start-request-v2.schema.json").is_file())
+            self.assertTrue((runtime_root / "kits/dev/templates/start-request-v2.template.json").is_file())
             manifest = json.loads(Path(installed["manifest"]).read_text(encoding="utf-8"))
+            self.assertEqual((manifest["schema_version"], manifest["runtime"]), (2, "dev-kit-v2"))
             self.assertEqual(len(manifest["files"]), installed["file_count"])
             for relative, digest in manifest["files"].items():
                 self.assertEqual(hashlib.sha256((runtime_root / relative).read_bytes()).hexdigest(), digest)
 
-            request_path = target / "devkit-start-request.json"
-            request_path.write_text(json.dumps({
-                "schema_version": 1, "change_id": "EXT-001", "kind": "docs",
-                "summary": "External README edit", "signals": [], "baseline": None,
-                "checks": [{"name": "docs", "category": "static_checks", "argv": [sys.executable, "-c", "pass"]}],
-            }), encoding="utf-8-sig")
-            validate = subprocess.run(
-                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "validate-start-request", str(request_path)],
-                cwd=target, text=True, capture_output=True, check=False,
-            )
-            self.assertEqual(validate.returncode, 0, validate.stderr)
-            completed = subprocess.run(
-                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "start", "--request", str(request_path)],
-                cwd=target, text=True, capture_output=True, check=False,
-            )
-            self.assertEqual(completed.returncode, 0, completed.stderr)
-            state = json.loads((target / ".devkit/current.json").read_text(encoding="utf-8"))
-            self.assertEqual(state["change_id"], "EXT-001")
-            self.assertTrue((target / ".devkit/runs/EXT-001/input.json").is_file())
-            self.assertTrue((target / ".devkit/runs/EXT-001/lifecycle.json").is_file())
-            finish = subprocess.run(
-                [sys.executable, str(runtime_root / "tooling/lib/dev_kit.py"), "finish-trivial"],
-                cwd=target, text=True, capture_output=True, check=False,
-            )
-            self.assertEqual(finish.returncode, 0, finish.stderr)
-            self.assertEqual(json.loads(finish.stdout)["status"], "COMPLETED")
             runtime = subprocess.run(
                 ["powershell", "-NoProfile", "-File", installed["launcher"], "runtime-root"] if os.name == "nt"
                 else [installed["launcher"], "runtime-root"],
@@ -383,8 +369,8 @@ class DevKitTests(unittest.TestCase):
             self.assertEqual(shell_command.returncode, 0, shell_command.stderr)
             self.assertEqual(Path(shell_command.stdout.strip()).resolve(), runtime_root)
             schema = subprocess.run(
-                ["powershell", "-NoProfile", "-File", installed["launcher"], "schema", "impact-manifest"] if os.name == "nt"
-                else [installed["launcher"], "schema", "impact-manifest"],
+                ["powershell", "-NoProfile", "-File", installed["launcher"], "schema", "engineering-impact"] if os.name == "nt"
+                else [installed["launcher"], "schema", "engineering-impact"],
                 cwd=target, text=True, capture_output=True, check=False,
             )
             self.assertEqual(schema.returncode, 0, schema.stderr)
@@ -395,14 +381,33 @@ class DevKitTests(unittest.TestCase):
                 cwd=target, text=True, capture_output=True, check=False,
             )
             self.assertEqual(start_schema.returncode, 0, start_schema.stderr)
-            self.assertIn("change_id", json.loads(start_schema.stdout)["required"])
+            self.assertIn("authority_mode", json.loads(start_schema.stdout)["required"])
+            legacy_schema = subprocess.run(
+                ["powershell", "-NoProfile", "-File", installed["launcher"], "schema", "legacy/start-request"] if os.name == "nt"
+                else [installed["launcher"], "schema", "legacy/start-request"],
+                cwd=target, text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(legacy_schema.returncode, 0, legacy_schema.stderr)
+            self.assertEqual(json.loads(legacy_schema.stdout)["properties"]["schema_version"]["const"], 1)
+            legacy_fixture = ROOT / "tooling/tests/fixtures/dev/dev-handoff.valid.json"
+            legacy_target = target / "legacy-v1-handoff.json"
+            shutil.copyfile(legacy_fixture, legacy_target)
+            legacy_inspect = subprocess.run(
+                ["powershell", "-NoProfile", "-File", installed["launcher"], "legacy", "inspect", "--kind", "handoff", legacy_target] if os.name == "nt"
+                else [installed["launcher"], "legacy", "inspect", "--kind", "handoff", legacy_target],
+                cwd=target, text=True, capture_output=True, check=False,
+            )
+            self.assertEqual(legacy_inspect.returncode, 0, legacy_inspect.stderr)
+            self.assertEqual(json.loads(legacy_inspect.stdout)["mode"], "LEGACY_COMPAT")
+            self.assertFalse(json.loads(legacy_inspect.stdout)["vnext_authority"])
             workflow = subprocess.run(
                 ["powershell", "-NoProfile", "-File", installed["launcher"], "workflow", "normal"] if os.name == "nt"
                 else [installed["launcher"], "workflow", "normal"],
                 cwd=target, text=True, capture_output=True, check=False,
             )
             self.assertEqual(workflow.returncode, 0, workflow.stderr)
-            self.assertTrue(Path(workflow.stdout.strip()).is_file())
+            workflow_definition = json.loads(workflow.stdout)
+            self.assertEqual(workflow_definition["workflow"]["id"], "dev-vnext-normal")
 
     def test_dev_struct_07_artifacts_cannot_overwrite_baseline(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -485,7 +490,7 @@ class DevKitTests(unittest.TestCase):
                 {"name": "build", "category": "build", "argv": ["python", "-c", "pass"]},
                 {"name": "unit", "category": "tests", "argv": ["python", "-c", "pass"]},
             ]
-            started = dev_kit.start_run(project, "CHANGE-001", "feature", "Add appointment search", baseline=baseline, checks=checks)
+            started = dev_kit.start_run(project, "CHANGE-001", "feature", "Add sample search", baseline=baseline, checks=checks)
             run_dir = Path(started["run_dir"])
             self.assertEqual(dev_kit.assert_workflow(project, "normal")["risk_level"], "NORMAL")
             with self.assertRaises(ValueError):
@@ -498,42 +503,33 @@ class DevKitTests(unittest.TestCase):
             self.assertEqual(baseline.read_bytes(), before)
             impact_path = run_dir / "impact-manifest.json"
             impact = json.loads(impact_path.read_text(encoding="utf-8"))
-            impact["unknowns"] = [{"id": "BUS-001", "kind": "BUSINESS", "description": "Cancellation penalty is unknown", "blocking": True}]
+            impact["unknowns"] = [{"id": "BUS-001", "kind": "BUSINESS", "description": "User outcome is unknown", "blocking": True}]
             dev_kit.write_artifact(impact_path, impact)
             self.assertEqual(dev_kit.preflight(project)["status"], "NEEDS_BA_CLARIFICATION")
 
     def test_workflows_use_bounded_spec_kit_primitives_without_spec_commands(self):
         workflow_root = ROOT / "kits/dev/plugin/workflows"
         self.assertFalse((workflow_root / "dev-trivial.workflow.yml").exists())
-        trivial = dev_kit.route_change("docs", "Fix a typo")
-        self.assertEqual(trivial["stages"], ["UNDERSTAND", "EDIT", "DETERMINISTIC_CHECK", "COMPLETE"])
-        for filename in ("dev-normal.workflow.yml", "dev-high-risk.workflow.yml"):
-            workflow = (workflow_root / filename).read_text(encoding="utf-8")
-            self.assertIn('speckit_version: "==1.0.11"', workflow)
-            for forbidden in ("speckit.specify", "speckit.plan", "speckit.tasks", "speckit.analyze", "speckit.converge"):
-                self.assertNotIn(forbidden, workflow)
-            self.assertEqual(workflow.count("id: consolidated-review"), 1)
-            self.assertEqual(workflow.count("id: one-blocking-fix-wave"), 1)
-            self.assertEqual(workflow.count("id: optional-scoped-rereview"), 1)
-        normal = (workflow_root / "dev-normal.workflow.yml").read_text(encoding="utf-8")
-        high = (workflow_root / "dev-high-risk.workflow.yml").read_text(encoding="utf-8")
-        for workflow in (normal, high):
-            self.assertIn(".devkit/runs/<change_id>/dev-plan.md", workflow)
-            self.assertIn(".devkit/runs/<change_id>/dev-tasks.md", workflow)
-            self.assertIn("Do not write either file at the project root", workflow)
-        self.assertNotIn("type: gate", normal)
-        self.assertEqual(high.count("type: gate"), 1)
-        for workflow in (normal, high):
-            self.assertIn("{{ inputs.devkit_command }}", workflow)
-            self.assertNotIn("tooling/lib/dev_kit.py", workflow)
-            self.assertIn("id: enforce-planning-artifacts", workflow)
-            for line in workflow.splitlines():
-                if line.lstrip().startswith("run:") and "{{ inputs.devkit_command }}" in line:
-                    self.assertIn('"{{ inputs.devkit_command }}"', line)
-        self.assertLess(normal.index("id: enforce-planning-artifacts"), normal.index("id: implementation"))
-        self.assertLess(high.index("id: enforce-planning-artifacts"), high.index("id: human-tech-lead-plan-gate"))
-        self.assertLess(high.index("id: authorize-high-risk-implementation"), high.index("id: implementation"))
-        self.assertIn("steps.human-tech-lead-plan-gate.output.choice", high)
+        from tooling.lib.dev_vnext_spec_kit import FORBIDDEN_COMMANDS, workflow_document
+
+        for risk, filename in ((False, "dev-normal.workflow.yml"), (True, "dev-high-risk.workflow.yml")):
+            document = json.loads((workflow_root / filename).read_text(encoding="utf-8"))
+            self.assertEqual(document, workflow_document(high_risk=risk))
+            self.assertEqual(document["requires"]["speckit_version"], "==1.0.11")
+            serialized = json.dumps(document)
+            for forbidden in FORBIDDEN_COMMANDS:
+                self.assertNotIn(forbidden, serialized)
+            ids = [step["id"] for step in document["steps"]]
+            self.assertEqual(ids.count("consolidated-review"), 1)
+            self.assertIn("READY_FOR_TEST", serialized)
+            self.assertIn("Engineering Handoff VNext", serialized)
+            if risk:
+                self.assertIn("human-tech-lead-plan-gate", ids)
+                self.assertNotIn("technical-gate-requirement", ids)
+            else:
+                self.assertIn("technical-gate-requirement", ids)
+                self.assertIn("conditional-technical-gate", ids)
+        self.assertEqual(dev_kit.validate_workflow_package(ROOT), [])
 
     def test_installed_dev_plugin_does_not_contaminate_its_own_context(self):
         with tempfile.TemporaryDirectory() as temp:

@@ -1,19 +1,36 @@
 {
   "schema_version": 2,
   "id": "dev",
-  "name": "Dev Kit",
-  "version": "0.3.0-rc.4",
+  "name": "Dev Kit VNext",
+  "version": "0.4.0-rc.1",
   "status": "INTEGRATION_CANDIDATE",
   "packaging": {
     "type": "agent-plugin",
     "path": "kits/dev/plugin"
   },
   "authority": {
-    "business_what": "Approved BA Baseline",
-    "engineering_impact": "Dev Kit",
-    "implementation_how": "Dev Kit planning",
-    "final_acceptance": "Test Kit / Human"
+    "business_what": "Engineering Handoff VNext backed by exact APPROVED_BASELINE proof",
+    "engineering_impact": "Engineering Impact V2 bound to exact upstream authority, repository bases and write scope",
+    "engineering_decisions": "ED-* exact evidence; Human or Tech Lead approval where required",
+    "implementation_how": "Dev lifecycle V2 with persisted state and repository-scoped checks",
+    "terminal_dev_readiness": "READY_FOR_TEST",
+    "final_acceptance": "Outside Dev Kit; Tester and Human own later acceptance"
   },
+  "authority_modes": ["FEATURE_DELIVERY", "TECHNICAL_MAINTENANCE"],
+  "lifecycle": [
+    "INTAKE",
+    "AUTHORITY_VALIDATED",
+    "IMPACT_ANALYZED",
+    "TECHNICAL_PLANNED",
+    "IMPLEMENTATION_READY",
+    "IMPLEMENTING",
+    "ENGINEERING_REVIEW",
+    "VERIFYING",
+    "READY_FOR_TEST",
+    "UPSTREAM_GAP",
+    "NEEDS_REPLAN",
+    "BLOCKED"
+  ],
   "shared_skills": {
     "required": [
       "requirements-gap-auditor",
@@ -36,17 +53,31 @@
       "observability-and-instrumentation"
     ]
   },
-  "utilities": [
-    "scripts/review-package"
-  ],
+  "outputs": {
+    "start_request": "Start Request V2",
+    "impact": "Engineering Impact V2",
+    "gap": "Engineering Gap V2",
+    "decisions": "ED-* Engineering Decisions V2",
+    "technical_approval": "Exact host-authenticated Human or Tech Lead receipt where required",
+    "technical_snapshot": "Exact plan/tasks, ED set, repository bases, write scope and risk",
+    "handoff": "Dev Handoff V2 / HANDOFF_MANIFEST at READY_FOR_TEST"
+  },
+  "execution": {
+    "repository_scoped_checks": "Every check names an implementation repository and executes at its bound root",
+    "coverage": "Exact BR-* and FR-* identities only; BAREF remains a locator",
+    "review_budget": {
+      "max_full_reviews": 1,
+      "max_blocking_fix_waves": 1,
+      "max_scoped_rereviews": 1
+    },
+    "technical_gate": "Human or Tech Lead approval is required for HIGH_RISK and active material ED snapshots",
+    "readiness_boundary": "READY_FOR_TEST is Dev handoff readiness only; not VERIFIED or merge approval"
+  },
   "runtime_dependencies": {
     "spec_kit": {
       "version": "v1.0.11",
       "role": "workflow_state_and_bundle_engine",
-      "required_for": [
-        "normal",
-        "high-risk"
-      ],
+      "required_for": ["normal", "high-risk"],
       "excluded_commands": [
         "speckit.specify",
         "speckit.plan",
@@ -54,7 +85,7 @@
         "speckit.analyze",
         "speckit.converge"
       ],
-      "reason": "Those commands require Spec Kit spec.md semantics and would create a second WHAT representation beside the Approved BA Baseline."
+      "reason": "Spec Kit transports workflow state and bundles; Engineering Handoff VNext remains the sole business WHAT authority."
     },
     "codebase_memory_mcp": {
       "version": "v0.11.0",
@@ -62,29 +93,21 @@
       "trigger": "uncertain blast radius"
     }
   },
-  "review_budget": {
-    "max_full_reviews": 1,
-    "max_blocking_fix_waves": 1,
-    "max_scoped_rereviews": 1
+  "compatibility": {
+    "v1": "LEGACY_COMPAT; read-only inspection and no VNext authority",
+    "delivery_manifest": "DEFERRED_NON_AUTHORITATIVE"
   },
   "runtime": {
     "marketplace_manifest": ".agents/plugins/marketplace.json",
     "external_project_installer": "tooling/install_dev_kit.py",
-    "external_project_runtime_root": "~/.devkit/runtime/v1",
+    "external_project_runtime_root": "~/.devkit/runtime/v2",
     "external_project_cli": "~/.devkit/bin/devkit",
     "workflow_definitions": [
       "plugin/workflows/dev-normal.workflow.yml",
       "plugin/workflows/dev-high-risk.workflow.yml"
     ],
-    "run_state": ".specify/workflows/runs/<spec-kit-run-id>/state.json",
-    "artifacts": ".devkit/runs/<change_id>/"
+    "run_state": ".devkit/runs/<run_id>/state.json",
+    "artifacts": ".devkit/runs/<run_id>/"
   },
-  "outputs": [
-    "impact-manifest.json",
-    "dev-plan.md",
-    "dev-tasks.md",
-    "review.json",
-    "dev-handoff.json"
-  ],
-  "release_claim": "No READY/RC claim until provenance, Doctor, benchmark, fresh-session acceptance and docs gates pass."
+  "release_claim": "Prerelease integration candidate; no stable release and no final business/system acceptance claim."
 }

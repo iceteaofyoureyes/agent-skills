@@ -1,0 +1,250 @@
+{
+  "type": "object",
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "change_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema_version": {
+      "type": "integer",
+      "enum": [
+        2
+      ]
+    },
+    "authority_mode": {
+      "type": "string",
+      "enum": [
+        "FEATURE_DELIVERY",
+        "TECHNICAL_MAINTENANCE"
+      ]
+    },
+    "repositories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "IMPLEMENTATION",
+              "READ_ONLY"
+            ]
+          },
+          "base_revision": {
+            "type": "string",
+            "minLength": 1
+          },
+          "allowed_write_paths": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "read_only_evidence_paths": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "base_revision",
+          "allowed_write_paths",
+          "read_only_evidence_paths"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "repository_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "BUILD",
+              "STATIC",
+              "LINT",
+              "TYPECHECK",
+              "UNIT",
+              "COMPONENT",
+              "MODULE_LOCAL_INTEGRATION"
+            ]
+          },
+          "command": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "name",
+          "repository_id",
+          "category",
+          "command"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "upstream": {
+      "additionalProperties": true
+    },
+    "delivery": {
+      "additionalProperties": true
+    },
+    "maintenance": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "DOCUMENTATION",
+            "RENAME",
+            "MECHANICAL",
+            "TOOLING_CONFIG"
+          ]
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "[0-9a-f]{64}"
+              },
+              "revision": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "no_what_change": {
+          "type": "boolean",
+          "enum": [
+            true
+          ]
+        },
+        "discovered_changes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "kind",
+        "evidence_refs",
+        "no_what_change",
+        "discovered_changes"
+      ],
+      "additionalProperties": false
+    },
+    "repository_roots": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "risk": {
+      "type": "object",
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "TRIVIAL",
+            "NORMAL",
+            "HIGH_RISK"
+          ]
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "PUBLIC_API",
+              "SECURITY",
+              "PERSISTENCE_SCHEMA",
+              "DESTRUCTIVE_MIGRATION",
+              "DISTRIBUTED_TRANSACTION",
+              "CONCURRENCY",
+              "DESTRUCTIVE_DATA",
+              "DEPLOYMENT_TOPOLOGY",
+              "CROSS_COMPONENT",
+              "CROSS_REPOSITORY",
+              "MAJOR_DEPENDENCY",
+              "PLATFORM",
+              "MATERIAL_DEVIATION"
+            ]
+          }
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "required": [
+        "level",
+        "categories",
+        "reasons"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "run_id",
+    "change_id",
+    "summary",
+    "authority_mode",
+    "repositories",
+    "checks"
+  ],
+  "additionalProperties": false
+}

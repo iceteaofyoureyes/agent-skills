@@ -1,128 +1,85 @@
-# Dev Kit V1 — Lean Execution Workflow
+# Dev Kit VNext — Workflow V2
 
-## Runtime files
+## 1. Start từ authority chính xác
 
-- Spec Kit workflow sources: `kits/dev/plugin/workflows/dev-normal.workflow.yml`, `dev-high-risk.workflow.yml`; install the user-scope runtime with `tooling/install_dev_kit.py`, then locate workflows with `devkit workflow normal|high-risk`.
-- TRIVIAL: `start` → edit → `finish-trivial`; không dùng Spec Kit, plan, review hoặc gate.
-- Dev policy/state adapter: installed `devkit` command, sourced from `tooling/lib/dev_kit.py`.
-- Change inputs/evidence: `.devkit/runs/<change_id>/`; Spec Kit pause/resume state: `.specify/workflows/runs/<run_id>/`.
-- Operator commands/examples: [DEV_KIT_USAGE_GUIDE.md](DEV_KIT_USAGE_GUIDE.md).
+Tạo Start Request V2 với `run_id`, `change_id`, `summary`, `authority_mode`,
+repository identities, observed Git base revisions, write/read-only scopes,
+repository-scoped checks và exact refs. `FEATURE_DELIVERY` bắt buộc có
+Engineering Handoff VNext. Trusted host xác thực exact BA Human proof và
+Project Foundation proof nếu Handoff có ràng buộc Foundation.
 
-Each workflow uses only top-level persisted steps. The HIGH_RISK gate is top-level so resume does not rerun planning; review/fix/re-review steps are also top-level. Static shell commands take no untrusted interpolated values.
+`TECHNICAL_MAINTENANCE` chỉ nhận maintenance evidence với
+`no_what_change=true`. Không dùng nó cho behavioral, public-contract,
+security-sensitive hoặc cross-repository feature work.
 
-## 1. Spec Readiness
+## 2. Validate, Impact và plan
 
-Câu hỏi duy nhất:
+Sau `start`, chạy `validate-authority`. FEATURE_DELIVERY tạo Engineering Impact
+V2 ràng buộc upstream, từng repository base, write scope, affected components,
+risk và technical unknowns. Tiếp theo `plan` lưu `dev-plan.md`, `dev-tasks.md`,
+ED refs và exact technical snapshot. Snapshot là write authorization boundary;
+không suy scope từ feature name hoặc Delivery Manifest.
 
-> Approved BA Baseline đã đủ để Dev triển khai mà không phải invent business behavior chưa?
-
-Check nhẹ:
-- contradiction;
-- blocking UNKNOWN/TBD;
-- missing behavior buộc Dev chọn business semantics;
-- approved SRS mâu thuẫn current-system evidence theo cách cần BA quyết định.
-
-Kết quả:
+Lifecycle chính:
 
 ```text
-READY_FOR_PLANNING
-or
-NEEDS_BA_CLARIFICATION
+INTAKE → AUTHORITY_VALIDATED → IMPACT_ANALYZED → TECHNICAL_PLANNED
+→ IMPLEMENTATION_READY → IMPLEMENTING → ENGINEERING_REVIEW → VERIFYING
+→ READY_FOR_TEST
 ```
 
-Technical choices không được đẩy ngược về BA nếu chúng không thay đổi WHAT.
+`UPSTREAM_GAP`, `NEEDS_REPLAN` và `BLOCKED` là trạng thái stop/recovery; chúng
+không cấp quyền sửa.
 
-## 2. Planning Preflight
+## 3. Engineering Gap và ED-*
 
-Một planning pass thực hiện:
-- inspect code/context liên quan;
-- lightweight Engineering Impact;
-- xác định repo/module/interface/data bị ảnh hưởng;
-- classify TRIVIAL / NORMAL / HIGH_RISK;
-- implementation approach;
-- test strategy;
-- tasks/slices.
+Nếu WHAT mơ hồ, dùng `raise-gap`. Runtime ghi Engineering Gap V2, chuyển sang
+`UPSTREAM_GAP` và chặn write. Không biến câu hỏi BA thành đề xuất business mới.
+Chỉ `resume-gap` với exact resolution evidence và replacement Engineering
+Handoff VNext đã xác thực; sau đó tạo lại Impact, plan/tasks và snapshot.
 
-CBM chỉ gọi nếu blast radius chưa đủ chắc.
+ED-* ghi technical decision, evidence refs, upstream refs, repository/component
+scope, risk, alternatives và consequences. Material ED với
+`approval_requirement=HUMAN` cần receipt riêng được host xác thực.
 
-## 3. Execution paths
+## 4. Technical Human gate
 
-### TRIVIAL
+NORMAL reversible local HOW có thể đi tới `IMPLEMENTATION_READY` mà không cần
+approval thêm. HIGH_RISK hoặc active material ED cần exact Human/Tech Lead
+receipt gắn run, change, snapshot revision/hash và decision evidence. Thiếu
+authenticator, receipt giả, receipt cũ hoặc snapshot drift đều chặn gate.
+
+Spec Kit `1.0.11` chỉ điều phối workflow/pause/resume/bundle. `approve` trong
+workflow không phải technical authority và không thay thế receipt.
+
+## 5. Implementation, review, verify
+
+Runtime kiểm tra exact bases và scope trước mỗi write. Dùng `write-source` hoặc
+`authorize-write`; từng engineering check khai báo `repository_id` và chạy
+trong repository đã bound. Check categories: `BUILD`, `STATIC`, `LINT`,
+`TYPECHECK`, `UNIT`, `COMPONENT`, `MODULE_LOCAL_INTEGRATION`.
+
+FEATURE_DELIVERY có tối đa một consolidated full review, một blocking-fix wave
+và một optional scoped rereview. Không review lặp lại mỗi slice. Sau review/fix,
+`verify` chạy lại các check mới trên implementation revision hiện tại.
+
+## 6. Finalize Dev Handoff
+
+Coverage phải khớp exact BR-* và FR-* của approved BA baseline; mỗi hàng cần
+code refs và test refs. `BAREF:*` là locator/provenance, không phải coverage
+identity. `finalize` tạo HANDOFF_MANIFEST V2 và xác thực lại Dev Handoff:
 
 ```text
-Understand
-→ Edit
-→ Relevant deterministic check
-→ Complete
+READY_FOR_TEST
 ```
 
-Không ép formal plan/tasks, independent review hoặc specialist skills nếu không có risk signal.
+Đây là Dev handoff readiness. Nó không khẳng định `VERIFIED`, Tester PASS,
+business/system acceptance hay `READY_TO_MERGE`.
 
-### NORMAL
+## 7. Recovery và compatibility
 
-```text
-Spec Readiness
-→ Planning Preflight
-→ Technical plan/tasks
-→ Incremental Implementation + focused verification
-→ ONE consolidated review
-→ ONE blocking-fix wave
-→ fresh deterministic verification
-→ Dev Handoff
-```
-
-### HIGH_RISK
-
-Triggers điển hình:
-- auth/authz;
-- sensitive/regulated data;
-- DB schema/migration;
-- public API/event contract;
-- cross-service/cross-repo change;
-- concurrency/transaction semantics;
-- major architecture/deployment topology.
-
-```text
-Spec Readiness
-→ Deep Engineering Impact
-→ technical plan/tasks
-→ Human/Tech Lead gate where policy requires
-→ incremental implementation + relevant specialists
-→ ONE consolidated review
-→ ONE blocking-fix wave
-→ optional ONE scoped re-review
-→ fresh verification
-→ Dev Handoff
-```
-
-Routing starts from `devkit start` in the target project root. It records the provisional route and required deterministic commands in `.devkit/runs/<change_id>/input.json`; the matching workflow begins with `assert-workflow` and refuses a mismatched risk depth. Engineering Impact may escalate NORMAL to HIGH_RISK; that run stops before planning/implementation with `HIGH_RISK_REENTRY_REQUIRED`. Re-enter with a new HIGH_RISK run using the Impact risk signals so the gate and triggered capabilities are applied.
-
-## 4. Implementation discipline
-
-Per slice:
-1. implement smallest complete slice;
-2. use TDD/regression test when behavior warrants;
-3. run focused repository-native check;
-4. continue.
-
-Không spawn independent reviewer cho từng normal slice.
-
-## 5. Stop conditions
-
-- Business ambiguity → `NEEDS_BA_CLARIFICATION`.
-- NORMAL Impact discovers a HIGH_RISK surface → `HIGH_RISK_REENTRY_REQUIRED`; create a new high-risk run before implementation.
-- Missing/empty plan or task artifact, wrong change/baseline metadata, or unresolved business ambiguity → planning gate fails before implementation.
-- Plan invalidated by implementation evidence → `NEEDS_REPLAN`.
-- Review budget exhausted with Critical/Important blocker → Human/Tech Lead decision, không review #3.
-- Verification red → không claim READY_FOR_TEST.
-- Approved BA Baseline SHA-256 thay đổi → workflow dừng; BA phải duyệt revision mới và Dev tạo run mới.
-
-## 6. Review budget
-
-```text
-max_full_reviews = 1
-max_blocking_fix_waves = 1
-max_scoped_rereviews = 1
-```
-
-Scoped re-review chỉ verify prior findings + breakage introduced by fix diff.
+- `NEEDS_REPLAN`: risk, bases, task binding hoặc scope thay đổi; Impact/plan/snapshot phải được xác lập lại.
+- `UPSTREAM_GAP`: chờ BA/Human resolution và replacement Engineering Handoff VNext.
+- `BLOCKED`: dừng writes cho đến khi authority mode và scope hợp lệ; maintenance discovery không tự nâng quyền.
+- V1 state/schema/template: chỉ `LEGACY_COMPAT`; không cấp VNext authority.
+- Delivery Manifest: `DEFERRED_NON_AUTHORITATIVE`; không làm upstream hoặc write scope.
