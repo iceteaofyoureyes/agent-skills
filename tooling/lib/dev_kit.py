@@ -582,7 +582,9 @@ def validate_provenance(root):
         errors.append('provenance package metadata differs from the VNext kit manifest')
     if set(kit.get("runtime_dependencies", {})) != {"spec_kit", "codebase_memory_mcp"}:
         errors.append("kit.yaml declares an unexpected runtime dependency")
-    if (kit.get('name') != 'Dev Kit VNext' or kit.get('version') != '0.4.0-rc.1'
+    if (kit.get('name') != 'Dev Kit VNext'
+        or not isinstance(kit.get('version'),str)
+        or re.fullmatch(r'\d+\.\d+\.\d+-rc\.\d+',kit['version']) is None
         or kit.get('runtime', {}).get('external_project_runtime_root') != '~/.devkit/runtime/v2'
         or kit.get('authority', {}).get('business_what') != 'Engineering Handoff VNext backed by exact APPROVED_BASELINE proof'
         or kit.get('compatibility', {}).get('v1') != 'LEGACY_COMPAT; read-only inspection and no VNext authority'

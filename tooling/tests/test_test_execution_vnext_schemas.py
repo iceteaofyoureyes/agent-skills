@@ -38,6 +38,15 @@ class TestExecutionVNextSchemaTests(unittest.TestCase):
         self.assertNotIn("expected_result", observation["properties"])
         self.assertEqual(observation["properties"]["actor"]["properties"]["role"]["const"], "TESTER")
 
+    def test_test_only_execution_manifest_requires_both_nonproduction_markers(self):
+        manifest = load_json(SCHEMAS / "execution-manifest-v1.schema.json")
+        self.assertEqual(manifest["properties"]["test_only"]["const"], True)
+        self.assertEqual(manifest["properties"]["not_for_production"]["const"], True)
+        self.assertEqual(manifest["allOf"], [
+            {"if": {"required": ["test_only"]}, "then": {"required": ["not_for_production"]}},
+            {"if": {"required": ["not_for_production"]}, "then": {"required": ["test_only"]}},
+        ])
+
     def test_finding_routes_and_terminal_ownership_are_closed_vocabularies(self):
         classification = load_json(SCHEMAS / "finding-classification-v1.schema.json")
         self.assertEqual(classification["properties"]["classification"]["enum"], [

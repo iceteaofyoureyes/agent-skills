@@ -158,8 +158,14 @@ def validate_execution_manifest(value: dict) -> dict:
         "automation_repository", "automation_revision", "automated_items", "manual_testcases",
         "dev_local_references", "optional_blocked_testcases", "created_at",
     }
-    if not isinstance(value, dict) or set(value) != required:
+    marker_keys = {"test_only", "not_for_production"}
+    if (not isinstance(value, dict) or not required <= set(value)
+            or set(value) - required - marker_keys
+            or bool(marker_keys & set(value)) != (marker_keys <= set(value))):
         raise ValueError("Execution Manifest V1 shape is invalid")
+    if marker_keys <= set(value):
+        if value["test_only"] is not True or value["not_for_production"] is not True:
+            raise ValueError("Execution Manifest TEST_ONLY markers must both be true")
     if type(value["schema_version"]) is not int or value["schema_version"] != 1 or value["artifact_class"] != "CANONICAL":
         raise ValueError("Execution Manifest must be canonical V1")
     for key in ("execution_id", "feature_id"):
@@ -488,6 +494,7 @@ class ExecutionRuntime:
         foundation_authenticator=None,
         ux_human_actor_authenticator=None,
         technical_authenticator=None,
+        test_only_authority_authenticator=None,
         command_timeout_seconds: int = 900,
     ):
         self.project_root = Path(project_root).resolve()
@@ -502,6 +509,7 @@ class ExecutionRuntime:
             foundation_authenticator=foundation_authenticator,
             ux_human_actor_authenticator=ux_human_actor_authenticator,
             technical_authenticator=technical_authenticator,
+            test_only_authority_authenticator=test_only_authority_authenticator,
         )
         self.command_timeout_seconds = command_timeout_seconds
         if not self.project_root.is_dir() or not callable(tester_authenticator) or not callable(human_actor_authenticator) or not callable(ba_human_actor_authenticator):
@@ -520,6 +528,7 @@ class ExecutionRuntime:
             foundation_authenticator=foundation_authenticator,
             ux_human_actor_authenticator=ux_human_actor_authenticator,
             technical_authenticator=technical_authenticator,
+            test_only_authority_authenticator=test_only_authority_authenticator,
         )
         self._mutex = threading.RLock()
         self.state = None
@@ -663,6 +672,11 @@ class ExecutionRuntime:
                 raise ValueError("Phase 7 runtime is not EXECUTION_READY")
             ready = self.automation._read_artifact_ref(state["handoff_ref"])
             evidence = self.automation._load_testware(self.project_root / state["testware_run_path"])
+            test_only = evidence["test_only"]
+            if (state.get("test_only", False) is not test_only
+                    or ready.get("test_only", False) is not test_only
+                    or ready.get("not_for_production", False) is not test_only):
+                raise ValueError("Automation TEST_ONLY classification differs across Testware and EXECUTION_READY")
             automation.validate_execution_ready_handoff(ready, evidence["testcase_ids"])
             if evidence["manifest_ref"] != state["approved_testware"] or ready["approved_testware"] != evidence["manifest_ref"]:
                 raise ValueError("exact Approved Testware ref changed")
@@ -762,9 +776,11 @@ class ExecutionRuntime:
         automation_id = automation_repo["id"]
         automation_revision = manifest_or_ready["automation_revision"]
         app_revisions = expected_revisions or manifest_or_ready["application_revisions"]
-        app_ids = {row["id"] for row in topology["repositories"] if row["id"] != automation_id}
-        if set(app_revisions) != app_ids:
-            raise ExecutionVNextError("EXECUTION_STALE", "EXECUTION_READY must bind one exact revision for every application repository")
+        declared_repository_ids = {row["id"] for row in topology["repositories"] if row["id"] != automation_id}
+        application_ids = set(manifest_or_ready["application_revisions"])
+        if (not application_ids or set(app_revisions) != application_ids
+                or not application_ids <= declared_repository_ids):
+            raise ExecutionVNextError("EXECUTION_STALE", "EXECUTION_READY application revisions differ from the exact Dev Handoff and declared topology")
         for repository_id, revision in app_revisions.items():
             root = roots[repository_id]
             if _git(root, "rev-parse", "HEAD") != revision or _git(root, "status", "--porcelain", "--untracked-files=all"):
@@ -783,6 +799,8 @@ class ExecutionRuntime:
         validate_execution_manifest(manifest)
         if manifest["execution_id"] != self.execution_id:
             raise ExecutionVNextError("EXECUTION_STALE", "Execution Manifest identity changed")
+        if manifest.get("test_only", False) is not self.state.get("test_only", False):
+            raise ExecutionVNextError("EXECUTION_STALE", "Execution Manifest TEST_ONLY classification changed")
         self._check_environment(manifest["environment_ref"])
         return manifest
 
@@ -871,12 +889,16 @@ class ExecutionRuntime:
                 ],
                 "created_at": _stamp(),
             }
+            if evidence["test_only"]:
+                manifest["test_only"] = True
+                manifest["not_for_production"] = True
             validate_execution_manifest(manifest)
             ref = self._save_artifact("canonical/execution-manifest-v1.json", manifest, f"{self.execution_id}:EXECUTION_MANIFEST", "1")
             self._assert_revisions(manifest, routing)
             state = {
                 "schema_version": 1, "execution_id": self.execution_id, "revision": -1,
                 "status": "EXECUTION_MANIFEST_READY", "execution_manifest_ref": ref,
+                "test_only": evidence["test_only"],
                 "command_evidence_refs": {}, "command_evidence_count": 0, "observation_refs": {}, "finding_refs": {},
                 "classification_refs": {}, "defect_handoffs": {}, "ready_for_retest_refs": {},
                 "reopened_refs": {}, "verified_ref": None, "history": [],

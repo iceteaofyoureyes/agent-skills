@@ -9,6 +9,8 @@ description: Execute exact Test Automation V1 EXECUTION_READY, record approved-t
 
 Start only from the exact Phase 7 Automation V1 `EXECUTION_READY` handoff. Revalidate it through the installed `test_automation_v1.AutomationRuntime.revalidate_handoff()` path. Do not infer readiness from workflow-state text, a runtime status, Delivery Manifest, automation verification, or current product behavior.
 
+For an explicitly TEST_ONLY conformance run, pass the same trusted `test_only_authority_authenticator` to `ExecutionRuntime`. It revalidates the Test-only authority through Automation V1; the canonical Execution Manifest carries `test_only: true` and `not_for_production: true`. This evidence cannot authorize a production execution.
+
 Create a canonical V1 Environment Descriptor and immutable Execution Manifest before running product tests. Bind every application repository ID to its exact Git SHA, plus the automation repository identity and committed SHA. Keep environment references portable and secret-free. Do not copy expected-result prose into runtime artifacts.
 
 ## Execution

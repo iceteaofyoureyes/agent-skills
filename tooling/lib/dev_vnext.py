@@ -11,6 +11,8 @@ from datetime import datetime
 import hashlib
 import json
 from pathlib import Path
+from pathlib import PurePosixPath
+import subprocess
 import sys
 
 # Same source/installed dependency bootstrap as Dev V1; never reimplement BA.
@@ -21,6 +23,7 @@ from shared.sdlc.findings.taxonomy import FindingKind
 from shared.sdlc.foundation.impact import KNOWLEDGE_IMPACT_V1, knowledge_impact
 from shared.sdlc.schema import (STRING, REFERENCE, object_schema, identifier,
     portable_path, read_document, reject_secrets, unique, validate_reference, validate_schema)
+from shared.sdlc.topology.contract import read_topology
 
 V2 = {'type':'integer','enum':(2,)}
 HASH = {'type':'string','pattern':r'[0-9a-f]{64}'}
@@ -158,6 +161,68 @@ def _check(data, schema):
 
 def _ref(ref, root=None):
     return validate_reference(ref,Path(root) if root is not None else None,revision=True)
+
+
+def _git_has_ref_at_revision(ref, root, repository_revisions, repositories):
+    """Validate an IMPLEMENTATION source ref against the immutable Dev commit."""
+    if root is None or not isinstance(repository_revisions,dict): return None
+    root = Path(root).resolve()
+    relative = PurePosixPath(ref['path'])
+    try:
+        topology_path = root/'.sdlc/project-topology.yml'
+        topology = read_topology(topology_path.read_text(encoding='utf-8'))
+        owners = [row for row in topology['repositories']
+                  if relative == PurePosixPath(row['path']) or PurePosixPath(row['path']) in relative.parents]
+        if len(owners) != 1: return None
+        owner = owners[0]
+        declared = {row['id']:row for row in repositories}
+        state_repo = declared.get(owner['id'])
+        if state_repo is None or state_repo.get('role') != 'IMPLEMENTATION' or owner['id'] not in repository_revisions:
+            return None
+        revision = repository_revisions.get(owner['id'])
+        if (not isinstance(revision,str) or len(revision) not in (40,64)
+                or any(char not in '0123456789abcdef' for char in revision)):
+            return False
+        repo_root = (root/owner['path']).resolve()
+        if not repo_root.is_relative_to(root): return False
+        git_root = subprocess.run(['git','-C',str(repo_root),'rev-parse','--show-toplevel'],
+            capture_output=True,text=True,check=False)
+        if git_root.returncode or Path(git_root.stdout.strip()).resolve() != repo_root:
+            return False
+        object_type = subprocess.run(['git','-C',str(repo_root),'cat-file','-t',revision],
+            capture_output=True,text=True,check=False)
+        if object_type.returncode or object_type.stdout.strip() != 'commit': return False
+        repository_path = relative.relative_to(PurePosixPath(owner['path'])).as_posix()
+        tree_entry = subprocess.run(['git','-C',str(repo_root),'ls-tree','-z',revision,'--',repository_path],
+            capture_output=True,check=False)
+        entries = [row for row in tree_entry.stdout.split(b'\0') if row]
+        if tree_entry.returncode or len(entries) != 1: return False
+        metadata, separator, _ = entries[0].partition(b'\t')
+        fields = metadata.split()
+        if not separator or len(fields) != 3 or fields[1] != b'blob' or fields[0] == b'120000':
+            return False
+        content = subprocess.run(['git','-C',str(repo_root),'cat-file','blob',f'{revision}:{repository_path}'],
+            capture_output=True,check=False)
+        return (content.returncode == 0
+                and hashlib.sha256(content.stdout).hexdigest() == ref['sha256'])
+    except FileNotFoundError:
+        return None
+    except (OSError,ValueError,KeyError,TypeError,IndexError):
+        return False
+
+
+def _ref_at_repository_revision(ref, root, repository_revisions, repositories):
+    committed = _git_has_ref_at_revision(ref,root,repository_revisions,repositories)
+    try:
+        current = _ref(ref,root)
+    except ValueError as error:
+        if (str(error) != 'reference SHA-256 mismatch'
+                or committed is not True):
+            raise
+        return Path(root)/ref['path']
+    if committed is False:
+        raise ValueError('implementation source ref is not present at its exact repository revision')
+    return current
 
 
 def _data(ref, root):
@@ -389,14 +454,16 @@ def validate_gap(data, root, *, required_ids):
     return copy.deepcopy(data)
 
 
-def validate_coverage(rows, required_ids, root):
+def validate_coverage(rows, required_ids, root, *, repository_revisions=None, repositories=()):
     _check(rows,COVERAGE)
     unique(required_ids,'upstream coverage ID'); unique([row['id'] for row in rows],'coverage ID')
     for identity in required_ids: validate_schema(identity,BUSINESS_ID)
     if {row['id'] for row in rows} != set(required_ids):
         raise ValueError('coverage must equal exact approved BA FR/BR set; BAREF is locator only')
     for row in rows:
-        for ref in [*row['code_refs'],*row['test_refs']]: _ref(ref,root)
+        for ref in [*row['code_refs'],*row['test_refs']]:
+            if repository_revisions is None: _ref(ref,root)
+            else: _ref_at_repository_revision(ref,root,repository_revisions,repositories)
     return copy.deepcopy(rows)
 
 
@@ -505,11 +572,13 @@ def _gap_binding(state, result, root, **context):
             raise ValueError('gap replacement requires revised BA baseline linked to old authority')
 
 
-def validate_state(state, root=None, **context):
+def validate_state(state, root=None, *, repository_revisions=None, **context):
     _check(state,STATE_V2)
     identifier(state['run_id']); identifier(state['change_id'])
     _risk(state['risk']); _repositories(state['repositories']); _checks(state['checks'],state['repositories']); _budget(state['review_budget'])
-    for ref in [*state['artifacts'].values(),*state['gates'].values(),*_all_refs(state['verification'])]: _ref(ref,root)
+    revisions = repository_revisions if repository_revisions is not None else state.get('repository_revisions',{})
+    for ref in [*state['artifacts'].values(),*state['gates'].values(),*_all_refs(state['verification'])]:
+        _ref_at_repository_revision(ref,root,revisions,state['repositories'])
     if state['upstream'] is not None: _ref(state['upstream'],root)
     if state['authority_mode'] == 'FEATURE_DELIVERY' and state['upstream'] is None:
         raise ValueError('FEATURE_DELIVERY requires Engineering Handoff VNext')
@@ -557,7 +626,8 @@ def validate_state(state, root=None, **context):
         _check(state['verification'],FINAL_EVIDENCE)
         evidence = state['verification']
         _output_revisions(evidence['repository_revisions'],state['repositories'])
-        validate_coverage(evidence['requirements_coverage'],result['baseline']['coverage_ids'] if result else [],root)
+        validate_coverage(evidence['requirements_coverage'],result['baseline']['coverage_ids'] if result else [],root,
+            repository_revisions=revisions,repositories=state['repositories'])
         _final_evidence(state,state['artifacts']['snapshot'],evidence['repository_revisions'],
                         evidence['review'],evidence['engineering_verification'],root)
         if state['review_budget'] != evidence['review']['budget']: raise ValueError('state review budget/evidence mismatch')
@@ -822,7 +892,7 @@ def make_handoff(state, root, *, repository_revisions, current_base_revisions, i
     result = _upstream(state,root,**context)
     snapshot = validate_snapshot(state['artifacts']['snapshot'],root,state,**context)
     required = result['baseline']['coverage_ids'] if result else []
-    validate_coverage(coverage,required,root)
+    validate_coverage(coverage,required,root,repository_revisions=repository_revisions,repositories=state['repositories'])
     _output_revisions(repository_revisions,state['repositories'])
     _final_evidence(state,state['artifacts']['snapshot'],repository_revisions,review,verification,root)
     after = copy.deepcopy(state); after['lifecycle'] = 'READY_FOR_TEST'; after['review_budget'] = copy.deepcopy(review['budget'])
@@ -845,7 +915,7 @@ def make_handoff(state, root, *, repository_revisions, current_base_revisions, i
 
 def validate_handoff(data, root, *, current_base_revisions=None, **context):
     _check(data,HANDOFF_V2)
-    state = data['run_state']; validate_state(state,root,**context)
+    state = data['run_state']; validate_state(state,root,repository_revisions=data['repository_revisions'],**context)
     if state['lifecycle'] != 'READY_FOR_TEST': raise ValueError('handoff cannot fabricate READY_FOR_TEST')
     if current_base_revisions is not None: _base_guard(state,current_base_revisions)
     snapshot = validate_snapshot(data['technical_snapshot'],root,state,**context)
@@ -859,7 +929,8 @@ def validate_handoff(data, root, *, current_base_revisions=None, **context):
     impact = _data(snapshot['engineering_impact'],root) if result else None
     if data['knowledge_impact'] != (impact['knowledge_impact'] if impact else knowledge_impact()):
         raise ValueError('handoff Knowledge Impact drift')
-    validate_coverage(data['requirements_coverage'],result['baseline']['coverage_ids'] if result else [],root)
+    validate_coverage(data['requirements_coverage'],result['baseline']['coverage_ids'] if result else [],root,
+        repository_revisions=data['repository_revisions'],repositories=state['repositories'])
     _output_revisions(data['repository_revisions'],state['repositories'])
     _final_evidence(state,data['technical_snapshot'],data['repository_revisions'],data['review'],data['engineering_verification'],root)
     for key in FINAL_EVIDENCE['properties']:
@@ -867,7 +938,8 @@ def validate_handoff(data, root, *, current_base_revisions=None, **context):
     _implementation(data['implementation'],data['repository_revisions'],state,root)
     # Revalidate upstream and all exact downstream refs after trusted callbacks.
     _upstream(state,root,**context)
-    for ref in _all_refs(data): _ref(ref,root)
+    for ref in _all_refs(data):
+        _ref_at_repository_revision(ref,root,data['repository_revisions'],state['repositories'])
     return copy.deepcopy(data)
 
 

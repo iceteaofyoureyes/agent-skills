@@ -219,6 +219,31 @@ class RuntimeAcceptanceTests(unittest.TestCase):
         self.assertEqual(list((self.root/'.devkit').rglob('spec.md')), [])
         contracts.validate_handoff(handoff, self.root, ba_authenticator=self.ba_auth)
 
+    def test_handoff_revalidates_repository_refs_at_its_exact_committed_revision(self):
+        self.planned()
+        self.runtime.implementation_ready()
+        self.implement()
+        topology = {'schema_version':1, 'project':{'id':'neutral-project'}, 'repositories':[
+            {'id':'core', 'path':'repositories/core', 'repository':'example/core', 'role':'application'}]}
+        (self.root/'.sdlc').mkdir(exist_ok=True)
+        (self.root/'.sdlc/project-topology.yml').write_text(json.dumps(topology), encoding='utf-8')
+        handoff = self.finish()
+        pinned_revision = handoff['repository_revisions']['core']
+        source = Path(self.repository_roots['core'])/'src/module.py'
+        source.write_text('def result():\n    return 3\n', encoding='utf-8')
+        self.git('core', 'add', 'src/module.py')
+        self.git('core', 'commit', '--quiet', '-m', 'Later Dev fix revision')
+        later_revision = self.git('core', 'rev-parse', 'HEAD')
+        self.assertNotEqual(later_revision, pinned_revision)
+        code_ref = handoff['requirements_coverage'][0]['code_refs'][0]
+        with self.assertRaises(ValueError):
+            contracts._ref_at_repository_revision(
+                code_ref, self.root, {'core':later_revision}, handoff['run_state']['repositories'],
+            )
+
+        checked = contracts.validate_handoff(handoff, self.root, ba_authenticator=self.ba_auth)
+        self.assertEqual(checked['repository_revisions']['core'], pinned_revision)
+
     def test_high_risk_rejects_fake_and_speckit_only_approval_then_exact_gate_works(self):
         state = self.planned(high=True)
         with self.assertRaises(ValueError):

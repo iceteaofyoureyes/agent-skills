@@ -1,0 +1,25 @@
+schema_version: 1
+suite_id: agent-assisted-sdlc-vnext
+suite_version: 1.0.0-rc.1
+required_for_phase_9: true
+tiers:
+  - id: A
+    name: component_regression
+    required: true
+    includes: [project_foundation, ba_vnext, dev_vnext, test_manual_vnext, automation_v1, execution_vnext, shared_sdlc]
+  - id: B
+    name: suite_compatibility_and_doctors
+    required: true
+    includes: [manifest, component_versions, public_contract_versions, suite_doctor, optional_projection_policy]
+  - id: C
+    name: installed_public_cross_kit_flow
+    required: true
+    includes: [foundation, ba, dev, manual_test, automation, execution, defect_fix_retest, straight_pass, trace, negative_probes]
+  - id: D
+    name: fresh_clone_reproducibility
+    required: true
+    includes: [exact_candidate_clone, isolated_installed_runtime, revision_reproduction, source_immutability]
+result:
+  evidence_class: PUBLIC_CROSS_KIT_CONFORMANCE
+  statuses: [PASS, FAIL]
+  output_location: caller_provided_outside_source_tree

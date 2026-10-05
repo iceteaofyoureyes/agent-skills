@@ -100,6 +100,7 @@ class TestAutomationV1Acceptance(unittest.TestCase):
         self._run_git(root, "init", "-q")
         self._run_git(root, "config", "user.name", "Acceptance Fixture")
         self._run_git(root, "config", "user.email", "acceptance@example.invalid")
+        self._run_git(root, "config", "core.autocrlf", "false")
         (root / "README.md").write_text(f"Synthetic {kind} repository.\n", encoding="utf-8")
         self._run_git(root, "add", "README.md")
         self._run_git(root, "commit", "-q", "-m", "fixture base")

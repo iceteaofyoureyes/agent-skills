@@ -1,4 +1,6 @@
 .test-kit/runs/
+.test-kit/automation/runs/
 .test-kit/runtime/
+.sdlc/runs/
 test-runs/
 .agents/skills/

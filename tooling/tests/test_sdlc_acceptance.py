@@ -1,4 +1,9 @@
-"""Fresh synthetic end-to-end fixtures. Never uses the Digital Wedding CR."""
+"""Historical pre-suite compatibility tests; never Phase 9 suite authority.
+
+This module covers legacy readiness and Delivery Manifest behavior for broad
+unittest discovery. Tier A of the public VNext suite uses component acceptance
+modules and the installed cross-kit fixture instead.
+"""
 import hashlib
 import json
 import subprocess
@@ -38,7 +43,7 @@ def init(project, lane):
     git(project, "init", "-b", "synthetic-readiness")
     git(project, "config", "user.name", "Synthetic Acceptance")
     git(project, "config", "user.email", "synthetic@example.invalid")
-    ignores = ".test-kit/runs/\n.test-kit/runtime/\ntest-runs/\n.agents/skills/\n" if lane == "docs" else ".devkit/\n.specify/workflows/runs/\n__pycache__/\n"
+    ignores = ".test-kit/runs/\n.test-kit/runtime/\n.sdlc/runs/\ntest-runs/\n.agents/skills/\n" if lane == "docs" else ".devkit/\n.specify/workflows/runs/\n__pycache__/\n"
     (project / ".gitignore").write_text(ignores, encoding="utf-8")
     (project / "AGENTS.md").write_text("# Synthetic fixture\nDev implements approved scope. Reviewer is read-only. Tester owns VERIFIED. Human gates are never inferred.\n", encoding="utf-8")
 
@@ -54,7 +59,7 @@ def fixture_actor(actor_id, _receipt):
     return design.AuthenticatedHumanActorContext(actor_id)
 
 
-class FreshSyntheticAcceptance(unittest.TestCase):
+class HistoricalReadinessAcceptance(unittest.TestCase):
     def test_dev_readiness_uses_external_approval_precedence_for_historical_lifecycle_text(self):
         with tempfile.TemporaryDirectory(prefix="sdlc-approval-precedence-") as temp:
             root = Path(temp)

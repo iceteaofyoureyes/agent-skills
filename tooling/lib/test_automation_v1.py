@@ -741,7 +741,12 @@ def _write_immutable(path: Path, content: bytes) -> None:
 
 
 class AutomationRuntime:
-    """Resume-safe Automation V1 runtime; every operation revalidates its authority inputs."""
+    """Resume-safe Automation V1 runtime; every operation revalidates its authority inputs.
+
+    The optional test-only authority authenticator is a trusted-host opt-in for
+    exact not-for-production Testware. It does not replace BA, Foundation, or
+    Human receipt revalidation and is disabled by default.
+    """
 
     def __init__(
         self,
@@ -754,6 +759,7 @@ class AutomationRuntime:
         foundation_authenticator=None,
         ux_human_actor_authenticator=None,
         technical_authenticator=None,
+        test_only_authority_authenticator=None,
     ):
         self.project_root = Path(project_root).resolve()
         self.run_dir = Path(os.path.abspath(run_dir))
@@ -764,6 +770,7 @@ class AutomationRuntime:
             "foundation_authenticator": foundation_authenticator,
             "ux_human_actor_authenticator": ux_human_actor_authenticator,
             "technical_authenticator": technical_authenticator,
+            "test_only_authority_authenticator": test_only_authority_authenticator,
         }
         self._mutex = threading.RLock()
         if not self.project_root.is_dir():
@@ -883,6 +890,29 @@ class AutomationRuntime:
     def _policy_routing(self):
         return _repository_rows(self.project_root, self.repository_roots)
 
+    def _test_only_case_gate_fixture(self, test_run_dir: Path, envelope: dict) -> Path:
+        authenticator = self.auth["test_only_authority_authenticator"]
+        try:
+            context = authenticator(test_run_dir, copy.deepcopy(envelope))
+        except Exception as error:
+            raise AutomationV1Error(
+                "TEST_ONLY_AUTHENTICATION_FAILED", "trusted host rejected TEST_ONLY Testware authority",
+            ) from error
+        if (not isinstance(context, dict) or set(context) != {"authenticated", "case_gate_fixture_path"}
+                or context.get("authenticated") is not True
+                or not isinstance(context.get("case_gate_fixture_path"), str)):
+            raise AutomationV1Error(
+                "TEST_ONLY_AUTHENTICATION_FAILED", "trusted host did not return exact TEST_ONLY Case Gate context",
+            )
+        fixture_path = Path(context["case_gate_fixture_path"]).resolve()
+        try:
+            fixture_path.relative_to(self.project_root)
+        except ValueError as error:
+            raise AutomationV1Error("UNSAFE_PATH", "TEST_ONLY Case Gate fixture must be inside the project root") from error
+        if not fixture_path.is_file() or _reparse(fixture_path):
+            raise AutomationV1Error("UNSAFE_PATH", "TEST_ONLY Case Gate fixture is missing or unsafe")
+        return fixture_path
+
     def _load_testware(self, test_run_dir: Path):
         from tooling.lib import gate_persistence
         from tooling.lib import test_kit_v1_cases as cases
@@ -901,12 +931,26 @@ class AutomationRuntime:
         test_run_dir = test_run_dir.resolve()
         test_run_relative = _relative_to(self.project_root, test_run_dir)
         manifest_path = test_run_dir / "approved-testware-vnext.json"
-        manifest, manifest_bytes = _read_json(manifest_path)
-        if "fixture_type" in manifest or manifest.get("not_for_production") is True:
-            raise AutomationV1Error("TEST_ONLY_AUTHORITY_FORBIDDEN", "TEST_ONLY Approved Testware cannot authorize production Automation V1")
+        manifest_envelope, manifest_bytes = _read_json(manifest_path)
+        test_only = manifest_envelope.get("not_for_production") is True
+        if test_only:
+            if (set(manifest_envelope) != {"fixture_type", "not_for_production", "approved_testware"}
+                    or manifest_envelope.get("fixture_type") != "TEST_ONLY_APPROVED_TESTWARE_EVIDENCE"
+                    or not isinstance(manifest_envelope.get("approved_testware"), dict)
+                    or not callable(self.auth["test_only_authority_authenticator"])):
+                raise AutomationV1Error(
+                    "TEST_ONLY_AUTHORITY_FORBIDDEN",
+                    "TEST_ONLY Approved Testware requires a trusted test-only authority authenticator",
+                )
+            manifest = manifest_envelope["approved_testware"]
+        elif "fixture_type" in manifest_envelope or "not_for_production" in manifest_envelope:
+            raise AutomationV1Error("TEST_ONLY_AUTHORITY_FORBIDDEN", "test-only markers are inconsistent")
+        else:
+            manifest = manifest_envelope
         if (manifest.get("schema_version") != 1 or manifest.get("artifact_class") != "HANDOFF_MANIFEST"
                 or manifest.get("state") != "APPROVED_TESTWARE" or not isinstance(manifest.get("feature_id"), str)):
             raise AutomationV1Error("APPROVED_TESTWARE_REQUIRED", "exact Approved Testware VNext HANDOFF_MANIFEST is required")
+        test_only_fixture = self._test_only_case_gate_fixture(test_run_dir, manifest_envelope) if test_only else None
         receipt_path = test_run_dir / "case-gate/receipt.json"
         receipt, _ = _read_json(receipt_path)
         try:
@@ -919,9 +963,16 @@ class AutomationRuntime:
             )
             receipt_bytes = json.dumps(receipt, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
             review_workflow = gate_persistence.review_state(test_run_dir, receipt_path, receipt_bytes)
-            if review_workflow.get("state") != "CASE_REVIEW" or review_workflow.get("test_only") is True:
-                raise ValueError("exact production Case Review transaction is required")
-            if review_workflow.get("design_gate_receipt_mode") == "TEST_ONLY":
+            case_workflow, _ = _read_json(test_run_dir / "workflow-state.json")
+            if review_workflow.get("state") != "CASE_REVIEW" or case_workflow.get("state") != "APPROVED_TESTWARE":
+                raise ValueError("exact approved Case Gate transaction is required")
+            if test_only and review_workflow.get("design_gate_receipt_mode") != "TEST_ONLY":
+                raise ValueError("TEST_ONLY Approved Testware requires a TEST_ONLY Design Gate")
+            if test_only and (case_workflow.get("test_only") is not True
+                              or case_workflow.get("case_gate_receipt_mode") != "TEST_ONLY"):
+                raise ValueError("Approved Testware Test-only state is missing exact TEST_ONLY gate markers")
+            if not test_only and (case_workflow.get("test_only") is True
+                                  or review_workflow.get("design_gate_receipt_mode") == "TEST_ONLY"):
                 raise ValueError("TEST_ONLY Design Gate cannot authorize Automation V1")
             snapshot, case_state = cases.load_case_review_snapshot(
                 test_run_dir / "canonical/canonical-testcases.json",
@@ -969,16 +1020,28 @@ class AutomationRuntime:
                 except (OSError, ValueError, KeyError, TypeError):
                     return False
 
-            decision = cases.apply_case_gate_decision(
-                receipt, snapshot, approved_design, authority.baseline, case_state,
-                workflow_dir=test_run_dir,
-                human_actor_authenticator=self.auth["human_actor_authenticator"],
-                validation=validation,
-                execution_contract_refs=case_state.execution_oracle_refs,
-                technical_context_refs=authority.dev_context["refs"] if authority.dev_context else (),
-                post_authentication_validator=post_authentication_check,
-                require_resolved_required_dependencies=True,
-            )
+            if test_only:
+                decision = cases.apply_test_only_case_gate_decision(
+                    test_only_fixture, snapshot, approved_design, authority.baseline, case_state,
+                    workflow_dir=test_run_dir,
+                    validation=validation,
+                    execution_contract_refs=case_state.execution_oracle_refs,
+                    technical_context_refs=authority.dev_context["refs"] if authority.dev_context else (),
+                    require_resolved_required_dependencies=True,
+                )
+                if decision.status == "APPROVED_TESTWARE" and not post_authentication_check():
+                    raise ValueError("Test-only Case Gate inputs changed during trusted-host validation")
+            else:
+                decision = cases.apply_case_gate_decision(
+                    receipt, snapshot, approved_design, authority.baseline, case_state,
+                    workflow_dir=test_run_dir,
+                    human_actor_authenticator=self.auth["human_actor_authenticator"],
+                    validation=validation,
+                    execution_contract_refs=case_state.execution_oracle_refs,
+                    technical_context_refs=authority.dev_context["refs"] if authority.dev_context else (),
+                    post_authentication_validator=post_authentication_check,
+                    require_resolved_required_dependencies=True,
+                )
         except (OSError, ValueError, KeyError, TypeError) as error:
             raise AutomationV1Error("APPROVED_TESTWARE_INVALID", "Test VNext authority or exact Case Gate receipt failed revalidation") from error
         if decision.status != "APPROVED_TESTWARE" or not authority.vnext_authority:
@@ -987,6 +1050,12 @@ class AutomationRuntime:
             raise AutomationV1Error("APPROVED_TESTWARE_STALE", "Approved Testware manifest differs from the canonical Case Gate output")
         if manifest_path.read_bytes() != manifest_bytes:
             raise AutomationV1Error("APPROVED_TESTWARE_STALE", "Approved Testware changed during trusted Human revalidation")
+        if test_only:
+            if (self._test_only_case_gate_fixture(test_run_dir, manifest_envelope) != test_only_fixture
+                    or manifest_path.read_bytes() != manifest_bytes):
+                raise AutomationV1Error(
+                    "TEST_ONLY_AUTHENTICATION_FAILED", "trusted host did not authenticate exact TEST_ONLY Testware bytes",
+                )
         snapshot = decision.reviewed_snapshot
         approved_ref = {
             "id": f"{manifest['feature_id']}:APPROVED_TESTWARE",
@@ -1016,6 +1085,7 @@ class AutomationRuntime:
             "authority": authority,
             "snapshot": snapshot,
             "testcase_ids": ids,
+            "test_only": test_only,
         }
 
     def _artifact_path(self, relative: str) -> Path:
@@ -1052,6 +1122,8 @@ class AutomationRuntime:
             evidence = self._load_testware(test_run)
             if evidence["manifest_ref"] != state["approved_testware"]:
                 raise AutomationV1Error("NEEDS_REPLAN", "exact Approved Testware identity changed")
+            if state.get("test_only", False) is not evidence["test_only"]:
+                raise AutomationV1Error("TEST_ONLY_AUTHORITY_STALE", "Automation TEST_ONLY authority classification changed")
             testcase_ids = evidence["testcase_ids"]
             if state.get("suitability_ref"):
                 suitability = self._read_artifact_ref(state["suitability_ref"])
@@ -1082,6 +1154,7 @@ class AutomationRuntime:
                 "feature_id": evidence["feature_id"],
                 "revision": -1,
                 "lifecycle": "AUTOMATION_INTAKE",
+                "test_only": evidence["test_only"],
                 "testware_run_path": evidence["test_run_path"],
                 "approved_testware": evidence["manifest_ref"],
                 "repository_routing": route,
@@ -1768,6 +1841,9 @@ class AutomationRuntime:
                 "automation_verification": state["verification_ref"],
                 "state": "EXECUTION_READY",
             }
+            if state.get("test_only", False):
+                handoff["test_only"] = True
+                handoff["not_for_production"] = True
             validate_execution_ready_handoff(handoff, test_evidence["testcase_ids"])
             reject_execution_claims(handoff)
             ref = self._save_artifact(
@@ -1787,6 +1863,8 @@ class AutomationRuntime:
             handoff = self._read_artifact_ref(state["handoff_ref"])
             evidence = self._load_testware(self.project_root / state["testware_run_path"])
             validate_execution_ready_handoff(handoff, evidence["testcase_ids"])
+            if evidence["test_only"] is not state.get("test_only", False):
+                raise AutomationV1Error("TEST_ONLY_AUTHORITY_STALE", "EXECUTION_READY TEST_ONLY state differs from Approved Testware")
             suitability = self._read_artifact_ref(state["suitability_ref"])
             plan = self._read_artifact_ref(state["plan_ref"])
             validate_plan(plan, suitability, evidence["snapshot"].records)
@@ -1849,8 +1927,14 @@ def validate_execution_ready_handoff(handoff: dict, approved_testcase_ids) -> di
         "automation_revision", "automation_items", "manual_testcases", "blocked_testcases", "dev_local_references",
         "resolved_dependencies", "review", "automation_verification", "state",
     }
-    if not isinstance(handoff, dict) or set(handoff) != keys:
+    marker_keys = {"test_only", "not_for_production"}
+    if (not isinstance(handoff, dict) or not keys <= set(handoff)
+            or set(handoff) - keys - marker_keys
+            or bool(marker_keys & set(handoff)) != (marker_keys <= set(handoff))):
         raise ValueError("EXECUTION_READY HANDOFF_MANIFEST shape is invalid")
+    if marker_keys <= set(handoff):
+        if handoff["test_only"] is not True or handoff["not_for_production"] is not True:
+            raise ValueError("EXECUTION_READY TEST_ONLY markers must both be true")
     if type(handoff["schema_version"]) is not int or handoff["schema_version"] != 1 or handoff["artifact_class"] != "HANDOFF_MANIFEST" or handoff["state"] != "EXECUTION_READY":
         raise ValueError("EXECUTION_READY manifest identity/state is invalid")
     identifier(handoff["feature_id"])

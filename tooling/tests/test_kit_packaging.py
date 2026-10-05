@@ -37,7 +37,7 @@ class TestKitPackagingTests(unittest.TestCase):
     def _assert_test_core_ready(self, report):
         optional_missing = any(not ok and kind == "dependency" for _, ok, kind, _ in report["checks"])
         self.assertEqual(report["status"], "DEGRADED" if optional_missing else "READY", report)
-        self.assertEqual(report["version"], "2.0.0-rc.8")
+        self.assertEqual(report["version"], "2.0.0-rc.10")
         self.assertEqual(report["readiness"]["scope"], "PACKAGE_CAPABILITY_ONLY")
         self.assertEqual(report["readiness"]["automation_v1"], "PACKAGE_CAPABILITY_ONLY")
         self.assertEqual(report["readiness"]["approved_testware"], "NOT_EVALUATED")
@@ -54,7 +54,7 @@ class TestKitPackagingTests(unittest.TestCase):
     def test_test_manifest_resolves_explicit_runtime_only_closure(self):
         manifest = ba_kit.load_manifest(ROOT, "test")
         self.assertEqual(manifest["id"], "test")
-        self.assertEqual(manifest["version"], "2.0.0-rc.8")
+        self.assertEqual(manifest["version"], "2.0.0-rc.10")
         self.assertEqual(manifest["capabilities"]["core"], "required")
         self.assertEqual(manifest["capabilities"]["execution_vnext"], "required")
         self.assertEqual(manifest["capabilities"]["xmind_projection"], "optional")
