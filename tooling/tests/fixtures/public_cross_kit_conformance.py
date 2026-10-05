@@ -784,6 +784,8 @@ def manual_automation_execution_stage(args):
     if not stale_test_receipt_rejected:
         raise AssertionError("Automation accepted stale Test Gate receipt bytes")
 
+    testware_path = case_run / "approved-testware-vnext.json"
+    testware_hash_before = hashlib.sha256(testware_path.read_bytes()).hexdigest()
     before_app_sha = git(app_root, "rev-parse", "HEAD")
     before_automation_sha = git(automation_root, "rev-parse", "HEAD")
     auto_runtime = new_automation("phase9-automation")
@@ -809,7 +811,7 @@ def manual_automation_execution_stage(args):
         "assert is_available('occupied') is False, 'occupied slot was reported available'",
         "",
     ))
-    planned_state = auto_runtime.plan({
+    automation_plan_spec = {
         "TC-001": {
             "suite": "reservation-availability", "planned_paths": ["tests/test_reservation.py"],
             "runner": "project-native",
@@ -818,7 +820,8 @@ def manual_automation_execution_stage(args):
                 "python", "-I", "-m", "py_compile", "tests/test_reservation.py",
             ]}],
         },
-    })
+    }
+    planned_state = auto_runtime.plan(automation_plan_spec)
     plan = read_ref(root, planned_state["plan_ref"])
     aut_item = next(row for row in plan["items"] if "TC-001" in row["testcase_refs"])
     implementation_ready = auto_runtime.begin_implementation()
@@ -890,14 +893,50 @@ def manual_automation_execution_stage(args):
             return {"authenticated": True, "actor_id": actor, "role": "TESTER"}
         return None
 
-    def new_execution(execution_id):
+    def new_execution(execution_id, automation_run_id="phase9-automation"):
         return execution_module.ExecutionRuntime(
-            root, root / ".test-kit/automation/runs/phase9-automation", execution_id,
+            root, root / ".test-kit/automation/runs" / automation_run_id, execution_id,
             tester_authenticator=tester_auth, human_actor_authenticator=test_human,
             ba_human_actor_authenticator=ba_auth, foundation_authenticator=foundation_auth,
             repository_roots=repo_roots,
             test_only_authority_authenticator=test_only_authority_authenticator,
         )
+
+    def prepare_straight_automation(dev_ready_handoff):
+        runtime = new_automation("phase9-straight-automation")
+        runtime.start(case_run)
+        runtime.analyze_suitability(assessment_rows)
+        planned = runtime.plan(automation_plan_spec)
+        plan = read_ref(root, planned["plan_ref"])
+        item = next(row for row in plan["items"] if "TC-001" in row["testcase_refs"])
+        implementation_ready = runtime.begin_implementation()
+        runtime.write_source(
+            item["aut_id"], automation_repo["id"], "tests/test_reservation.py",
+            automation_source + "# Rebound to the exact fixed Dev revision.\n",
+            base_revision=implementation_ready["implementation_base_revision"],
+        )
+        git(automation_root, "add", "tests/test_reservation.py")
+        git(automation_root, "commit", "--quiet", "-m", "Rebind automation to fixed application revision")
+        runtime.record_implementation()
+        runtime.record_review({
+            "reviewer": "TEST_ONLY-straight-pass-reviewer",
+            "checks": {name: True for name in automation_module.REVIEW_CHECKS}, "findings": [],
+        })
+        runtime.verify()
+        verification = read_ref(root, runtime.status()["verification_ref"])
+        if verification.get("status") != "PASS" or verification.get("product_execution") != "NOT_RUN":
+            raise AssertionError("straight-pass Automation V1 verification must PASS without a product result")
+        ready = runtime.finalize(dev_ready_handoff)
+        if ready.get("lifecycle") != "EXECUTION_READY" or not ready.get("handoff_ref"):
+            raise AssertionError("straight-pass Automation V1 did not publish EXECUTION_READY")
+        handoff = runtime.revalidate_handoff()
+        dev_ready = read_json(dev_ready_handoff)
+        if handoff.get("application_revisions") != dev_ready.get("repository_revisions"):
+            raise AssertionError("straight-pass EXECUTION_READY does not bind the exact fixed Dev revision")
+        revision = git(automation_root, "rev-parse", "HEAD")
+        if runtime.status()["implementation"]["repository_revision"] != revision:
+            raise AssertionError("straight-pass EXECUTION_READY does not bind the exact automation revision")
+        return item, revision
 
     environment = {
         "schema_version": 1, "artifact_class": "CANONICAL", "environment_id": "local-test-only",
@@ -1012,15 +1051,19 @@ def manual_automation_execution_stage(args):
     if verified_retest.get("state") != "VERIFIED":
         raise AssertionError("verified defect cycle did not revalidate")
 
-    straight_execution = new_execution("phase9-straight-execution")
+    straight_item, straight_automation_sha = prepare_straight_automation(fix_handoff_path)
+    straight_execution = new_execution(
+        "phase9-straight-execution", automation_run_id="phase9-straight-automation",
+    )
     straight_execution.start(environment)
     straight_state = straight_execution.execute_automated()
-    straight_command_ref = straight_state["command_evidence_refs"][aut_id]
+    straight_aut_id = straight_item["aut_id"]
+    straight_command_ref = straight_state["command_evidence_refs"][straight_aut_id]
     straight_command = read_ref(root, straight_command_ref)
     if straight_command.get("status") != "COMMAND_PASS":
         raise AssertionError("straight-pass scenario did not execute cleanly")
     straight_execution.record_observation(
-        testcase_id="TC-001", aut_id=aut_id, outcome="PASS",
+        testcase_id="TC-001", aut_id=straight_aut_id, outcome="PASS",
         actual_summary="The approved testcase result was observed on the clean fixed revision.",
         evidence_refs=[straight_command_ref], actor_id=tester_id,
     )
@@ -1029,20 +1072,21 @@ def manual_automation_execution_stage(args):
         raise AssertionError("straight clean execution did not reach Tester VERIFIED")
 
     app_sha_after = git(app_root, "rev-parse", "HEAD")
-    automation_sha_after = git(automation_root, "rev-parse", "HEAD")
-    if app_sha_after == app_sha or automation_sha_after != automation_sha:
-        raise AssertionError("separate application fix and immutable automation revisions were not preserved")
-    testware_hash_before = hashlib.sha256((case_run / "approved-testware-vnext.json").read_bytes()).hexdigest()
-    if hashlib.sha256((case_run / "approved-testware-vnext.json").read_bytes()).hexdigest() != testware_hash_before:
+    if (app_sha_after == app_sha or automation_sha == before_automation_sha
+            or straight_automation_sha == automation_sha
+            or git(automation_root, "rev-parse", "HEAD") != straight_automation_sha):
+        raise AssertionError("defect and straight-pass repository revisions were not preserved separately")
+    if hashlib.sha256(testware_path.read_bytes()).hexdigest() != testware_hash_before:
         raise AssertionError("Approved Testware oracle changed during the defect fix")
 
     revision_reproduction = {}
-    for repository_id, repo_path, expected_sha in (
-        ("docs", root / "project-docs", git(root / "project-docs", "rev-parse", "HEAD")),
-        (app_repo["id"], app_root, app_sha_after),
-        (automation_repo["id"], automation_root, automation_sha_after),
+    for label, repository_id, repo_path, expected_sha in (
+        ("docs", "docs", root / "project-docs", git(root / "project-docs", "rev-parse", "HEAD")),
+        ("application", app_repo["id"], app_root, app_sha_after),
+        ("automation_defect_path", automation_repo["id"], automation_root, automation_sha),
+        ("automation_straight_pass", automation_repo["id"], automation_root, straight_automation_sha),
     ):
-        clone = Path(args.external_cwd) / "revision-checkouts" / repository_id
+        clone = Path(args.external_cwd) / "revision-checkouts" / label
         clone.parent.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(["git", "clone", "--local", "--no-hardlinks", "--no-checkout", str(repo_path), str(clone)],
                                 cwd=args.external_cwd, capture_output=True, text=True)
@@ -1051,7 +1095,9 @@ def manual_automation_execution_stage(args):
         git(clone, "checkout", "--detach", expected_sha)
         if git(clone, "rev-parse", "HEAD") != expected_sha or git(clone, "status", "--porcelain"):
             raise AssertionError(f"clean clone could not reproduce exact {repository_id} revision")
-        revision_reproduction[repository_id] = {"sha": expected_sha, "clean_checkout": True}
+        revision_reproduction[label] = {
+            "repository_id": repository_id, "sha": expected_sha, "clean_checkout": True,
+        }
 
     foundation_manifest = read_json(root / "project-docs/foundation/R1.json")
     trace = {
@@ -1063,13 +1109,18 @@ def manual_automation_execution_stage(args):
         "testcase_ids": [row.test_case_id for row in case_snapshot.records],
         "aut_ids": [row["aut_id"] for row in plan["items"]],
         "automation_path": (Path(automation_repo["path"]) / "tests/test_reservation.py").as_posix(),
-        "automation_repository_id": automation_repo["id"], "automation_sha": automation_sha_after,
-        "command_evidence": failed_command_ref,
+        "automation_repository_id": automation_repo["id"], "automation_sha": automation_sha,
+        "straight_pass_automation_sha": straight_automation_sha,
+        "straight_pass_aut_ids": [straight_item["aut_id"]],
+        "failed_command_evidence": failed_command_ref,
         "finding_id": finding_id, "defect_id": defect_id,
         "dev_fix_sha": app_sha_after, "ready_for_retest": ready_for_retest["state"],
+        "retest_command_evidence": retest_command["command_evidence_ref"],
         "retest": "PASS", "verified": retest_result["state"],
+        "straight_pass_command_evidence": straight_command_ref,
         "straight_pass": straight_verified["state"],
-        "app_repository_id": app_repo["id"], "foundation_repo_id": "docs",
+        "app_repository_id": app_repo["id"], "app_sha": app_sha_after,
+        "foundation_repo_id": "docs",
         "ba_what_immutable": True,
     }
     if any(str(value).startswith("BAREF:") for value in trace["br_ids"] + trace["fr_ids"]):

@@ -85,6 +85,11 @@ class PublicConformanceContractTests(unittest.TestCase):
         modules = {module for group in public_conformance.TIER_A.values() for module in group}
         self.assertNotIn("tooling.tests.test_sdlc_acceptance", modules)
 
+    def test_full_discovery_uses_the_tests_directory_as_unittest_top_level(self):
+        code = public_conformance._unittest_code(ROOT, discover=True)
+        self.assertIn("loader.discover(str(root / 'tooling/tests'), pattern='test_*.py')", code)
+        self.assertNotIn("top_level_dir=str(root)", code)
+
     def test_negative_probe_contract_requires_every_probe_to_pass(self):
         passed = {name: True for name in public_conformance.REQUIRED_NEGATIVE_PROBES}
         self.assertEqual(public_conformance.negative_probe_issues(passed), [])

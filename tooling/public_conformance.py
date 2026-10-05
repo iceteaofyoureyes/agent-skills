@@ -145,7 +145,7 @@ def checkout_exact_clone(clone: Path, candidate_sha: str, *, cwd: Path, env: dic
 
 def _unittest_code(root: Path, modules=(), *, discover=False):
     module_names = repr(tuple(modules))
-    discovery = "suite = loader.discover(str(root / 'tooling/tests'), pattern='test_*.py', top_level_dir=str(root))" if discover else (
+    discovery = "suite = loader.discover(str(root / 'tooling/tests'), pattern='test_*.py')" if discover else (
         "suite = unittest.TestSuite()\nfor name in modules:\n    suite.addTests(loader.loadTestsFromName(name))"
     )
     return (
