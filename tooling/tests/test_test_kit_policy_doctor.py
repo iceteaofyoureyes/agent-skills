@@ -52,6 +52,8 @@ class ProjectPolicyDoctorTests(unittest.TestCase):
         self.assertEqual(report["status"], "READY", report)
         self.assertEqual(report["project_policy"]["status"], "NO_PROJECT_POLICY")
         self.assertIn(("NO_PROJECT_POLICY", True, "project_policy", ""), report["checks"])
+        self.assertEqual(report["readiness"]["automation_v1"], "PACKAGE_CAPABILITY_ONLY")
+        self.assertEqual(report["readiness"]["execution_ready"], "NOT_EVALUATED")
 
     def test_valid_policy_passes_and_conventional_target_infers_project(self):
         self._bootstrap()

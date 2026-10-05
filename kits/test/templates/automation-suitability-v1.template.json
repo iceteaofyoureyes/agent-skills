@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "artifact_class": "CANONICAL",
+  "feature_id": "<FEATURE_ID>",
+  "revision": "1",
+  "approved_testware_ref": {
+    "id": "<FEATURE_ID>:APPROVED_TESTWARE",
+    "revision": "<TESTCASE_REVISION>",
+    "sha256": "<EXACT_SHA256>",
+    "path": ".test-kit/runs/<FEATURE_ID>/approved-testware-vnext.json"
+  },
+  "rows": []
+}

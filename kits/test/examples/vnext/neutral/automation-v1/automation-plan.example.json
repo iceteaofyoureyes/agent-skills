@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "artifact_class": "CANONICAL",
+  "feature_id": "EXAMPLE-1",
+  "revision": "1",
+  "suitability_ref": {
+    "id": "EXAMPLE-1:AUTOMATION_SUITABILITY",
+    "revision": "1",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "repository_id": "automation",
+  "repository_role": "project_test_automation",
+  "repository_path": "automation",
+  "repository_name": "example/automation",
+  "base_revision": null,
+  "items": [
+    {
+      "aut_id": "AUT-0001",
+      "testcase_refs": ["TC-EXAMPLE-001"],
+      "automation_class": "API",
+      "owner": "TEST_AUTOMATION",
+      "repository_id": "automation",
+      "suite": "api",
+      "planned_paths": ["tests/api/test_resource.py"],
+      "runner": "project-native",
+      "execution_command": ["python", "-m", "pytest", "tests/api/test_resource.py"],
+      "verification_commands": [
+        {"category": "TEST_DISCOVERY", "argv": ["python", "-m", "pytest", "tests/api/test_resource.py", "--collect-only"]}
+      ],
+      "dependencies": [],
+      "trace": {
+        "requirement_refs": ["BR-EXAMPLE-001", "FR-EXAMPLE-001"],
+        "test_design_refs": ["TD-EXAMPLE-001"],
+        "testcase_refs": ["TC-EXAMPLE-001"],
+        "aut_id": "AUT-0001"
+      }
+    }
+  ],
+  "dev_local_testcases": [],
+  "manual_testcases": [],
+  "blocked_testcases": []
+}

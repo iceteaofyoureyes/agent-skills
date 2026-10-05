@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.invalid/kits/test/automation-review-v1.schema.json",
+  "title": "Automation Review V1",
+  "description": "Consolidated review evidence for Automation V1 implementation only.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "feature_id", "plan_revision", "automation_revision", "review_scope", "reviewer", "checks", "findings", "budget", "status", "recorded_at"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "artifact_class": {"const": "EVIDENCE"},
+    "feature_id": {"type": "string", "minLength": 1},
+    "plan_revision": {"type": "string", "minLength": 1},
+    "automation_revision": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"},
+    "review_scope": {"enum": ["CONSOLIDATED_FULL_REVIEW", "SCOPED_REREVIEW"]},
+    "reviewer": {"type": "string", "minLength": 1},
+    "checks": {"type": "object", "additionalProperties": false, "required": ["trace", "repository_ownership", "oracle_duplication", "fixtures", "secrets", "setup_cleanup", "flakiness", "selectors_interfaces", "dependencies", "project_conventions", "write_scope"], "properties": {"trace": {"type": "boolean"}, "repository_ownership": {"type": "boolean"}, "oracle_duplication": {"type": "boolean"}, "fixtures": {"type": "boolean"}, "secrets": {"type": "boolean"}, "setup_cleanup": {"type": "boolean"}, "flakiness": {"type": "boolean"}, "selectors_interfaces": {"type": "boolean"}, "dependencies": {"type": "boolean"}, "project_conventions": {"type": "boolean"}, "write_scope": {"type": "boolean"}}},
+    "findings": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["code", "blocking", "route"], "properties": {"code": {"type": "string", "minLength": 1}, "blocking": {"type": "boolean"}, "route": {"enum": ["FIX", "UPSTREAM", "DEV", "NONE"]}}}},
+    "budget": {"type": "object", "additionalProperties": false, "required": ["full_reviews", "blocking_fix_waves", "scoped_rereviews"], "properties": {"full_reviews": {"type": "integer", "minimum": 0, "maximum": 1}, "blocking_fix_waves": {"type": "integer", "minimum": 0, "maximum": 1}, "scoped_rereviews": {"type": "integer", "minimum": 0, "maximum": 1}}},
+    "status": {"enum": ["PASS", "BLOCKED"]},
+    "recorded_at": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"}
+  }
+}

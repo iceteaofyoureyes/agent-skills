@@ -1,9 +1,11 @@
 schema_version: 1
 kit: test
-contract: Test Kit Manual VNext / Phase 6
+contract: Test Kit Manual VNext + Test Automation V1 / Phase 7
 completion_guard:
   tier_3_fresh_installed_runtime_required: true
   tier_1_or_tier_2_can_mark_phase_6_complete: false
+  tier_4_fresh_installed_automation_v1_required: true
+  tier_1_to_tier_3_can_mark_phase_7_complete: false
 tiers:
   tier_1_deterministic:
     run_for_each_test_change: true
@@ -28,6 +30,10 @@ tiers:
       - python -m unittest tooling.tests.test_sdlc_acceptance -v
       - python -m unittest discover -s tooling/tests -p "test_*.py"
       - python -m unittest tooling.tests.test_test_kit_vnext_installed_acceptance -v
+      - python -m unittest tooling.tests.test_test_automation_v1 -v
+      - python -m unittest tooling.tests.test_test_automation_v1_schemas -v
+      - python -m unittest tooling.tests.test_test_automation_v1_acceptance -v
+      - python -m unittest tooling.tests.test_test_automation_v1_installed_acceptance -v
       - git diff --check
   tier_2_focused_runtime:
     cases:
@@ -45,6 +51,14 @@ tiers:
       - Approved Testware VNext HANDOFF_MANIFEST binds exact refs and APPROVED_TESTWARE is terminal for Phase 6
       - Delivery Manifest is not required or authoritative; V1 is LEGACY_COMPAT with vnext_authority=false
       - Doctor READY means package/capability readiness only; optional projections may be DEGRADED
+      - Automation Suitability accounts for every exact Approved Testcase once and rejects BAREF
+      - AUT identity, BR/FR to TD to TC trace, argv commands and Plan revisions remain exact
+      - Test Automation repository resolves only through project policy plus topology
+      - Application repositories reject Test Automation writes; UNIT/COMPONENT bind Dev-local evidence
+      - MANUAL_ONLY remains valid; required BLOCKED and required OPEN dependencies prevent EXECUTION_READY
+      - Replan creates a new Plan revision and clears stale implementation/review/verification evidence
+      - Automation Verification never executes the stored product command or real SUT
+      - EXECUTION_READY binds exact Dev READY_FOR_TEST, app revisions and automation revision
     isolated_ephemeral_session_per_probe: true
     bounded_timeout_seconds: 120
     optional_review_service_required: false
@@ -63,11 +77,33 @@ tiers:
       BR/FR-only trace and exact hashes; prove no BAREF and no execution or VERIFIED claim; run Doctor
       again; inspect V1 as LEGACY_COMPAT; and exercise explicit UX-required and optional-context cases.
     required_for_phase_6_completion: true
+  tier_4_fresh_installed_automation_v1:
+    run_for_phase_7_completion: true
+    requires_external_working_directory: true
+    python_isolated_mode_required: true
+    pythonpath_must_be_absent: true
+    installed_runtime_imports_only: true
+    no_internet_browser_external_database_or_real_sut: true
+    flow: >-
+      Install Test Kit into a clean synthetic multi-repository project; run Doctor; use python -I from
+      an external directory with PYTHONPATH absent; import Automation V1 from the installed Test
+      package; revalidate exact synthetic Approved Testware VNext; create Suitability and Plan;
+      prove API automation and framework-agnostic E2E planning; prove UNIT/COMPONENT use exact
+      Dev-local evidence and app repositories reject writes; account for MANUAL_ONLY; block required
+      BLOCKED and OPEN dependencies; perform a scoped automation write, consolidated review and
+      automation-only verification; bind the exact Dev READY_FOR_TEST handoff and app revisions;
+      create and revalidate EXECUTION_READY; run Doctor again; confirm no execution claim.
+    required_for_phase_7_completion: true
 automated:
   - command: python -m unittest tooling.tests.test_test_kit_vnext_installed_acceptance -v
     proves: >-
       Fresh Test Kit install, isolated installed runtime, full Design and Case Human Gates,
       explicit UX authority behavior, exact Approved Testware VNext manifest and V1 compatibility.
+  - command: python -m unittest tooling.tests.test_test_automation_v1_installed_acceptance -v
+    proves: >-
+      Fresh isolated installed Test package Automation V1 intake, exact VNext authority revalidation,
+      synthetic multi-repository API/E2E planning, read-only app boundary, review, automation-only
+      verification, exact Dev READY_FOR_TEST binding and durable EXECUTION_READY revalidation.
 manual:
   - case: fresh project install without optional projection dependencies
     expected: core VNext remains usable; Doctor reports optional projection gaps as DEGRADED
@@ -75,3 +111,5 @@ manual:
     expected: a real BA Engineering Handoff and two authenticated Human Gate decisions are required
   - case: uninstall Test Kit after local project edits
     expected: only unchanged files owned by the Test package are removed; edits and unrelated files remain
+  - case: test automation verification
+    expected: verification checks only automation artifacts and does not execute a real SUT

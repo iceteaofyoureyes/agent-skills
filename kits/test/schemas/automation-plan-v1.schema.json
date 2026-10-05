@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-skills.invalid/kits/test/automation-plan-v1.schema.json",
+  "title": "Automation Plan V1",
+  "description": "Technical automation HOW bound to exact Suitability, repository identity and argv commands.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "feature_id", "revision", "suitability_ref", "repository_id", "repository_role", "repository_path", "repository_name", "base_revision", "items", "dev_local_testcases", "manual_testcases", "blocked_testcases"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "artifact_class": {"const": "CANONICAL"},
+    "feature_id": {"$ref": "#/$defs/id"},
+    "revision": {"$ref": "#/$defs/id"},
+    "suitability_ref": {"$ref": "#/$defs/ref"},
+    "repository_id": {"$ref": "#/$defs/id"},
+    "repository_role": {"type": "string"},
+    "repository_path": {"type": "string"},
+    "repository_name": {"type": "string"},
+    "base_revision": {"type": ["string", "null"], "pattern": "^[a-f0-9]{40,64}$"},
+    "items": {"type": "array", "items": {"$ref": "#/$defs/item"}},
+    "dev_local_testcases": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true},
+    "manual_testcases": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true},
+    "blocked_testcases": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "ref": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"$ref": "#/$defs/id"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "dependency": {"type": "object", "additionalProperties": false, "required": ["id", "kind", "status", "required", "resolution_ref"], "properties": {"id": {"type": "string", "minLength": 1}, "kind": {"enum": ["SEMANTIC_ORACLE", "ENVIRONMENT_ACCESS", "TEST_DATA_FIXTURE", "IMPLEMENTATION_LOCATOR", "TOOLING", "OBSERVABILITY"]}, "status": {"enum": ["OPEN", "RESOLVED", "NOT_REQUIRED"]}, "required": {"type": "boolean"}, "resolution_ref": {"type": ["string", "null"]}}},
+    "argv": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "verification": {"type": "object", "additionalProperties": false, "required": ["category", "argv"], "properties": {"category": {"enum": ["SYNTAX", "STATIC", "LINT", "TYPECHECK", "TEST_DISCOVERY", "TEST_LIST", "CONFIG_VALIDATE", "HARNESS_SELF_TEST", "FIXTURE_VALIDATE"]}, "argv": {"$ref": "#/$defs/argv"}}},
+    "trace": {"type": "object", "additionalProperties": false, "required": ["requirement_refs", "test_design_refs", "testcase_refs", "aut_id"], "properties": {"requirement_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^(BR|FR)-[A-Za-z0-9._-]+$"}, "uniqueItems": true}, "test_design_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^TD-"}, "uniqueItems": true}, "testcase_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/id"}}, "aut_id": {"type": "string", "pattern": "^AUT-"}}},
+    "item": {
+      "type": "object", "additionalProperties": false,
+      "required": ["aut_id", "testcase_refs", "automation_class", "owner", "repository_id", "suite", "planned_paths", "runner", "execution_command", "verification_commands", "dependencies", "trace"],
+      "properties": {
+        "aut_id": {"type": "string", "pattern": "^AUT-[A-Za-z0-9][A-Za-z0-9._-]*$"},
+        "testcase_refs": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"$ref": "#/$defs/id"}},
+        "automation_class": {"enum": ["CONTRACT", "DB_RUNTIME", "API", "INTEGRATION", "E2E", "ACCESSIBILITY", "SYSTEM"]},
+        "owner": {"const": "TEST_AUTOMATION"},
+        "repository_id": {"$ref": "#/$defs/id"},
+        "suite": {"type": "string", "minLength": 1},
+        "planned_paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "runner": {"type": "string", "minLength": 1},
+        "execution_command": {"$ref": "#/$defs/argv"},
+        "verification_commands": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/verification"}},
+        "dependencies": {"type": "array", "items": {"$ref": "#/$defs/dependency"}},
+        "trace": {"$ref": "#/$defs/trace"},
+        "technical_rationale": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

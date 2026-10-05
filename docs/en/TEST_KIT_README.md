@@ -34,4 +34,4 @@ Doctor `READY` means package/core capability ready. It does not evaluate BA appr
 - V1 is readable only as `LEGACY_COMPAT` with `vnext_authority=false`.
 - Delivery Manifest is `DEFERRED_NON_AUTHORITATIVE` and not required for Test VNext.
 
-Automation planning and execution lifecycle work begin in Phase 7+. See [release status](../vi/RELEASE.md).
+Test Automation V1 adds the Phase 7 technical flow from exact `APPROVED_TESTWARE` to `EXECUTION_READY`; it does not run the product under test. See the [Automation V1 guide](TEST_AUTOMATION_V1.md), [neutral example](../../kits/test/examples/vnext/neutral/automation-v1/README.md), and [release status](RELEASE.md).

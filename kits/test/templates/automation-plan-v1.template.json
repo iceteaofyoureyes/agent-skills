@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "artifact_class": "CANONICAL",
+  "feature_id": "<FEATURE_ID>",
+  "revision": "1",
+  "suitability_ref": {
+    "id": "<FEATURE_ID>:AUTOMATION_SUITABILITY",
+    "revision": "1",
+    "sha256": "<EXACT_SHA256>"
+  },
+  "repository_id": "<TOPOLOGY_REPOSITORY_ID>",
+  "repository_role": "<POLICY_DECLARED_ROLE>",
+  "repository_path": "<RELATIVE_TOPOLOGY_PATH>",
+  "repository_name": "<OWNER/REPOSITORY>",
+  "base_revision": null,
+  "items": [],
+  "dev_local_testcases": [],
+  "manual_testcases": [],
+  "blocked_testcases": []
+}

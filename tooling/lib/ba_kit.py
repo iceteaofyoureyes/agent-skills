@@ -1000,9 +1000,12 @@ def _with_project_policy(report, target_dir, kit_id, project_root):
         return report
     report["readiness"] = {
         "scope": "PACKAGE_CAPABILITY_ONLY",
+        "automation_v1": "PACKAGE_CAPABILITY_ONLY",
         "project_approval": "NOT_EVALUATED",
         "approved_design": "NOT_EVALUATED",
         "approved_testware": "NOT_EVALUATED",
+        "ready_for_test": "NOT_EVALUATED",
+        "execution_ready": "NOT_EVALUATED",
         "execution": "NOT_EVALUATED",
     }
     target = Path(target_dir).resolve()
@@ -1112,7 +1115,6 @@ def _doctor_test_vnext(target_dir):
     if failures:
         return False, "; ".join(failures)
 
-    scripts = runtime / "ba-workflow" / "scripts"
     probe = "\n".join((
         "import importlib, pathlib, sys",
         "runtime=pathlib.Path(sys.argv[1]).resolve()",
@@ -1134,6 +1136,61 @@ def _doctor_test_vnext(target_dir):
     if result.returncode:
         return False, "isolated installed VNext import failed: " + (result.stderr.strip() or result.stdout.strip())
     return True, "isolated imports resolve from the installed Test package"
+
+
+def _doctor_test_automation_v1(target_dir):
+    """Check installed Automation V1 package closure without evaluating runtime authority."""
+    target_dir = Path(target_dir).resolve()
+    runtime = target_dir / ".test-kit"
+    required = (
+        "tooling/lib/test_automation_v1.py",
+        "tooling/lib/test_kit_vnext.py",
+        "tooling/lib/dev_vnext.py",
+        "shared/sdlc/policy/contract.py",
+        "shared/sdlc/topology/contract.py",
+        "schemas/automation-suitability-v1.schema.json",
+        "schemas/automation-plan-v1.schema.json",
+        "schemas/automation-review-v1.schema.json",
+        "schemas/automation-verification-v1.schema.json",
+        "schemas/execution-ready-v1-handoff.schema.json",
+        "templates/automation-suitability-v1.template.json",
+        "templates/automation-plan-v1.template.json",
+        "docs/vi/TEST_AUTOMATION_V1.md",
+        "docs/en/TEST_AUTOMATION_V1.md",
+        "examples/vnext/neutral/automation-v1/README.md",
+        "examples/vnext/neutral/automation-v1/automation-suitability.example.json",
+        "examples/vnext/neutral/automation-v1/automation-plan.example.json",
+        "acceptance.yaml",
+    )
+    failures = [f"missing or unsafe: .test-kit/{relative}" for relative in required
+                if not (runtime / relative).is_file() or (runtime / relative).is_symlink()]
+    skill = target_dir / "test-automation-v1/SKILL.md"
+    if not skill.is_file() or skill.is_symlink():
+        failures.append("missing or unsafe required skill: test-automation-v1/SKILL.md")
+    if failures:
+        return False, "; ".join(failures)
+
+    scripts = runtime / "ba-workflow" / "scripts"
+    probe = "\n".join((
+        "import importlib, pathlib, sys",
+        "runtime=pathlib.Path(sys.argv[1]).resolve()",
+        "sys.path[:0]=[str(runtime),str(runtime/'ba-workflow'/'scripts')]",
+        "names=('tooling.lib.test_automation_v1','tooling.lib.test_kit_vnext','tooling.lib.dev_vnext','tooling.lib.gate_persistence','shared.sdlc.policy.contract','shared.sdlc.topology.contract')",
+        "modules={name:importlib.import_module(name) for name in names}",
+        "assert all(pathlib.Path(module.__file__).resolve().is_relative_to(runtime) for module in modules.values()), {name:module.__file__ for name,module in modules.items()}",
+    ))
+    env = os.environ.copy()
+    env.pop("PYTHONPATH", None)
+    try:
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", probe, str(runtime)],
+            cwd=tempfile.gettempdir(), env=env, capture_output=True, text=True, timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return False, f"isolated installed Automation V1 import failed: {error}"
+    if result.returncode:
+        return False, "isolated installed Automation V1 import failed: " + (result.stderr.strip() or result.stdout.strip())
+    return True, "Automation V1 package capability imports resolve from the installed Test package"
 
 
 def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
@@ -1328,6 +1385,9 @@ def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
         if integrity:
             test_vnext_ok, test_vnext_detail = _doctor_test_vnext(target_dir)
             checks.append(("Test VNext installed capability", test_vnext_ok, "contract", test_vnext_detail))
+        if manifest.get("capabilities", {}).get("automation_v1") == "required":
+            automation_ok, automation_detail = _doctor_test_automation_v1(target_dir)
+            checks.append(("Test Automation V1 installed capability", automation_ok, "contract", automation_detail))
 
     checks.extend(_dependency_checks(manifest, target_dir))
 
