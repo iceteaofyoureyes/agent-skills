@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "artifact_class": "CANONICAL",
+  "execution_id": "EXEC-EXAMPLE-1",
+  "feature_id": "FEATURE-EXAMPLE-1",
+  "execution_ready_ref": {"id": "FEATURE-EXAMPLE-1:EXECUTION_READY", "revision": "1", "sha256": "<exact-sha256>", "path": ".test-kit/automation/runs/<run-id>/canonical/execution-ready-handoff-v1.json"},
+  "environment_ref": {"id": "ENV-EXAMPLE-1:ENVIRONMENT", "revision": "1", "sha256": "<exact-sha256>", "path": ".test-kit/execution/runs/EXEC-EXAMPLE-1/canonical/environment-v1.json"},
+  "approved_testware_ref": {"id": "TESTWARE-EXAMPLE-1", "revision": "1", "sha256": "<exact-sha256>", "path": ".test-kit/runs/FEATURE-EXAMPLE-1/approved-testware-vnext.json"},
+  "automation_plan_ref": {"id": "FEATURE-EXAMPLE-1:AUTOMATION_PLAN", "revision": "1", "sha256": "<exact-sha256>", "path": ".test-kit/automation/runs/<run-id>/canonical/automation-plan-v1-r1.json"},
+  "application_revisions": {"application-core": "<exact-commit-sha>"},
+  "automation_repository": {"id": "quality", "role": "TEST_AUTOMATION", "repository": "example/quality", "path": "quality"},
+  "automation_revision": "<exact-commit-sha>",
+  "automated_items": [{"aut_id": "AUT-0001", "testcase_refs": ["TC-001"]}],
+  "manual_testcases": [],
+  "dev_local_references": [],
+  "optional_blocked_testcases": [],
+  "created_at": "<utc-timestamp>"
+}

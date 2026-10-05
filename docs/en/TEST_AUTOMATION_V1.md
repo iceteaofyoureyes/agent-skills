@@ -28,4 +28,4 @@ Review, verification and `EXECUTION_READY` bind that same clean committed HEAD. 
 
 Verification covers automation structure/runnability only. It must not execute the stored product execution command or a real SUT. Its `PASS` does not claim API/E2E/SYSTEM/feature PASS, WCAG conformance or `VERIFIED`.
 
-Final readiness requires the exact current Dev Handoff V2 `READY_FOR_TEST`, exact application and automation revisions, resolved required dependencies, exact local references, a passing review, passing automation verification and no scope drift. Phase 7 ends at `EXECUTION_READY`; product execution and defect/retest outcomes are later work.
+Final readiness requires the exact current Dev Handoff V2 `READY_FOR_TEST`, exact application and automation revisions, resolved required dependencies, exact local references, a passing review, passing automation verification and no scope drift. Phase 7 ends at `EXECUTION_READY`. Continue with [Test Execution VNext](TEST_EXECUTION_VNEXT.md) for product execution, Findings, Defect fixes, retest and Tester-owned `VERIFIED`.

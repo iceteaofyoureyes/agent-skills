@@ -21,7 +21,7 @@ Test Kit supports project-scope installation and requires Python 3.10+. TEA and 
 & '<path-to-agent-skills>\tooling\doctor.ps1' test --agent codex --scope project
 ```
 
-Doctor `READY` means package/core capability ready. It does not evaluate BA approval, `APPROVED_DESIGN`, `APPROVED_TESTWARE`, execution, or verification. Optional dependency gaps report `DEGRADED`; required package or integrity failures report `FAIL`.
+Doctor `READY` means package/capability readiness only. It does not evaluate BA approval, `APPROVED_DESIGN`, `APPROVED_TESTWARE`, `EXECUTION_READY`, execution results, Findings, retest or verification. Optional dependency gaps report `DEGRADED`; required package or integrity failures report `FAIL`.
 
 ## Authority boundaries
 
@@ -34,4 +34,4 @@ Doctor `READY` means package/core capability ready. It does not evaluate BA appr
 - V1 is readable only as `LEGACY_COMPAT` with `vnext_authority=false`.
 - Delivery Manifest is `DEFERRED_NON_AUTHORITATIVE` and not required for Test VNext.
 
-Test Automation V1 adds the Phase 7 technical flow from exact `APPROVED_TESTWARE` to `EXECUTION_READY`; it does not run the product under test. See the [Automation V1 guide](TEST_AUTOMATION_V1.md), [neutral example](../../kits/test/examples/vnext/neutral/automation-v1/README.md), and [release status](RELEASE.md).
+Test Automation V1 adds the Phase 7 technical flow from exact `APPROVED_TESTWARE` to `EXECUTION_READY`. Test Execution VNext continues with exact-revision product execution, Tester Finding classification, Dev VNext fix acceptance, retest, and Tester-owned `VERIFIED`. See the [Automation V1 guide](TEST_AUTOMATION_V1.md), [Execution VNext guide](TEST_EXECUTION_VNEXT.md), [neutral execution example](../../kits/test/examples/vnext/neutral/execution-defect-retest/README.md), and [release status](RELEASE.md).

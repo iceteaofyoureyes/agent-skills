@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Test Finding V1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "finding_id", "feature_id", "execution_id", "testcase_id", "observation_ref", "oracle_ref", "execution_manifest_ref", "execution_ready_ref", "application_revisions", "automation_revision", "environment_ref", "status"],
+  "properties": {
+    "schema_version": {"const": 1}, "artifact_class": {"const": "CANONICAL"},
+    "finding_id": {"type": "string", "minLength": 1}, "feature_id": {"type": "string", "minLength": 1},
+    "execution_id": {"type": "string", "minLength": 1}, "testcase_id": {"type": "string", "minLength": 1}, "aut_id": {"type": "string", "minLength": 1},
+    "observation_ref": {"$ref": "#/$defs/ref"}, "oracle_ref": {"$ref": "#/$defs/oracle_ref"},
+    "execution_manifest_ref": {"$ref": "#/$defs/ref"}, "execution_ready_ref": {"$ref": "#/$defs/ref"},
+    "application_revisions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"}},
+    "automation_revision": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"},
+    "environment_ref": {"$ref": "#/$defs/ref"}, "status": {"const": "OPEN"}
+  },
+  "$defs": {
+    "ref": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256", "path"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "path": {"type": "string", "minLength": 1}}},
+    "oracle_ref": {"type": "object", "additionalProperties": false, "required": ["artifact_id", "revision", "sha256", "path"], "properties": {"artifact_id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "path": {"type": "string", "minLength": 1}}}
+  }
+}

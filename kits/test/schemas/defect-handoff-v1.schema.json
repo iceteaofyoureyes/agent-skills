@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Defect Handoff V1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "defect_id", "feature_id", "finding_ref", "classification_ref", "execution_manifest_ref", "execution_ready_ref", "approved_testware_ref", "testcase_ref", "oracle_ref", "observation_ref", "environment_ref", "original_dev_handoff_ref", "original_application_revisions", "automation_revision", "target_repository_ids", "verification_owner", "state"],
+  "properties": {
+    "schema_version": {"const": 1}, "artifact_class": {"const": "HANDOFF_MANIFEST"},
+    "defect_id": {"type": "string", "minLength": 1}, "feature_id": {"type": "string", "minLength": 1},
+    "finding_ref": {"$ref": "#/$defs/ref"}, "classification_ref": {"$ref": "#/$defs/ref"},
+    "execution_manifest_ref": {"$ref": "#/$defs/ref"}, "execution_ready_ref": {"$ref": "#/$defs/ref"},
+    "approved_testware_ref": {"$ref": "#/$defs/ref"}, "testcase_ref": {"$ref": "#/$defs/oracle_ref"}, "oracle_ref": {"$ref": "#/$defs/oracle_ref"},
+    "observation_ref": {"$ref": "#/$defs/ref"}, "environment_ref": {"$ref": "#/$defs/ref"}, "original_dev_handoff_ref": {"$ref": "#/$defs/ref"},
+    "original_application_revisions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"}},
+    "fix_base_application_revisions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"}},
+    "automation_revision": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"},
+    "target_repository_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "verification_owner": {"const": "TESTER"}, "state": {"const": "DEFECT_READY_FOR_DEV"},
+    "prior_reopened_ref": {"$ref": "#/$defs/ref"}, "reopen_observation_ref": {"$ref": "#/$defs/ref"}
+  },
+  "$defs": {
+    "ref": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256", "path"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "path": {"type": "string", "minLength": 1}}},
+    "oracle_ref": {"type": "object", "additionalProperties": false, "required": ["artifact_id", "revision", "sha256", "path"], "properties": {"artifact_id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "path": {"type": "string", "minLength": 1}}}
+  }
+}

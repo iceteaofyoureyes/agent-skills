@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Test Execution Environment V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "environment_id", "profile", "configuration_refs", "evidence_refs"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "artifact_class": {"const": "CANONICAL"},
+    "environment_id": {"type": "string", "minLength": 1},
+    "profile": {"type": "string", "minLength": 1},
+    "configuration_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+    "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}}
+  },
+  "$defs": {
+    "ref": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "revision", "sha256", "path"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "revision": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\).+$"}
+      }
+    }
+  }
+}

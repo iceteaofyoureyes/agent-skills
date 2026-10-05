@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Test Finding Classification V1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "finding_ref", "classification", "actor", "rationale", "evidence_refs", "route", "target_repository_ids", "classified_at"],
+  "properties": {
+    "schema_version": {"const": 1}, "artifact_class": {"const": "CANONICAL"},
+    "finding_ref": {"$ref": "#/$defs/ref"},
+    "classification": {"enum": ["DEFECT", "SPEC_GAP", "BUSINESS_DECISION_REQUIRED", "TEST_ISSUE", "ENVIRONMENT_ISSUE"]},
+    "actor": {"type": "object", "additionalProperties": false, "required": ["actor_id", "role"], "properties": {"actor_id": {"type": "string", "minLength": 1}, "role": {"const": "TESTER"}}},
+    "rationale": {"type": "string", "minLength": 1}, "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+    "route": {"enum": ["DEV", "UPSTREAM", "TEST", "ENVIRONMENT"]}, "target_repository_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "classified_at": {"type": "string", "format": "date-time"},
+    "defect_proof": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reproducible", "deterministic", "environment_root_cause_excluded", "test_issue_excluded", "mismatch_evidence_refs"],
+      "properties": {
+        "reproducible": {"const": true}, "deterministic": {"const": true},
+        "environment_root_cause_excluded": {"const": true}, "test_issue_excluded": {"const": true},
+        "mismatch_evidence_refs": {
+          "type": "array", "minItems": 1,
+          "items": {"$ref": "#/$defs/ref"}
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"classification": {"const": "DEFECT"}}, "required": ["classification"]},
+      "then": {
+        "required": ["defect_proof"],
+        "properties": {"route": {"const": "DEV"}, "target_repository_ids": {"minItems": 1}}
+      }
+    },
+    {
+      "if": {"properties": {"classification": {"const": "SPEC_GAP"}}, "required": ["classification"]},
+      "then": {
+        "properties": {"route": {"const": "UPSTREAM"}, "target_repository_ids": {"maxItems": 0}},
+        "not": {"required": ["defect_proof"]}
+      }
+    },
+    {
+      "if": {"properties": {"classification": {"const": "BUSINESS_DECISION_REQUIRED"}}, "required": ["classification"]},
+      "then": {
+        "properties": {"route": {"const": "UPSTREAM"}, "target_repository_ids": {"maxItems": 0}},
+        "not": {"required": ["defect_proof"]}
+      }
+    },
+    {
+      "if": {"properties": {"classification": {"const": "TEST_ISSUE"}}, "required": ["classification"]},
+      "then": {
+        "properties": {"route": {"const": "TEST"}, "target_repository_ids": {"maxItems": 0}},
+        "not": {"required": ["defect_proof"]}
+      }
+    },
+    {
+      "if": {"properties": {"classification": {"const": "ENVIRONMENT_ISSUE"}}, "required": ["classification"]},
+      "then": {
+        "properties": {"route": {"const": "ENVIRONMENT"}, "target_repository_ids": {"maxItems": 0}},
+        "not": {"required": ["defect_proof"]}
+      }
+    }
+  ],
+  "$defs": {"ref": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256", "path"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "path": {"type": "string", "minLength": 1}}}}
+}

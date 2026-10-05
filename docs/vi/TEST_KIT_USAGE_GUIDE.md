@@ -24,7 +24,7 @@ Nếu BA để UNKNOWN, giữ câu hỏi mở; không tự thêm expected result
 
 Human approve hoặc yêu cầu sửa đúng Case snapshot và refs. Khi approve, runtime tạo Approved Testware VNext `HANDOFF_MANIFEST` với Testcase collection, Approved Design, hai gate receipts, BA handoff/baseline, optional contexts và trace summary. Đọc lại manifest và kiểm tra các ref/hash trước handoff.
 
-`APPROVED_TESTWARE` là điểm kết thúc của manual lane. Không suy ra `EXECUTION_READY`, kết quả chạy test, `VERIFIED` hoặc merge readiness.
+`APPROVED_TESTWARE` là điểm kết thúc của manual lane. Không suy ra `EXECUTION_READY`, kết quả chạy test, `VERIFIED` hoặc merge readiness. Automation V1 tạo `EXECUTION_READY`; [Test Execution VNext](TEST_EXECUTION_VNEXT.md) tiếp tục bằng execution, Finding, Dev fix, retest và Tester-owned `VERIFIED`.
 
 ## 5. Tiếp tục run đã lưu
 

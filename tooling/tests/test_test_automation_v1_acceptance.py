@@ -189,12 +189,16 @@ class TestAutomationV1Acceptance(unittest.TestCase):
         )
         case_rows = []
         for index, title in enumerate(("Submit an API request", "Run a system flow", "Verify a source-local component", "Review a manual scenario"), 1):
+            expected_outcome = (
+                "The response has saved equal to the submitted payload and accepted equal to true."
+                if index == 1 else "The member receives the business outcome."
+            )
             case_rows.extend((
                 f"## TC-{index:03d} {title}",
                 "- Mô tả: Verify the approved request behavior.",
                 "- Tiền điều kiện: An eligible member exists.",
                 "- Bước và kết quả mong đợi:",
-                "  1. Submit a request. → The member receives the business outcome.",
+                f"  1. Submit a request. → {expected_outcome}",
                 "- Test Data: Synthetic member",
                 "- Priority: P1.",
                 f"- Trace: BR-001; FR-001; TD-{index:03d}",
@@ -236,7 +240,7 @@ class TestAutomationV1Acceptance(unittest.TestCase):
         self.assertIsNot(manifest.get("not_for_production"), True)
         return case_run
 
-    def _ready_for_test_handoff(self):
+    def _ready_for_test_handoff(self, handoff_path=None):
         evidence_dir = self.root / "app"
         coverage = [
             {
@@ -263,7 +267,7 @@ class TestAutomationV1Acceptance(unittest.TestCase):
         dev.ba.put("review.json", {"source": "exact consolidated Dev review"})
         dev.coverage = lambda: coverage
         handoff = dev.finish()
-        path = self.root / "dev-handoff-vnext.json"
+        path = Path(handoff_path) if handoff_path is not None else self.root / "dev-handoff-vnext.json"
         self._write_json(path, handoff)
         return path
 

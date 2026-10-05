@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tester Reopened Defect V1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "defect_id", "prior_defect_handoff_ref", "ready_for_retest_ref", "new_finding_ref", "new_observation_ref", "fixed_application_revisions", "automation_revision", "environment_ref", "reopen_count", "prior_reopen_ref", "state"],
+  "properties": {
+    "schema_version": {"const": 1}, "artifact_class": {"const": "CANONICAL"}, "defect_id": {"type": "string", "minLength": 1},
+    "prior_defect_handoff_ref": {"$ref": "#/$defs/ref"}, "ready_for_retest_ref": {"$ref": "#/$defs/ref"},
+    "new_finding_ref": {"$ref": "#/$defs/ref"}, "new_observation_ref": {"$ref": "#/$defs/ref"},
+    "fixed_application_revisions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"}},
+    "automation_revision": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"}, "environment_ref": {"$ref": "#/$defs/ref"},
+    "reopen_count": {"type": "integer", "minimum": 1}, "prior_reopen_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/ref"}]}, "state": {"const": "REOPENED"}
+  },
+  "$defs": {"ref": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256", "path"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "path": {"type": "string", "minLength": 1}}}}
+}

@@ -1006,6 +1006,7 @@ def _with_project_policy(report, target_dir, kit_id, project_root):
         "approved_testware": "NOT_EVALUATED",
         "ready_for_test": "NOT_EVALUATED",
         "execution_ready": "NOT_EVALUATED",
+        "execution_vnext": "PACKAGE_CAPABILITY_ONLY",
         "execution": "NOT_EVALUATED",
     }
     target = Path(target_dir).resolve()
@@ -1191,6 +1192,62 @@ def _doctor_test_automation_v1(target_dir):
     if result.returncode:
         return False, "isolated installed Automation V1 import failed: " + (result.stderr.strip() or result.stdout.strip())
     return True, "Automation V1 package capability imports resolve from the installed Test package"
+
+
+def _doctor_test_execution_vnext(target_dir):
+    """Check installed Phase 8 package closure only; never infer execution workflow status."""
+    target_dir = Path(target_dir).resolve()
+    runtime = target_dir / ".test-kit"
+    required = (
+        "tooling/lib/test_execution_vnext.py",
+        "tooling/lib/test_automation_v1.py",
+        "tooling/lib/test_kit_vnext.py",
+        "tooling/lib/dev_vnext.py",
+        "schemas/environment-v1.schema.json",
+        "schemas/execution-manifest-v1.schema.json",
+        "schemas/command-evidence-v1.schema.json",
+        "schemas/observation-v1.schema.json",
+        "schemas/finding-v1.schema.json",
+        "schemas/finding-classification-v1.schema.json",
+        "schemas/defect-handoff-v1.schema.json",
+        "schemas/ready-for-retest-v1.schema.json",
+        "schemas/verified-handoff-v1.schema.json",
+        "schemas/reopened-v1.schema.json",
+        "templates/environment-v1.template.json",
+        "templates/execution-manifest-v1.template.json",
+        "docs/vi/TEST_EXECUTION_VNEXT.md",
+        "docs/en/TEST_EXECUTION_VNEXT.md",
+        "examples/vnext/neutral/execution-defect-retest/README.md",
+        "acceptance.yaml",
+    )
+    failures = [f"missing or unsafe: .test-kit/{relative}" for relative in required
+                if not (runtime / relative).is_file() or (runtime / relative).is_symlink()]
+    skill = target_dir / "test-execution-vnext/SKILL.md"
+    if not skill.is_file() or skill.is_symlink():
+        failures.append("missing or unsafe required skill: test-execution-vnext/SKILL.md")
+    if failures:
+        return False, "; ".join(failures)
+
+    probe = "\n".join((
+        "import importlib, pathlib, sys",
+        "runtime=pathlib.Path(sys.argv[1]).resolve()",
+        "sys.path[:0]=[str(runtime),str(runtime/'ba-workflow'/'scripts')]",
+        "names=('tooling.lib.test_execution_vnext','tooling.lib.test_automation_v1','tooling.lib.test_kit_vnext','tooling.lib.dev_vnext','shared.sdlc.schema','ba_vnext','ba_contracts')",
+        "modules={name:importlib.import_module(name) for name in names}",
+        "assert all(pathlib.Path(module.__file__).resolve().is_relative_to(runtime) for module in modules.values()), {name:module.__file__ for name,module in modules.items()}",
+    ))
+    env = os.environ.copy()
+    env.pop("PYTHONPATH", None)
+    try:
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", "-c", probe, str(runtime)],
+            cwd=tempfile.gettempdir(), env=env, capture_output=True, text=True, timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        return False, f"isolated installed Phase 8 import failed: {error}"
+    if result.returncode:
+        return False, "isolated installed Phase 8 import failed: " + (result.stderr.strip() or result.stdout.strip())
+    return True, "Phase 8 package/capability imports resolve from installed Test package"
 
 
 def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
@@ -1388,6 +1445,9 @@ def doctor(source_root, target_dir, kit_id="ba", *, project_root=None):
         if manifest.get("capabilities", {}).get("automation_v1") == "required":
             automation_ok, automation_detail = _doctor_test_automation_v1(target_dir)
             checks.append(("Test Automation V1 installed capability", automation_ok, "contract", automation_detail))
+        if manifest.get("capabilities", {}).get("execution_vnext") == "required":
+            execution_ok, execution_detail = _doctor_test_execution_vnext(target_dir)
+            checks.append(("Test Execution VNext installed capability", execution_ok, "contract", execution_detail))
 
     checks.extend(_dependency_checks(manifest, target_dir))
 
