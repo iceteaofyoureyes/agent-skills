@@ -12,7 +12,9 @@ Engineering Handoff VNext
 → Testcases → Human Case Gate → APPROVED_TESTWARE
 ```
 
-`APPROVED_TESTWARE` kết thúc Phase 6 manual lane; nó không có nghĩa `EXECUTION_READY`, test PASS, `VERIFIED` hoặc `READY_TO_MERGE`. Automation và execution thuộc Phase 7+.
+Test Kit prerelease hiện tại là **`2.0.0-rc.8`**, chưa phải stable `2.0.0` hay bản phát hành.
+
+`APPROVED_TESTWARE` kết thúc Phase 6 manual lane. Phase 7 tạo `EXECUTION_READY`; Phase 8 chạy product, phân loại Finding, nhận Dev VNext fix, retest và để Tester tạo `VERIFIED`. Doctor READY chỉ báo package/capability; không chứng minh `EXECUTION_READY`, PASS, không có Finding, `READY_FOR_RETEST`, `VERIFIED` hoặc `READY_TO_MERGE`.
 
 Phase 6 completion được kiểm tra bằng ba tầng trong [`kits/test/acceptance.yaml`](../../kits/test/acceptance.yaml). Tier 3 fresh installed-runtime acceptance là bắt buộc; Tier 1/2 không đủ để đánh dấu Phase 6 complete. Báo cáo acceptance chỉ áp dụng đúng branch/commit được xác minh.
 

@@ -12,7 +12,7 @@ Engineering Handoff VNext
 → APPROVED_TESTWARE
 ```
 
-`APPROVED_TESTWARE` is the Phase 6 manual terminal. It does not mean `EXECUTION_READY`, execution PASS, `VERIFIED`, or `READY_TO_MERGE`. Test Automation V1 adds the Phase 7 technical flow and stops at `EXECUTION_READY`; it does not run the product under test.
+`APPROVED_TESTWARE` ends the Phase 6 manual lane. Test Automation V1 then creates the exact Phase 7 `EXECUTION_READY` handoff. Test Execution VNext consumes that handoff, runs the approved checks, records Findings, routes Defects through normal Dev VNext `FEATURE_DELIVERY`, and allows only a trusted Tester to create final `VERIFIED` after clean execution or retest.
 
 ## Start here
 
@@ -28,6 +28,8 @@ Engineering Handoff VNext
 - [English overview](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/en/TEST_KIT_README.md)
 - [Test Automation V1 (Vietnamese)](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/TEST_AUTOMATION_V1.md)
 - [Test Automation V1 (English)](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/en/TEST_AUTOMATION_V1.md)
+- [Test Execution VNext (Vietnamese)](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/vi/TEST_EXECUTION_VNEXT.md)
+- [Test Execution VNext (English)](https://github.com/iceteaofyoureyes/agent-skills/blob/main/docs/en/TEST_EXECUTION_VNEXT.md)
 - [Neutral Automation V1 example](examples/vnext/neutral/automation-v1/README.md)
 
 The Appointment/CR-001 material is retained only as a historical V1 `LEGACY_COMPAT` example. It is not the default VNext flow.
@@ -48,7 +50,7 @@ From the target project, run the installer from the Agent Skills checkout:
 <path-to-agent-skills>/tooling/doctor.sh test --agent codex --scope project
 ```
 
-Doctor `READY` means package/capability readiness only. It does not evaluate BA approval, `APPROVED_DESIGN`, `APPROVED_TESTWARE`, execution, or verification. Missing optional XMind/Excel dependencies produce `DEGRADED`; required package or integrity failures produce `FAIL`.
+Doctor `READY` means package/capability readiness only. It does not evaluate BA approval, `APPROVED_DESIGN`, `APPROVED_TESTWARE`, `EXECUTION_READY`, execution results, Findings, retest or verification. Missing optional XMind/Excel dependencies produce `DEGRADED`; required package or integrity failures produce `FAIL`.
 
 Install is idempotent and project-scoped. Reinstall preserves locally edited managed files and reports drift. Uninstall removes only unchanged files owned by this Test Kit; unrelated and modified files remain.
 

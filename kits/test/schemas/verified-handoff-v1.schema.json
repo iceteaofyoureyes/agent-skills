@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tester Verified Handoff V1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "artifact_class", "feature_id", "execution_manifest_ref", "execution_ready_ref", "approved_testware_ref", "application_revisions", "automation_revision", "environment_ref", "observations", "dev_local_references", "optional_blocked_testcases", "defect_history", "verification_actor", "verified_at", "state"],
+  "properties": {
+    "schema_version": {"const": 1}, "artifact_class": {"const": "HANDOFF_MANIFEST"}, "feature_id": {"type": "string", "minLength": 1},
+    "execution_manifest_ref": {"$ref": "#/$defs/ref"}, "execution_ready_ref": {"$ref": "#/$defs/ref"}, "approved_testware_ref": {"$ref": "#/$defs/ref"},
+    "application_revisions": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"}},
+    "automation_revision": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"}, "environment_ref": {"$ref": "#/$defs/ref"},
+    "observations": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+    "dev_local_references": {"type": "array"}, "optional_blocked_testcases": {"type": "array"}, "defect_history": {"type": "array"},
+    "verification_actor": {"type": "object", "additionalProperties": false, "required": ["actor_id", "role"], "properties": {"actor_id": {"type": "string", "minLength": 1}, "role": {"const": "TESTER"}}},
+    "verified_at": {"type": "string", "format": "date-time"}, "state": {"const": "VERIFIED"}
+  },
+  "$defs": {"ref": {"type": "object", "additionalProperties": false, "required": ["id", "revision", "sha256", "path"], "properties": {"id": {"type": "string", "minLength": 1}, "revision": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "path": {"type": "string", "minLength": 1}}}}
+}

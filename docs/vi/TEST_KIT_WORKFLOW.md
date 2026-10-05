@@ -38,4 +38,4 @@ Canonical testcase gồm ID, name, objective, preconditions, test data, steps, p
 
 V1 artifact chỉ được inspect như `LEGACY_COMPAT` với `vnext_authority=false`. Không có V1 migration nào tạo BA, UX, Design, Case hay execution approval.
 
-XMind là projection một chiều từ `APPROVED_DESIGN`; Excel là projection một chiều từ `APPROVED_TESTWARE`. Không import ngược. Delivery Manifest là `DEFERRED_NON_AUTHORITATIVE`, không cần cho Test VNext. Automation planning, execution, defect và retest không thuộc Phase 6.
+XMind là projection một chiều từ `APPROVED_DESIGN`; Excel là projection một chiều từ `APPROVED_TESTWARE`. Không import ngược. Delivery Manifest là `DEFERRED_NON_AUTHORITATIVE`, không cần cho Test VNext. Phase 7 Automation V1 tiếp nhận `APPROVED_TESTWARE` và tạo `EXECUTION_READY`; Phase 8 [Test Execution VNext](TEST_EXECUTION_VNEXT.md) sở hữu execution, Finding, Defect handoff, retest và Tester-owned `VERIFIED`.

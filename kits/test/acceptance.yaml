@@ -1,11 +1,13 @@
 schema_version: 1
 kit: test
-contract: Test Kit Manual VNext + Test Automation V1 / Phase 7
+contract: Test Kit Manual VNext + Test Automation V1 + Test Execution VNext / Phase 8
 completion_guard:
   tier_3_fresh_installed_runtime_required: true
   tier_1_or_tier_2_can_mark_phase_6_complete: false
   tier_4_fresh_installed_automation_v1_required: true
   tier_1_to_tier_3_can_mark_phase_7_complete: false
+  tier_5_fresh_installed_execution_vnext_required: true
+  tier_1_to_tier_4_can_mark_phase_8_complete: false
 tiers:
   tier_1_deterministic:
     run_for_each_test_change: true
@@ -34,6 +36,9 @@ tiers:
       - python -m unittest tooling.tests.test_test_automation_v1_schemas -v
       - python -m unittest tooling.tests.test_test_automation_v1_acceptance -v
       - python -m unittest tooling.tests.test_test_automation_v1_installed_acceptance -v
+      - python -m unittest tooling.tests.test_test_execution_vnext -v
+      - python -m unittest tooling.tests.test_test_execution_vnext_acceptance -v
+      - python -m unittest tooling.tests.test_test_execution_vnext_installed_acceptance -v
       - git diff --check
   tier_2_focused_runtime:
     cases:
@@ -59,6 +64,16 @@ tiers:
       - Replan creates a new Plan revision and clears stale implementation/review/verification evidence
       - Automation Verification never executes the stored product command or real SUT
       - EXECUTION_READY binds exact Dev READY_FOR_TEST, app revisions and automation revision
+      - Execution Manifest binds current Phase 7 authority, environment and multi-repository revisions
+      - Commands use only exact Automation Plan argv with shell disabled and clean exact repositories
+      - Command failure does not create a Finding or Defect without Tester Observation and classification
+      - Manual Observation uses the approved Testcase oracle; Dev-local evidence remains accounted
+      - Only an authenticated Tester can classify Findings or create final VERIFIED
+      - Four non-Defect classifications route without a Defect Handoff or current-attempt VERIFIED
+      - Dev fixes use normal FEATURE_DELIVERY with original BA authority and failed repository bases
+      - READY_FOR_RETEST binds fixed app revisions and the original failed testcase oracle
+      - Failed retest creates REOPENED with stable defect ID; Dev cannot self-close
+      - Post-VERIFIED repository or environment drift invalidates revalidation
     isolated_ephemeral_session_per_probe: true
     bounded_timeout_seconds: 120
     optional_review_service_required: false
@@ -94,6 +109,24 @@ tiers:
       automation-only verification; bind the exact Dev READY_FOR_TEST handoff and app revisions;
       create and revalidate EXECUTION_READY; run Doctor again; confirm no execution claim.
     required_for_phase_7_completion: true
+  tier_5_fresh_installed_execution_vnext:
+    run_for_phase_8_completion: true
+    requires_external_working_directory: true
+    python_isolated_mode_required: true
+    pythonpath_must_be_absent: true
+    installed_runtime_imports_only: true
+    no_network_browser_external_database_or_real_sut: true
+    flow: >-
+      Install Test Kit into a clean synthetic multi-repository project; run Doctor; use python -I
+      from an external directory with PYTHONPATH absent; assert Phase 8 modules resolve under
+      installed .test-kit; revalidate exact EXECUTION_READY; create the environment and immutable
+      Execution Manifest; demonstrate automated/manual PASS observations and Tester VERIFIED;
+      demonstrate a real synthetic command failure, Tester Finding and DEFECT classification; run a
+      real Dev VNext FEATURE_DELIVERY fix using original BA authority and exact failed app base; validate
+      Dev review and fresh verification; create READY_FOR_RETEST; demonstrate failed retest to REOPENED
+      and a later same-ID fix/retest to VERIFIED; exercise role separation and revision-drift rejection;
+      run Doctor again. Tier 2 acceptance covers each non-Defect route.
+    required_for_phase_8_completion: true
 automated:
   - command: python -m unittest tooling.tests.test_test_kit_vnext_installed_acceptance -v
     proves: >-
@@ -104,6 +137,11 @@ automated:
       Fresh isolated installed Test package Automation V1 intake, exact VNext authority revalidation,
       synthetic multi-repository API/E2E planning, read-only app boundary, review, automation-only
       verification, exact Dev READY_FOR_TEST binding and durable EXECUTION_READY revalidation.
+  - command: python -m unittest tooling.tests.test_test_execution_vnext_installed_acceptance -v
+    proves: >-
+      Fresh isolated installed Test package execution, exact Phase 7 intake, environment and repository
+      binding, straight-pass Tester VERIFIED, a real Dev VNext FEATURE_DELIVERY fix, READY_FOR_RETEST,
+      REOPENED lineage, final Tester retest, role separation and revision drift rejection.
 manual:
   - case: fresh project install without optional projection dependencies
     expected: core VNext remains usable; Doctor reports optional projection gaps as DEGRADED

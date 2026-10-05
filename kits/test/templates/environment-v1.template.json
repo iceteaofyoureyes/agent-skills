@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "artifact_class": "CANONICAL",
+  "environment_id": "ENV-EXAMPLE-1",
+  "profile": "PROFILE-EXAMPLE-1",
+  "configuration_refs": [],
+  "evidence_refs": []
+}

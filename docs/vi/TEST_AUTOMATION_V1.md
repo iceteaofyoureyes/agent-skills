@@ -73,4 +73,4 @@ Trước khi tạo handoff, phải bind:
 - dependencies bắt buộc đã xử lý;
 - review PASS, automation verification PASS, không có scope drift.
 
-`EXECUTION_READY` không phải kết quả chạy test. Phase 7 dừng ở đó; execution, PASS/FINDING, defect, Dev fix/retest và `VERIFIED` thuộc phase sau.
+`EXECUTION_READY` không phải kết quả chạy test. Phase 7 dừng ở đó. Tiếp tục với [Test Execution VNext](TEST_EXECUTION_VNEXT.md) để chạy product, ghi Finding, chuyển Defect qua Dev VNext, retest và để Tester tạo `VERIFIED`.

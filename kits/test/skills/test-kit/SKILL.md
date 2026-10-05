@@ -35,6 +35,7 @@ Never infer approval from `CONTINUE`, `ANSWER`, `REVIEW`, `PASS`, generated outp
 - TEA, Katalon and project Test Policy are advisory/guidance only.
 - Preserve unresolved BA `UNKNOWN` outcomes. Do not invent a concrete testcase result.
 - `APPROVED_TESTWARE` is not `EXECUTION_READY`, execution PASS or `VERIFIED`.
+- Continue from Test Automation V1 with the required `test-execution-vnext` skill. Phase 8 may run the product under test and owns Findings, Defect handoff, retest, and Tester `VERIFIED`.
 - Delivery Manifest is not required VNext authority.
 
 ## Resume and derived projections

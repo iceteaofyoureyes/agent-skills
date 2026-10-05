@@ -2,7 +2,7 @@
 
 ## Test Kit Manual VNext
 
-The current Test Kit package candidate is **`2.0.0-rc.7`**. It is a prerelease branch candidate, not stable `2.0.0`, a GitHub release, tag, or published artifact.
+The current Test Kit package candidate is **`2.0.0-rc.8`**. It is a prerelease branch candidate, not stable `2.0.0`, a GitHub release, tag, or published artifact.
 
 The default manual lane is:
 
@@ -12,11 +12,11 @@ Engineering Handoff VNext
 → Testcases → Human Case Gate → APPROVED_TESTWARE
 ```
 
-`APPROVED_TESTWARE` ends the Phase 6 manual lane. Phase 7 Test Automation V1 proceeds through Suitability, Plan, implementation, review and automation-only verification, then stops at `EXECUTION_READY`. It does not mean execution PASS, `VERIFIED`, or `READY_TO_MERGE`.
+`APPROVED_TESTWARE` ends the Phase 6 manual lane. Phase 7 Test Automation V1 proceeds through Suitability, Plan, implementation, review and automation-only verification, then stops at `EXECUTION_READY`. Phase 8 consumes that exact handoff for execution, Tester Finding classification, Dev VNext fix acceptance, retest and Tester-owned `VERIFIED`. It does not create `READY_TO_MERGE`.
 
 Phase 6 completion is gated by the three manual tiers in [`kits/test/acceptance.yaml`](../../kits/test/acceptance.yaml). Phase 7 completion additionally requires Tier 4 fresh installed Automation V1 acceptance and the full regression. An acceptance result applies only to the exact branch and commit verified.
 
-Doctor `READY` means required package/capability readiness only. It does not mean `APPROVED_TESTWARE`, Dev `READY_FOR_TEST`, `EXECUTION_READY`, PASS, `VERIFIED`, or `READY_TO_MERGE`. Missing optional XMind/Excel dependencies report `DEGRADED`; required package, integrity, or capability failures report `FAIL`.
+Doctor `READY` means required package/capability readiness only. It does not mean `APPROVED_TESTWARE`, Dev `READY_FOR_TEST`, `EXECUTION_READY`, PASS, absence of Findings, `READY_FOR_RETEST`, `VERIFIED`, or `READY_TO_MERGE`. Missing optional XMind/Excel dependencies report `DEGRADED`; required package, integrity, or capability failures report `FAIL`.
 
 ## Other Kits and history
 

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "id": "test",
-  "name": "Test Kit Manual VNext",
-  "version": "2.0.0-rc.7",
+  "name": "Test Kit Manual, Automation and Execution VNext",
+  "version": "2.0.0-rc.8",
   "workflow": {
     "skill": "test-kit"
   },
@@ -11,7 +11,8 @@
     "required": [
       "bmad-testarch-test-design",
       "create-test-cases",
-      "test-automation-v1"
+      "test-automation-v1",
+      "test-execution-vnext"
     ],
     "optional": []
   },
@@ -19,7 +20,8 @@
     "test-kit": "kits/test/skills/test-kit",
     "bmad-testarch-test-design": "kits/test/skills/bmad-testarch-test-design",
     "create-test-cases": "kits/test/skills/create-test-cases",
-    "test-automation-v1": "kits/test/skills/test-automation-v1"
+    "test-automation-v1": "kits/test/skills/test-automation-v1",
+    "test-execution-vnext": "kits/test/skills/test-execution-vnext"
   },
   "files": [
     {
@@ -503,6 +505,108 @@
       "capability": "automation_v1"
     },
     {
+      "source": "tooling/lib/test_execution_vnext.py",
+      "destination": ".test-kit/tooling/lib/test_execution_vnext.py",
+      "classification": "CORE_RUNTIME",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/environment-v1.schema.json",
+      "destination": ".test-kit/schemas/environment-v1.schema.json",
+      "classification": "CANONICAL_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/execution-manifest-v1.schema.json",
+      "destination": ".test-kit/schemas/execution-manifest-v1.schema.json",
+      "classification": "CANONICAL_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/command-evidence-v1.schema.json",
+      "destination": ".test-kit/schemas/command-evidence-v1.schema.json",
+      "classification": "EVIDENCE_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/observation-v1.schema.json",
+      "destination": ".test-kit/schemas/observation-v1.schema.json",
+      "classification": "EVIDENCE_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/finding-v1.schema.json",
+      "destination": ".test-kit/schemas/finding-v1.schema.json",
+      "classification": "CANONICAL_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/finding-classification-v1.schema.json",
+      "destination": ".test-kit/schemas/finding-classification-v1.schema.json",
+      "classification": "CANONICAL_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/defect-handoff-v1.schema.json",
+      "destination": ".test-kit/schemas/defect-handoff-v1.schema.json",
+      "classification": "HANDOFF_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/ready-for-retest-v1.schema.json",
+      "destination": ".test-kit/schemas/ready-for-retest-v1.schema.json",
+      "classification": "HANDOFF_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/verified-handoff-v1.schema.json",
+      "destination": ".test-kit/schemas/verified-handoff-v1.schema.json",
+      "classification": "HANDOFF_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/schemas/reopened-v1.schema.json",
+      "destination": ".test-kit/schemas/reopened-v1.schema.json",
+      "classification": "CANONICAL_SCHEMA",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/templates/environment-v1.template.json",
+      "destination": ".test-kit/templates/environment-v1.template.json",
+      "classification": "OPERATOR_TEMPLATE",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/templates/execution-manifest-v1.template.json",
+      "destination": ".test-kit/templates/execution-manifest-v1.template.json",
+      "classification": "OPERATOR_TEMPLATE",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/skills/test-execution-vnext/SKILL.md",
+      "destination": ".test-kit/skills/test-execution-vnext/SKILL.md",
+      "classification": "OPERATOR_SKILL",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "docs/vi/TEST_EXECUTION_VNEXT.md",
+      "destination": ".test-kit/docs/vi/TEST_EXECUTION_VNEXT.md",
+      "classification": "OPERATOR_DOCUMENTATION",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "docs/en/TEST_EXECUTION_VNEXT.md",
+      "destination": ".test-kit/docs/en/TEST_EXECUTION_VNEXT.md",
+      "classification": "OPERATOR_DOCUMENTATION",
+      "capability": "execution_vnext"
+    },
+    {
+      "source": "kits/test/examples/vnext/neutral/execution-defect-retest/README.md",
+      "destination": ".test-kit/examples/vnext/neutral/execution-defect-retest/README.md",
+      "classification": "PUBLIC_EXAMPLE",
+      "capability": "execution_vnext"
+    },
+    {
       "source": "kits/test/schemas/automation-suitability-v1.schema.json",
       "destination": ".test-kit/schemas/automation-suitability-v1.schema.json",
       "classification": "CANONICAL_SCHEMA",
@@ -580,7 +684,8 @@
     "xmind_projection": "optional",
     "excel_projection": "optional",
     "legacy_nested_invocation": "optional",
-    "automation_v1": "required"
+    "automation_v1": "required",
+    "execution_vnext": "required"
   },
   "prerequisites": {
     "python": [
@@ -659,11 +764,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "6c2ada777afdf5320fb270e17ba667facd4b7f85e49912b8d10d5e2c011542e9"
+      "sha256": "8c29e2fbfc15267fd8a471eac93db509bf751be92d652f40958199bc8f0c8563"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "b6ea6e645c313d9d4e1252b279bd3e3466b85d6e3073bf14df055941dede0f10"
+      "sha256": "7bd9f5c2fa3303d1d915dcaccad5a1962c1a9b1dbe890025d8187c44ec9b9b27"
     }
   }
 }
