@@ -43,6 +43,16 @@ class AutomationV1SchemaTests(unittest.TestCase):
         self.assertIn("blocked_testcases", schema["required"])
         self.assertIn("dev_local_references", schema["required"])
 
+    def test_automation_revision_schemas_require_exact_git_commit_sha(self):
+        sha_pattern = "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
+        review = load("automation-review-v1.schema.json")
+        verification = load("automation-verification-v1.schema.json")
+        handoff = load("execution-ready-v1-handoff.schema.json")
+        self.assertEqual(review["properties"]["automation_revision"]["pattern"], sha_pattern)
+        self.assertEqual(verification["properties"]["automation_revision"]["pattern"], sha_pattern)
+        self.assertEqual(handoff["properties"]["automation_revision"]["pattern"], sha_pattern)
+        self.assertEqual(handoff["$defs"]["automationItem"]["properties"]["revision"]["pattern"], sha_pattern)
+
     def test_verification_schema_explicitly_says_product_was_not_run(self):
         schema = load("automation-verification-v1.schema.json")
         self.assertEqual(schema["properties"]["product_execution"]["const"], "NOT_RUN")

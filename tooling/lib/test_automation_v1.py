@@ -57,6 +57,7 @@ LIFECYCLES = (
     "EXECUTION_READY", "BLOCKED", "NEEDS_REPLAN",
 )
 _SHA256 = re.compile(r"[a-f0-9]{64}")
+_GIT_REVISION = re.compile(r"(?:[a-f0-9]{40}|[a-f0-9]{64})")
 _BR_FR = re.compile(r"(?:BR|FR)-[A-Za-z0-9][A-Za-z0-9._-]*")
 _TD_ID = re.compile(r"TD-[A-Za-z0-9][A-Za-z0-9._-]*")
 _AUT_ID = re.compile(r"AUT-[A-Za-z0-9][A-Za-z0-9._-]*")
@@ -556,6 +557,31 @@ def _git(root: Path, *args) -> str:
     if result.returncode:
         raise AutomationV1Error("REPOSITORY_IDENTITY_INVALID", result.stderr.strip() or "git command failed")
     return result.stdout.strip()
+
+
+def _git_bytes(root: Path, *args) -> bytes:
+    result = subprocess.run(
+        ["git", "-C", str(root), *args], capture_output=True, shell=False,
+    )
+    if result.returncode:
+        error = result.stderr.decode("utf-8", errors="replace").strip()
+        raise AutomationV1Error("REPOSITORY_IDENTITY_INVALID", error or "git command failed")
+    return result.stdout
+
+
+def _committed_file_bytes(root: Path, revision: str, relative: str) -> bytes:
+    path_bytes = relative.encode("utf-8")
+    records = _git_bytes(root, "ls-tree", "-r", "-z", revision, "--", relative).split(b"\0")
+    for record in records:
+        if not record:
+            continue
+        metadata, entry_path = record.split(b"\t", 1)
+        mode, object_type, object_id = metadata.split(b" ", 2)
+        if entry_path == path_bytes:
+            if object_type != b"blob" or mode not in {b"100644", b"100755"}:
+                raise AutomationV1Error("UNSAFE_PATH", "committed automation path is not a regular file")
+            return _git_bytes(root, "cat-file", "blob", object_id.decode("ascii"))
+    raise AutomationV1Error("IMPLEMENTATION_INCOMPLETE", "planned automation path is absent from the committed revision")
 
 
 def _remote_name(remote: str) -> str:
@@ -1314,20 +1340,48 @@ class AutomationRuntime:
         route, roots, _, _ = self._policy_routing()
         repo = route["automation_repository"]
         root = roots[repo["id"]]
-        head, changed, files = _repo_snapshot(root, clean_base=state["implementation_base_revision"])
+        if not root.is_dir():
+            raise AutomationV1Error("AUTOMATION_REPOSITORY_MISSING", "declared automation repository is unavailable")
+        base = state.get("implementation_base_revision")
+        if not isinstance(base, str) or base != plan["base_revision"]:
+            raise AutomationV1Error("BASE_REVISION_DRIFT", "implementation base differs from the exact Automation Plan base")
+        if _git(root, "status", "--porcelain", "--untracked-files=all"):
+            raise AutomationV1Error(
+                "AUTOMATION_COMMIT_REQUIRED",
+                "automation source must be committed with a clean worktree and index before implementation evidence",
+            )
+        head = _git(root, "rev-parse", "HEAD")
+        if not _GIT_REVISION.fullmatch(head):
+            raise AutomationV1Error("REPOSITORY_IDENTITY_INVALID", "automation HEAD is not a supported Git commit SHA")
+        if _git(root, "merge-base", base, head) != base:
+            raise AutomationV1Error("BASE_REVISION_DRIFT", "automation repository no longer descends from its exact planned base")
+        changed = sorted(filter(None, _git_bytes(
+            root, "diff", "--no-renames", "--name-only", "-z", base, head, "--",
+        ).decode("utf-8", errors="surrogateescape").split("\0")))
         allowed = {path for item in plan["items"] for path in item["planned_paths"]}
         if set(changed) - allowed:
-            raise AutomationV1Error("WRITE_SCOPE_VIOLATION", "post-implementation diff contains out-of-plan paths")
-        if (plan["items"] and not changed) or allowed - set(changed):
-            raise AutomationV1Error("IMPLEMENTATION_INCOMPLETE", "every planned automation path must have exact changed bytes")
-        digest = _sha_bytes(_json_bytes({"base_revision": state["implementation_base_revision"], "head_revision": head, "files": files}))
+            raise AutomationV1Error("WRITE_SCOPE_VIOLATION", "committed base..HEAD diff contains out-of-plan paths")
+        if plan["items"] and head == base:
+            raise AutomationV1Error("AUTOMATION_COMMIT_REQUIRED", "TEST_AUTOMATION requires a committed revision after the exact Plan base")
+        if allowed - set(changed):
+            raise AutomationV1Error("IMPLEMENTATION_INCOMPLETE", "every planned automation path must exist in the committed base..HEAD diff")
+        files = []
+        for relative in changed:
+            path = _safe_components(root, relative)
+            if not path.is_file():
+                raise AutomationV1Error("UNSAFE_PATH", "changed automation path is not a regular safe checkout file")
+            content = _committed_file_bytes(root, head, relative)
+            files.append({"path": relative, "sha256": _sha_bytes(content)})
+        digest = _sha_bytes(_json_bytes({"base_revision": base, "repository_revision": head, "files": files}))
         return {
-            "revision": "AUTOMATION_TREE_SHA256:" + digest,
-            "base_revision": state["implementation_base_revision"],
+            "revision": head,
+            "base_revision": base,
+            "repository_revision": head,
             "head_revision": head,
             "changed_paths": changed,
             "files": files,
             "aut_paths": {item["aut_id"]: [path for path in item["planned_paths"] if path in changed] for item in plan["items"]},
+            "tree_digest": digest,
         }
 
     def _assert_implementation_current(self, state: dict, plan: dict) -> None:
@@ -1470,6 +1524,18 @@ class AutomationRuntime:
                     code, stdout, stderr = 127, "", str(error)
                 reject_execution_claims(stdout)
                 reject_execution_claims(stderr)
+                try:
+                    after_command = self._automation_revision(state, plan)
+                except AutomationV1Error as error:
+                    raise AutomationV1Error(
+                        "AUTOMATION_VERIFICATION_MUTATED_SOURCE",
+                        f"verification left the automation repository invalid: {error.code}",
+                    ) from error
+                if after_command != before:
+                    raise AutomationV1Error(
+                        "AUTOMATION_VERIFICATION_MUTATED_SOURCE",
+                        "verification changed the committed automation revision",
+                    )
                 results.append({
                     "category": category,
                     "argv": list(argv),
@@ -1480,7 +1546,7 @@ class AutomationRuntime:
                 })
             after = self._automation_revision(state, plan)
             if after != before:
-                raise AutomationV1Error("AUTOMATION_VERIFICATION_MUTATED_SOURCE", "verification changed automation repository bytes")
+                raise AutomationV1Error("AUTOMATION_VERIFICATION_MUTATED_SOURCE", "verification changed the committed automation revision")
             report = {
                 "schema_version": 1,
                 "artifact_class": "EVIDENCE",
@@ -1610,6 +1676,14 @@ class AutomationRuntime:
             review = self._read_artifact_ref(state["review_ref"])
             if verification["status"] != "PASS" or review["status"] != "PASS":
                 raise AutomationV1Error("EXECUTION_READY_FORBIDDEN", "review and automation verification must PASS")
+            if not state.get("implementation"):
+                raise AutomationV1Error("EXECUTION_READY_FORBIDDEN", "all TEST_AUTOMATION items require an exact implementation revision")
+            implementation_revision = state["implementation"].get("repository_revision")
+            if (not implementation_revision
+                    or state["implementation"].get("revision") != implementation_revision
+                    or review.get("automation_revision") != implementation_revision
+                    or verification.get("automation_revision") != implementation_revision):
+                raise AutomationV1Error("NEEDS_REPLAN", "review, verification and implementation must bind the same committed automation revision")
             test_evidence = self._load_testware(self.project_root / state["testware_run_path"])
             suitability = self._read_artifact_ref(state["suitability_ref"])
             plan = self._read_artifact_ref(state["plan_ref"])
@@ -1716,13 +1790,18 @@ class AutomationRuntime:
             suitability = self._read_artifact_ref(state["suitability_ref"])
             plan = self._read_artifact_ref(state["plan_ref"])
             validate_plan(plan, suitability, evidence["snapshot"].records)
+            route, _, _, _ = self._policy_routing()
+            repo = route["automation_repository"]
+            current_implementation = self._automation_revision(state, plan)
+            if current_implementation != state["implementation"] or current_implementation["repository_revision"] != handoff["automation_revision"]:
+                raise AutomationV1Error("NEEDS_REPLAN", "automation repository no longer matches the recorded EXECUTION_READY revision")
             if (handoff["approved_testware"] != state["approved_testware"]
                     or handoff["automation_suitability"] != state["suitability_ref"]
                     or handoff["automation_plan"] != state["plan_ref"]
                     or handoff["automation_revision"] != state["implementation"]["revision"]
                     or handoff["review"] != state["review_ref"]
                     or handoff["automation_verification"] != state["verification_ref"]
-                    or handoff["automation_repository"] != state["repository_routing"]["automation_repository"]):
+                    or handoff["automation_repository"] != repo):
                 raise AutomationV1Error("EXECUTION_READY_STALE", "handoff refs differ from exact current runtime evidence")
             expected_items = [{
                 "aut_id": item["aut_id"], "testcase_refs": item["testcase_refs"],
@@ -1756,8 +1835,10 @@ class AutomationRuntime:
                 raise AutomationV1Error("DEV_HANDOFF_STALE", "EXECUTION_READY handoff is not bound to current Dev evidence")
             verification = self._read_artifact_ref(state["verification_ref"])
             review = self._read_artifact_ref(state["review_ref"])
-            if verification.get("status") != "PASS" or review.get("status") != "PASS":
-                raise AutomationV1Error("EXECUTION_READY_STALE", "Automation Review or Verification no longer passes")
+            if (verification.get("status") != "PASS" or review.get("status") != "PASS"
+                    or verification.get("automation_revision") != current_implementation["repository_revision"]
+                    or review.get("automation_revision") != current_implementation["repository_revision"]):
+                raise AutomationV1Error("EXECUTION_READY_STALE", "Automation Review or Verification does not PASS for the recorded repository revision")
             return handoff
 
 
@@ -1783,8 +1864,8 @@ def validate_execution_ready_handoff(handoff: dict, approved_testcase_ids) -> di
         raise ValueError("automation repository identity is invalid")
     _planned_path(repo["path"])
     automation_revision = handoff["automation_revision"]
-    if not isinstance(automation_revision, str) or not re.fullmatch(r"AUTOMATION_TREE_SHA256:[a-f0-9]{64}", automation_revision):
-        raise ValueError("exact automation source revision is required")
+    if not isinstance(automation_revision, str) or not _GIT_REVISION.fullmatch(automation_revision):
+        raise ValueError("exact automation Git commit SHA is required")
     revisions = handoff["application_revisions"]
     if not isinstance(revisions, dict) or not revisions:
         raise ValueError("exact application repository revisions are required")

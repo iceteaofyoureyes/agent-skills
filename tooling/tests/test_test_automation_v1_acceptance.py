@@ -406,15 +406,121 @@ class TestAutomationV1Acceptance(unittest.TestCase):
         plan = runtime._read_artifact_ref(state["plan_ref"])
         base = state["implementation_base_revision"]
         sources = {
-            "AUT-0001": "def test_api_harness_shape():\n    assert True\n",
-            "AUT-0002": "def test_e2e_harness_shape():\n    assert True\n",
+            "AUT-0001": f"# plan revision {plan['revision']}\ndef test_api_harness_shape():\n    assert True\n",
+            "AUT-0002": f"# plan revision {plan['revision']}\ndef test_e2e_harness_shape():\n    assert True\n",
         }
         for item in plan["items"]:
             for path in item["planned_paths"]:
                 self.assertIn(item["aut_id"], sources)
                 runtime.write_source(item["aut_id"], "quality", path, sources[item["aut_id"]], base_revision=base)
         self._run_git(self.automation_root, "add", "tests/api/test_request.py", "tests/e2e/test_request_flow.py")
+        self._run_git(self.automation_root, "commit", "-q", "-m", "Implement planned automation")
         return runtime.record_implementation()
+
+    def _new_automation_implementation(self, name):
+        repository = self.root / f"automation-{name}"
+        self._init_repository(repository, "example/qa", "automation")
+        runtime = self._runtime(name, {"core": self.app_root, "quality": repository})
+        state = runtime.start(self.test_run_dir)
+        runtime.analyze_suitability(self._assessments())
+        state = runtime.plan(self._plan_specs())
+        state = runtime.begin_implementation()
+        plan = runtime._read_artifact_ref(state["plan_ref"])
+        for item in plan["items"]:
+            path = item["planned_paths"][0]
+            source = f"# {item['aut_id']}\ndef test_harness_shape():\n    assert True\n"
+            runtime.write_source(
+                item["aut_id"], "quality", path, source,
+                base_revision=state["implementation_base_revision"],
+            )
+        return runtime, state, repository
+
+    def test_uncommitted_automation_states_are_rejected_before_implementation_evidence(self):
+        for name, mode in (("STAGED", "staged"), ("UNSTAGED", "unstaged"), ("UNTRACKED", "untracked")):
+            with self.subTest(mode=mode):
+                runtime, state, repository = self._new_automation_implementation(name)
+                if mode == "staged":
+                    self._run_git(repository, "add", "tests/api/test_request.py", "tests/e2e/test_request_flow.py")
+                elif mode == "untracked":
+                    (repository / "unplanned.py").write_text("# untracked\n", encoding="utf-8")
+                with self.assertRaises(automation.AutomationV1Error) as caught:
+                    runtime.record_implementation()
+                self.assertEqual(caught.exception.code, "AUTOMATION_COMMIT_REQUIRED")
+
+    def test_committed_automation_diff_must_match_all_planned_paths(self):
+        runtime, state, repository = self._new_automation_implementation("OUT-OF-PLAN")
+        (repository / "unplanned.py").write_text("# outside the Plan\n", encoding="utf-8")
+        self._run_git(repository, "add", "-A")
+        self._run_git(repository, "commit", "-q", "-m", "Commit planned and unplanned files")
+        with self.assertRaises(automation.AutomationV1Error) as caught:
+            runtime.record_implementation()
+        self.assertEqual(caught.exception.code, "WRITE_SCOPE_VIOLATION")
+
+        runtime, state, repository = self._new_automation_implementation("MISSING-PLANNED")
+        (repository / "tests/e2e/test_request_flow.py").unlink()
+        self._run_git(repository, "add", "-A")
+        self._run_git(repository, "commit", "-q", "-m", "Commit only one planned file")
+        with self.assertRaises(automation.AutomationV1Error) as caught:
+            runtime.record_implementation()
+        self.assertEqual(caught.exception.code, "IMPLEMENTATION_INCOMPLETE")
+
+    def test_dirty_or_new_automation_revision_invalidates_review_and_verification(self):
+        runtime, state, repository = self._new_automation_implementation("DIRTY-AFTER-COMMIT")
+        self._run_git(repository, "add", "-A")
+        self._run_git(repository, "commit", "-q", "-m", "Commit automation")
+        runtime.record_implementation()
+        source = repository / "tests/api/test_request.py"
+        source.write_text(source.read_text(encoding="utf-8") + "# local edit\n", encoding="utf-8")
+        with self.assertRaises(automation.AutomationV1Error) as caught:
+            runtime.record_review(self._review())
+        self.assertEqual(caught.exception.code, "AUTOMATION_COMMIT_REQUIRED")
+
+        runtime, state, repository = self._new_automation_implementation("NEW-COMMIT-AFTER-REVIEW")
+        self._run_git(repository, "add", "-A")
+        self._run_git(repository, "commit", "-q", "-m", "Commit automation")
+        runtime.record_implementation()
+        runtime.record_review(self._review())
+        source = repository / "tests/api/test_request.py"
+        source.write_text(source.read_text(encoding="utf-8") + "# later commit\n", encoding="utf-8")
+        self._run_git(repository, "add", "-A")
+        self._run_git(repository, "commit", "-q", "-m", "Change after review")
+        with self.assertRaises(automation.AutomationV1Error) as caught:
+            runtime.verify()
+        self.assertEqual(caught.exception.code, "NEEDS_REPLAN")
+
+        runtime, state, repository = self._new_automation_implementation("VERIFY-MUTATES-SOURCE")
+        self._run_git(repository, "add", "-A")
+        self._run_git(repository, "commit", "-q", "-m", "Commit automation")
+        runtime.record_implementation()
+        runtime.record_review(self._review())
+        real_run = automation.subprocess.run
+
+        def mutate_after_verification(args, *positional, **options):
+            result = real_run(args, *positional, **options)
+            if list(args) == ["git", "diff", "--cached", "--check"]:
+                source = repository / "tests/api/test_request.py"
+                source.write_text(source.read_text(encoding="utf-8") + "# verification edit\n", encoding="utf-8")
+            return result
+
+        with mock.patch.object(automation.subprocess, "run", side_effect=mutate_after_verification):
+            with self.assertRaises(automation.AutomationV1Error) as caught:
+                runtime.verify()
+        self.assertEqual(caught.exception.code, "AUTOMATION_VERIFICATION_MUTATED_SOURCE")
+
+    def test_new_automation_commit_after_review_and_verification_requires_replan(self):
+        runtime, state, repository = self._new_automation_implementation("NEW-COMMIT-AFTER-VERIFY")
+        self._run_git(repository, "add", "-A")
+        self._run_git(repository, "commit", "-q", "-m", "Commit automation")
+        runtime.record_implementation()
+        runtime.record_review(self._review())
+        runtime.verify()
+        source = repository / "tests/api/test_request.py"
+        source.write_text(source.read_text(encoding="utf-8") + "# later commit\n", encoding="utf-8")
+        self._run_git(repository, "add", "-A")
+        self._run_git(repository, "commit", "-q", "-m", "Change after verification")
+        with self.assertRaises(automation.AutomationV1Error) as caught:
+            runtime.finalize(self.dev_handoff_path)
+        self.assertEqual(caught.exception.code, "NEEDS_REPLAN")
 
     def _finish_automation(self, runtime):
         state = runtime.begin_implementation()
@@ -479,7 +585,7 @@ class TestAutomationV1Acceptance(unittest.TestCase):
         out_of_scope = self.automation_root / "unplanned-automation-source.py"
         out_of_scope.write_text("# arbitrary editor write\n", encoding="utf-8")
         try:
-            with self.assertRaisesRegex(automation.AutomationV1Error, "WRITE_SCOPE_VIOLATION"):
+            with self.assertRaisesRegex(automation.AutomationV1Error, "AUTOMATION_COMMIT_REQUIRED"):
                 runtime.record_implementation()
         finally:
             out_of_scope.unlink()
@@ -539,12 +645,58 @@ class TestAutomationV1Acceptance(unittest.TestCase):
         self.assertEqual(len(handoff["manual_testcases"]), 1)
         self.assertEqual(len(handoff["dev_local_references"]), 1)
         self.assertEqual(handoff["application_revisions"]["core"], self.app_revision)
+        self.assertEqual(handoff["automation_revision"], self._run_git(self.automation_root, "rev-parse", "HEAD"))
+        self.assertEqual(
+            {item["revision"] for item in handoff["automation_items"]},
+            {handoff["automation_revision"]},
+        )
         self.assertNotIn("expected_result", json.dumps(handoff).lower())
         self.assertNotIn("verified", json.dumps(handoff).lower())
+
+        clone = self.root / "automation-fresh-clone"
+        cloned = subprocess.run(
+            ["git", "clone", "--quiet", "--no-local", str(self.automation_root), str(clone)],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", shell=False,
+        )
+        self.assertEqual(cloned.returncode, 0, cloned.stdout + cloned.stderr)
+        self._run_git(clone, "checkout", "--quiet", "--detach", handoff["automation_revision"])
+        self.assertEqual(self._run_git(clone, "rev-parse", "HEAD"), handoff["automation_revision"])
+        implementation = runtime.status()["implementation"]
+        committed_hashes = {row["path"]: row["sha256"] for row in implementation["files"]}
+        self.assertEqual(implementation["base_revision"], new_plan["base_revision"])
+        self.assertEqual(implementation["repository_revision"], handoff["automation_revision"])
+        self.assertEqual(implementation["changed_paths"], sorted(committed_hashes))
+        self.assertEqual(
+            implementation["aut_paths"],
+            {item["aut_id"]: item["planned_paths"] for item in new_plan["items"]},
+        )
+        for item in handoff["automation_items"]:
+            for path in item["paths"]:
+                reconstructed = clone / Path(path)
+                self.assertTrue(reconstructed.is_file(), path)
+                committed = subprocess.run(
+                    ["git", "-C", str(clone), "cat-file", "blob", f"{handoff['automation_revision']}:{path}"],
+                    capture_output=True, check=True, shell=False,
+                ).stdout
+                self.assertEqual(hashlib.sha256(committed).hexdigest(), committed_hashes[path])
 
         resumed = self._runtime().status()
         self.assertEqual(resumed["lifecycle"], "EXECUTION_READY")
         self.assertEqual(self._runtime().revalidate_handoff(), handoff)
+
+        source = self.automation_root / handoff["automation_items"][0]["paths"][0]
+        source.write_bytes(source.read_bytes() + b"# local drift\n")
+        with self.assertRaises(automation.AutomationV1Error) as caught:
+            self._runtime().revalidate_handoff()
+        self.assertEqual(caught.exception.code, "AUTOMATION_COMMIT_REQUIRED")
+        relative_source = handoff["automation_items"][0]["paths"][0]
+        self._run_git(self.automation_root, "checkout", "--quiet", "--", relative_source)
+        source.write_bytes(source.read_bytes() + b"# committed drift\n")
+        self._run_git(self.automation_root, "add", "--", relative_source)
+        self._run_git(self.automation_root, "commit", "-q", "-m", "Automation changes after readiness")
+        with self.assertRaises(automation.AutomationV1Error) as caught:
+            self._runtime().revalidate_handoff()
+        self.assertEqual(caught.exception.code, "NEEDS_REPLAN")
 
     def test_required_blocked_and_open_dependencies_stop_until_replan_and_manual_only_can_finish(self):
         runtime = self._runtime("BLOCKED-1")

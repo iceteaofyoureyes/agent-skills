@@ -49,6 +49,10 @@ Trước mỗi write, runtime kiểm tra lifecycle, Plan revision/hash, identity
 
 Sau khi implementation bắt đầu, material change phải chuyển `NEEDS_REPLAN`, tạo Plan revision mới và xóa evidence implementation/review/verification cũ. Không sửa Plan đã chạy tại chỗ.
 
+Project hoặc agent chịu trách nhiệm commit automation theo Git workflow thông thường; runtime không tự tạo commit. Trước khi ghi nhận implementation, HEAD phải kế thừa đúng `base_revision` của Plan, có commit mới nếu Plan yêu cầu automation, worktree/index phải sạch, không có untracked file, và diff commit `base..HEAD` chỉ chứa các path trong Plan với đầy đủ mọi path bắt buộc. Source chỉ staged, unstaged hoặc untracked phải bị từ chối bằng `AUTOMATION_COMMIT_REQUIRED`. Implementation evidence lưu `base_revision`, `repository_revision`, `changed_paths` đã commit, SHA-256 từng path và ánh xạ AUT → path. `automation_revision` là Git HEAD commit SHA chính xác; tree digest chỉ là evidence bổ sung.
+
+Review, verification và `EXECUTION_READY` cùng bind một committed HEAD sạch. Verification không chạy nếu checkout dirty hoặc HEAD khác revision đã ghi nhận, và fail closed nếu nó thay đổi automation source. `revalidate_handoff()` kiểm tra repository identity, HEAD hiện tại, checkout sạch, source hash đã commit và revision của review/verification; sửa file hoặc tạo commit mới sau readiness làm handoff stale và cần replan. Fresh clone phải checkout được handoff SHA và khôi phục đủ mọi AUT path.
+
 ## Review và verification
 
 Chỉ một consolidated full review, bao gồm trace, ownership, business-oracle duplication, fixtures, secrets, setup/cleanup, flakiness, selectors/interfaces, dependencies, conventions và write scope. Budget tối đa: một full review, một blocking fix wave, một scoped rereview. Nếu thiếu WHAT, route upstream; không tự đổi expected behavior.

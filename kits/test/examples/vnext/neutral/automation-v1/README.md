@@ -8,4 +8,6 @@ Example API and E2E items use argv arrays. The E2E runner is a neutral `project-
 
 `UNIT` and `COMPONENT` point to exact Dev-local evidence. `MANUAL_ONLY` remains a manual protocol. Required `BLOCKED` or `OPEN` dependencies stop `EXECUTION_READY` until a valid replan.
 
+The project or implementation agent commits planned automation with normal Git workflow before recording implementation. The runtime does not commit. Readiness `automation_revision` is the exact automation repository HEAD commit SHA, shared by every AUT row. A clean fresh clone must checkout that SHA and contain the committed AUT paths; content hashes are supplementary implementation evidence.
+
 Phase 7 ends at `EXECUTION_READY`. This example does not represent a product execution, PASS, finding, defect or `VERIFIED` state.

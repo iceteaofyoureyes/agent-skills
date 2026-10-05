@@ -11,7 +11,7 @@
     "artifact_class": {"const": "EVIDENCE"},
     "feature_id": {"type": "string", "minLength": 1},
     "plan_revision": {"type": "string", "minLength": 1},
-    "automation_revision": {"type": "string", "pattern": "^AUTOMATION_TREE_SHA256:[a-f0-9]{64}$"},
+    "automation_revision": {"type": "string", "pattern": "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"},
     "review_scope": {"enum": ["CONSOLIDATED_FULL_REVIEW", "SCOPED_REREVIEW"]},
     "reviewer": {"type": "string", "minLength": 1},
     "checks": {"type": "object", "additionalProperties": false, "required": ["trace", "repository_ownership", "oracle_duplication", "fixtures", "secrets", "setup_cleanup", "flakiness", "selectors_interfaces", "dependencies", "project_conventions", "write_scope"], "properties": {"trace": {"type": "boolean"}, "repository_ownership": {"type": "boolean"}, "oracle_duplication": {"type": "boolean"}, "fixtures": {"type": "boolean"}, "secrets": {"type": "boolean"}, "setup_cleanup": {"type": "boolean"}, "flakiness": {"type": "boolean"}, "selectors_interfaces": {"type": "boolean"}, "dependencies": {"type": "boolean"}, "project_conventions": {"type": "boolean"}, "write_scope": {"type": "boolean"}}},

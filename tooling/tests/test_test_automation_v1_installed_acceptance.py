@@ -84,6 +84,9 @@ class TestAutomationV1InstalledAcceptance(unittest.TestCase):
             self.assertTrue(acceptance["installed_only_imports"])
             self.assertEqual(acceptance["product_execution"], "NOT_RUN")
             self.assertFalse(acceptance["product_command_executed"])
+            self.assertRegex(acceptance["automation_revision"], r"^(?:[a-f0-9]{40}|[a-f0-9]{64})$")
+            self.assertEqual(acceptance["fresh_clone_revision"], acceptance["automation_revision"])
+            self.assertTrue(acceptance["fresh_clone_paths_reconstructed"])
 
             after = subprocess.run(
                 doctor_command, cwd=outside, env=env, capture_output=True, text=True, timeout=90,

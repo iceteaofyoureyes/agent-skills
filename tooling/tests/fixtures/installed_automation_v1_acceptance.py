@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 
 
 runtime_root = Path(sys.argv[1]).resolve()
@@ -125,6 +126,10 @@ subprocess.run(
     ["git", "add", "tests/api/test_request.py", "tests/e2e/test_request_flow.py"],
     cwd=automation_root, check=True, shell=False,
 )
+subprocess.run(
+    ["git", "commit", "-q", "-m", "Implement planned automation"],
+    cwd=automation_root, check=True, shell=False,
+)
 state = runtime.record_implementation()
 review_checks = {
     "trace", "repository_ownership", "oracle_duplication", "fixtures", "secrets",
@@ -161,6 +166,36 @@ assert not product_command_executed
 state = runtime.finalize(dev_handoff)
 assert state["lifecycle"] == "EXECUTION_READY", state
 handoff = runtime.revalidate_handoff()
+automation_revision = subprocess.run(
+    ["git", "-C", str(automation_root), "rev-parse", "HEAD"],
+    capture_output=True, check=True, text=True, encoding="utf-8", shell=False,
+).stdout.strip()
+assert handoff["automation_revision"] == automation_revision
+implementation = runtime.status()["implementation"]
+committed_hashes = {row["path"]: row["sha256"] for row in implementation["files"]}
+with tempfile.TemporaryDirectory(prefix="automation-fresh-clone-") as temporary:
+    clone = Path(temporary) / "checkout"
+    subprocess.run(
+        ["git", "clone", "--quiet", "--no-local", str(automation_root), str(clone)],
+        check=True, capture_output=True, shell=False,
+    )
+    subprocess.run(
+        ["git", "-C", str(clone), "checkout", "--quiet", "--detach", automation_revision],
+        check=True, capture_output=True, shell=False,
+    )
+    clone_head = subprocess.run(
+        ["git", "-C", str(clone), "rev-parse", "HEAD"],
+        capture_output=True, check=True, text=True, encoding="utf-8", shell=False,
+    ).stdout.strip()
+    assert clone_head == automation_revision
+    for item in handoff["automation_items"]:
+        for path in item["paths"]:
+            assert (clone / Path(path)).is_file(), path
+            committed = subprocess.run(
+                ["git", "-C", str(clone), "cat-file", "blob", f"{automation_revision}:{path}"],
+                capture_output=True, check=True, shell=False,
+            ).stdout
+            assert hashlib.sha256(committed).hexdigest() == committed_hashes[path], path
 resumed = automation.AutomationRuntime(
     project,
     project / ".test-kit/automation/runs/FEATURE-1",
@@ -182,4 +217,7 @@ print(json.dumps({
     "module_paths": {name: module.__file__ for name, module in modules.items()},
     "product_execution": verification_report["product_execution"],
     "product_command_executed": product_command_executed,
+    "automation_revision": automation_revision,
+    "fresh_clone_revision": clone_head,
+    "fresh_clone_paths_reconstructed": True,
 }, sort_keys=True))

@@ -32,7 +32,7 @@ Use stable `AUT-*` IDs. Every item binds its exact Testcase, class, owner, repos
 
 Commands are argv arrays. Do not store shell command strings or `shell=true`. Playwright and other frameworks are optional project choices.
 
-Before each write, confirm the current lifecycle, exact Plan revision, automation repository identity, Git base revision, AUT path scope and safe physical path. Reject application repositories and symlink/reparse escapes. After implementation, inspect the repository diff, reject out-of-scope paths and bind exact changed bytes. Do not claim the editor itself is intercepted.
+Before each write, confirm the current lifecycle, exact Plan revision, automation repository identity, Git base revision, AUT path scope and safe physical path. Reject application repositories and symlink/reparse escapes. The project or implementation agent commits changes through normal Git workflow; the runtime never creates commits. Before recording implementation, require HEAD to descend from the exact Plan base, a new commit when TEST_AUTOMATION items exist, a clean worktree/index, no untracked files, only planned paths in the committed base..HEAD diff, and every planned path in that diff. Reject staged-only, unstaged or untracked source with `AUTOMATION_COMMIT_REQUIRED`. Bind committed blob bytes and SHA-256 evidence, `base_revision`, `repository_revision`, `changed_paths` and AUT-to-path mapping. Do not claim the editor itself is intercepted.
 
 After implementation starts, material Plan edits require `NEEDS_REPLAN`, a new Plan revision, and clearing stale implementation, review and verification evidence. Preserve AUT IDs when their testcase mapping remains.
 
@@ -40,12 +40,12 @@ After implementation starts, material Plan edits require `NEEDS_REPLAN`, a new P
 
 Record one consolidated review covering trace, ownership, oracle duplication, fixtures, secrets, cleanup, flakiness, selector/interface stability, dependencies, project conventions and write scope. Limits: one full review, one blocking fix wave and one scoped rereview. Route missing WHAT to BA/Design; never invent expected behavior.
 
-Verify only the automation implementation with `SYNTAX`, `STATIC`, `LINT`, `TYPECHECK`, `TEST_DISCOVERY`, `TEST_LIST`, `CONFIG_VALIDATE`, `HARNESS_SELF_TEST` or `FIXTURE_VALIDATE`. Do not run the stored execution command or a real SUT. A verification `PASS` means only that automation artifacts are structurally/runnably ready. It does not mean API/E2E/SYSTEM/feature PASS, WCAG conformance or `VERIFIED`.
+Review and verification bind the exact committed automation Git HEAD. Run verification only against that clean committed revision; fail closed if it changes source. Do not run the stored execution command or a real SUT. A verification `PASS` means only that automation artifacts are structurally/runnably ready. It does not mean API/E2E/SYSTEM/feature PASS, WCAG conformance or `VERIFIED`.
 
 Required `OPEN` dependencies and required `BLOCKED` cases prevent readiness. `RESOLVED` dependencies bind an exact reference. `MANUAL_ONLY` cases remain exact approved execution protocols and do not need AUT source.
 
 ## Terminal binding
 
-Before `EXECUTION_READY`, bind the exact current Dev Handoff V2 `READY_FOR_TEST`, canonical Dev validation, current application revisions, exact Dev-local evidence, automation repository/source revision, resolved required dependencies, one passing review and automation-only verification. If Dev changes a consumed implementation locator, replan.
+Before `EXECUTION_READY`, bind the exact current Dev Handoff V2 `READY_FOR_TEST`, canonical Dev validation, current application revisions, exact Dev-local evidence, automation repository identity and exact Git commit SHA, resolved required dependencies, one passing review and automation-only verification for that same SHA. Revalidation checks the clean checkout, committed AUT paths and source hashes. A later local edit or automation commit invalidates readiness and requires replan/review/verification. A fresh clone at the handoff SHA must reproduce the AUT source. If Dev changes a consumed implementation locator, replan.
 
 Produce a durable `HANDOFF_MANIFEST` in state `EXECUTION_READY`. Keep Testcase expected-result prose in the authoritative Approved Testcase. Stop there: real execution, PASS/FINDING, defects, fixes, retest and `VERIFIED` belong to later phases.
