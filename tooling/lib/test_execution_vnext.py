@@ -1234,8 +1234,9 @@ class ExecutionRuntime:
                 raise ExecutionVNextError("DEV_FIX_AUTHORITY_INVALID", "Dev fix must use the original BA Engineering Handoff")
             # The canonical Dev VNext adapter already verifies the original exact BA authority.
             # Here we enforce each selected repository's base and every application's final revision.
-            route, roots, _, topology = routing
-            app_ids = {row["id"] for row in topology["repositories"] if row["id"] != ready["automation_repository"]["id"]}
+            route, roots, _, _ = routing
+            # EXECUTION_READY carries the exact application repository set; docs and automation repos are separate authorities.
+            app_ids = set(manifest["application_revisions"])
             targets = set(defect["target_repository_ids"])
             failed_revisions = defect.get("fix_base_application_revisions", defect["original_application_revisions"])
             repos = {row["id"]: row for row in run_state["repositories"]}

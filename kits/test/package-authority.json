@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.10",
+  "kit_version": "2.0.0-rc.11",
   "manifest_schema_version": 1,
   "managed_files": [
     {
@@ -441,7 +441,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_execution_vnext.py",
-      "sha256": "f05e84f268209b2c66513917de18372b6daeab15bcbd794306153690b9759836",
+      "sha256": "e7cdb67b04e70d4b6dd2b705291d636dc2385f7e74b7ed81df7d206bba233cba",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -977,5 +977,5 @@
   ],
   "managed_file_count": 194,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "0b0ec8df9359ba7060a462755f0e33e9ddf603bb3b21fcbd16c09f0c3504abcd"
+  "payload_tree_sha256": "78394b5d1bb7600a3c09642e35d51f01014bfaec2355417c05ca1c1a0e6123f1"
 }

@@ -192,8 +192,15 @@ def _test_command(root: Path, modules, *, cwd: Path, env, discover=False):
 def _parse_test_summary(output):
     for line in reversed(output.splitlines()):
         if line.startswith("PUBLIC_TEST_SUMMARY="):
-            return json.loads(line.split("=", 1)[1])
-    return {"total": 0, "failures": 0, "errors": 1, "skipped": 0}
+            summary = json.loads(line.split("=", 1)[1])
+            summary["summary_marker"] = True
+            return summary
+    return {"total": 0, "failures": 0, "errors": 1, "skipped": 0, "summary_marker": False}
+
+
+def unittest_failure_names(output):
+    return [line.strip() for line in output.splitlines()
+            if line.startswith(("FAIL: ", "ERROR: "))]
 
 
 def summarize_test_results(tiers, full_summary, *, diff_check_passed):
@@ -238,7 +245,11 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
     for tier, modules in TIER_A.items():
         result = _test_command(root, modules, cwd=output.parent, env=env)
         summary = _parse_test_summary(result.stderr + "\n" + result.stdout)
-        tiers[tier] = {"status": "PASS" if result.returncode == 0 else "FAIL", **summary}
+        tiers[tier] = {"status": "PASS" if result.returncode == 0 else "FAIL",
+                       **summary, "process_returncode": result.returncode}
+        failed_tests = unittest_failure_names(result.stderr + "\n" + result.stdout)
+        if failed_tests:
+            tiers[tier]["failed_tests"] = failed_tests
 
     flow_path = root / "tooling/tests/fixtures/public_cross_kit_conformance.py"
     flow_output = output.parent / "public-flow.json"
@@ -253,7 +264,13 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
 
     full = _test_command(root, (), cwd=output.parent, env=env, discover=True)
     full_summary = _parse_test_summary(full.stderr + "\n" + full.stdout)
-    tiers["full_tooling_unittest_discovery"] = {"status": "PASS" if full.returncode == 0 else "FAIL", **full_summary}
+    tiers["full_tooling_unittest_discovery"] = {
+        "status": "PASS" if full.returncode == 0 else "FAIL",
+        **full_summary, "process_returncode": full.returncode,
+    }
+    failed_tests = unittest_failure_names(full.stderr + "\n" + full.stdout)
+    if failed_tests:
+        tiers["full_tooling_unittest_discovery"]["failed_tests"] = failed_tests
     diff_check = _run(["git", "-C", str(root), "diff", "--check"], cwd=output.parent, env=env)
     clean = not sdlc_suite.git_value(root, "status", "--porcelain=v1")
 

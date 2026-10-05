@@ -24,7 +24,7 @@ class SuiteManifestTests(unittest.TestCase):
         self.assertEqual(manifest["release_status"], "INTERNAL_RC_CANDIDATE")
         self.assertEqual(compatibility["status"], "PASS", compatibility)
         self.assertEqual(compatibility["component_versions"], {
-            "ba": "2.0.0-rc.3", "dev": "0.4.0-rc.2", "test": "2.0.0-rc.10",
+            "ba": "2.0.0-rc.3", "dev": "0.4.0-rc.2", "test": "2.0.0-rc.11",
         })
         self.assertEqual(compatibility["contract_versions"], {
             "project_foundation": 1,

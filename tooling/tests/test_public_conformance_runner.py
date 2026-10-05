@@ -104,13 +104,25 @@ class PublicConformanceContractTests(unittest.TestCase):
         self.assertEqual(summary["total"], 20)
         self.assertEqual(summary["tiers"]["component"]["total"], 10)
 
+    def test_unittest_failure_summary_keeps_case_names_without_traceback_paths(self):
+        output = (
+            "ERROR: test_repo_binding (tooling.tests.test_execution_vnext_acceptance.ExecutionTests)\n"
+            "Traceback (most recent call last):\n"
+            "  File: C:\\workspace\\test.py\n"
+            "FAIL: test_other_contract (tooling.tests.test_execution_vnext.ExecutionTests)\n"
+        )
+        self.assertEqual(public_conformance.unittest_failure_names(output), [
+            "ERROR: test_repo_binding (tooling.tests.test_execution_vnext_acceptance.ExecutionTests)",
+            "FAIL: test_other_contract (tooling.tests.test_execution_vnext.ExecutionTests)",
+        ])
+
     def test_report_has_required_evidence_only_fields_and_closed_status(self):
         report = public_conformance.make_report(
             framework_sha="a" * 40,
             framework_tree="b" * 40,
             suite_manifest_sha256="c" * 64,
             suite_lock_sha256="d" * 64,
-            component_versions={"ba": "2.0.0-rc.3", "dev": "0.4.0-rc.2", "test": "2.0.0-rc.10"},
+            component_versions={"ba": "2.0.0-rc.3", "dev": "0.4.0-rc.2", "test": "2.0.0-rc.11"},
             contract_versions={"project_foundation": 1},
             doctor_results={"suite": "READY"},
             scenario_results={"straight_pass": {"status": "PASS"}},

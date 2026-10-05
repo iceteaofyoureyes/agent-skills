@@ -11,7 +11,7 @@ Test Kit Manual VNext bundle các skill bên thứ ba sau; revision/hash gốc n
 | Optional XMind SDK | [SDK pin](../../tooling/pins/xmind-sdk-v1.json), [npm lock](../../tooling/xmind/package-lock.json) | MIT; license của package xuất hiện sau `npm ci` |
 | Optional Excel dependencies | [hash-locked Python requirements](../../tooling/requirements-excel.lock) | MIT; xem [THIRD_PARTY_NOTICES](../../THIRD_PARTY_NOTICES.md) |
 
-Package candidate hiện tại là `2.0.0-rc.10`; V1 runtime/artifacts chỉ còn để `LEGACY_COMPAT`, `vnext_authority=false`.
+Package candidate hiện tại là `2.0.0-rc.11`; V1 runtime/artifacts chỉ còn để `LEGACY_COMPAT`, `vnext_authority=false`.
 
 [Test Kit manifest](../../kits/test/kit.yaml) xác định assets được cài; [package authority](../../kits/test/package-authority.json) và pin trong manifest gắn exact payload. Project-owned Test Kit runtime dùng root LICENSE. Installer không tải TEA/Katalon lúc chạy; XMind/Excel bootstrap là bước optional do operator yêu cầu rõ ràng. [License summary](../../kits/test/licenses/README.md) mô tả những gì đi cùng package.
 
