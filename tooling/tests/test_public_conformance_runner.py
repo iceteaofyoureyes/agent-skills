@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from tooling import public_conformance, readiness_acceptance
+from tooling.tests.fixtures import public_cross_kit_conformance
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -89,6 +90,20 @@ class PublicConformanceContractTests(unittest.TestCase):
         code = public_conformance._unittest_code(ROOT, discover=True)
         self.assertIn("loader.discover(str(root / 'tooling/tests'), pattern='test_*.py')", code)
         self.assertNotIn("top_level_dir=str(root)", code)
+
+    def test_public_long_running_stages_have_explicit_timeout_budgets(self):
+        self.assertEqual(public_cross_kit_conformance.stage_timeout_seconds("manual-execution"), 1800)
+        self.assertEqual(public_conformance.PUBLIC_FLOW_TIMEOUT_SECONDS, 3600)
+        self.assertEqual(public_conformance.FULL_DISCOVERY_TIMEOUT_SECONDS, 5400)
+        self.assertEqual(public_conformance.PUBLIC_RUN_TIMEOUT_SECONDS, 10800)
+
+    def test_test_command_applies_its_explicit_timeout(self):
+        with patch.object(public_conformance, "_run", return_value=SimpleNamespace(returncode=0)) as run:
+            public_conformance._test_command(
+                ROOT, (), cwd=ROOT, env={}, discover=True,
+                timeout=public_conformance.FULL_DISCOVERY_TIMEOUT_SECONDS,
+            )
+        self.assertEqual(run.call_args.kwargs["timeout"], public_conformance.FULL_DISCOVERY_TIMEOUT_SECONDS)
 
     def test_negative_probe_contract_requires_every_probe_to_pass(self):
         passed = {name: True for name in public_conformance.REQUIRED_NEGATIVE_PROBES}

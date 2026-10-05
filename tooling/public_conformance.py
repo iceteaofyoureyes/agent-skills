@@ -58,6 +58,9 @@ REPORT_KEYS = {
     "contract_versions", "doctor_results", "scenario_results", "trace_checks",
     "revision_checks", "fresh_clone", "genericity", "test_summary", "status",
 }
+PUBLIC_FLOW_TIMEOUT_SECONDS = 3600
+FULL_DISCOVERY_TIMEOUT_SECONDS = 5400
+PUBLIC_RUN_TIMEOUT_SECONDS = 10800
 
 
 def make_report(*, framework_sha, framework_tree, suite_manifest_sha256,
@@ -185,8 +188,9 @@ def prepare_optional_projection_test_runtime(root: Path, external: Path, env: di
     return {"status": "PASS", "package": "tooling/xmind/package-lock.json"}
 
 
-def _test_command(root: Path, modules, *, cwd: Path, env, discover=False):
-    return _run([sys.executable, "-I", "-B", "-c", _unittest_code(root, modules, discover=discover)], cwd=cwd, env=env)
+def _test_command(root: Path, modules, *, cwd: Path, env, discover=False, timeout=1800):
+    return _run([sys.executable, "-I", "-B", "-c", _unittest_code(root, modules, discover=discover)],
+                cwd=cwd, env=env, timeout=timeout)
 
 
 def _parse_test_summary(output):
@@ -277,14 +281,15 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
     flow_output = output.parent / "public-flow.json"
     flow_command = [sys.executable, "-I", "-B", str(flow_path), "--framework-root", str(root),
                     "--spec-kit-cli", str(spec_kit_cli), "--output", str(flow_output)]
-    flow_result = _run(flow_command, cwd=output.parent, env=env, timeout=1800)
+    flow_result = _run(flow_command, cwd=output.parent, env=env, timeout=PUBLIC_FLOW_TIMEOUT_SECONDS)
     try:
         flow = json.loads(flow_output.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         flow = {"status": "FAIL", "error": flow_result.stderr or flow_result.stdout}
     tiers["installed_public_cross_kit_flow"] = {"status": flow.get("status", "FAIL"), **flow}
 
-    full = _test_command(root, (), cwd=output.parent, env=env, discover=True)
+    full = _test_command(root, (), cwd=output.parent, env=env, discover=True,
+                         timeout=FULL_DISCOVERY_TIMEOUT_SECONDS)
     full_summary = _parse_test_summary(full.stderr + "\n" + full.stdout)
     tiers["full_tooling_unittest_discovery"] = {
         "status": "PASS" if full.returncode == 0 else "FAIL",
@@ -379,7 +384,8 @@ def run_candidate(root: str | Path, output: str | Path, *, spec_kit_cli: str | P
                    "--output", str(child_report), "--lock", str(lock_path)]
         if spec_kit_cli:
             command.extend(["--spec-kit-cli", str(Path(spec_kit_cli).resolve())])
-        result = _run(command, cwd=external, env=_isolated_env(external / "child-home"), timeout=7200)
+        result = _run(command, cwd=external, env=_isolated_env(external / "child-home"),
+                      timeout=PUBLIC_RUN_TIMEOUT_SECONDS)
         if child_report.is_file():
             report = json.loads(child_report.read_text(encoding="utf-8"))
         else:

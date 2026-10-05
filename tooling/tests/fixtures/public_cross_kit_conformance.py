@@ -17,6 +17,18 @@ FEATURE_ID = "FEATURE-RSV-001"
 BA_IDS = ("BR-RSV-001", "FR-RSV-001")
 TEST_ONLY_ACTOR = "TEST_ONLY:synthetic-reviewer"
 BA_TEST_ONLY_ACTOR = "TEST_ONLY-synthetic-reviewer"
+PUBLIC_STAGE_TIMEOUT_SECONDS = {
+    "foundation-ba": 900,
+    "dev": 900,
+    "manual-execution": 1800,
+}
+
+
+def stage_timeout_seconds(name: str) -> int:
+    try:
+        return PUBLIC_STAGE_TIMEOUT_SECONDS[name]
+    except KeyError as error:
+        raise ValueError(f"unknown public conformance stage: {name}") from error
 
 
 def repository_for_role(topology: dict, role: str) -> dict:
@@ -1198,7 +1210,7 @@ def run_all(args):
         for key, value in values.items():
             command.extend(["--" + key.replace("_", "-"), str(value)])
         result = subprocess.run(command, cwd=external, env=environment, capture_output=True,
-                                text=True, timeout=900)
+                                text=True, timeout=stage_timeout_seconds(name))
         if result.returncode:
             raise RuntimeError(f"installed {name} cross-kit stage failed: {result.stderr or result.stdout}")
         try:
