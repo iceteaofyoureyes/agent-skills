@@ -124,8 +124,8 @@ tiers:
       demonstrate a real synthetic command failure, Tester Finding and DEFECT classification; run a
       real Dev VNext FEATURE_DELIVERY fix using original BA authority and exact failed app base; validate
       Dev review and fresh verification; create READY_FOR_RETEST; demonstrate failed retest to REOPENED
-      and a later same-ID fix/retest to VERIFIED; exercise role, revision-drift and all non-Defect routes;
-      run Doctor again.
+      and a later same-ID fix/retest to VERIFIED; exercise role separation and revision-drift rejection;
+      run Doctor again. Tier 2 acceptance covers each non-Defect route.
     required_for_phase_8_completion: true
 automated:
   - command: python -m unittest tooling.tests.test_test_kit_vnext_installed_acceptance -v
@@ -141,7 +141,7 @@ automated:
     proves: >-
       Fresh isolated installed Test package execution, exact Phase 7 intake, environment and repository
       binding, straight-pass Tester VERIFIED, a real Dev VNext FEATURE_DELIVERY fix, READY_FOR_RETEST,
-      REOPENED lineage, final Tester retest, role separation, revision drift and non-Defect routing.
+      REOPENED lineage, final Tester retest, role separation and revision drift rejection.
 manual:
   - case: fresh project install without optional projection dependencies
     expected: core VNext remains usable; Doctor reports optional projection gaps as DEGRADED
