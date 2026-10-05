@@ -1,5 +1,6 @@
 """Public Phase 9 runner report and genericity contracts."""
 import tempfile
+import subprocess
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -20,6 +21,36 @@ class PublicConformanceContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "explicit Spec Kit 1.0.11"):
                 public_conformance.run_candidate(ROOT, Path(directory) / "report.json")
+
+    def test_fresh_clone_checkout_preserves_exact_git_blob_bytes(self):
+        with tempfile.TemporaryDirectory() as directory:
+            external = Path(directory)
+            source = external / "source"
+            source.mkdir()
+            subprocess.run(["git", "-C", str(source), "init", "--quiet"], check=True)
+            for key, value in (("user.name", "Conformance Fixture"),
+                               ("user.email", "conformance@example.invalid"),
+                               ("core.autocrlf", "false")):
+                subprocess.run(["git", "-C", str(source), "config", key, value], check=True)
+            expected = b"first line\nsecond line\n"
+            (source / "sample.txt").write_bytes(expected)
+            subprocess.run(["git", "-C", str(source), "add", "sample.txt"], check=True)
+            subprocess.run(["git", "-C", str(source), "commit", "--quiet", "-m", "Fixture"], check=True)
+            candidate = subprocess.check_output(
+                ["git", "-C", str(source), "rev-parse", "HEAD"], text=True,
+            ).strip()
+            clone = external / "clone"
+            subprocess.run(
+                ["git", "clone", "--local", "--no-hardlinks", "--no-checkout", str(source), str(clone)],
+                check=True, capture_output=True, text=True,
+            )
+
+            public_conformance.checkout_exact_clone(
+                clone, candidate, cwd=external,
+                env=public_conformance._isolated_env(external / "temporary-home"),
+            )
+
+            self.assertEqual((clone / "sample.txt").read_bytes(), expected)
 
     def test_optional_projection_runtime_uses_external_locked_offline_install(self):
         with tempfile.TemporaryDirectory() as directory:

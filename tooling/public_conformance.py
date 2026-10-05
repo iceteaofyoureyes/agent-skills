@@ -128,6 +128,21 @@ def _run(command, *, cwd, env, timeout=1800):
     return result
 
 
+def checkout_exact_clone(clone: Path, candidate_sha: str, *, cwd: Path, env: dict) -> None:
+    configured = _run(
+        ["git", "-C", str(clone), "config", "core.autocrlf", "false"],
+        cwd=cwd, env=env, timeout=120,
+    )
+    if configured.returncode:
+        raise ValueError(configured.stderr or "could not pin fresh clone checkout bytes")
+    checked_out = _run(
+        ["git", "-C", str(clone), "checkout", "--detach", candidate_sha],
+        cwd=cwd, env=env, timeout=120,
+    )
+    if checked_out.returncode:
+        raise ValueError(checked_out.stderr or "could not check out exact candidate SHA")
+
+
 def _unittest_code(root: Path, modules=(), *, discover=False):
     module_names = repr(tuple(modules))
     discovery = "suite = loader.discover(str(root / 'tooling/tests'), pattern='test_*.py', top_level_dir=str(root))" if discover else (
@@ -313,8 +328,7 @@ def run_candidate(root: str | Path, output: str | Path, *, spec_kit_cli: str | P
                             cwd=external, env=_isolated_env(external / "home"))
         if clone_result.returncode:
             raise ValueError(clone_result.stderr)
-        _run(["git", "-C", str(clone), "checkout", "--detach", candidate_sha], cwd=external,
-             env=_isolated_env(external / "home"), timeout=120)
+        checkout_exact_clone(clone, candidate_sha, cwd=external, env=_isolated_env(external / "home"))
         if sdlc_suite.git_value(clone, "rev-parse", "HEAD") != candidate_sha or not sdlc_suite.source_is_clean(clone):
             raise ValueError("fresh local clone does not match the exact clean candidate")
         sdlc_suite.generate_lock(clone, lock_path)
