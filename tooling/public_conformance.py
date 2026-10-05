@@ -203,6 +203,25 @@ def unittest_failure_names(output):
             if line.startswith(("FAIL: ", "ERROR: "))]
 
 
+def unittest_failure_details(output):
+    host_roots = [str(Path.home())]
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        try:
+            host_roots.append(str(Path(local_app_data).resolve().parents[1]))
+        except IndexError:
+            pass
+    details = []
+    for line in output.splitlines():
+        detail = line.strip()
+        if not re.match(r"^[A-Za-z_][A-Za-z0-9_.]*(?:Error|Exception): .+", detail):
+            continue
+        for root in host_roots:
+            detail = detail.replace(root, "<local>").replace(root.replace("\\", "/"), "<local>")
+        details.append(detail)
+    return details[-8:]
+
+
 def summarize_test_results(tiers, full_summary, *, diff_check_passed):
     return {
         "status": "PASS" if all(row.get("status") == "PASS" for row in tiers.values()) else "FAIL",
@@ -250,6 +269,9 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
         failed_tests = unittest_failure_names(result.stderr + "\n" + result.stdout)
         if failed_tests:
             tiers[tier]["failed_tests"] = failed_tests
+        failure_details = unittest_failure_details(result.stderr + "\n" + result.stdout)
+        if failure_details:
+            tiers[tier]["failure_details"] = failure_details
 
     flow_path = root / "tooling/tests/fixtures/public_cross_kit_conformance.py"
     flow_output = output.parent / "public-flow.json"
@@ -271,6 +293,9 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
     failed_tests = unittest_failure_names(full.stderr + "\n" + full.stdout)
     if failed_tests:
         tiers["full_tooling_unittest_discovery"]["failed_tests"] = failed_tests
+    failure_details = unittest_failure_details(full.stderr + "\n" + full.stdout)
+    if failure_details:
+        tiers["full_tooling_unittest_discovery"]["failure_details"] = failure_details
     diff_check = _run(["git", "-C", str(root), "diff", "--check"], cwd=output.parent, env=env)
     clean = not sdlc_suite.git_value(root, "status", "--porcelain=v1")
 

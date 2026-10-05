@@ -996,7 +996,8 @@ def manual_automation_execution_stage(args):
     if fix_summary["change_id"] != defect_id or fix_summary["state"] != "READY_FOR_TEST":
         raise AssertionError("Dev defect fix did not use change_id=defect_id and READY_FOR_TEST")
     ready_for_retest = defect_execution.accept_dev_fix(defect_id, fix_handoff_path)
-    if ready_for_retest.get("state") != "READY_FOR_RETEST":
+    ready_for_retest_artifact = read_ref(root, ready_for_retest["ready_for_retest_ref"])
+    if ready_for_retest_artifact.get("state") != "READY_FOR_RETEST":
         raise AssertionError("exact Dev VNext fix did not create READY_FOR_RETEST")
     retest_command = defect_execution.execute_retest(defect_id)
     if retest_command.get("command_status") != "COMMAND_PASS":

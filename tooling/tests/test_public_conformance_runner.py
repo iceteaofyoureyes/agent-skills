@@ -116,6 +116,18 @@ class PublicConformanceContractTests(unittest.TestCase):
             "FAIL: test_other_contract (tooling.tests.test_execution_vnext.ExecutionTests)",
         ])
 
+    def test_unittest_failure_details_extracts_terminal_error_messages(self):
+        output = (
+            "Traceback (most recent call last):\n"
+            "  File: C:\\workspace\\test.py\n"
+            "tooling.lib.test_execution_vnext.ExecutionVNextError: application revision mismatch\n"
+            "AssertionError: expected VERIFIED\n"
+        )
+        self.assertEqual(public_conformance.unittest_failure_details(output), [
+            "tooling.lib.test_execution_vnext.ExecutionVNextError: application revision mismatch",
+            "AssertionError: expected VERIFIED",
+        ])
+
     def test_report_has_required_evidence_only_fields_and_closed_status(self):
         report = public_conformance.make_report(
             framework_sha="a" * 40,
