@@ -34,7 +34,7 @@ TEST_ISSUE
 ENVIRONMENT_ISSUE
 ```
 
-Routes are `DEFECT → DEV`, `SPEC_GAP` and `BUSINESS_DECISION_REQUIRED → UPSTREAM`, `TEST_ISSUE → TEST`, and `ENVIRONMENT_ISSUE → ENVIRONMENT`. Classification is never inferred from a command exit code. DEFECT requires exact approved-oracle evidence, a reproducible deterministic mismatch, evidence excluding environment and test/automation causes, and explicit application repository targets from the project topology.
+Routes are `DEFECT → DEV`, `SPEC_GAP` and `BUSINESS_DECISION_REQUIRED → UPSTREAM`, `TEST_ISSUE → TEST`, and `ENVIRONMENT_ISSUE → ENVIRONMENT`. Classification is never inferred from a command exit code or Finding alone; an authenticated Tester explicitly classifies the Finding. DEFECT requires exact approved-oracle evidence, a reproducible mismatch OR exact deterministic mismatch evidence, evidence excluding environment and test/automation causes, and explicit application repository targets from the project topology. Either proof basis is sufficient, and both may be true.
 
 Non-DEFECT routes cannot become VERIFIED in the current attempt. Corrected authority and a new exact `EXECUTION_READY` start a new attempt.
 

@@ -28,7 +28,7 @@ Only a trusted Tester classifies a Finding, using exactly:
 | `TEST_ISSUE` | Test |
 | `ENVIRONMENT_ISSUE` | Environment |
 
-DEFECT requires the exact approved oracle, mismatch evidence, reproducibility and deterministic evidence, environment root cause exclusion, supported exclusion of a test/automation issue, and explicit application targets from the project topology. A nonzero exit alone is insufficient. Non-DEFECT routes cannot close the current attempt; corrected upstream artifacts must produce a new valid `EXECUTION_READY` and a new attempt.
+DEFECT requires the exact approved oracle, a reproducible mismatch OR exact deterministic mismatch evidence, environment root cause exclusion, supported exclusion of a test/automation issue, and explicit application targets from the project topology. Either proof basis is sufficient, and both may be true. A nonzero exit alone is insufficient. A Tester explicitly classifies the Finding; a command failure or Finding is never auto-classified as DEFECT. Non-DEFECT routes cannot close the current attempt; corrected upstream artifacts must produce a new valid `EXECUTION_READY` and a new attempt.
 
 ## Verify and retest
 

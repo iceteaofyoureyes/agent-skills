@@ -222,8 +222,10 @@ def test_approved_request_outcome():
             evidence_refs=[manual_evidence], actor_id="synthetic-tester",
         )
         actual_finding_id = next(iter(defect_attempt.state["finding_refs"]))
+        self.assertFalse(defect_attempt.state["classification_refs"])
+        self.assertFalse(defect_attempt.state["defect_handoffs"])
         proof = {
-            "reproducible": True, "deterministic": True, "environment_root_cause_excluded": True,
+            "reproducible": True, "deterministic": False, "environment_root_cause_excluded": True,
             "test_issue_excluded": True, "mismatch_evidence_refs": [failed_command_ref],
         }
         with self.assertRaises(execution.ExecutionVNextError) as non_tester:
@@ -351,7 +353,7 @@ def test_approved_request_outcome():
                 finding_id, classification, actor_id="synthetic-tester", rationale="Tester selected the supported route from exact evidence.",
                 evidence_refs=[], target_repository_ids=([] if classification != "DEFECT" else ["core"]),
                 defect_proof=(None if classification != "DEFECT" else {
-                    "reproducible": True, "deterministic": True, "environment_root_cause_excluded": True,
+                    "reproducible": True, "deterministic": False, "environment_root_cause_excluded": True,
                     "test_issue_excluded": True, "mismatch_evidence_refs": [self._evidence_ref(f"defect-route-{index}")],
                 }),
             )

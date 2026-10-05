@@ -299,12 +299,13 @@ def validate_classification(value: dict) -> dict:
     if value["classification"] == "DEFECT":
         proof = value.get("defect_proof")
         expected = {"reproducible", "deterministic", "environment_root_cause_excluded", "test_issue_excluded", "mismatch_evidence_refs"}
-        if (not isinstance(proof, dict) or set(proof) != expected or proof["reproducible"] is not True
-                or proof["deterministic"] is not True
+        if (not isinstance(proof, dict) or set(proof) != expected
+                or type(proof["reproducible"]) is not bool or type(proof["deterministic"]) is not bool
+                or not (proof["reproducible"] or proof["deterministic"])
                 or proof["environment_root_cause_excluded"] is not True or proof["test_issue_excluded"] is not True
                 or not isinstance(proof["mismatch_evidence_refs"], list) or not proof["mismatch_evidence_refs"]
                 or not value["target_repository_ids"]):
-            raise ValueError("DEFECT requires reproducibility, mismatch, environment and test-issue evidence")
+            raise ValueError("DEFECT requires a reproducible or deterministic mismatch, exclusions, and application targets")
     elif value["target_repository_ids"] or "defect_proof" in value:
         raise ValueError("non-DEFECT classification cannot target application repositories or carry defect proof")
     reject_secrets(value)

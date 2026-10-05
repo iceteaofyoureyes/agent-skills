@@ -15,13 +15,17 @@
       "type": "object", "additionalProperties": false,
       "required": ["reproducible", "deterministic", "environment_root_cause_excluded", "test_issue_excluded", "mismatch_evidence_refs"],
       "properties": {
-        "reproducible": {"const": true}, "deterministic": {"const": true},
+        "reproducible": {"type": "boolean"}, "deterministic": {"type": "boolean"},
         "environment_root_cause_excluded": {"const": true}, "test_issue_excluded": {"const": true},
         "mismatch_evidence_refs": {
           "type": "array", "minItems": 1,
           "items": {"$ref": "#/$defs/ref"}
         }
-      }
+      },
+      "anyOf": [
+        {"properties": {"reproducible": {"const": true}}, "required": ["reproducible"]},
+        {"properties": {"deterministic": {"const": true}}, "required": ["deterministic"]}
+      ]
     }
   },
   "allOf": [

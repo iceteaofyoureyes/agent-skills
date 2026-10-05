@@ -12,7 +12,7 @@ This neutral example begins with an exact Test Automation V1 `EXECUTION_READY` h
 ## Defect and retest
 
 1. A testcase command fails and the Tester records a FINDING Observation. The command failure alone does not create a Defect.
-2. The Tester classifies `DEFECT` only with reproducible mismatch evidence, an exact approved oracle, environment/test issue exclusion, and a target repository from topology.
+2. The Tester classifies `DEFECT` only with a reproducible mismatch OR exact deterministic mismatch evidence, an exact approved oracle, environment/test issue exclusion, and a target repository from topology.
 3. Test Kit creates `DEFECT_READY_FOR_DEV`. Dev starts normal `FEATURE_DELIVERY` with the stable defect ID as `change_id`, the original BA Engineering Handoff as WHAT authority, and the failed app SHA as repository base.
 4. Dev completes Impact, Plan, Implementation, Review and fresh Verification, commits the targeted fix and returns V2 `READY_FOR_TEST`.
 5. Phase 8 validates the exact Dev handoff and creates `READY_FOR_RETEST`.

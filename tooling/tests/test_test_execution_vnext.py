@@ -127,8 +127,47 @@ class ObservationAndFindingContracts(unittest.TestCase):
         invalid["defect_proof"] = {"reproducible": True, "deterministic": False,
                                    "environment_root_cause_excluded": True, "test_issue_excluded": True,
                                    "mismatch_evidence_refs": [ref()]}
+        self.assertEqual(execution.validate_classification(invalid), invalid)
+
+    def test_defect_proof_accepts_either_basis_and_rejects_missing_independent_requirements(self):
+        artifact = {
+            "schema_version": 1, "artifact_class": "CANONICAL", "finding_ref": ref("evidence/finding.json", "FINDING-1"),
+            "classification": "DEFECT", "actor": {"actor_id": "tester-1", "role": "TESTER"},
+            "rationale": "The exact approved oracle and mismatch are evidenced.", "evidence_refs": [ref()], "route": "DEV",
+            "target_repository_ids": ["core"], "classified_at": "2026-10-05T00:00:00Z",
+        }
+        for reproducible, deterministic in ((True, False), (False, True), (True, True)):
+            with self.subTest(reproducible=reproducible, deterministic=deterministic):
+                candidate = copy.deepcopy(artifact)
+                candidate["defect_proof"] = {
+                    "reproducible": reproducible, "deterministic": deterministic,
+                    "environment_root_cause_excluded": True, "test_issue_excluded": True,
+                    "mismatch_evidence_refs": [ref()],
+                }
+                self.assertEqual(execution.validate_classification(candidate), candidate)
+
+        valid_proof = {
+            "reproducible": True, "deterministic": False,
+            "environment_root_cause_excluded": True, "test_issue_excluded": True,
+            "mismatch_evidence_refs": [ref()],
+        }
+        invalid_proofs = (
+            {**valid_proof, "reproducible": False, "deterministic": False},
+            {**valid_proof, "environment_root_cause_excluded": False},
+            {**valid_proof, "test_issue_excluded": False},
+            {**valid_proof, "mismatch_evidence_refs": []},
+            {key: value for key, value in valid_proof.items() if key != "mismatch_evidence_refs"},
+            {**valid_proof, "reproducible": "true"},
+        )
+        for proof in invalid_proofs:
+            with self.subTest(proof=proof):
+                candidate = {**artifact, "defect_proof": proof}
+                with self.assertRaises(ValueError):
+                    execution.validate_classification(candidate)
+
+        no_target = {**artifact, "target_repository_ids": [], "defect_proof": valid_proof}
         with self.assertRaises(ValueError):
-            execution.validate_classification(invalid)
+            execution.validate_classification(no_target)
 
 
 if __name__ == "__main__":

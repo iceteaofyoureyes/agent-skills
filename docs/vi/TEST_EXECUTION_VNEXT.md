@@ -28,7 +28,7 @@ Chỉ Tester qua trusted host callback mới phân loại Finding, với đúng 
 | `TEST_ISSUE` | Test |
 | `ENVIRONMENT_ISSUE` | Environment |
 
-DEFECT cần oracle chính xác đã được phê duyệt, evidence mismatch, evidence tái lập và deterministic, loại trừ môi trường là nguyên nhân gốc, loại trừ hợp lý lỗi test/automation, và xác định application targets thuộc topology. Exit code khác 0 không đủ. Route khác DEFECT không thể đóng attempt hiện tại; artifact upstream được sửa phải tạo `EXECUTION_READY` mới và attempt mới.
+DEFECT cần oracle chính xác đã được phê duyệt, cùng mismatch có thể tái lập HOẶC evidence mismatch deterministic chính xác. Một trong hai cơ sở proof là đủ; cả hai cùng đúng cũng hợp lệ. Tester phải phân loại Finding một cách tường minh; `COMMAND_FAIL` hoặc `FINDING` không tự động trở thành `DEFECT`. Vẫn phải loại trừ môi trường là nguyên nhân gốc và lỗi test/automation trong phạm vi evidence hỗ trợ, đồng thời xác định application targets thuộc topology. Exit code khác 0 không đủ. Route khác DEFECT không thể đóng attempt hiện tại; artifact upstream được sửa phải tạo `EXECUTION_READY` mới và attempt mới.
 
 ## Xác minh và retest
 

@@ -50,6 +50,25 @@ class TestExecutionVNextSchemaTests(unittest.TestCase):
         self.assertEqual(ready["properties"]["verification_owner"]["const"], "TESTER")
         self.assertEqual(ready["properties"]["state"]["const"], "READY_FOR_RETEST")
 
+    def test_defect_classification_schema_encodes_or_and_required_guards(self):
+        schema = load_json(SCHEMAS / "finding-classification-v1.schema.json")
+        proof = schema["properties"]["defect_proof"]
+        properties = proof["properties"]
+        self.assertEqual(properties["reproducible"], {"type": "boolean"})
+        self.assertEqual(properties["deterministic"], {"type": "boolean"})
+        self.assertEqual(proof["anyOf"], [
+            {"properties": {"reproducible": {"const": True}}, "required": ["reproducible"]},
+            {"properties": {"deterministic": {"const": True}}, "required": ["deterministic"]},
+        ])
+        self.assertEqual(properties["environment_root_cause_excluded"], {"const": True})
+        self.assertEqual(properties["test_issue_excluded"], {"const": True})
+        self.assertEqual(properties["mismatch_evidence_refs"]["minItems"], 1)
+        defect_rule = next(rule for rule in schema["allOf"] if rule["if"]["properties"]["classification"]["const"] == "DEFECT")
+        self.assertEqual(defect_rule["then"]["properties"]["target_repository_ids"]["minItems"], 1)
+        for rule in schema["allOf"]:
+            if rule["if"]["properties"]["classification"]["const"] != "DEFECT":
+                self.assertEqual(rule["then"]["not"], {"required": ["defect_proof"]})
+
     def test_package_examples_are_neutral_and_templates_carry_no_receipts(self):
         for name in ("environment-v1.template.json", "execution-manifest-v1.template.json"):
             template = load_json(ROOT / "kits/test/templates" / name)

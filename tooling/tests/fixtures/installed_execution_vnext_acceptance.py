@@ -100,7 +100,7 @@ if action == "defect-start":
         rationale="The exact approved oracle has a reproducible mismatch; environment and test causes are excluded.",
         evidence_refs=[command_ref], target_repository_ids=[next(iter(manifest["application_revisions"]))],
         defect_proof={
-            "reproducible": True, "deterministic": True, "environment_root_cause_excluded": True,
+            "reproducible": True, "deterministic": False, "environment_root_cause_excluded": True,
             "test_issue_excluded": True, "mismatch_evidence_refs": [command_ref],
         },
     )

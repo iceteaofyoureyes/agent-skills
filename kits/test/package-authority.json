@@ -46,7 +46,7 @@
     },
     {
       "path": ".test-kit/docs/en/TEST_EXECUTION_VNEXT.md",
-      "sha256": "f98a8c3c4e376d02187969fe83fb57adf8e6fd0d6297d9fd2242ba207cb07de9",
+      "sha256": "c83bd96e3f0dd92922f7726cbd12a730447fd7f0e73d81b5b315448c7c8f045e",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
@@ -56,7 +56,7 @@
     },
     {
       "path": ".test-kit/docs/vi/TEST_EXECUTION_VNEXT.md",
-      "sha256": "02557f0032ed9bd9e55d83f05163b0400305b61d0e9c430343c51aa6964c83c5",
+      "sha256": "a92e7169b911f5e7370b127de2edeff10e9896f04f0678ee72acb011c3c48a29",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
@@ -91,7 +91,7 @@
     },
     {
       "path": ".test-kit/examples/vnext/neutral/execution-defect-retest/README.md",
-      "sha256": "1dd2d7c1a52c7ca438af7e6638a10c5cdc6d6b84551cf67e3e919b2180974c70",
+      "sha256": "8bc11ca4fc9ac2c030138ee51f78f5583e6abb4e63573da65e661f40d2901dfa",
       "classification": "PUBLIC_EXAMPLE"
     },
     {
@@ -171,7 +171,7 @@
     },
     {
       "path": ".test-kit/schemas/finding-classification-v1.schema.json",
-      "sha256": "eaf1667332604fc54cb64bdea095401b23461525b4186bd1fb6695ce4619ae67",
+      "sha256": "f3f9631c54bed395d0f436d2d2ed7e8d1e31768a4f709615561b61f3a5b2f61e",
       "classification": "CANONICAL_SCHEMA"
     },
     {
@@ -371,7 +371,7 @@
     },
     {
       "path": ".test-kit/skills/test-execution-vnext/SKILL.md",
-      "sha256": "a9e27dd0ad32f495010b3ce3e421c7c7701a46b727d8254c907aafc05d496d4d",
+      "sha256": "391dd840b8cf17c72c9ac702aee04b4d43be59769f65593e2a913cd54b0bc7a4",
       "classification": "OPERATOR_SKILL"
     },
     {
@@ -441,7 +441,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_execution_vnext.py",
-      "sha256": "415b0fdaa4065642db8a47ea4d061cfd06256545b2a38251513fe09be43436ed",
+      "sha256": "658d8e2c021295a45af9e847cc43670fc15177d08c817ff59e243be8c70da991",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -966,7 +966,7 @@
     },
     {
       "path": "test-execution-vnext/SKILL.md",
-      "sha256": "a9e27dd0ad32f495010b3ce3e421c7c7701a46b727d8254c907aafc05d496d4d",
+      "sha256": "391dd840b8cf17c72c9ac702aee04b4d43be59769f65593e2a913cd54b0bc7a4",
       "classification": "REQUIRED_SKILL"
     },
     {
@@ -977,5 +977,5 @@
   ],
   "managed_file_count": 194,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "51af9ecea640957ab975f0f4ededebbe40aa50fd7655e98f7e9548b799c935bd"
+  "payload_tree_sha256": "7bd9f5c2fa3303d1d915dcaccad5a1962c1a9b1dbe890025d8187c44ec9b9b27"
 }
