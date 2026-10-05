@@ -16,6 +16,8 @@ Use Spec Kit `v1.0.11` and pass its executable explicitly. The runner creates a 
 
 The runner performs the component regressions, Suite Doctor checks, installed public cross-kit flow, fresh-clone check, and full tooling unittest discovery. The public flow exercises the synthetic multi-repository path from Foundation approval through BA, Dev, manual Test, Automation, execution, defect/fix/retest, and a separate straight-pass execution. The fixture's Human receipts are explicitly `TEST_ONLY` and are accepted only through trusted host callbacks.
 
+Full tooling unittest discovery requires `pytest` in the invoking Python user site because several test modules import it during discovery. The runner verifies and reports that version, passes its site path explicitly to the isolated child after the fresh-clone path, and keeps `PYTHONPATH` absent.
+
 Suite Doctor requires BA, Dev, and Test core readiness, current package and contract compatibility, Foundation runtime availability, public routers, runtime-ignore rules, and the Test package authority. Missing optional XMind or Excel projection dependencies may produce `DEGRADED` while core Test readiness passes. Any required runtime, package, integrity, or contract failure fails the Doctor.
 
 The report has evidence class `PUBLIC_CROSS_KIT_CONFORMANCE` and status `PASS` or `FAIL`. It binds the framework commit/tree, suite manifest and lock hashes, component and contract versions, Doctor results, scenario and trace checks, revision reproduction, fresh-clone status, and test totals. The report is evidence, not project or business authority.

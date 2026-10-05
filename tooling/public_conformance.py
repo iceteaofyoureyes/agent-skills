@@ -5,9 +5,11 @@ import argparse
 import hashlib
 import json
 import os
+from importlib import metadata
 from pathlib import Path
 import re
 import shutil
+import site
 import subprocess
 import sys
 import tempfile
@@ -61,6 +63,24 @@ REPORT_KEYS = {
 PUBLIC_FLOW_TIMEOUT_SECONDS = 3600
 FULL_DISCOVERY_TIMEOUT_SECONDS = 5400
 PUBLIC_RUN_TIMEOUT_SECONDS = 10800
+
+
+def test_dependency_runtime():
+    dependency_site = Path(site.getusersitepackages()).resolve()
+    if not (dependency_site / "pytest/__init__.py").is_file():
+        raise ValueError("full tooling unittest discovery requires pytest in the invoking Python user site")
+    original_path = sys.path[:]
+    sys.path.insert(0, str(dependency_site))
+    try:
+        distribution = metadata.distribution("pytest")
+    except metadata.PackageNotFoundError as error:
+        raise ValueError("full tooling unittest discovery requires pytest metadata in the invoking Python user site") from error
+    finally:
+        sys.path[:] = original_path
+    package_path = Path(distribution.locate_file("pytest/__init__.py")).resolve()
+    if not package_path.is_relative_to(dependency_site):
+        raise ValueError("pytest metadata did not resolve inside the explicit Python user site")
+    return dependency_site, distribution.version
 
 
 def make_report(*, framework_sha, framework_tree, suite_manifest_sha256,
@@ -146,8 +166,18 @@ def checkout_exact_clone(clone: Path, candidate_sha: str, *, cwd: Path, env: dic
         raise ValueError(checked_out.stderr or "could not check out exact candidate SHA")
 
 
-def _unittest_code(root: Path, modules=(), *, discover=False):
+def _unittest_code(root: Path, modules=(), *, discover=False, test_dependency_site=None):
     module_names = repr(tuple(modules))
+    if discover and test_dependency_site is None:
+        raise ValueError("full unittest discovery requires an explicit pytest test dependency site")
+    test_dependencies = (
+        f"sys.path.append({str(Path(test_dependency_site).resolve())!r})\n"
+        if test_dependency_site is not None else ""
+    )
+    pytest_summary = (
+        "summary['pytest_version'] = __import__('importlib.metadata', fromlist=['version']).version('pytest')\n"
+        if discover else ""
+    )
     discovery = "suite = loader.discover(str(root / 'tooling/tests'), pattern='test_*.py')" if discover else (
         "suite = unittest.TestSuite()\nfor name in modules:\n    suite.addTests(loader.loadTestsFromName(name))"
     )
@@ -155,11 +185,14 @@ def _unittest_code(root: Path, modules=(), *, discover=False):
         "import json, pathlib, sys, unittest\n"
         f"root = pathlib.Path({str(root)!r})\n"
         "sys.path.insert(0, str(root))\n"
+        f"{test_dependencies}"
         f"modules = {module_names}\n"
         "loader = unittest.defaultTestLoader\n"
         f"{discovery}\n"
         "result = unittest.TextTestRunner(verbosity=1).run(suite)\n"
-        "print('PUBLIC_TEST_SUMMARY=' + json.dumps({'total': result.testsRun, 'failures': len(result.failures), 'errors': len(result.errors), 'skipped': len(result.skipped)}))\n"
+        "summary = {'total': result.testsRun, 'failures': len(result.failures), 'errors': len(result.errors), 'skipped': len(result.skipped)}\n"
+        f"{pytest_summary}"
+        "print('PUBLIC_TEST_SUMMARY=' + json.dumps(summary))\n"
         "sys.exit(0 if result.wasSuccessful() else 1)\n"
     )
 
@@ -188,9 +221,12 @@ def prepare_optional_projection_test_runtime(root: Path, external: Path, env: di
     return {"status": "PASS", "package": "tooling/xmind/package-lock.json"}
 
 
-def _test_command(root: Path, modules, *, cwd: Path, env, discover=False, timeout=1800):
-    return _run([sys.executable, "-I", "-B", "-c", _unittest_code(root, modules, discover=discover)],
-                cwd=cwd, env=env, timeout=timeout)
+def _test_command(root: Path, modules, *, cwd: Path, env, discover=False, timeout=1800,
+                  test_dependency_site=None):
+    test_cwd = root if discover else cwd
+    code = _unittest_code(root, modules, discover=discover, test_dependency_site=test_dependency_site)
+    return _run([sys.executable, "-I", "-B", "-c", code],
+                cwd=test_cwd, env=env, timeout=timeout)
 
 
 def _parse_test_summary(output):
@@ -238,13 +274,19 @@ def summarize_test_results(tiers, full_summary, *, diff_check_passed):
     }
 
 
-def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path | None) -> int:
+def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path | None,
+                  test_dependency_site: Path | None) -> int:
     root, output, lock_path = root.resolve(), output.resolve(), lock_path.resolve()
     if output.is_relative_to(root) or lock_path.is_relative_to(root):
         raise ValueError("conformance report and run lock must stay outside source tree")
     if spec_kit_cli is None or not Path(spec_kit_cli).is_file():
         raise ValueError("public conformance requires an explicit Spec Kit 1.0.11 executable")
     spec_kit_cli = Path(spec_kit_cli).resolve()
+    if test_dependency_site is None:
+        raise ValueError("public conformance requires the explicit pytest test dependency site")
+    test_dependency_site = Path(test_dependency_site).resolve()
+    if test_dependency_site.is_relative_to(root) or not (test_dependency_site / "pytest/__init__.py").is_file():
+        raise ValueError("pytest test dependency site must exist outside the fresh framework clone")
     lock = json.loads(lock_path.read_text(encoding="utf-8"))
     sdlc_suite.verify_lock(root, lock)
     suite_manifest = sdlc_suite.load_manifest(root)
@@ -289,7 +331,8 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
     tiers["installed_public_cross_kit_flow"] = {"status": flow.get("status", "FAIL"), **flow}
 
     full = _test_command(root, (), cwd=output.parent, env=env, discover=True,
-                         timeout=FULL_DISCOVERY_TIMEOUT_SECONDS)
+                         timeout=FULL_DISCOVERY_TIMEOUT_SECONDS,
+                         test_dependency_site=test_dependency_site)
     full_summary = _parse_test_summary(full.stderr + "\n" + full.stdout)
     tiers["full_tooling_unittest_discovery"] = {
         "status": "PASS" if full.returncode == 0 else "FAIL",
@@ -329,6 +372,7 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
     if not clean:
         fresh_clone["status"] = "FAIL"
     test_summary = summarize_test_results(tiers, full_summary, diff_check_passed=diff_check.returncode == 0)
+    test_summary["test_dependency_versions"] = {"pytest": full_summary.get("pytest_version")}
     test_summary["optional_projection_runtime"] = projection_runtime["status"]
     if projection_runtime["status"] != "PASS":
         test_summary["status"] = "FAIL"
@@ -358,6 +402,7 @@ def run_candidate(root: str | Path, output: str | Path, *, spec_kit_cli: str | P
         raise ValueError("conformance report must be outside source tree")
     if spec_kit_cli is None or not Path(spec_kit_cli).is_file():
         raise ValueError("public conformance requires an explicit Spec Kit 1.0.11 executable")
+    test_dependency_site, _ = test_dependency_runtime()
     branch = sdlc_suite.git_value(root, "branch", "--show-current")
     if branch != BRANCH:
         raise ValueError(f"expected candidate branch {BRANCH}; found {branch}")
@@ -384,6 +429,7 @@ def run_candidate(root: str | Path, output: str | Path, *, spec_kit_cli: str | P
                    "--output", str(child_report), "--lock", str(lock_path)]
         if spec_kit_cli:
             command.extend(["--spec-kit-cli", str(Path(spec_kit_cli).resolve())])
+        command.extend(["--test-dependency-site", str(test_dependency_site)])
         result = _run(command, cwd=external, env=_isolated_env(external / "child-home"),
                       timeout=PUBLIC_RUN_TIMEOUT_SECONDS)
         if child_report.is_file():
@@ -419,16 +465,18 @@ def main(argv=None):
     parser.add_argument("--clone-child", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument("--root", type=Path)
     parser.add_argument("--lock", type=Path)
+    parser.add_argument("--test-dependency-site", type=Path, help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
     try:
         if args.clone_child:
-            if args.root is None or args.lock is None:
-                parser.error("clone child requires --root and --lock")
+            if args.root is None or args.lock is None or args.test_dependency_site is None:
+                parser.error("clone child requires --root, --lock, and --test-dependency-site")
             child_root = args.root.resolve()
             sys.path.insert(0, str(child_root))
             if Path(__file__).resolve().parents[1] != child_root:
                 raise ValueError("public conformance runner did not execute from the exact fresh clone")
-            code = _run_in_clone(child_root, args.output, args.lock, args.spec_kit_cli)
+            code = _run_in_clone(child_root, args.output, args.lock, args.spec_kit_cli,
+                                 args.test_dependency_site)
             return code
         report = run_candidate(args.repo, args.output, spec_kit_cli=args.spec_kit_cli)
         print(json.dumps(report, ensure_ascii=False, indent=2))

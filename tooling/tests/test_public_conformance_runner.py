@@ -87,9 +87,35 @@ class PublicConformanceContractTests(unittest.TestCase):
         self.assertNotIn("tooling.tests.test_sdlc_acceptance", modules)
 
     def test_full_discovery_uses_the_tests_directory_as_unittest_top_level(self):
-        code = public_conformance._unittest_code(ROOT, discover=True)
+        test_dependency_site = Path("external-test-dependencies")
+        code = public_conformance._unittest_code(
+            ROOT, discover=True, test_dependency_site=test_dependency_site,
+        )
         self.assertIn("loader.discover(str(root / 'tooling/tests'), pattern='test_*.py')", code)
         self.assertNotIn("top_level_dir=str(root)", code)
+        dependency_path = repr(str(test_dependency_site.resolve()))
+        self.assertIn(dependency_path, code)
+        self.assertLess(code.index("sys.path.insert(0, str(root))"), code.index(dependency_path))
+        self.assertNotIn("site.getusersitepackages()", code)
+        compile(code, "public-full-discovery-runner", "exec")
+
+    def test_full_discovery_runs_from_the_candidate_clone(self):
+        with patch.object(public_conformance, "_run", return_value=SimpleNamespace(returncode=0)) as run:
+            public_conformance._test_command(
+                ROOT, (), cwd=Path("external"), env={}, discover=True,
+                test_dependency_site=Path("external-test-dependencies"),
+            )
+        self.assertEqual(run.call_args.kwargs["cwd"], ROOT)
+
+    def test_runner_resolves_pytest_from_the_operator_test_site(self):
+        test_site, version = public_conformance.test_dependency_runtime()
+        self.assertTrue((test_site / "pytest/__init__.py").is_file())
+        self.assertTrue(version)
+
+    def test_retest_trace_uses_validated_ready_for_retest_artifact(self):
+        source = Path(public_cross_kit_conformance.__file__).read_text(encoding="utf-8")
+        self.assertIn('"ready_for_retest": ready_for_retest_artifact["state"]', source)
+        self.assertNotIn('"ready_for_retest": ready_for_retest["state"]', source)
 
     def test_public_long_running_stages_have_explicit_timeout_budgets(self):
         self.assertEqual(public_cross_kit_conformance.stage_timeout_seconds("manual-execution"), 1800)
@@ -102,6 +128,7 @@ class PublicConformanceContractTests(unittest.TestCase):
             public_conformance._test_command(
                 ROOT, (), cwd=ROOT, env={}, discover=True,
                 timeout=public_conformance.FULL_DISCOVERY_TIMEOUT_SECONDS,
+                test_dependency_site=Path("external-test-dependencies"),
             )
         self.assertEqual(run.call_args.kwargs["timeout"], public_conformance.FULL_DISCOVERY_TIMEOUT_SECONDS)
 

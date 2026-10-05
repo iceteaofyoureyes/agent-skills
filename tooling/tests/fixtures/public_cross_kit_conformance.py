@@ -1126,7 +1126,7 @@ def manual_automation_execution_stage(args):
         "straight_pass_aut_ids": [straight_item["aut_id"]],
         "failed_command_evidence": failed_command_ref,
         "finding_id": finding_id, "defect_id": defect_id,
-        "dev_fix_sha": app_sha_after, "ready_for_retest": ready_for_retest["state"],
+        "dev_fix_sha": app_sha_after, "ready_for_retest": ready_for_retest_artifact["state"],
         "retest_command_evidence": retest_command["command_evidence_ref"],
         "retest": "PASS", "verified": retest_result["state"],
         "straight_pass_command_evidence": straight_command_ref,
