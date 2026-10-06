@@ -178,7 +178,7 @@ class InstalledDevVNextAcceptance(unittest.TestCase):
             self.assertEqual((install_home / "bin/preserved-user-tool.txt").read_text(encoding="utf-8"), "keep unrelated\n")
             manifest = json.loads(Path(installed["manifest"]).read_text(encoding="utf-8"))
             self.assertEqual((manifest["schema_version"], manifest["runtime"]), (2, "dev-kit-v2"))
-            self.assertEqual(manifest["kit_version"], "0.4.0-rc.1")
+            self.assertEqual(manifest["kit_version"], "0.4.0-rc.2")
             self.assertEqual(len(manifest["files"]), installed["file_count"])
             before = _tree_bytes(runtime_root)
             repeated = install_dev_kit.install(ROOT, install_home)

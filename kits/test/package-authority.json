@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.8",
+  "kit_version": "2.0.0-rc.11",
   "manifest_schema_version": 1,
   "managed_files": [
     {
@@ -161,12 +161,12 @@
     },
     {
       "path": ".test-kit/schemas/execution-manifest-v1.schema.json",
-      "sha256": "0ec2beea8d1589848035168103c12327284448375293f7726fc3dd5092cb9c06",
+      "sha256": "fb5b5ca00a71dd9f30e39402dea41f6939add6b531928dc80f391531c41b6ad9",
       "classification": "CANONICAL_SCHEMA"
     },
     {
       "path": ".test-kit/schemas/execution-ready-v1-handoff.schema.json",
-      "sha256": "e3bfd4938d0bea610d982d9b83cbf3106a22de2bbb67dc4793bcd3f73ec3dd23",
+      "sha256": "0c0f2baf51efd0895e6aa76080145281eada3cea0c4bf41ca27e96cd7047d880",
       "classification": "HANDOFF_SCHEMA"
     },
     {
@@ -371,7 +371,7 @@
     },
     {
       "path": ".test-kit/skills/test-execution-vnext/SKILL.md",
-      "sha256": "391dd840b8cf17c72c9ac702aee04b4d43be59769f65593e2a913cd54b0bc7a4",
+      "sha256": "40d06505743f5a3f830e39db37f74123ddd649205c5f6681d0060a4597104295",
       "classification": "OPERATOR_SKILL"
     },
     {
@@ -416,7 +416,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/dev_vnext.py",
-      "sha256": "3575d76520348bbf8798d9f6831d57491ce047bfbe380729f8733f2ee63a914a",
+      "sha256": "618a7e30c5f09f61d5a62694eafd08b184c1e8f4c7a51372a7decbfcdf12eb65",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -436,12 +436,12 @@
     },
     {
       "path": ".test-kit/tooling/lib/test_automation_v1.py",
-      "sha256": "fb3150b4b8259abf62abfd68c550efcfd6c41d83c4e534df2cb104357343d0fa",
+      "sha256": "8bddc402a43b378da9d184bfea8e3420706eabca58fce39fdc8bf15217eaf866",
       "classification": "CORE_RUNTIME"
     },
     {
       "path": ".test-kit/tooling/lib/test_execution_vnext.py",
-      "sha256": "658d8e2c021295a45af9e847cc43670fc15177d08c817ff59e243be8c70da991",
+      "sha256": "e7cdb67b04e70d4b6dd2b705291d636dc2385f7e74b7ed81df7d206bba233cba",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -961,12 +961,12 @@
     },
     {
       "path": "test-automation-v1/SKILL.md",
-      "sha256": "69216b7de519ab751c90ed790745b26e035f8fea762da45b5651bf84a5f1b7c7",
+      "sha256": "0e7411567bf09658b95b7fe6473d697e7fcbd9f0b063890ecef3e65656eb7fd4",
       "classification": "REQUIRED_SKILL"
     },
     {
       "path": "test-execution-vnext/SKILL.md",
-      "sha256": "391dd840b8cf17c72c9ac702aee04b4d43be59769f65593e2a913cd54b0bc7a4",
+      "sha256": "40d06505743f5a3f830e39db37f74123ddd649205c5f6681d0060a4597104295",
       "classification": "REQUIRED_SKILL"
     },
     {
@@ -977,5 +977,5 @@
   ],
   "managed_file_count": 194,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "7bd9f5c2fa3303d1d915dcaccad5a1962c1a9b1dbe890025d8187c44ec9b9b27"
+  "payload_tree_sha256": "78394b5d1bb7600a3c09642e35d51f01014bfaec2355417c05ca1c1a0e6123f1"
 }

@@ -43,6 +43,15 @@ class AutomationV1SchemaTests(unittest.TestCase):
         self.assertIn("blocked_testcases", schema["required"])
         self.assertIn("dev_local_references", schema["required"])
 
+    def test_test_only_execution_ready_requires_both_nonproduction_markers(self):
+        schema = load("execution-ready-v1-handoff.schema.json")
+        self.assertEqual(schema["properties"]["test_only"]["const"], True)
+        self.assertEqual(schema["properties"]["not_for_production"]["const"], True)
+        self.assertEqual(schema["allOf"], [
+            {"if": {"required": ["test_only"]}, "then": {"required": ["not_for_production"]}},
+            {"if": {"required": ["not_for_production"]}, "then": {"required": ["test_only"]}},
+        ])
+
     def test_automation_revision_schemas_require_exact_git_commit_sha(self):
         sha_pattern = "^(?:[a-f0-9]{40}|[a-f0-9]{64})$"
         review = load("automation-review-v1.schema.json")

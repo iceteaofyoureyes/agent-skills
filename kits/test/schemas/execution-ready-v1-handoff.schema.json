@@ -24,8 +24,14 @@
     "resolved_dependencies": {"type": "array", "items": {"$ref": "#/$defs/resolvedDependency"}},
     "review": {"$ref": "#/$defs/artifactRef"},
     "automation_verification": {"$ref": "#/$defs/artifactRef"},
-    "state": {"const": "EXECUTION_READY"}
+    "state": {"const": "EXECUTION_READY"},
+    "test_only": {"const": true},
+    "not_for_production": {"const": true}
   },
+  "allOf": [
+    {"if": {"required": ["test_only"]}, "then": {"required": ["not_for_production"]}},
+    {"if": {"required": ["not_for_production"]}, "then": {"required": ["test_only"]}}
+  ],
   "$defs": {
     "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"},
     "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},

@@ -9,6 +9,8 @@ description: Build, review and structurally verify project-owned automation from
 
 Consume only the exact `APPROVED_TESTWARE` VNext handoff. Revalidate its testcase collection, approved Design, both exact Human Gate receipts, BA VNext handoff and baseline identity, optional UX/Dev context, project-policy context, execution-oracle refs, canonical BR/FR trace and terminal state.
 
+Production Automation rejects Test-only evidence. An internal conformance host may opt in through `AutomationRuntime(test_only_authority_authenticator=...)`; after revalidating the exact Test-only Design and Case receipts, the callback returns `{"authenticated": true, "case_gate_fixture_path": "<project-relative host evidence path>"}`. Automation passes that path through the Test Kit's TEST_ONLY Case Gate API, checks that the path is inside the project, and revalidates authority bytes afterward. The resulting `EXECUTION_READY` handoff remains marked `test_only: true` and `not_for_production: true`. Never use that handoff to authorize a production run.
+
 Do not accept V1/legacy artifacts as authority. Do not create a Human Automation Plan Gate. The plan describes technical HOW and adds no business meaning. Delivery Manifest remains `DEFERRED_NON_AUTHORITATIVE`.
 
 ## Suitability and ownership

@@ -39,7 +39,7 @@ class TestExecutionVNextAcceptance(unittest.TestCase):
         state = runtime.analyze_suitability(self.fixture._assessments())
         specs = self.fixture._plan_specs()
         for case_id, item in specs.items():
-            item["execution_command"] = ["python", "-m", "pytest", item["planned_paths"][0], "-q"]
+            item["execution_command"] = ["python", item["planned_paths"][0]]
         state = runtime.plan(specs)
         state = runtime.begin_implementation()
         app_test = f"# Synthetic automation revision {run_id}\n" + """from pathlib import Path
@@ -51,8 +51,11 @@ from request import submit
 def test_approved_request_outcome():
     payload = {"request_id": "synthetic-1"}
     assert submit(payload) == {"saved": payload, "accepted": True}
+
+if __name__ == "__main__":
+    test_approved_request_outcome()
 """
-        smoke_test = f"# Synthetic automation revision {run_id}\ndef test_local_synthetic_smoke():\n    assert True\n"
+        smoke_test = f"# Synthetic automation revision {run_id}\ndef test_local_synthetic_smoke():\n    assert True\n\nif __name__ == \"__main__\":\n    test_local_synthetic_smoke()\n"
         source_by_aut = {"AUT-0001": app_test, "AUT-0002": smoke_test}
         plan = runtime._read_artifact_ref(state["plan_ref"])
         for item in plan["items"]:

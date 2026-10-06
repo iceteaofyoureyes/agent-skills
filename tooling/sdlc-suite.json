@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "suite_id": "agent-assisted-sdlc-vnext",
+  "suite_version": "1.0.0-rc.1",
+  "release_status": "INTERNAL_RC_CANDIDATE",
+  "components": {
+    "ba": {"version": "2.0.0-rc.3"},
+    "dev": {"version": "0.4.0-rc.2"},
+    "test": {"version": "2.0.0-rc.11"}
+  },
+  "contracts": {
+    "project_foundation": {"version": 1, "source": "shared/sdlc/schema.py"},
+    "ba_engineering_handoff": {"version": 2, "source": "ba-workflow/scripts/ba_vnext.py"},
+    "dev_handoff": {"version": 2, "source": "kits/dev/schemas/dev-handoff-v2.schema.json"},
+    "approved_testware": {"version": 1, "source": "kits/test/schemas/approved-testware-vnext-handoff-manifest.schema.json"},
+    "execution_ready": {"version": 1, "source": "kits/test/schemas/execution-ready-v1-handoff.schema.json"},
+    "finding_classification": {"version": 1, "source": "kits/test/schemas/finding-classification-v1.schema.json"},
+    "defect_handoff": {"version": 1, "source": "kits/test/schemas/defect-handoff-v1.schema.json"},
+    "ready_for_retest": {"version": 1, "source": "kits/test/schemas/ready-for-retest-v1.schema.json"},
+    "verified_handoff": {"version": 1, "source": "kits/test/schemas/verified-handoff-v1.schema.json"}
+  },
+  "required_capabilities": [
+    "project_foundation",
+    "ba_vnext",
+    "dev_feature_delivery",
+    "test_manual_vnext",
+    "approved_testware",
+    "automation_v1",
+    "execution_vnext",
+    "finding_defect_retest",
+    "verified_handoff"
+  ],
+  "compatibility": {
+    "ba_v1": "LEGACY_COMPAT_READ_ONLY",
+    "delivery_manifest": "DEFERRED_NON_AUTHORITATIVE"
+  },
+  "delivery_manifest": {"status": "DEFERRED_NON_AUTHORITATIVE"}
+}

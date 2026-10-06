@@ -1,6 +1,6 @@
 # Dev Kit VNext — Provenance và Package Integrity
 
-Dev Kit VNext là prerelease `0.4.0-rc.1`, được cài vào
+Dev Kit VNext là prerelease `0.4.0-rc.2`, được cài vào
 `~/.devkit/runtime/v2`. Version ở `kits/dev/kit.yaml` và plugin metadata phải
 khớp. Đây không phải stable release.
 
