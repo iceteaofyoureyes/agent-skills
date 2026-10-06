@@ -1,5 +1,7 @@
 """Public Phase 9 runner report and genericity contracts."""
 import os
+import json
+import shutil
 import tempfile
 import subprocess
 import unittest
@@ -23,6 +25,136 @@ class PublicConformanceContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             with self.assertRaisesRegex(ValueError, "explicit Spec Kit 1.0.11"):
                 public_conformance.run_candidate(ROOT, Path(directory) / "report.json")
+
+    def _git_candidate(self, parent, *, branch="feature/candidate", detached=False):
+        repo = Path(parent) / "candidate"
+        repo.mkdir()
+        compatibility_sources = (
+            "tooling/sdlc-suite.json",
+            "kits/ba/kit.yaml", "kits/dev/kit.yaml", "kits/test/kit.yaml",
+            "kits/test/package-authority.json",
+            "shared/sdlc/schema.py", "shared/sdlc/foundation/contract.py",
+            "ba-workflow/scripts/ba_vnext.py",
+            "kits/dev/schemas/dev-handoff-v2.schema.json",
+            "kits/test/schemas/approved-testware-vnext-handoff-manifest.schema.json",
+            "kits/test/schemas/execution-ready-v1-handoff.schema.json",
+            "kits/test/schemas/finding-classification-v1.schema.json",
+            "kits/test/schemas/defect-handoff-v1.schema.json",
+            "kits/test/schemas/ready-for-retest-v1.schema.json",
+            "kits/test/schemas/verified-handoff-v1.schema.json",
+        )
+        for relative in compatibility_sources:
+            target = repo / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / relative, target)
+        subprocess.run(["git", "-C", str(repo), "init", "--quiet", "--initial-branch=main"], check=True)
+        for key, value in (("user.name", "Conformance Fixture"),
+                           ("user.email", "conformance@example.invalid"),
+                           ("core.autocrlf", "false")):
+            subprocess.run(["git", "-C", str(repo), "config", key, value], check=True)
+        (repo / "source.txt").write_text("committed candidate\n", encoding="utf-8")
+        subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+        subprocess.run(["git", "-C", str(repo), "commit", "--quiet", "-m", "Candidate"], check=True)
+        if branch != "main":
+            subprocess.run(["git", "-C", str(repo), "checkout", "--quiet", "-b", branch], check=True)
+        if detached:
+            subprocess.run(["git", "-C", str(repo), "checkout", "--quiet", "--detach", "HEAD"], check=True)
+        return repo
+
+    def _run_candidate_with_mocked_child(self, repo, external, *, change_source_during_run=False,
+                                         commit_source_during_run=False):
+        external = Path(external)
+        cli = external / "specify"
+        cli.write_text("fixture executable", encoding="utf-8")
+        dependency_site = external / "pytest-site"
+        (dependency_site / "pytest").mkdir(parents=True)
+        (dependency_site / "pytest/__init__.py").write_text("", encoding="utf-8")
+        output = external / "public-report.json"
+        actual_run = public_conformance._run
+
+        def run(command, *, cwd, env, timeout=1800):
+            if "--clone-child" not in command:
+                return actual_run(command, cwd=cwd, env=env, timeout=timeout)
+            child_output = Path(command[command.index("--output") + 1])
+            lock = json.loads(Path(command[command.index("--lock") + 1]).read_text(encoding="utf-8"))
+            child_output.write_text(json.dumps({
+                "status": "PASS",
+                "fresh_clone": {"status": "PASS", "clean": True},
+                "framework_sha": lock["framework_sha"],
+                "framework_tree": lock["framework_tree"],
+            }), encoding="utf-8")
+            if change_source_during_run:
+                (Path(repo) / "source.txt").write_text("changed after candidate start\n", encoding="utf-8")
+            if commit_source_during_run:
+                (Path(repo) / "source.txt").write_text("new committed source\n", encoding="utf-8")
+                subprocess.run(["git", "-C", str(repo), "add", "source.txt"], check=True)
+                subprocess.run(["git", "-C", str(repo), "commit", "--quiet", "-m", "New source revision"], check=True)
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+        with patch.object(public_conformance, "test_dependency_runtime", return_value=(dependency_site, "fixture")), \
+                patch.object(public_conformance, "_run", side_effect=run):
+            return public_conformance.run_candidate(repo, output, spec_kit_cli=cli)
+
+    def test_clean_arbitrary_candidate_branch_is_accepted_and_clone_identity_is_exact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = self._git_candidate(directory, branch="feature/portable-candidate")
+            expected_sha = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD"], text=True).strip()
+            expected_tree = subprocess.check_output(["git", "-C", str(repo), "rev-parse", "HEAD^{tree}"], text=True).strip()
+
+            report = self._run_candidate_with_mocked_child(repo, directory)
+
+            self.assertEqual(report["status"], "PASS")
+            self.assertEqual(report["fresh_clone"]["framework_sha"], expected_sha)
+            self.assertEqual(report["fresh_clone"]["framework_tree"], expected_tree)
+            self.assertTrue(report["fresh_clone"]["clean"])
+
+    def test_clean_main_candidate_is_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = self._git_candidate(directory, branch="main")
+
+            report = self._run_candidate_with_mocked_child(repo, directory)
+
+            self.assertEqual(report["status"], "PASS")
+
+    def test_clean_detached_head_candidate_is_accepted(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = self._git_candidate(directory, branch="main", detached=True)
+
+            report = self._run_candidate_with_mocked_child(repo, directory)
+
+            self.assertEqual(report["status"], "PASS")
+
+    def test_dirty_candidate_source_is_rejected(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = self._git_candidate(directory)
+            (repo / "source.txt").write_text("uncommitted source\n", encoding="utf-8")
+            cli = Path(directory) / "specify"
+            cli.write_text("fixture executable", encoding="utf-8")
+            dependency_site = Path(directory) / "pytest-site"
+            (dependency_site / "pytest").mkdir(parents=True)
+            (dependency_site / "pytest/__init__.py").write_text("", encoding="utf-8")
+
+            with patch.object(public_conformance, "test_dependency_runtime", return_value=(dependency_site, "fixture")):
+                with self.assertRaisesRegex(ValueError, "source must be clean"):
+                    public_conformance.run_candidate(repo, Path(directory) / "report.json", spec_kit_cli=cli)
+
+    def test_source_change_after_candidate_start_invalidates_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = self._git_candidate(directory)
+
+            report = self._run_candidate_with_mocked_child(repo, directory, change_source_during_run=True)
+
+            self.assertEqual(report["status"], "FAIL")
+            self.assertEqual(report["fresh_clone"]["status"], "FAIL")
+
+    def test_clean_new_source_commit_after_candidate_start_invalidates_run(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = self._git_candidate(directory)
+
+            report = self._run_candidate_with_mocked_child(repo, directory, commit_source_during_run=True)
+
+            self.assertEqual(report["status"], "FAIL")
+            self.assertTrue(public_conformance.sdlc_suite.source_is_clean(repo))
 
     def test_fresh_clone_checkout_preserves_exact_git_blob_bytes(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -64,12 +196,12 @@ class PublicConformanceContractTests(unittest.TestCase):
             for name in ("package.json", "package-lock.json"):
                 (package / name).write_text(name, encoding="utf-8")
             environment = {}
-            with patch.object(public_conformance.shutil, "which", return_value="npm"), \
+            with patch.object(public_conformance.shutil, "which", side_effect=lambda name: "npm" if "npm" in name else "node"), \
                     patch.object(public_conformance, "_run", return_value=SimpleNamespace(
                         returncode=0, stdout="", stderr="")) as run:
                 report = public_conformance.prepare_optional_projection_test_runtime(root, external, environment)
 
-            self.assertEqual(report["status"], "PASS")
+            self.assertEqual(report["status"], "OPTIONAL_AVAILABLE")
             self.assertEqual(environment["NODE_PATH"], str(external / "optional-test-projections/node_modules"))
             self.assertEqual(run.call_args.args[0][1], "ci")
             self.assertIn("--offline", run.call_args.args[0])
@@ -77,6 +209,159 @@ class PublicConformanceContractTests(unittest.TestCase):
                 (external / "optional-test-projections/package-lock.json").read_text(encoding="utf-8"),
                 "package-lock.json",
             )
+
+    def _run_clone_candidate(self, external, *, npm_available=False, node_available=False,
+                              install_returncode=0, doctor_status="READY", test_doctor_status="READY"):
+        external = Path(external)
+        root = external / "fresh-clone"
+        tooling = root / "tooling"
+        tooling.mkdir(parents=True)
+        (root / "docs/vi").mkdir(parents=True)
+        for relative in (
+            "sdlc-suite.json", "sdlc-suite-acceptance.yaml", "sdlc_suite.py",
+            "public_conformance.py", "tests/fixtures/public_cross_kit_conformance.py",
+        ):
+            path = tooling / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("neutral public fixture\n", encoding="utf-8")
+        (root / "docs/vi/SDLC_SUITE_CONTRACT.md").write_text("neutral public contract\n", encoding="utf-8")
+        optional_package = tooling / "xmind"
+        optional_package.mkdir()
+        (optional_package / "package.json").write_text("{}", encoding="utf-8")
+        (optional_package / "package-lock.json").write_text("{}", encoding="utf-8")
+        lock_path = external / "suite-lock.json"
+        lock_path.write_text(json.dumps({
+            "framework_sha": "a" * 40,
+            "framework_tree": "b" * 40,
+            "suite_manifest_sha256": "c" * 64,
+        }), encoding="utf-8")
+        output = external / "public-report.json"
+        cli = external / "specify"
+        cli.write_text("fixture executable", encoding="utf-8")
+        dependency_site = external / "pytest-site"
+        (dependency_site / "pytest").mkdir(parents=True)
+        (dependency_site / "pytest/__init__.py").write_text("", encoding="utf-8")
+        flow = {
+            "status": "PASS",
+            "negative_probes": {name: True for name in public_conformance.REQUIRED_NEGATIVE_PROBES},
+            "scenario_results": {}, "trace_checks": {}, "revision_checks": {},
+        }
+        if test_doctor_status == "DEGRADED":
+            test_doctor = {"status": "DEGRADED", "checks": [
+                ("DEPENDENCY_MISSING", False, "dependency", "Excel projection dependency openpyxl unavailable"),
+            ]}
+        elif doctor_status == "FAIL":
+            test_doctor = {"status": "FAIL", "checks": [
+                ("PACKAGE_AUTHORITY_INVALID", False, "contract", "Test package integrity mismatch"),
+            ]}
+        else:
+            test_doctor = {"status": "READY", "checks": []}
+        doctor = {
+            "status": doctor_status,
+            "checks": [{"name": "Test Doctor optional projections", "status": "PASS"}],
+            "per_kit": {"test": test_doctor},
+        }
+
+        def locate(command, name):
+            return command[command.index(name) + 1]
+
+        def run(command, *, cwd, env, timeout=1800):
+            if len(command) > 1 and command[1] == "ci":
+                return SimpleNamespace(returncode=install_returncode, stdout="", stderr="offline cache unavailable")
+            if any("public_cross_kit_conformance.py" in part for part in command):
+                Path(locate(command, "--output")).write_text(json.dumps(flow), encoding="utf-8")
+                return SimpleNamespace(returncode=0, stdout="", stderr="")
+            if "diff" in command:
+                return SimpleNamespace(returncode=0, stdout="", stderr="")
+            return SimpleNamespace(returncode=0, stdout=json.dumps(doctor), stderr="")
+
+        def test_command(*args, **kwargs):
+            return SimpleNamespace(
+                returncode=0,
+                stdout="PUBLIC_TEST_SUMMARY={\"total\":1,\"failures\":0,\"errors\":0,\"skipped\":0,\"pytest_version\":\"fixture\"}",
+                stderr="",
+            )
+
+        def which(name):
+            if name in {"npm.cmd", "npm"} and npm_available:
+                return "npm.cmd"
+            if name in {"node.exe", "node"} and node_available:
+                return "node.exe"
+            return None
+
+        compatibility = {
+            "component_versions": {"ba": "2.0.0-rc.3", "dev": "0.4.0-rc.2", "test": "2.0.0-rc.11"},
+            "contract_versions": {"project_foundation": 1},
+        }
+        with patch.object(public_conformance.shutil, "which", side_effect=which), \
+                patch.object(public_conformance, "_run", side_effect=run), \
+                patch.object(public_conformance, "_test_command", side_effect=test_command), \
+                patch.object(public_conformance.sdlc_suite, "verify_lock"), \
+                patch.object(public_conformance.sdlc_suite, "load_manifest", return_value={}), \
+                patch.object(public_conformance.sdlc_suite, "compatibility", return_value=compatibility), \
+                patch.object(public_conformance.sdlc_suite, "git_value", return_value=""):
+            return_code = public_conformance._run_in_clone(root, output, lock_path, cli, dependency_site)
+        return return_code, json.loads(output.read_text(encoding="utf-8"))
+
+    def test_public_runner_passes_when_node_and_npm_are_absent(self):
+        with tempfile.TemporaryDirectory() as directory:
+            return_code, report = self._run_clone_candidate(directory)
+
+            self.assertEqual(return_code, 0)
+            self.assertEqual(report["status"], "PASS")
+            self.assertEqual(report["test_summary"]["optional_projection_runtime"]["status"], "OPTIONAL_DEGRADED")
+            self.assertTrue(report["test_summary"]["optional_projection_runtime"]["reason"])
+
+    def test_public_runner_degrades_when_node_is_absent_even_if_npm_exists(self):
+        with tempfile.TemporaryDirectory() as directory:
+            return_code, report = self._run_clone_candidate(directory, npm_available=True)
+
+            self.assertEqual(return_code, 0)
+            self.assertEqual(report["status"], "PASS")
+            self.assertEqual(report["test_summary"]["optional_projection_runtime"]["status"], "OPTIONAL_DEGRADED")
+            self.assertIn("Node.js is unavailable", report["test_summary"]["optional_projection_runtime"]["reason"])
+
+    def test_public_runner_passes_when_offline_optional_install_is_unavailable(self):
+        with tempfile.TemporaryDirectory() as directory:
+            return_code, report = self._run_clone_candidate(
+                directory, npm_available=True, node_available=True, install_returncode=1,
+            )
+
+            self.assertEqual(return_code, 0)
+            self.assertEqual(report["status"], "PASS")
+            self.assertEqual(report["test_summary"]["optional_projection_runtime"]["status"], "OPTIONAL_DEGRADED")
+            self.assertIn("offline cache unavailable", report["test_summary"]["optional_projection_runtime"]["reason"])
+
+    def test_public_runner_reports_available_optional_projection_runtime(self):
+        with tempfile.TemporaryDirectory() as directory:
+            return_code, report = self._run_clone_candidate(
+                directory, npm_available=True, node_available=True,
+            )
+
+            self.assertEqual(return_code, 0)
+            self.assertEqual(report["status"], "PASS")
+            self.assertEqual(report["test_summary"]["optional_projection_runtime"]["status"], "OPTIONAL_AVAILABLE")
+            self.assertTrue(report["test_summary"]["optional_projection_runtime"]["reason"])
+
+    def test_optional_test_doctor_degradation_keeps_public_core_ready(self):
+        with tempfile.TemporaryDirectory() as directory:
+            return_code, report = self._run_clone_candidate(
+                directory, npm_available=True, node_available=True, test_doctor_status="DEGRADED",
+            )
+
+            self.assertEqual(return_code, 0)
+            self.assertEqual(report["status"], "PASS")
+            self.assertEqual(report["doctor_results"]["test_core_readiness"], "CORE_READY_OPTIONAL_PROJECTIONS_UNAVAILABLE")
+            self.assertEqual(report["test_summary"]["optional_projection_runtime"]["status"], "OPTIONAL_DEGRADED")
+
+    def test_public_runner_still_fails_required_test_doctor_failure(self):
+        with tempfile.TemporaryDirectory() as directory:
+            return_code, report = self._run_clone_candidate(directory, doctor_status="FAIL")
+
+            self.assertEqual(return_code, 1)
+            self.assertEqual(report["status"], "FAIL")
+            self.assertEqual(report["doctor_results"]["suite_doctor"], "FAIL")
+            self.assertIn("Test package integrity mismatch", str(report["doctor_results"]["test_doctor"]["checks"]))
 
     def test_isolated_test_environment_drops_global_node_module_paths(self):
         with patch.dict("os.environ", {"NODE_PATH": "user-global-modules"}):

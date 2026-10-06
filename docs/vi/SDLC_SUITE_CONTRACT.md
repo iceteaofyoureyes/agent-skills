@@ -6,7 +6,7 @@ The suite checks Project Foundation V1, BA Engineering Handoff V2, Dev Handoff V
 
 ## Run Phase 9 conformance
 
-Commit the candidate on `feat/public-cross-kit-conformance-phase9` and leave the checkout clean. Then run from the repository:
+Commit the candidate and leave the checkout clean. The runner accepts `main`, any candidate branch, or detached `HEAD`; it binds to the exact commit and tree without switching branches. Then run from the repository:
 
 ```powershell
 python -m tooling.public_conformance --repo . --output C:\path\outside\repo\phase9-report.json --spec-kit-cli C:\path\to\specify.exe

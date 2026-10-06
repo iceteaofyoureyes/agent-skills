@@ -19,7 +19,6 @@ if __package__ in (None, ""):
 from tooling import sdlc_suite
 
 ROOT = Path(__file__).resolve().parents[1]
-BRANCH = "feat/public-cross-kit-conformance-phase9"
 TIER_A = {
     "project_foundation": ("tooling.tests.test_project_foundation", "tooling.tests.test_foundation_producers"),
     "ba_vnext": ("tooling.tests.test_ba_vnext", "tooling.tests.test_ba_vnext_installed_acceptance", "tooling.tests.test_baref_coverage"),
@@ -214,18 +213,28 @@ def _isolated_env(home: Path):
 def prepare_optional_projection_test_runtime(root: Path, external: Path, env: dict) -> dict:
     package_root = Path(root) / "tooling/xmind"
     npm = shutil.which("npm.cmd") or shutil.which("npm")
-    if npm is None or not all((package_root / name).is_file() for name in ("package.json", "package-lock.json")):
-        return {"status": "FAIL"}
+    node = shutil.which("node.exe") or shutil.which("node")
+    if npm is None:
+        return {"status": "OPTIONAL_DEGRADED", "reason": "npm is unavailable"}
+    if node is None:
+        return {"status": "OPTIONAL_DEGRADED", "reason": "Node.js is unavailable"}
+    if not all((package_root / name).is_file() for name in ("package.json", "package-lock.json")):
+        return {"status": "OPTIONAL_DEGRADED", "reason": "optional XMind package metadata is unavailable"}
     install_root = Path(external) / "optional-test-projections"
-    install_root.mkdir(parents=True, exist_ok=True)
-    for name in ("package.json", "package-lock.json"):
-        shutil.copyfile(package_root / name, install_root / name)
-    result = _run([npm, "ci", "--offline", "--prefix", str(install_root)],
-                  cwd=external, env=env, timeout=600)
+    try:
+        install_root.mkdir(parents=True, exist_ok=True)
+        for name in ("package.json", "package-lock.json"):
+            shutil.copyfile(package_root / name, install_root / name)
+        result = _run([npm, "ci", "--offline", "--prefix", str(install_root)],
+                      cwd=external, env=env, timeout=600)
+    except (OSError, subprocess.SubprocessError) as error:
+        return {"status": "OPTIONAL_DEGRADED", "reason": f"offline XMind runtime setup failed: {error}"}
     if result.returncode:
-        return {"status": "FAIL"}
+        detail = (result.stderr or result.stdout or "npm ci --offline failed").strip()
+        return {"status": "OPTIONAL_DEGRADED", "reason": detail[:500]}
     env["NODE_PATH"] = str(install_root / "node_modules")
-    return {"status": "PASS", "package": "tooling/xmind/package-lock.json"}
+    return {"status": "OPTIONAL_AVAILABLE", "reason": "locked offline XMind runtime installed",
+            "package": "tooling/xmind/package-lock.json"}
 
 
 def _test_command(root: Path, modules, *, cwd: Path, env, discover=False, timeout=1800,
@@ -313,6 +322,28 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
         doctor = json.loads(doctor_result.stdout)
     except json.JSONDecodeError:
         doctor = {"status": "FAIL", "error": doctor_result.stderr or doctor_result.stdout}
+    test_doctor = doctor.get("per_kit", {}).get("test")
+    try:
+        if not isinstance(test_doctor, dict):
+            raise ValueError("Suite Doctor did not report the required Test Doctor result")
+        test_core_status = sdlc_suite.test_core_readiness(test_doctor)
+    except ValueError:
+        test_core_status = "FAIL"
+    if test_core_status == "CORE_READY_OPTIONAL_PROJECTIONS_UNAVAILABLE":
+        optional_reasons = []
+        for row in test_doctor.get("checks", []):
+            if isinstance(row, dict) and row.get("status") == "FAIL":
+                optional_reasons.append(str(row.get("details", row.get("detail", row))))
+            elif isinstance(row, (tuple, list)) and len(row) >= 4 and not row[1]:
+                optional_reasons.append(str(row[3]))
+        setup_reason = (projection_runtime.get("reason")
+                        if projection_runtime.get("status") == "OPTIONAL_DEGRADED" else None)
+        reason_parts = ([setup_reason] if setup_reason else []) + optional_reasons
+        projection_runtime = {
+            "status": "OPTIONAL_DEGRADED",
+            "reason": "; ".join(part for part in reason_parts if part) or
+                      "Test Doctor reports unavailable optional projections",
+        }
 
     tiers = {}
     for tier, modules in TIER_A.items():
@@ -381,11 +412,13 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
         fresh_clone["status"] = "FAIL"
     test_summary = summarize_test_results(tiers, full_summary, diff_check_passed=diff_check.returncode == 0)
     test_summary["test_dependency_versions"] = {"pytest": full_summary.get("pytest_version")}
-    test_summary["optional_projection_runtime"] = projection_runtime["status"]
-    if projection_runtime["status"] != "PASS":
-        test_summary["status"] = "FAIL"
-    doctor_results = {"suite_doctor": doctor.get("status", "FAIL"), "checks": doctor.get("checks", [])}
-    doctor_ready = doctor_results["suite_doctor"] == "READY"
+    test_summary["optional_projection_runtime"] = projection_runtime
+    doctor_results = {"suite_doctor": doctor.get("status", "FAIL"),
+                      "test_core_readiness": test_core_status,
+                      "test_doctor": test_doctor,
+                      "checks": doctor.get("checks", [])}
+    doctor_ready = (doctor_results["suite_doctor"] == "READY" and
+                    test_core_status in {"CORE_READY", "CORE_READY_OPTIONAL_PROJECTIONS_UNAVAILABLE"})
     status = "PASS" if (doctor_ready and test_summary["status"] == "PASS" and
                          genericity["status"] == "PASS" and fresh_clone["status"] == "PASS" and
                          flow.get("status") == "PASS" and diff_check.returncode == 0) else "FAIL"
@@ -411,12 +444,9 @@ def run_candidate(root: str | Path, output: str | Path, *, spec_kit_cli: str | P
     if spec_kit_cli is None or not Path(spec_kit_cli).is_file():
         raise ValueError("public conformance requires an explicit Spec Kit 1.0.11 executable")
     test_dependency_site, _ = test_dependency_runtime()
-    branch = sdlc_suite.git_value(root, "branch", "--show-current")
-    if branch != BRANCH:
-        raise ValueError(f"expected candidate branch {BRANCH}; found {branch}")
     if not sdlc_suite.source_is_clean(root):
         raise ValueError("candidate source must be clean and committed before public conformance")
-    candidate_sha = sdlc_suite.git_value(root, "rev-parse", "HEAD")
+    candidate_sha = sdlc_suite.git_value(root, "rev-parse", "--verify", "HEAD^{commit}")
     candidate_tree = sdlc_suite.git_value(root, "rev-parse", "HEAD^{tree}")
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="public-cross-kit-conformance-") as temporary:
@@ -429,7 +459,9 @@ def run_candidate(root: str | Path, output: str | Path, *, spec_kit_cli: str | P
         if clone_result.returncode:
             raise ValueError(clone_result.stderr)
         checkout_exact_clone(clone, candidate_sha, cwd=external, env=_isolated_env(external / "home"))
-        if sdlc_suite.git_value(clone, "rev-parse", "HEAD") != candidate_sha or not sdlc_suite.source_is_clean(clone):
+        clone_sha = sdlc_suite.git_value(clone, "rev-parse", "HEAD")
+        clone_tree = sdlc_suite.git_value(clone, "rev-parse", "HEAD^{tree}")
+        if clone_sha != candidate_sha or clone_tree != candidate_tree or not sdlc_suite.source_is_clean(clone):
             raise ValueError("fresh local clone does not match the exact clean candidate")
         sdlc_suite.generate_lock(clone, lock_path)
         script = clone / "tooling/public_conformance.py"
@@ -455,7 +487,10 @@ def run_candidate(root: str | Path, output: str | Path, *, spec_kit_cli: str | P
                 genericity={"status": "NOT_RUN", "issues": []},
                 test_summary={"status": "FAIL", "total": 0, "failures": 0, "errors": 1, "skipped": 0}, status="FAIL",
             )
-        if sdlc_suite.git_value(root, "rev-parse", "HEAD") != candidate_sha or not sdlc_suite.source_is_clean(root):
+        current_sha = sdlc_suite.git_value(root, "rev-parse", "HEAD")
+        current_tree = sdlc_suite.git_value(root, "rev-parse", "HEAD^{tree}")
+        if (current_sha != candidate_sha or current_tree != candidate_tree or
+                not sdlc_suite.source_is_clean(root)):
             report["fresh_clone"]["status"] = "FAIL"
             report["status"] = "FAIL"
         report["fresh_clone"].update({"status": report["fresh_clone"].get("status", "PASS"),
