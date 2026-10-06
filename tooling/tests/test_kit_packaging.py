@@ -37,7 +37,7 @@ class TestKitPackagingTests(unittest.TestCase):
     def _assert_test_core_ready(self, report):
         optional_missing = any(not ok and kind == "dependency" for _, ok, kind, _ in report["checks"])
         self.assertEqual(report["status"], "DEGRADED" if optional_missing else "READY", report)
-        self.assertEqual(report["version"], "2.0.0-rc.11")
+        self.assertEqual(report["version"], "2.0.0-rc.12")
         self.assertEqual(report["readiness"]["scope"], "PACKAGE_CAPABILITY_ONLY")
         self.assertEqual(report["readiness"]["automation_v1"], "PACKAGE_CAPABILITY_ONLY")
         self.assertEqual(report["readiness"]["approved_testware"], "NOT_EVALUATED")
@@ -51,10 +51,138 @@ class TestKitPackagingTests(unittest.TestCase):
         execution_check = next(row for row in report["checks"] if row[0] == "Test Execution VNext installed capability")
         self.assertTrue(execution_check[1], execution_check)
 
+    def _manifest_selected_test_sources(self):
+        manifest = ba_kit.load_manifest(ROOT, "test")
+        sources = {item["source"] for item in manifest["files"]}
+        for skill in ba_kit.skill_composition(manifest):
+            relative = manifest.get("skill_sources", {}).get(skill, skill)
+            skill_root = ROOT / relative
+            sources.update(
+                path.relative_to(ROOT).as_posix()
+                for path in skill_root.rglob("*")
+                if path.is_file() and ba_kit.is_skill_payload(path)
+            )
+        return manifest, sorted(sources)
+
+    def test_manifest_selected_test_text_sources_have_deterministic_lf_policy(self):
+        _, sources = self._manifest_selected_test_sources()
+        text_sources = []
+        binary_sources = []
+        for relative in sources:
+            data = (ROOT / relative).read_bytes()
+            try:
+                data.decode("utf-8")
+                is_text = b"\0" not in data
+            except UnicodeDecodeError:
+                is_text = False
+            (text_sources if is_text else binary_sources).append(relative)
+
+        result = subprocess.run(
+            ["git", "check-attr", "--stdin", "eol", "text"],
+            cwd=ROOT,
+            input=("\n".join(sources) + "\n").encode("utf-8"),
+            capture_output=True,
+            check=True,
+        )
+        attributes = {}
+        for line in result.stdout.decode("utf-8").splitlines():
+            path, name, value = line.rsplit(": ", 2)
+            attributes[(path.replace("\\", "/"), name)] = value
+
+        missing_policy = [
+            path for path in text_sources
+            if attributes.get((path, "text")) != "set" or attributes.get((path, "eol")) != "lf"
+        ]
+        forced_binary_text = [
+            path for path in binary_sources if attributes.get((path, "text")) == "set"
+        ]
+        self.assertFalse(
+            missing_policy,
+            "manifest-selected Test text sources need text=eol=lf policy: " + ", ".join(missing_policy),
+        )
+        self.assertFalse(
+            forced_binary_text,
+            "binary Test package inputs must not be marked as text: " + ", ".join(forced_binary_text),
+        )
+
+    def test_test_source_authority_passes_in_clean_autocrlf_checkouts(self):
+        candidate = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+        ).strip()
+        environment = {
+            key: value for key, value in os.environ.items()
+            if key not in {"PYTHONPATH", "PYTHONHOME"}
+        }
+        validator = "\n".join((
+            "import json, sys",
+            "from pathlib import Path",
+            "root = Path(sys.argv[1]).resolve()",
+            "sys.path.insert(0, str(root))",
+            "from tooling.lib.ba_kit import load_manifest",
+            "from tooling.lib.package import validate_source_package_integrity",
+            "manifest = load_manifest(root, 'test')",
+            "authority, _, authority_sha = validate_source_package_integrity(root, manifest)",
+            "report = {'authority_sha256': authority_sha,",
+            "          'payload_sha256': authority['payload_tree_sha256'],",
+            "          'managed_file_count': authority['managed_file_count']}",
+            "print(json.dumps(report))",
+        ))
+        results = {}
+        for autocrlf in ("false", "true"):
+            with tempfile.TemporaryDirectory(prefix=f"test-source-autocrlf-{autocrlf}-") as temporary:
+                clone = Path(temporary) / "clone"
+                subprocess.run(
+                    ["git", "clone", "--quiet", "--no-checkout", "--shared", str(ROOT), str(clone)],
+                    cwd=temporary,
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                subprocess.run(
+                    ["git", "-C", str(clone), "config", "core.autocrlf", autocrlf],
+                    check=True,
+                )
+                subprocess.run(
+                    ["git", "-C", str(clone), "checkout", "--detach", candidate],
+                    check=True,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(
+                    subprocess.check_output(
+                        ["git", "-C", str(clone), "rev-parse", "HEAD"], text=True
+                    ).strip(),
+                    candidate,
+                )
+                self.assertEqual(
+                    subprocess.check_output(
+                        ["git", "-C", str(clone), "config", "core.autocrlf"], text=True
+                    ).strip(),
+                    autocrlf,
+                )
+                self.assertEqual(
+                    subprocess.check_output(["git", "-C", str(clone), "status", "--porcelain"], text=True),
+                    "",
+                )
+                validation = subprocess.run(
+                    [sys.executable, "-I", "-B", "-c", validator, str(clone)],
+                    cwd=temporary,
+                    env=environment,
+                    capture_output=True,
+                    text=True,
+                )
+                self.assertEqual(
+                    validation.returncode,
+                    0,
+                    f"core.autocrlf={autocrlf}: {validation.stdout}{validation.stderr}",
+                )
+                results[autocrlf] = json.loads(validation.stdout)
+        self.assertEqual(results["false"], results["true"])
+
     def test_test_manifest_resolves_explicit_runtime_only_closure(self):
         manifest = ba_kit.load_manifest(ROOT, "test")
         self.assertEqual(manifest["id"], "test")
-        self.assertEqual(manifest["version"], "2.0.0-rc.11")
+        self.assertEqual(manifest["version"], "2.0.0-rc.12")
         self.assertEqual(manifest["capabilities"]["core"], "required")
         self.assertEqual(manifest["capabilities"]["execution_vnext"], "required")
         self.assertEqual(manifest["capabilities"]["xmind_projection"], "optional")

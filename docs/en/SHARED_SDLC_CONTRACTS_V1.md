@@ -215,10 +215,10 @@ feature or business behavior.
 | EXECUTION_READY | Approved cases/oracle, environment and execution inputs are available |
 | READY_FOR_RETEST | The fix/handoff and retest inputs support the assigned scope |
 | VERIFIED | Tester verification evidence satisfies the existing lifecycle |
-| READY_TO_MERGE | Required review/verification/integration gates are satisfied |
 
 The vocabulary defines separate claims, not an automatic readiness ladder.
 It adds no alternate lifecycle or Human Gate. No state grants Human approval.
+Merge/release remains a separate Human decision after verification.
 Existing producers retain their current output formats.
 
 `readiness/compatibility.py:normalize_doctor(status)` maps current Doctor

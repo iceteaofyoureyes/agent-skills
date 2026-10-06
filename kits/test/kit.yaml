@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "test",
   "name": "Test Kit Manual, Automation and Execution VNext",
-  "version": "2.0.0-rc.11",
+  "version": "2.0.0-rc.12",
   "workflow": {
     "skill": "test-kit"
   },
@@ -764,11 +764,11 @@
   "integrity": {
     "authority": {
       "path": ".test-kit/package-authority.json",
-      "sha256": "b558b870640eee47c4d335f6901c308003cd6a4bb8cc206289f5ca6796ce5c23"
+      "sha256": "d607266f781622d955a18548658110cbe62c1be08acc292d22b613b42deddb3d"
     },
     "payload": {
       "algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-      "sha256": "78394b5d1bb7600a3c09642e35d51f01014bfaec2355417c05ca1c1a0e6123f1"
+      "sha256": "4420c9df142f50a9690cca7a6ebe10b978b0867136d43e5b182447643dae6ee6"
     }
   }
 }

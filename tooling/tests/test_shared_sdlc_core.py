@@ -40,7 +40,7 @@ class SharedVocabularyTests(unittest.TestCase):
         self.assertEqual([item.value for item in Readiness], [
             'PACKAGE_READY', 'PROJECT_CONFIG_READY', 'PROJECT_FOUNDATION_READY',
             'CAPABILITY_READY', 'FEATURE_READY', 'READY_FOR_TEST', 'EXECUTION_READY',
-            'READY_FOR_RETEST', 'VERIFIED', 'READY_TO_MERGE'])
+            'READY_FOR_RETEST', 'VERIFIED'])
         with self.assertRaises(ValueError):
             Readiness('APPROVE')
 
@@ -225,7 +225,7 @@ assert importlib.import_module('shared.sdlc.artifacts.delivery_manifest') is del
 from shared.sdlc.artifacts.classes import ArtifactClass
 from shared.sdlc.readiness.vocabulary import Readiness
 from shared.sdlc.findings.taxonomy import FindingKind
-assert (len(ArtifactClass), len(Readiness), len(FindingKind)) == (5, 10, 5)
+assert (len(ArtifactClass), len(Readiness), len(FindingKind)) == (5, 9, 5)
 assert pathlib.Path(importlib.import_module('shared.sdlc.provenance.references').__file__).is_relative_to(core)
 from shared.sdlc.provenance.runtime_paths import revision_component
 from shared.sdlc.approvals.gate_persistence import json_bytes

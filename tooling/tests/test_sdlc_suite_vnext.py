@@ -20,11 +20,11 @@ class SuiteManifestTests(unittest.TestCase):
         compatibility = sdlc_suite.compatibility(ROOT, manifest=manifest)
 
         self.assertEqual(manifest["suite_id"], "agent-assisted-sdlc-vnext")
-        self.assertEqual(manifest["suite_version"], "1.0.0-rc.1")
+        self.assertEqual(manifest["suite_version"], "1.0.0-rc.2")
         self.assertEqual(manifest["release_status"], "INTERNAL_RC_CANDIDATE")
         self.assertEqual(compatibility["status"], "PASS", compatibility)
         self.assertEqual(compatibility["component_versions"], {
-            "ba": "2.0.0-rc.3", "dev": "0.4.0-rc.2", "test": "2.0.0-rc.11",
+            "ba": "2.0.0-rc.4", "dev": "0.4.0-rc.3", "test": "2.0.0-rc.12",
         })
         self.assertEqual(compatibility["contract_versions"], {
             "project_foundation": 1,

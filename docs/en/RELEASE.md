@@ -2,7 +2,7 @@
 
 ## Test Kit Manual VNext
 
-The current Test Kit package candidate is **`2.0.0-rc.11`**. It is a prerelease branch candidate, not stable `2.0.0`, a GitHub release, tag, or published artifact.
+The current Test Kit package candidate is **`2.0.0-rc.12`**. It is a prerelease branch candidate, not stable `2.0.0`, a GitHub release, tag, or published artifact.
 
 The default manual lane is:
 

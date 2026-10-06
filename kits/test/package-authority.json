@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.11",
+  "kit_version": "2.0.0-rc.12",
   "manifest_schema_version": 1,
   "managed_files": [
     {
@@ -351,7 +351,7 @@
     },
     {
       "path": ".test-kit/shared/sdlc/readiness/vocabulary.py",
-      "sha256": "1acf0d1c4cdaed5609d2a30ef714a532addb5f72e8f9b00ddafb15d376b9373c",
+      "sha256": "00e85116bcbd70b851799003e02a811b7288953229a8c34fd82a3ddd59bc3cea",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -977,5 +977,5 @@
   ],
   "managed_file_count": 194,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "78394b5d1bb7600a3c09642e35d51f01014bfaec2355417c05ca1c1a0e6123f1"
+  "payload_tree_sha256": "4420c9df142f50a9690cca7a6ebe10b978b0867136d43e5b182447643dae6ee6"
 }

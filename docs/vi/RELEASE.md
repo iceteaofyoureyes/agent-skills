@@ -2,7 +2,7 @@
 
 ## Test Kit Manual VNext
 
-Package candidate hiện tại là **`2.0.0-rc.11`**. Đây là prerelease branch candidate, không phải stable `2.0.0`, GitHub release, tag hay published artifact.
+Package candidate hiện tại là **`2.0.0-rc.12`**. Đây là prerelease branch candidate, không phải stable `2.0.0`, GitHub release, tag hay published artifact.
 
 Default manual lane:
 
@@ -12,7 +12,7 @@ Engineering Handoff VNext
 → Testcases → Human Case Gate → APPROVED_TESTWARE
 ```
 
-Test Kit prerelease hiện tại là **`2.0.0-rc.11`**, chưa phải stable `2.0.0` hay bản phát hành.
+Test Kit prerelease hiện tại là **`2.0.0-rc.12`**, chưa phải stable `2.0.0` hay bản phát hành.
 
 `APPROVED_TESTWARE` kết thúc Phase 6 manual lane. Phase 7 tạo `EXECUTION_READY`; Phase 8 chạy product, phân loại Finding, nhận Dev VNext fix, retest và để Tester tạo `VERIFIED`. Doctor READY chỉ báo package/capability; không chứng minh `EXECUTION_READY`, PASS, không có Finding, `READY_FOR_RETEST`, `VERIFIED` hoặc `READY_TO_MERGE`.
 
