@@ -20,8 +20,8 @@ class TestExecutionVNextInstalledAcceptance(unittest.TestCase):
     def test_installed_execution_defect_fix_reopen_retest_and_straight_pass(self):
         with tempfile.TemporaryDirectory(prefix="execution-vnext-installed-") as temporary:
             temporary = Path(temporary)
-            outside = temporary / "external-cwd"
-            outside.mkdir()
+            outside = Path(tempfile.gettempdir()).resolve()
+            self.assertFalse(outside.is_relative_to(ROOT.resolve()), outside)
             fixture = phase7.TestAutomationV1Acceptance("test_api_e2e_shift_left_dev_local_manual_review_verify_and_fresh_resume")
             prepare_testware = fixture._approved_testware
 
