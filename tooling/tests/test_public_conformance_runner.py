@@ -290,7 +290,7 @@ class PublicConformanceContractTests(unittest.TestCase):
             return None
 
         compatibility = {
-            "component_versions": {"ba": "2.0.0-rc.3", "dev": "0.4.0-rc.2", "test": "2.0.0-rc.11"},
+            "component_versions": {"ba": "2.0.0-rc.4", "dev": "0.4.0-rc.3", "test": "2.0.0-rc.12"},
             "contract_versions": {"project_foundation": 1},
         }
         with patch.object(public_conformance.shutil, "which", side_effect=which), \
@@ -488,7 +488,7 @@ class PublicConformanceContractTests(unittest.TestCase):
             framework_tree="b" * 40,
             suite_manifest_sha256="c" * 64,
             suite_lock_sha256="d" * 64,
-            component_versions={"ba": "2.0.0-rc.3", "dev": "0.4.0-rc.2", "test": "2.0.0-rc.11"},
+            component_versions={"ba": "2.0.0-rc.4", "dev": "0.4.0-rc.3", "test": "2.0.0-rc.12"},
             contract_versions={"project_foundation": 1},
             doctor_results={"suite": "READY"},
             scenario_results={"straight_pass": {"status": "PASS"}},

@@ -36,7 +36,7 @@ UNKNOWN/deferred BA behavior tiếp tục là UNKNOWN. Material required executi
 
 ## Gói và readiness
 
-Package mặc định là **Test Kit Manual VNext**, prerelease `2.0.0-rc.11`. V1 vẫn được đóng gói để đọc/kiểm tra theo `LEGACY_COMPAT`, `vnext_authority=false`.
+Package mặc định là **Test Kit Manual VNext**, prerelease `2.0.0-rc.12`. V1 vẫn được đóng gói để đọc/kiểm tra theo `LEGACY_COMPAT`, `vnext_authority=false`.
 
 - Python 3.10+ và các pinned TEA/Katalon skills thuộc core.
 - XMind cần Node/npm và SDK đã pin; Excel cần `openpyxl`/`et-xmlfile` đã pin. Installer không tải dependency tùy chọn.

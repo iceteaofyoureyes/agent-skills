@@ -1,6 +1,6 @@
 # Public SDLC VNext Conformance
 
-Suite `agent-assisted-sdlc-vnext` version `1.0.0-rc.1` is an `INTERNAL_RC_CANDIDATE`. Its manifest is [tooling/sdlc-suite.json](../../tooling/sdlc-suite.json), and its required acceptance tiers are [tooling/sdlc-suite-acceptance.yaml](../../tooling/sdlc-suite-acceptance.yaml).
+Suite `agent-assisted-sdlc-vnext` version `1.0.0-rc.2` is an `INTERNAL_RC_CANDIDATE`. Its manifest is [tooling/sdlc-suite.json](../../tooling/sdlc-suite.json), and its required acceptance tiers are [tooling/sdlc-suite-acceptance.yaml](../../tooling/sdlc-suite-acceptance.yaml).
 
 The suite checks Project Foundation V1, BA Engineering Handoff V2, Dev Handoff V2, Approved Testware V1, Execution Ready V1, Finding Classification V1, Defect Handoff V1, Ready For Retest V1, and Verified Handoff V1. Component versions come from the kit manifests; public schema versions come from their executable or schema sources. Delivery Manifest stays `DEFERRED_NON_AUTHORITATIVE` and is not a VNext flow prerequisite.
 

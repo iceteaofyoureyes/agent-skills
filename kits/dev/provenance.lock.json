@@ -5,7 +5,7 @@
   "packaging": {
     "target": "OpenAI Agent Plugin plus self-contained user-scope Dev VNext runtime",
     "layout": "kits/dev/plugin/{plugin.json,skills/,references/}",
-    "version": "0.4.0-rc.2",
+    "version": "0.4.0-rc.3",
     "runtime": "dev-kit-v2",
     "runtime_root": "~/.devkit/runtime/v2",
     "business_what_authority": "Engineering Handoff VNext backed by exact APPROVED_BASELINE proof",
@@ -197,11 +197,11 @@
       "kits/dev/README.md": "ba4e092a9976f64246989b30c3b6d4e54a461783430a167c5adea8531ec44479",
       "kits/dev/acceptance.yaml": "1dd2c6868f5849e7766648828bcc787ea7ba93e461a557feff818a7bdf4156c8",
       "kits/dev/examples/neutral-vnext.md": "aab02acf01704ed91125215d8d1549949f9e3c25414c44a612a782620dd45fca",
-      "kits/dev/kit.yaml": "3ec79cd06cbd2d57222b493e07332983120bc226251c90f07af24d86d9c66321",
+      "kits/dev/kit.yaml": "04f9140d8daadaff70bafe84add9d84a7776034f9892f65bd65c293df7f23931",
       "kits/dev/plugin/THIRD_PARTY_NOTICES.md": "2679ffcee20601913115e91ec71c3fd6cd6beb4277735bc620af3aa00a3fc6cd",
       "kits/dev/plugin/licenses/ADDY_AGENT_SKILLS_LICENSE.txt": "6f202f8bd568cd730dbb2b0d1f8e243bc74c2fa1f64dbce9b2c7ea08bd5c9fd7",
       "kits/dev/plugin/licenses/SUPERPOWERS_LICENSE.txt": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
-      "kits/dev/plugin/plugin.json": "e16b65e3d9cf6e03cde1364ebbbcb449d03e44c77f4e2495e6421d76f2638fa9",
+      "kits/dev/plugin/plugin.json": "0b1e4dfc62277dab083bd85ef80f7a7501dc916b0a9aacb809c8bbdcc587b940",
       "kits/dev/plugin/references/definition-of-done.md": "d1c75d2ae65d2c7a9cd01f93fa8de63e00e75f2fe5d08be224d576157054dcee",
       "kits/dev/plugin/references/observability-checklist.md": "25fcd0e854596a5ab6f11b002050d245bf78f5ae0fcbd1df699b89451ae0e1e8",
       "kits/dev/plugin/references/performance-checklist.md": "40f564d1e62341e277c01ba42c42d95264b9ef3b8e5a23249dc6e121a7e70067",
@@ -241,7 +241,7 @@
       "kits/dev/templates/technical-approval-v2.boundary.md": "47138d6666e7e24d8f766bda36a496ab247b1b7d3168756a69337e92b4229aeb",
       "project-foundation/SKILL.md": "f90b4915f972df3964e662ae94dc6fb3f4ada247c5c73cccbeba39645f88705b",
       "project-foundation/scripts/project_foundation.py": "e20181e1d2cc82e13abe00b786e1b7cf3d34b4bbdc0acf6c7bfc4261c34cfe10",
-      "project-foundation/scripts/shared-sdlc-core.zip": "03360050e153955cc834e7bf094c7a033612483d889d3313546cae31a895d433",
+      "project-foundation/scripts/shared-sdlc-core.zip": "6d42c01fdf24bdeebe431cf92625160f4ee8a0e50cf21481ecd2f97506fc4f90",
       "requirements-gap-auditor/LICENSE": "02b8e4c391f4b9961cb5fa6fa938b6ff96ce5fff82dfc2d703186427ce2733aa",
       "requirements-gap-auditor/SKILL.md": "1b824ae4fa25fa89406dcfe40732cc67308640bf9ed093b237c16e7d4cef0dec",
       "shared/__init__.py": "cfa2e273faa77d861705a491166e4bfc65bb7f304dafbd45c1a3f3fc6ee5ba54",
@@ -276,7 +276,7 @@
       "shared/sdlc/provenance/runtime_paths.py": "d903d518431c4ca3e5f26b58fd377cf1f1128b407f2007753f2a3314b93f087a",
       "shared/sdlc/readiness/__init__.py": "4c8b6a8f71ebb04a802ef443ca8c739357fea151f3610a9f36c64faebb410316",
       "shared/sdlc/readiness/compatibility.py": "010cc01f6e0a5676bc263c710058cb82d8b0221f06acd33a8725e7573bf57d04",
-      "shared/sdlc/readiness/vocabulary.py": "1acf0d1c4cdaed5609d2a30ef714a532addb5f72e8f9b00ddafb15d376b9373c",
+      "shared/sdlc/readiness/vocabulary.py": "00e85116bcbd70b851799003e02a811b7288953229a8c34fd82a3ddd59bc3cea",
       "shared/sdlc/schema.py": "8ac66871bef2c6633a9eea0dc3b86be46f0a4141dc4175dca45e6688cb2cca44",
       "shared/sdlc/topology/__init__.py": "1ee114ed63a0ff66e84febfe4e09d7e6f7dc67bcbd015141e84dcaf95a4f3dee",
       "shared/sdlc/topology/contract.py": "70fb0713a286f21eb0a9f5f8e1d6f6d4c0b813ec7da25bba22ef01d87afca46b",
@@ -292,6 +292,6 @@
       "verification-before-completion/LICENSE": "304cf321f3218c25a45bd6ef41e3bd8ca4a3630d21f4445dbc152842bd5dafea",
       "verification-before-completion/SKILL.md": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3"
     },
-    "sha256": "756e520f4a16f735a2b7d1c71f015599f417ad4f946cbd4a5f49bf140c2fdb2c"
+    "sha256": "2590226b677a40a313dc1f9ee3bac33df2658a209b8534006a8c5cd6c1bef411"
   }
 }

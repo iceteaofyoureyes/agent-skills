@@ -1,6 +1,6 @@
 schema_version: 1
 suite_id: agent-assisted-sdlc-vnext
-suite_version: 1.0.0-rc.1
+suite_version: 1.0.0-rc.2
 required_for_phase_9: true
 tiers:
   - id: A
