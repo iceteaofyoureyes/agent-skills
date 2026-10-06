@@ -9,7 +9,6 @@ from importlib import metadata
 from pathlib import Path
 import re
 import shutil
-import site
 import subprocess
 import sys
 import tempfile
@@ -65,21 +64,29 @@ FULL_DISCOVERY_TIMEOUT_SECONDS = 5400
 PUBLIC_RUN_TIMEOUT_SECONDS = 10800
 
 
-def test_dependency_runtime():
-    dependency_site = Path(site.getusersitepackages()).resolve()
+def test_dependency_runtime(dependency_site=None):
+    if dependency_site is None:
+        dependency_site = os.environ.get("PUBLIC_CONFORMANCE_TEST_DEPENDENCY_SITE")
+    if dependency_site is None:
+        try:
+            invoking_distribution = metadata.distribution("pytest")
+        except metadata.PackageNotFoundError as error:
+            raise ValueError("public conformance requires pytest in the invoking test environment") from error
+        dependency_site = Path(invoking_distribution.locate_file("pytest/__init__.py")).resolve().parent.parent
+    dependency_site = Path(dependency_site).resolve()
     if not (dependency_site / "pytest/__init__.py").is_file():
-        raise ValueError("full tooling unittest discovery requires pytest in the invoking Python user site")
+        raise ValueError("pytest test dependency site must contain pytest/__init__.py")
     original_path = sys.path[:]
     sys.path.insert(0, str(dependency_site))
     try:
         distribution = metadata.distribution("pytest")
     except metadata.PackageNotFoundError as error:
-        raise ValueError("full tooling unittest discovery requires pytest metadata in the invoking Python user site") from error
+        raise ValueError("pytest test dependency site must contain pytest distribution metadata") from error
     finally:
         sys.path[:] = original_path
     package_path = Path(distribution.locate_file("pytest/__init__.py")).resolve()
     if not package_path.is_relative_to(dependency_site):
-        raise ValueError("pytest metadata did not resolve inside the explicit Python user site")
+        raise ValueError("pytest metadata did not resolve inside the explicit test dependency site")
     return dependency_site, distribution.version
 
 
@@ -291,6 +298,7 @@ def _run_in_clone(root: Path, output: Path, lock_path: Path, spec_kit_cli: Path 
     sdlc_suite.verify_lock(root, lock)
     suite_manifest = sdlc_suite.load_manifest(root)
     env = _isolated_env(output.parent / "runtime-home")
+    env["PUBLIC_CONFORMANCE_TEST_DEPENDENCY_SITE"] = str(test_dependency_site)
     env["PATH"] = str(Path(spec_kit_cli).parent) + os.pathsep + env.get("PATH", "")
     output.parent.mkdir(parents=True, exist_ok=True)
     projection_runtime = prepare_optional_projection_test_runtime(root, output.parent, env)

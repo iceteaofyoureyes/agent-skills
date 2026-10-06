@@ -31,6 +31,13 @@ def stage_timeout_seconds(name: str) -> int:
         raise ValueError(f"unknown public conformance stage: {name}") from error
 
 
+def require_stage_probe(stage_result, name):
+    probes = stage_result.get("negative_probes") if isinstance(stage_result, dict) else None
+    if not isinstance(probes, dict) or probes.get(name) is not True:
+        raise AssertionError(f"required upstream negative probe evidence missing or failed: {name}")
+    return True
+
+
 def repository_for_role(topology: dict, role: str) -> dict:
     matches = [row for row in topology.get("repositories", []) if row.get("role") == role]
     if len(matches) != 1:
@@ -389,6 +396,7 @@ def foundation_and_ba_stage(args):
         "ba": {"status": state["lifecycle"], "handoff_path": handoff_path.relative_to(root).as_posix(),
                "handoff_sha256": hashlib.sha256(handoff_path.read_bytes()).hexdigest(),
                "human_receipt": receipt_ref, "requirements": list(BA_IDS)},
+        "negative_probes": {"validator_not_approval": validator_not_approval},
         "project_doc_repo": {"id": "docs", "sha": git(root / "project-docs", "rev-parse", "HEAD")},
         "installed_modules": {name: str(Path(module.__file__).resolve()) for name, module in modules.items()},
     }, ensure_ascii=False, sort_keys=True))
@@ -499,6 +507,9 @@ def dev_stage(args):
 
 
 def manual_automation_execution_stage(args):
+    validator_not_approval = args.validator_not_approval == "true"
+    if not validator_not_approval:
+        raise AssertionError("Foundation validator-not-approval evidence is required before the manual stage")
     root = Path(args.workspace).resolve()
     skills = Path(args.skills).resolve()
     runtime_root = skills / ".test-kit"
@@ -1219,6 +1230,7 @@ def run_all(args):
             raise RuntimeError(f"installed {name} stage emitted no evidence JSON: {result.stdout}") from error
 
     foundation_ba = stage("foundation-ba", skills=skills)
+    validator_not_approval = require_stage_probe(foundation_ba, "validator_not_approval")
     ba_handoff = workspace / foundation_ba["ba"]["handoff_path"]
     initial_handoff = workspace / ".devkit/ready-for-test-initial.json"
     initial_dev = stage(
@@ -1227,7 +1239,8 @@ def run_all(args):
     )
     flow_output = external / "public-flow-result.json"
     stage("manual-execution", skills=skills, dev_runtime=dev_runtime, ba_handoff=ba_handoff,
-          dev_handoff=initial_handoff, spec_kit_cli=spec_kit_cli, output=flow_output)
+          dev_handoff=initial_handoff, spec_kit_cli=spec_kit_cli, output=flow_output,
+          validator_not_approval=str(validator_not_approval).lower())
     result = read_json(flow_output)
     if result.get("status") != "PASS":
         raise AssertionError(f"installed public flow returned non-PASS evidence: {result}")
@@ -1249,6 +1262,7 @@ def main(argv=None):
     parser.add_argument("--dev-runtime", type=Path)
     parser.add_argument("--ba-handoff", type=Path)
     parser.add_argument("--dev-handoff", type=Path)
+    parser.add_argument("--validator-not-approval", choices=("true", "false"))
     parser.add_argument("--change-id")
     parser.add_argument("--run-id")
     parser.add_argument("--kind", choices=("initial", "fix"))

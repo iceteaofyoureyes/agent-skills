@@ -108,9 +108,30 @@ class PublicConformanceContractTests(unittest.TestCase):
         self.assertEqual(run.call_args.kwargs["cwd"], ROOT)
 
     def test_runner_resolves_pytest_from_the_operator_test_site(self):
-        test_site, version = public_conformance.test_dependency_runtime()
-        self.assertTrue((test_site / "pytest/__init__.py").is_file())
-        self.assertTrue(version)
+        distribution = public_conformance.metadata.distribution("pytest")
+        test_site = Path(distribution.locate_file("pytest/__init__.py")).resolve().parent.parent
+        with tempfile.TemporaryDirectory() as directory:
+            environment = public_conformance._isolated_env(Path(directory))
+            environment["PUBLIC_CONFORMANCE_TEST_DEPENDENCY_SITE"] = str(test_site)
+            code = (
+                f"import sys; sys.path.insert(0, {str(ROOT)!r}); "
+                "from tooling.public_conformance import test_dependency_runtime; "
+                "site, version = test_dependency_runtime(); print(site); print(version)"
+            )
+            result = subprocess.run(
+                [public_conformance.sys.executable, "-I", "-c", code],
+                cwd=directory, env=environment, capture_output=True, text=True,
+            )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), [str(test_site), distribution.version])
+
+    def test_manual_stage_requires_negative_probe_evidence_from_prior_stage(self):
+        passed = {"negative_probes": {"validator_not_approval": True}}
+        self.assertTrue(public_cross_kit_conformance.require_stage_probe(passed, "validator_not_approval"))
+        for evidence in ({}, {"negative_probes": {}},
+                         {"negative_probes": {"validator_not_approval": False}}):
+            with self.subTest(evidence=evidence), self.assertRaisesRegex(AssertionError, "validator_not_approval"):
+                public_cross_kit_conformance.require_stage_probe(evidence, "validator_not_approval")
 
     def test_retest_trace_uses_validated_ready_for_retest_artifact(self):
         source = Path(public_cross_kit_conformance.__file__).read_text(encoding="utf-8")
