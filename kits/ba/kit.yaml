@@ -2,7 +2,7 @@
   "schema_version": 1,
   "id": "ba",
   "name": "BA Kit",
-  "version": "2.0.0-rc.4",
+  "version": "2.0.0-rc.6",
   "workflow": {"skill": "ba-workflow"},
   "core": ["verification-before-completion", "codebase-discovery"],
   "skills": {

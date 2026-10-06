@@ -21,6 +21,8 @@ Appropriate BA diagrams include:
 
 ## 2. Example lifecycle from Business Rules
 
+> Appointment below is an illustrative synthetic scenario, not the default domain. Current neutral BA VNext example: [Resource Request Submission](../../kits/ba/examples/CR-001/README.md).
+
 Given confirmed semantics:
 
 ~~~text

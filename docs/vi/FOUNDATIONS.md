@@ -209,7 +209,7 @@ Automation / Regression
 Quality Evidence
 ~~~
 
-Test Kit V1 hiện đã triển khai/được Human chấp nhận như Kit riêng; TEA được bundle làm native analysis input, không phải capability của BA Kit RC1. Sơ đồ trên là hướng tham chiếu rộng hơn: **V1 dừng tại manual APPROVED_TESTWARE/STOP_V1**; Execution/Automation/Quality Evidence thuộc phase hạ nguồn, không nằm trong Test Kit V1. Xem [Test Kit workflow](TEST_KIT_WORKFLOW.md).
+Phần này lưu snapshot lịch sử của thiết kế/acceptance Test Kit V1. V1 từng dừng ở manual testware; boundary đó không phải lifecycle suite hiện tại. Test Kit hiện gồm Manual, Automation và Execution VNext. Xem [Test workflow](TEST_KIT_WORKFLOW.md), [Execution](TEST_EXECUTION_VNEXT.md) và [kiến trúc hiện hành](ARCHITECTURE.md).
 
 ## 8. Các quyết định INTERNAL DESIGN phải tự chứng minh
 

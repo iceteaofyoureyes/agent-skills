@@ -21,9 +21,9 @@ Nếu UX context được cung cấp thì receipt, feature/revision, contract/so
 | `DESIGN_REVIEW` | Canonical Design đã validate; chưa được approve |
 | `APPROVED_DESIGN` | Trusted Human đã approve exact Design snapshot/input refs |
 | `CASE_REVIEW` | Canonical Testcases đã validate; chưa được approve |
-| `APPROVED_TESTWARE` | Trusted Human đã approve exact Case snapshot/input refs; terminal cho Phase 6 |
+| `APPROVED_TESTWARE` | Trusted Human đã approve exact Case snapshot/input refs; điểm kết thúc của Manual lane |
 
-`APPROVED_TESTWARE` không có nghĩa là `EXECUTION_READY`, test PASS, `VERIFIED` hay `READY_TO_MERGE`. Test Kit không chạy automation hoặc tạo defect/retest lifecycle.
+`APPROVED_TESTWARE` không có nghĩa là `EXECUTION_READY`, test PASS, `VERIFIED` hay `READY_TO_MERGE`. Đây là điểm dừng của Manual lane; flow tiếp tục qua [Automation V1](TEST_AUTOMATION_V1.md) đến `EXECUTION_READY` và [Test Execution VNext](TEST_EXECUTION_VNEXT.md) qua Finding, Dev fix, retest tới `VERIFIED` hoặc `REOPENED`.
 
 ## Canonical artifacts và projection
 
@@ -36,7 +36,7 @@ UNKNOWN/deferred BA behavior tiếp tục là UNKNOWN. Material required executi
 
 ## Gói và readiness
 
-Package mặc định là **Test Kit Manual VNext**, prerelease `2.0.0-rc.12`. V1 vẫn được đóng gói để đọc/kiểm tra theo `LEGACY_COMPAT`, `vnext_authority=false`.
+Package hiện hành gồm Manual, Automation và Execution VNext, prerelease `2.0.0-rc.14`. V1 vẫn được đóng gói để đọc/kiểm tra theo `LEGACY_COMPAT`, `vnext_authority=false`.
 
 - Python 3.10+ và các pinned TEA/Katalon skills thuộc core.
 - XMind cần Node/npm và SDK đã pin; Excel cần `openpyxl`/`et-xmlfile` đã pin. Installer không tải dependency tùy chọn.

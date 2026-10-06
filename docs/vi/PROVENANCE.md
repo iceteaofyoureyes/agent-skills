@@ -1,8 +1,8 @@
 # Provenance và quyền phân phối của các Kit
 
-## Test Kit Manual VNext — pinned components
+## Test Kit VNext — pinned components
 
-Test Kit Manual VNext bundle các skill bên thứ ba sau; revision/hash gốc nằm trong pin files, không lấy từ ví dụ hoặc bản trình bày. V1 runtime/artifacts chỉ được giữ cho `LEGACY_COMPAT`:
+Test Kit VNext bundle các skill bên thứ ba dưới đây cho Manual lane; revision/hash gốc nằm trong pin files. Package tích hợp còn có Automation V1 và Execution VNext. V1 runtime/artifacts chỉ được giữ cho `LEGACY_COMPAT`:
 
 | Thành phần | Nguồn pin hiện hành | License/notice |
 |---|---|---|
@@ -11,13 +11,13 @@ Test Kit Manual VNext bundle các skill bên thứ ba sau; revision/hash gốc n
 | Optional XMind SDK | [SDK pin](../../tooling/pins/xmind-sdk-v1.json), [npm lock](../../tooling/xmind/package-lock.json) | MIT; license của package xuất hiện sau `npm ci` |
 | Optional Excel dependencies | [hash-locked Python requirements](../../tooling/requirements-excel.lock) | MIT; xem [THIRD_PARTY_NOTICES](../../THIRD_PARTY_NOTICES.md) |
 
-Package candidate hiện tại là `2.0.0-rc.12`; V1 runtime/artifacts chỉ còn để `LEGACY_COMPAT`, `vnext_authority=false`.
+Package candidate hiện tại là `2.0.0-rc.14`; V1 runtime/artifacts chỉ còn để `LEGACY_COMPAT`, `vnext_authority=false`.
 
 [Test Kit manifest](../../kits/test/kit.yaml) xác định assets được cài; [package authority](../../kits/test/package-authority.json) và pin trong manifest gắn exact payload. Project-owned Test Kit runtime dùng root LICENSE. Installer không tải TEA/Katalon lúc chạy; XMind/Excel bootstrap là bước optional do operator yêu cầu rõ ràng. [License summary](../../kits/test/licenses/README.md) mô tả những gì đi cùng package.
 
-## BA Kit RC1
+## Lịch sử: provenance audit BA Kit RC1 (snapshot trước A0)
 
-## Cơ sở kiểm toán
+### Cơ sở audit lịch sử — BA Kit RC1; không mô tả candidate hiện tại
 
 - Lịch sử nguồn của candidate: BA Kit RC1 được phát triển ban đầu trên nhánh `feature/ba-kit-rc1-packaging` tại HEAD 31dd25333fdcd9d3763ebba7b60ee6c37d42c8e1. Cài đặt công khai clone repository từ nhánh `main`. Worktree ban đầu có thay đổi về bản địa hóa, provenance và license; không có thay đổi ban đầu nào bị loại bỏ.
 - Benchmark được kiểm tra ở chế độ chỉ đọc tại nhánh benchmark/agent-skills-v1-vi, commit b7d8d63c80c8fb2156b5267804f4081e60b51f76. Tệp chưa được track từ trước benchmark/input/templates/SRS_TEMPLATE.docx được giữ nguyên.

@@ -19,10 +19,10 @@ Turn validated evidence and chosen scope into observable behavior people can com
 
 Confirm the approved scope, outcome, users or roles, evidence links, constraints, measurable experience goals, and open product decisions. Record missing inputs rather than inventing them.
 
-- Need stakeholder evidence, validation, or raw research? Use [product-discovery](../product-discovery/SKILL.md).
-- Need prioritization, scope, or why a feature is being built? Use [product-methodology](../product-methodology/SKILL.md).
+- Need stakeholder evidence, validation, or raw research? Use optional separately installed product-discovery skill (not bundled here).
+- Need prioritization, scope, or why a feature is being built? Use optional separately installed product-methodology skill (not bundled here).
 - Need WCAG, ARIA, native semantics, or accessibility testing depth? Use [web-accessibility](../web-accessibility/SKILL.md).
-- Need an approved interaction contract translated into a software specification and delivery gates? Use [spec-driven-development](../spec-driven-development/SKILL.md).
+- Need an approved interaction contract translated into a software specification and delivery gates? Use optional separately installed spec-driven-development skill (not bundled here).
 
 ## Workflow
 
@@ -34,7 +34,7 @@ Confirm the approved scope, outcome, users or roles, evidence links, constraints
 6. Write framework-neutral contracts for content, controls, accessible interaction requirements, actions, transitions, persistence, permissions, responsive/reflow behavior, telemetry, and open decisions. Read `references/interface-contracts-and-responsive-behavior.md` and use `templates/interface-contract.md`.
 7. Treat patterns as hypotheses. Compare alternatives, tradeoffs, evidence, and disconfirming conditions with `references/interaction-pattern-selection.md`.
 8. Plan or synthesize only authorized usability work. Read `references/usability-testing-and-privacy.md`; use `templates/usability-study.md`. Never invent participants, consent, observations, quotes, or results.
-9. Produce an engineering handoff with observable acceptance evidence, dependencies, owners, gates, and deployed-boundary verification. Read `references/engineering-handoff.md`; use `templates/engineering-handoff.md`. Hand approved behavior to [spec-driven-development](../spec-driven-development/SKILL.md).
+9. Produce an engineering handoff with observable acceptance evidence, dependencies, owners, gates, and deployed-boundary verification. Read `references/engineering-handoff.md`; use `templates/engineering-handoff.md`. Hand approved behavior to optional separately installed spec-driven-development skill (not bundled here).
 
 ## Load On Demand
 

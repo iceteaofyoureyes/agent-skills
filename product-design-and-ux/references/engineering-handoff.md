@@ -62,4 +62,4 @@ Classify findings:
 
 Component or prototype success does not prove integration behavior. Name the actual delivery boundary, supported environment, fixture, steps, expected observation, evidence capture, and cleanup. Include permissions, persistence, external effects, responsive behavior, and accessibility environment where relevant. Record failed, blocked, and not-applicable results instead of converting absent evidence into a pass.
 
-After approval, pass the interaction contracts and criteria to [spec-driven-development](../../spec-driven-development/SKILL.md) for formal software specification and delivery gates. Keep UX evidence linked rather than flattening it into implementation prose.
+After approval, pass the interaction contracts and criteria to optional separately installed spec-driven-development skill (not bundled here) for formal software specification and delivery gates. Keep UX evidence linked rather than flattening it into implementation prose.

@@ -1,54 +1,36 @@
-# BA Kit Documentation — English
+# Agent-Assisted SDLC Suite Documentation
 
-Vietnamese is the primary user-facing documentation. English documentation is secondary. BA Kit maintains broad English coverage; Test Kit Manual VNext has an [English overview](TEST_KIT_README.md), while its operator guides are maintained in Vietnamese, including [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [usage scenarios](../vi/TEST_KIT_USAGE_GUIDE.md), and [workflow](../vi/TEST_KIT_WORKFLOW.md). Start with the [neutral VNext example](../../kits/test/examples/vnext/neutral/README.md).
+This is the English index for the integrated suite. It combines three role Kits with the shared Project Foundation capability. Machine-readable manifests remain authoritative: [suite identity](../../tooling/sdlc-suite.json), [Kit catalog](../../kits/README.md).
 
-## If you are new
+## Start here by role
 
-1. [Quick Start](BA_KIT_QUICKSTART.md)
-2. [What can BA Kit do?](BA_KIT_CAPABILITIES.md)
-3. [Usage guide by scenario](BA_KIT_USAGE_GUIDE.md)
-4. [Workflow and Human Gates](BA_KIT_WORKFLOW.md)
-5. [CR-001 example](../../kits/ba/examples/CR-001/README.md)
+| Reader | Start |
+|---|---|
+| New team member | FULL ENGLISH GUIDE: [suite overview](../../README.md) · [architecture and lifecycle](ARCHITECTURE.md) |
+| Project Owner / Tech Lead | FULL ENGLISH GUIDE: [Project Foundation operator guide](PROJECT_FOUNDATION.md) · [readiness states](READINESS_STATES.md) |
+| BA | FULL ENGLISH GUIDE: [BA workflow and Human Gates](BA_KIT_WORKFLOW.md) |
+| Developer | FULL ENGLISH GUIDE: [Dev Kit VNext operator guide](DEV_KIT_GUIDE.md) |
+| Tester / QA | ENGLISH OVERVIEW: [Manual Test guide](TEST_KIT_MANUAL.md). VIETNAMESE PRIMARY GUIDE: [Test Quick Start](../vi/TEST_KIT_QUICKSTART.md) and [workflow](../vi/TEST_KIT_WORKFLOW.md). |
+| Automation Tester | FULL ENGLISH GUIDE: [Automation V1](TEST_AUTOMATION_V1.md) |
+| Execution / QA lead | FULL ENGLISH GUIDE: [Execution, Findings, Defects, and Retest](TEST_EXECUTION_VNEXT.md) |
+| Framework Maintainer | FULL ENGLISH GUIDE: [installation and upgrade](INSTALLATION.md), [troubleshooting](TROUBLESHOOTING.md), [packaging](../../tooling/PACKAGING.md), [Public Cross-Kit Conformance](SDLC_SUITE_CONTRACT.md), [release status](RELEASE.md) |
 
-## Documents and visuals
+## Operator paths
 
-- [SRS and DOCX — canonical SRS, Word templates, export/review](SRS_DOCX_GUIDE.md)
-- [Draw.io, visual input, and prototypes](DIAGRAMS_PROTOTYPES.md)
+- Installation by Kit, Doctor checks, upgrade and package recovery: [Installation](INSTALLATION.md) · [Troubleshooting](TROUBLESHOOTING.md)
+- Current lifecycle and ownership: [Architecture](ARCHITECTURE.md)
+- Readiness and approval boundaries: [Readiness states](READINESS_STATES.md)
+- BA internal lifecycle and downstream handoff: [BA workflow](BA_KIT_WORKFLOW.md)
+- Dev delivery, upstream gaps, replanning, blocking, and READY_FOR_TEST: [Dev guide](DEV_KIT_GUIDE.md)
+- Manual Design/Testcase gates: ENGLISH OVERVIEW: [Manual Test](TEST_KIT_MANUAL.md); detailed Vietnamese steps: [Manual workflow](../vi/TEST_KIT_WORKFLOW.md)
+- Automation: [Automation V1](TEST_AUTOMATION_V1.md)
+- Execution, Finding classification, defect fix, and retest: [Execution VNext](TEST_EXECUTION_VNEXT.md)
+- Required internal-candidate gate: [Public Cross-Kit Conformance](SDLC_SUITE_CONTRACT.md)
+- Release and history: [Release status](RELEASE.md) · [Legacy and historical material](../LEGACY_AND_HISTORY.md)
+- Foundation modes, profiles, and evidence: [Project Foundation](PROJECT_FOUNDATION.md) · [technical reference](../project-foundation.md)
 
-## Installation
+## Language coverage
 
-- [Installation / Doctor / uninstall](INSTALLATION.md)
+FULL ENGLISH GUIDE means the linked page supports that operator path in English. ENGLISH OVERVIEW summarizes the boundary and routes to a detailed supported guide. VIETNAMESE PRIMARY GUIDE means the full current instructions are maintained in Vietnamese; the link is explicit. This index does not claim file-for-file or semantic parity where a full English guide is not available.
 
-## Reference
-
-- [Architecture](ARCHITECTURE.md)
-- [Design foundations, standards, and lineage](FOUNDATIONS.md)
-- [Kit contract](KIT_CONTRACT.md)
-- [Release status](RELEASE.md)
-- [Provenance and licensing](PROVENANCE.md)
-
-## Suggested navigation
-
-~~~text
-Need to know whether BA Kit supports your task?
-→ BA_KIT_CAPABILITIES.md
-
-Want to start now?
-→ BA_KIT_QUICKSTART.md
-
-Have a specific scenario?
-→ BA_KIT_USAGE_GUIDE.md
-
-Need Word/templates?
-→ SRS_DOCX_GUIDE.md
-
-Need flowcharts/Figma/prototypes?
-→ DIAGRAMS_PROTOTYPES.md
-
-Need gates/source-of-truth rules?
-→ BA_KIT_WORKFLOW.md
-~~~
-
----
-
-Tiếng Việt: [Danh mục tài liệu](../vi/README.md)
+The Vietnamese index is [here](../vi/README.md). Vietnamese remains the primary language for Test Manual detailed design steps.

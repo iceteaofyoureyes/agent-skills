@@ -1,6 +1,6 @@
 # Dev Kit VNext — Provenance và Package Integrity
 
-Dev Kit VNext là prerelease `0.4.0-rc.3`, được cài vào
+Dev Kit VNext là prerelease `0.4.0-rc.4`, được cài vào
 `~/.devkit/runtime/v2`. Version ở `kits/dev/kit.yaml` và plugin metadata phải
 khớp. Đây không phải stable release.
 
@@ -65,6 +65,6 @@ python -m unittest tooling.tests.test_dev_vnext_installed_acceptance -v
 python -m unittest tooling.tests.test_ba_vnext_installed_acceptance -v
 ```
 
-Tier 3 installed acceptance là bắt buộc để tuyên bố Phase 5 hoàn tất. Doctor
+Installed acceptance phải PASS trước khi công bố Dev package readiness. Doctor
 `READY` chỉ báo `PACKAGE/CAPABILITY READY`; chỉ Dev lifecycle tạo
 `READY_FOR_TEST` handoff readiness.

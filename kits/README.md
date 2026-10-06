@@ -1,19 +1,30 @@
-# Các Kit
+# Kit catalog
 
-Kit kết hợp workflow theo vai trò với các skill có thể tái sử dụng; skill nguyên tử được lưu canonical ở thư mục gốc.
+The suite combines three role Kits with the shared Project Foundation capability. Machine manifests own versions and package contracts: [suite](../tooling/sdlc-suite.json), [BA](ba/kit.yaml), [Dev](dev/kit.yaml), [Test](test/kit.yaml).
 
-| Kit | Trạng thái | Hướng dẫn |
-|---|---|---|
-| BA Kit | **1.0.0-rc.1 Public Preview** | [BA Kit](ba/README.md) |
-| Dev Kit | Planned; chưa triển khai | — |
-| Test Kit V1.1 | V1 core, XMind, Excel, package và Project Customization & Policy Layer **đã được Human chấp nhận**; manifest `1.1.0`, chưa public release/tag | [Test Kit](test/README.md) · [Quick Start](../docs/vi/TEST_KIT_QUICKSTART.md) · [Customization](../docs/vi/TEST_KIT_CUSTOMIZATION.md) |
+| Component | Current version | Responsibility and boundary | Start here |
+|---|---|---|---|
+| BA Kit | 2.0.0-rc.6 | Owns business WHAT through APPROVED_BASELINE and Engineering Handoff | [BA guide](../docs/vi/BA_KIT_WORKFLOW.md) · [package README](ba/README.md) |
+| Dev Kit VNext | 0.4.0-rc.4 | Owns engineering impact, repository scope, technical decisions, implementation; hands off at READY_FOR_TEST | [Dev guide](dev/README.md) · [workflow](../docs/vi/DEV_KIT_WORKFLOW.md) |
+| Test Kit Manual + Automation + Execution VNext | 2.0.0-rc.14 | Owns approved Design/Testcases, automation readiness, execution, Finding classification, retest, and Tester verification | [Test README](test/README.md) · [Manual](../docs/vi/TEST_KIT_QUICKSTART.md) |
+| Project Foundation | Shared capability; not a role Kit | Recovers or bootstraps project context and routes owned evidence for review | [Foundation workflow](../docs/project-foundation.md) |
 
-Human acceptance của framework không phê duyệt Test Design, Testcases hoặc Testware của một project. Production Case Gate vẫn cần receipt Human đã xác thực và không còn material OPEN execution dependency.
+## Lifecycle boundary
 
-Bắt đầu với [BA Quick Start](../docs/vi/BA_KIT_QUICKSTART.md) hoặc [Test Quick Start](../docs/vi/TEST_KIT_QUICKSTART.md). Test Kit có [customization](../docs/vi/TEST_KIT_CUSTOMIZATION.md), [khả năng](../docs/vi/TEST_KIT_CAPABILITIES.md), [tình huống](../docs/vi/TEST_KIT_USAGE_GUIDE.md), [workflow/Human Gates](../docs/vi/TEST_KIT_WORKFLOW.md), [CR-001 example](test/examples/CR-001/README.md) và [cài đặt](../docs/vi/INSTALLATION.md).
+~~~
+Foundation → BA → Engineering Handoff → Dev → READY_FOR_TEST
+→ Test Design → APPROVED_DESIGN → Testcases → APPROVED_TESTWARE
+→ Automation → EXECUTION_READY → Execution → Findings
+→ Dev fix where applicable → READY_FOR_RETEST → Tester VERIFIED / REOPENED
+→ separate Human merge / release decision
+~~~
 
-English: [Kit documentation](../docs/en/README.md)
+Manual Test, Automation, and Execution are separate Test lanes. APPROVED_TESTWARE does not authorize execution, EXECUTION_READY does not prove a passing run, and Dev does not issue VERIFIED.
 
-## Test Kit V1.1
+## Install
 
-Install Test Kit independently with `tooling/install.ps1 test --agent codex --scope project`. Its [manifest](test/kit.yaml) lists the exact installed assets. The packaged [operator README](test/README.md) remains part of the accepted package payload; detailed onboarding lives in the linked guides above.
+Use [Installation](../docs/en/INSTALLATION.md) for prerequisites, Kit-specific commands, Doctors, upgrades, and recovery. Project Foundation has its own Shared runtime installation and review-only CLI; it does not create Human receipts.
+
+## Compatibility and history
+
+Older BA/Test/Dev material is labeled LEGACY_COMPAT or HISTORICAL. It is not current default guidance. See [Legacy and history](../docs/LEGACY_AND_HISTORY.md).

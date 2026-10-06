@@ -64,7 +64,7 @@ def load_manifest(root: str | Path = ROOT) -> dict:
     if data.get("schema_version") != 1:
         raise ValueError("unsupported suite manifest schema")
     if (data.get("suite_id"), data.get("suite_version"), data.get("release_status")) != (
-        "agent-assisted-sdlc-vnext", "1.0.0-rc.2", "INTERNAL_RC_CANDIDATE",
+        "agent-assisted-sdlc-vnext", "1.0.0-rc.4", "INTERNAL_RC_CANDIDATE",
     ):
         raise ValueError("suite candidate identity is invalid")
     if set(data.get("components", {})) != set(COMPONENTS):

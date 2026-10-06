@@ -209,7 +209,7 @@ Automation / Regression
 Quality Evidence
 ~~~
 
-Test Kit V1 is now implemented and Human accepted as a separate Kit; bundled TEA provides native analysis input, not a BA Kit RC1 capability. The wider diagram above is historical design context: **V1 stops at approved manual testware/STOP_V1**. Execution, automation, and quality evidence belong to later work. See the [Test Kit overview](TEST_KIT_README.md).
+This subsection records the historical Test Kit V1 design and acceptance snapshot. V1 stopped at manual testware; that boundary is not the current suite lifecycle. Current Test Kit includes Manual, Automation, and Execution VNext. See the [Manual Test overview](TEST_KIT_MANUAL.md) and [current architecture](ARCHITECTURE.md).
 
 ## 8. INTERNAL DESIGN decisions must stand on local evidence
 

@@ -101,7 +101,7 @@ Engineering Impact — xác định WHERE / WHO OWNS. Sau đó mới tới Dev K
 
 ### Điều gì chứng minh BA VNext đã được acceptance?
 
-Phase 4 yêu cầu Tier 3 fresh-install acceptance bên cạnh deterministic và focused runtime tests. Acceptance cài vào target sạch, chặn import từ source checkout, chứng minh approval gate của host, revalidate đúng Engineering Handoff VNext và kiểm tra V1 `LEGACY_COMPAT`. Doctor READY chỉ xác nhận package capability. Đây không phải stable release.
+BA installed acceptance kiểm tra VNext lifecycle và exact Engineering Handoff revalidation với imports cách ly khỏi source checkout. Doctor READY chỉ xác nhận package capability. Đây là prerelease evidence, không phải stable release hay Human approval.
 
 ### License BA Kit đã ổn chưa?
 

@@ -204,6 +204,8 @@ feature or business behavior.
 
 ## Readiness vocabulary and Doctor compatibility
 
+This page defines Shared compatibility claims, not the suite lifecycle. The current integrated flow is in [Architecture](ARCHITECTURE.md); the current readiness vocabulary has no READY_TO_MERGE state. See [Readiness states](READINESS_STATES.md).
+
 | Readiness | Normative scope |
 |---|---|
 | PACKAGE_READY | Installed package integrity and prerequisites are available |

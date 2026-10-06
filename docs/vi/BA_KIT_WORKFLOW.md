@@ -58,9 +58,11 @@ flowchart TD
     F --> G[Canonical SRS]
     G --> H[Human BA Baseline Gate]
     H --> I[Engineering Handoff]
-    I -. Planned .-> J[Engineering Impact]
-    J -. Planned .-> K[Dev Kit + repo-local Spec Kit]
-    I --> L[Test Kit V1: trực tiếp từ Approved BA Baseline]
+    I --> J[Engineering Impact]
+    J --> K[Dev Kit VNext]
+    K --> L[READY_FOR_TEST]
+    L --> M[Test Manual / Automation / Execution]
+    M --> N[Tester VERIFIED / REOPENED]
 ~~~
 
 Core flow quản lý **business semantics**. Draw.io, prototype và DOCX là derived/visual/delivery lanes; chúng không thay semantic authority.
@@ -206,7 +208,7 @@ Chỉ tạo handoff khi:
 - source paths/hashes hợp lệ;
 - không có technical ownership/design fields.
 
-Handoff chuyển sang **Engineering Impact**, nơi mới quyết định WHERE/WHO OWNS.
+Handoff chuyển sang **Engineering Impact**, nơi mới quyết định WHERE/WHO OWNS. Dev tiếp tục sở hữu HOW tới READY_FOR_TEST; Test sở hữu approval, execution evidence, Finding classification và retest. Xem [lifecycle tích hợp chuẩn](ARCHITECTURE.md). BA không sở hữu implementation hay verification downstream.
 
 ## Xem thêm
 

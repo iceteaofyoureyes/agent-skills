@@ -40,6 +40,6 @@ Resume từ run directory đã persist. Runtime xác thực lại BA, UX/Dev con
 
 Doctor `READY` chỉ xác nhận package/core capability; nó không cấp Human approval. Project Test Policy là guidance không authority và được ràng buộc hash khi được tiêu thụ. Lỗi integrity/capability bắt buộc phải xử lý trước khi tạo run mới.
 
-V1 được đọc trong chế độ `LEGACY_COMPAT`, `vnext_authority=false`; không migrate V1 thành VNext approval. Delivery Manifest không cần cho Test VNext. Automation planning/execution thuộc Phase 7+.
+V1 được đọc trong chế độ `LEGACY_COMPAT`, `vnext_authority=false`; không migrate V1 thành VNext approval. Delivery Manifest không cần cho Test VNext. Xem [Automation V1](TEST_AUTOMATION_V1.md) và [Test Execution VNext](TEST_EXECUTION_VNEXT.md) cho các bước tiếp theo.
 
 Ví dụ mặc định: [Neutral Resource Reservation VNext](../../kits/test/examples/vnext/neutral/README.md).

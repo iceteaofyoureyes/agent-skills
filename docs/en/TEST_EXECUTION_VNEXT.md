@@ -1,6 +1,6 @@
 # Test Execution / Finding / Defect / Retest VNext
 
-Phase 8 extends Test Kit after Manual VNext and Test Automation V1. Its only production entry is the exact Phase 7 `EXECUTION_READY` handoff, revalidated by the installed Automation V1 runtime.
+Test Execution VNext extends Test Kit after Manual VNext and Test Automation V1. Its only production entry is the exact Automation V1 `EXECUTION_READY` handoff, revalidated by the installed Automation V1 runtime.
 
 ## Bind before execution
 
@@ -34,12 +34,12 @@ DEFECT requires the exact approved oracle, a reproducible mismatch OR exact dete
 
 When every required automated/manual Testcase has a PASS Observation, current Dev-local evidence is accounted for, and no Finding remains open, a trusted Tester can produce a durable `VERIFIED` Handoff. No retest is required for this clean initial pass.
 
-For DEFECT, Phase 8 creates `DEFECT_READY_FOR_DEV`. Dev uses its existing `FEATURE_DELIVERY` flow with `change_id` equal to the stable defect ID and the original BA Engineering Handoff as WHAT authority. Defect artifacts are read-only context. After canonical Dev VNext validation, exact failed repository bases, a targeted repository change, clean non-target repositories, valid coverage, passing review and fresh verification, Phase 8 creates `READY_FOR_RETEST`.
+For DEFECT, Test Execution VNext creates `DEFECT_READY_FOR_DEV`. Dev uses its existing `FEATURE_DELIVERY` flow with `change_id` equal to the stable defect ID and the original BA Engineering Handoff as WHAT authority. Defect artifacts are read-only context. After canonical Dev VNext validation, exact failed repository bases, a targeted repository change, clean non-target repositories, valid coverage, passing review and fresh verification, Test Execution VNext creates `READY_FOR_RETEST`.
 
 The Tester retests the original failed approved Testcase at the exact fixed app SHAs, original automation SHA, and bound environment. PASS becomes `VERIFIED`; FINDING becomes `REOPENED` with the same defect ID and lineage. Dev cannot close a defect.
 
 ## Boundaries
 
-Doctor remains package/capability diagnostics. Its READY status does not mean `EXECUTION_READY`, PASS, no Finding, `READY_FOR_RETEST`, `VERIFIED`, or merge readiness. Delivery Manifest remains deferred and non-authoritative. Legacy execution code is compatibility-only. Phase 8 does not merge product code or create `READY_TO_MERGE`.
+Doctor remains package/capability diagnostics. Its READY status does not mean `EXECUTION_READY`, PASS, no Finding, `READY_FOR_RETEST`, `VERIFIED`, or merge readiness. Delivery Manifest remains deferred and non-authoritative. Legacy execution code is compatibility-only. Test Execution VNext does not merge product code or create `READY_TO_MERGE`.
 
 The host authenticates Tester actors through a trusted callback receiving the actor ID, requested role/action, and artifact hash. The runtime API exposes `start`, `execute_automated`, `execution_manifest`, `read_artifact`, Observation and classification recording, Dev-fix acceptance, retest, final verification, and VERIFIED revalidation.

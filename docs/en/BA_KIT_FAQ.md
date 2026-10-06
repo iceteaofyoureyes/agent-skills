@@ -101,7 +101,7 @@ Engineering Impact resolves WHERE / WHO OWNS. Dev Kit + repo-local Spec Kit then
 
 ### What proves BA VNext acceptance?
 
-Phase 4 requires Tier 3 fresh-install acceptance in addition to deterministic and focused runtime checks. The acceptance installs to a clean target, excludes source-checkout imports, proves the host approval gate, revalidates the exact Engineering Handoff VNext, and checks V1 `LEGACY_COMPAT`. Doctor READY is package capability readiness only. This repository work is not a stable release.
+BA installed acceptance checks the VNext lifecycle and exact Engineering Handoff revalidation with imports isolated from the source checkout. Doctor READY is package capability readiness only. This is prerelease evidence, not a stable release or Human approval.
 
 ### Is BA Kit licensing ready?
 

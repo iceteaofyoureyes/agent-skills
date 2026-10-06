@@ -1,6 +1,6 @@
-# Test Kit Manual VNext
+# Test Kit: Manual, Automation and Execution VNext
 
-Test Kit turns the exact BA Engineering Handoff VNext into Human-reviewed manual testware. BA owns business WHAT; Test Kit owns canonical Design, canonical Testcases and the two exact Human Gates.
+In the integrated suite, Test starts after Dev publishes READY_FOR_TEST. Test uses the exact BA Engineering Handoff VNext as business authority; the Dev Handoff adds technical context and cannot redefine WHAT. Test owns canonical Design, canonical Testcases, and the two exact Human Gates.
 
 ```text
 Engineering Handoff VNext
@@ -12,7 +12,7 @@ Engineering Handoff VNext
 → APPROVED_TESTWARE
 ```
 
-`APPROVED_TESTWARE` ends the Phase 6 manual lane. Test Automation V1 then creates the exact Phase 7 `EXECUTION_READY` handoff. Test Execution VNext consumes that handoff, runs the approved checks, records Findings, routes Defects through normal Dev VNext `FEATURE_DELIVERY`, and allows only a trusted Tester to create final `VERIFIED` after clean execution or retest.
+`APPROVED_TESTWARE` ends the Manual lane. Test Automation V1 then creates the exact `EXECUTION_READY` handoff. Test Execution VNext consumes that handoff, runs the approved checks, records Findings, routes Defects through normal Dev VNext `FEATURE_DELIVERY`, and allows only a trusted Tester to create final `VERIFIED` after clean execution or retest.
 
 ## Start here
 

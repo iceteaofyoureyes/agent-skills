@@ -50,7 +50,7 @@ Repository không bundle SRS_TEMPLATE.docx. Canonical SRS là functional Markdow
 
 ## Acceptance
 
-[kits/ba/acceptance.yaml](acceptance.yaml) là acceptance contract. Tier 3 installed-runtime acceptance là bắt buộc để Phase 4 hoàn tất; Tier 1/Tier 2 không thể thay thế. Doctor READY chỉ xác nhận package capability, không xác nhận approval hay feature readiness.
+[kits/ba/acceptance.yaml](acceptance.yaml) là acceptance contract. Tier 3 installed-runtime acceptance phải PASS trước khi tuyên bố BA package readiness; Tier 1/Tier 2 không thay thế nó. Doctor READY chỉ xác nhận package capability, không xác nhận approval hay feature readiness.
 
 Ví dụ CR-001 là documentation fixture, không phải runtime golden output được feed cho generator.
 

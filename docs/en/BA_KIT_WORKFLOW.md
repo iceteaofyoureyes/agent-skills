@@ -57,9 +57,11 @@ flowchart TD
     F --> G[Canonical SRS]
     G --> H[Human BA Baseline Gate]
     H --> I[Engineering Handoff]
-    I -. Planned .-> J[Engineering Impact]
-    J -. Planned .-> K[Dev Kit + repo-local Spec Kit]
-    I --> L[Test Kit V1: direct from Approved BA Baseline]
+    I --> J[Engineering Impact]
+    J --> K[Dev Kit VNext]
+    K --> L[READY_FOR_TEST]
+    L --> M[Test Manual / Automation / Execution]
+    M --> N[Tester VERIFIED / REOPENED]
 ~~~
 
 This core flow manages **business semantics**. Draw.io, prototypes, and DOCX are derived/visual/delivery lanes and do not replace semantic authority.
@@ -205,7 +207,7 @@ Create the handoff only when:
 - source paths/hashes are valid;
 - no technical ownership/design fields are present.
 
-The next stage is **Engineering Impact**, which resolves WHERE/WHO OWNS.
+The next stage is **Engineering Impact**, which resolves WHERE/WHO OWNS. Dev then owns HOW through READY_FOR_TEST; Test owns approvals, execution evidence, Finding classification, and retest. See the [canonical integrated lifecycle](ARCHITECTURE.md). BA does not own downstream implementation or verification.
 
 ## See also
 

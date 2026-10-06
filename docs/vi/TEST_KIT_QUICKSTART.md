@@ -1,6 +1,6 @@
 # Bắt đầu nhanh với Test Kit Manual VNext
 
-Test Kit nhận **Engineering Handoff VNext** đã được BA phê duyệt bằng Human receipt chính xác, rồi tạo Test Design và manual Testcases qua hai Human Gate.
+Trong lifecycle tích hợp, Test bắt đầu sau khi Dev phát READY_FOR_TEST. Business authority vẫn là **Engineering Handoff VNext** đã được BA/Human duyệt; Dev Handoff bổ sung technical context, không thay WHAT. Test tạo Design và manual Testcases qua hai Human Gate.
 
 ```text
 Engineering Handoff VNext
@@ -10,7 +10,7 @@ Engineering Handoff VNext
 → CASE_REVIEW → Human approval → APPROVED_TESTWARE
 ```
 
-Trace nghiệp vụ chuẩn chỉ gồm `BR-*` và `FR-*`. `BAREF:*` chỉ là locator/provenance. `APPROVED_TESTWARE` kết thúc manual lane Phase 6; không có nghĩa là `EXECUTION_READY`, execution PASS, `VERIFIED` hay `READY_TO_MERGE`.
+Trace nghiệp vụ chuẩn chỉ gồm `BR-*` và `FR-*`. `BAREF:*` chỉ là locator/provenance. `APPROVED_TESTWARE` là điểm kết thúc của Manual lane; không có nghĩa là `EXECUTION_READY`, execution PASS, `VERIFIED` hay `READY_TO_MERGE`.
 
 ## 1. Cài vào project
 
@@ -30,7 +30,7 @@ Doctor `READY` xác nhận package/core capability; không đánh giá BA approv
 
 ## 2. Chuẩn bị feature
 
-Trong phiên làm việc của agent, cung cấp đường dẫn tới **Engineering Handoff VNext** chính xác và BA Human authenticator của host. Test Kit đọc lại receipt, revision, source refs và hash; không nhận Approved BA Baseline V1 làm authority trực tiếp.
+Trong phiên làm việc của agent, cung cấp exact Dev READY_FOR_TEST handoff, **Engineering Handoff VNext** và BA Human authenticator của trusted host. Test Kit đọc lại receipt, revision, source refs và hash; không nhận Approved BA Baseline V1 làm authority trực tiếp.
 
 UX chỉ bắt buộc nếu context VNext ghi rõ `ux_required: true`. Nếu `false`, các từ như `field`, `input`, `page` không tự yêu cầu UX. UX được đưa vào như context tiêu thụ phải có contract/receipt được Human phê duyệt, đúng feature/revision, hash nguồn và snapshot hash; prototype chỉ là `REVIEW_EVIDENCE`. Runtime kiểm tra identity và bytes, không tuyên bố hiểu tương đương ngữ nghĩa của văn xuôi.
 
@@ -38,7 +38,7 @@ Dev Handoff V2 có thể cung cấp setup/action/observation kỹ thuật. Nó k
 
 ## 3. Tạo và duyệt Test Design
 
-1. Khởi tạo run VNext từ Engineering Handoff VNext đã revalidate.
+1. Khởi tạo run VNext từ Engineering Handoff đã revalidate và Dev READY_FOR_TEST của integrated suite.
 2. Chạy pinned TEA trong cùng agent session và lưu output tại vị trí run đã chuẩn bị.
 3. Finalize canonical Test Design. Validator `PASS` chỉ đưa run tới `DESIGN_REVIEW`.
 4. Human xem đúng snapshot, revision, hash và input refs. Chỉ trusted Human authenticator mới chấp nhận receipt `APPROVE` hoặc `REQUEST_CHANGES`.
@@ -62,4 +62,4 @@ XMind chỉ là bản chiếu DERIVED từ `APPROVED_DESIGN`; Excel chỉ là b�
 
 V1 chỉ dành cho đọc/kiểm tra `LEGACY_COMPAT`, `vnext_authority=false`. [Ví dụ VNext trung tính](../../kits/test/examples/vnext/neutral/README.md) là ví dụ mặc định. Appointment/CR-001 cũ được giữ ở khu vực lịch sử V1.
 
-Delivery Manifest là `DEFERRED_NON_AUTHORITATIVE` và không cần cho Test VNext. Automation planning/execution thuộc Phase 7+.
+Delivery Manifest là `DEFERRED_NON_AUTHORITATIVE` và không cần cho Test VNext. Automation planning/execution thuộc workflow riêng.
