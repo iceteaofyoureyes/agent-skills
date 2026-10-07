@@ -94,3 +94,7 @@ All PASS: install required components; run Kit Doctor; run Suite Doctor; bootstr
 ## Gate and next decision
 
 The remediation candidate is suitable for Human Internal/Pilot RC integration review after the final report-only commit is pushed and its exact SHA/tree receives the final required fresh-clone conformance run. This report does not authorize merge, tag, GitHub Release, stable release, or product acceptance.
+
+## Follow-up blocker disposition
+
+- `temporary-branch current-doc blocker = CLOSED`: current installation guidance selects an authorized exact ref, prints and records its resolved SHA, and uses that checkout for installation and Doctor. Release guidance binds the candidate to the exact SHA/tree in Public Cross-Kit Conformance and places tagging/release after the Human integration/release decision. The branch identity recorded above is historical execution evidence only.

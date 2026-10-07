@@ -1,20 +1,28 @@
 # Installation
 
-Select a committed ref from [Release status](RELEASE.md). For this Internal RC candidate, use branch docs/full-documentation-hardening-rc-gate; the main branch remains at the last merged candidate until Human integration review. Run the installer from that selected checkout while your shell is in the target project.
+Select the exact committed revision authorized by the applicable review or release evidence. For an Internal/Pilot RC or later release, use its exact tag or the SHA bound by that evidence. Use `main` only when `main` is intentionally selected for development. Record the checkout SHA and run installation from that same checkout; do not use a temporary working branch as the release source. See [Release status](RELEASE.md).
 
 ~~~powershell
-git clone --branch docs/full-documentation-hardening-rc-gate https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+Set-Location C:\tools\agent-skills
+git checkout "<approved-ref>"
+git rev-parse HEAD
 Set-Location C:\path\to\your-project
 & 'C:\tools\agent-skills\tooling\install.ps1' ba --agent codex --scope project
 & 'C:\tools\agent-skills\tooling\doctor.ps1' ba --agent codex --scope project
 ~~~
 
 ~~~bash
-git clone --branch docs/full-documentation-hardening-rc-gate https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+git clone https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+cd ~/src/agent-skills
+git checkout "<approved-ref>"
+git rev-parse HEAD
 cd /path/to/your-project
 ~/src/agent-skills/tooling/install.sh ba --agent codex --scope project
 ~/src/agent-skills/tooling/doctor.sh ba --agent codex --scope project
 ~~~
+
+Replace `<approved-ref>` with the exact authorized tag or commit SHA. Keep the printed SHA with the installation evidence and use this checkout for installation and Doctor. For development from `main`, select `main` intentionally and record the resolved SHA the same way.
 
 ## Supported targets
 

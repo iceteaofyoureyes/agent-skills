@@ -1,20 +1,28 @@
 # Cài đặt
 
-Chọn committed ref trong [Release status](RELEASE.md). Với Internal RC candidate hiện tại, dùng branch docs/full-documentation-hardening-rc-gate; main vẫn ở candidate đã merge gần nhất cho tới khi Human review tích hợp. Chạy installer từ checkout đã chọn khi shell đang ở project đích.
+Chọn đúng committed revision được review hoặc release evidence tương ứng cho phép. Với Internal/Pilot RC hoặc release sau này, dùng tag chính xác hoặc SHA được evidence bind. Chỉ dùng `main` khi chủ động chọn `main` để phát triển. Ghi lại SHA của checkout và cài đặt từ chính checkout đó; không dùng working branch tạm thời làm nguồn release. Xem [trạng thái phát hành](RELEASE.md).
 
 ~~~powershell
-git clone --branch docs/full-documentation-hardening-rc-gate https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+Set-Location C:\tools\agent-skills
+git checkout "<approved-ref>"
+git rev-parse HEAD
 Set-Location C:\path\to\your-project
 & 'C:\tools\agent-skills\tooling\install.ps1' ba --agent codex --scope project
 & 'C:\tools\agent-skills\tooling\doctor.ps1' ba --agent codex --scope project
 ~~~
 
 ~~~bash
-git clone --branch docs/full-documentation-hardening-rc-gate https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+git clone https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+cd ~/src/agent-skills
+git checkout "<approved-ref>"
+git rev-parse HEAD
 cd /path/to/your-project
 ~/src/agent-skills/tooling/install.sh ba --agent codex --scope project
 ~/src/agent-skills/tooling/doctor.sh ba --agent codex --scope project
 ~~~
+
+Thay `<approved-ref>` bằng tag hoặc commit SHA chính xác đã được cho phép. Lưu SHA được in ra cùng installation evidence và dùng checkout này cho cả installer lẫn Doctor. Khi phát triển từ `main`, hãy chủ động chọn `main` và ghi SHA đã resolve theo cùng cách.
 
 ## Target BA Kit được hỗ trợ
 
