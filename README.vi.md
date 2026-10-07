@@ -2,6 +2,10 @@
 
 **Ngôn ngữ:** [English](README.md) · Tiếng Việt
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](docs/vi/INSTALLATION.md)
+[![Trạng thái](https://img.shields.io/badge/status-internal%20RC-orange.svg)](docs/vi/RELEASE.md)
+
 Bộ toolkit thực tế dành cho team phát triển phần mềm sử dụng AI coding agents xuyên suốt requirement, engineering và testing — nhưng vẫn giữ **Human authority** tại những quyết định quan trọng.
 
 **Agent-Assisted SDLC Toolkit** là tên sản phẩm public-facing. \`agent-skills\` là tên repository; \`agent-assisted-sdlc-vnext\` là machine suite ID dùng cho contract nội bộ.
