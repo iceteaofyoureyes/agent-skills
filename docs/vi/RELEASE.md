@@ -1,29 +1,33 @@
-# Trạng thái phát hành
+# Trạng thái phát hành của suite
 
-## Test Kit Manual VNext
+Phiên bản phản ánh [suite manifest](../../tooling/sdlc-suite.json) và manifest từng Kit. Acceptance nằm trong [suite acceptance](../../tooling/sdlc-suite-acceptance.yaml).
 
-Package candidate hiện tại là **`2.0.0-rc.12`**. Đây là prerelease branch candidate, không phải stable `2.0.0`, GitHub release, tag hay published artifact.
+| Thành phần | Candidate | Ý nghĩa |
+|---|---|---|
+| Suite | agent-assisted-sdlc-vnext 1.0.0-rc.4 · INTERNAL_RC_CANDIDATE | Internal candidate để Human review |
+| BA | 2.0.0-rc.6 | Package candidate |
+| Dev | 0.4.0-rc.4 | Integration candidate |
+| Test | 2.0.0-rc.14 | Package candidate |
 
-Default manual lane:
+Evidence Public Cross-Kit Conformance cuối bind machine candidate này với commit SHA và tree chính xác. Dùng revision đã bind đó khi tái hiện hoặc cài candidate. Tên branch không phải danh tính release bền vững. Đây vẫn là Internal RC candidate, chưa phải stable release.
 
-```text
-Engineering Handoff VNext
-→ Test Design → Human Design Gate → APPROVED_DESIGN
-→ Testcases → Human Case Gate → APPROVED_TESTWARE
-```
+## Các lớp readiness
 
-Test Kit prerelease hiện tại là **`2.0.0-rc.12`**, chưa phải stable `2.0.0` hay bản phát hành.
+- **Package readiness:** Kit Doctor xác minh manifest, payload và required capability. READY không chứng minh project approval hay Test verification.
+- **Suite compatibility:** Suite Doctor xác minh component versions, contract versions, routers, runtime và package authority.
+- **Public Conformance:** chạy trên exact clean candidate SHA bằng fresh clone. PASS là evidence cho review. Optional projection gap được phép có thể ghi riêng OPTIONAL_DEGRADED.
+- **Human integration/release decision:** sau các gate trên, Human quyết định có tích hợp candidate đã review và cho phép phát hành hay không.
+- **Git tag / GitHub Release:** chỉ tạo sau quyết định Human riêng và phải trỏ tới commit đã tích hợp được phê duyệt. Chưa tạo tag/release cho candidate này trước quyết định đó.
 
-`APPROVED_TESTWARE` kết thúc Phase 6 manual lane. Phase 7 tạo `EXECUTION_READY`; Phase 8 chạy product, phân loại Finding, nhận Dev VNext fix, retest và để Tester tạo `VERIFIED`. Doctor READY chỉ báo package/capability; không chứng minh `EXECUTION_READY`, PASS, không có Finding, `READY_FOR_RETEST`, `VERIFIED` hoặc `READY_TO_MERGE`.
+VERIFIED là trạng thái cuối của product lifecycle. Merge/release cần Human quyết định riêng. Doctor READY, PROJECT_FOUNDATION_READY, READY_FOR_TEST, APPROVED_TESTWARE, EXECUTION_READY hay conformance PASS không thay quyết định đó. Xem [readiness glossary](READINESS_STATES.md).
 
-Phase 6 completion được kiểm tra bằng ba tầng trong [`kits/test/acceptance.yaml`](../../kits/test/acceptance.yaml). Tier 3 fresh installed-runtime acceptance là bắt buộc; Tier 1/2 không đủ để đánh dấu Phase 6 complete. Báo cáo acceptance chỉ áp dụng đúng branch/commit được xác minh.
+## Đường review candidate
 
-Doctor `READY` xác nhận package/core capability. Optional XMind/Excel dependency thiếu cho `DEGRADED`; required package, integrity hoặc capability lỗi cho `FAIL`. Doctor không đánh giá BA approval, Design/Case approval hay execution.
+1. Xác minh package bằng [installation và Kit Doctors](INSTALLATION.md).
+2. Chạy [Public Cross-Kit Conformance](SDLC_SUITE_CONTRACT.md) trên đúng SHA đã commit.
+3. Bind SHA/tree, package digests, Doctor outputs và conformance report vào Human review.
+4. Dừng trước merge, tag hoặc release cho tới khi Human ra quyết định riêng.
 
-## Các Kit khác và lịch sử
+---
 
-Test Kit Manual VNext là Kit riêng, cài được cùng BA Kit. Tài liệu BA/Dev lịch sử trong các phần còn lại của repository tiếp tục ghi theo phiên bản và acceptance của từng Kit.
-
-## Provenance và phân phối
-
-Xem [Provenance](PROVENANCE.md), [Installation](INSTALLATION.md) và [English release status](../en/RELEASE.md). Các pin TEA/Katalon, license, notices và package authority được quản lý trong repository; hash được sinh bằng repository tooling, không cập nhật thủ công.
+English: [Suite release status](../en/RELEASE.md)

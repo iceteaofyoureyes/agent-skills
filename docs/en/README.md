@@ -1,54 +1,43 @@
-# BA Kit Documentation — English
+# Agent-Assisted SDLC Toolkit — Documentation
 
-Vietnamese is the primary user-facing documentation. English documentation is secondary. BA Kit maintains broad English coverage; Test Kit Manual VNext has an [English overview](TEST_KIT_README.md), while its operator guides are maintained in Vietnamese, including [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [usage scenarios](../vi/TEST_KIT_USAGE_GUIDE.md), and [workflow](../vi/TEST_KIT_WORKFLOW.md). Start with the [neutral VNext example](../../kits/test/examples/vnext/neutral/README.md).
+Use this page as a map. New users should not start with schemas or historical audit material.
 
-## If you are new
+## Start here
 
-1. [Quick Start](BA_KIT_QUICKSTART.md)
-2. [What can BA Kit do?](BA_KIT_CAPABILITIES.md)
-3. [Usage guide by scenario](BA_KIT_USAGE_GUIDE.md)
-4. [Workflow and Human Gates](BA_KIT_WORKFLOW.md)
-5. [CR-001 example](../../kits/ba/examples/CR-001/README.md)
+1. [Getting Started](GETTING_STARTED.md) — choose a Kit, prerequisites, install, and first task.
+2. [Full Flow Example](FULL_FLOW_EXAMPLE.md) — one feature from requirement to VERIFIED.
+3. [FAQ](FAQ.md) — common boundaries and terminology.
+4. [Installation](INSTALLATION.md) — exact commands, upgrades, and recovery.
+5. [Troubleshooting](TROUBLESHOOTING.md) — what to do when a Doctor/workflow/package gate fails.
 
-## Documents and visuals
+## By role
 
-- [SRS and DOCX — canonical SRS, Word templates, export/review](SRS_DOCX_GUIDE.md)
-- [Draw.io, visual input, and prototypes](DIAGRAMS_PROTOTYPES.md)
+| Role | Primary guide |
+|---|---|
+| Project Owner / Tech Lead | [Project Foundation](PROJECT_FOUNDATION.md) |
+| BA | [BA workflow](BA_KIT_WORKFLOW.md) |
+| Developer | [Dev Kit guide](DEV_KIT_GUIDE.md) |
+| Tester / QA | [Manual Test overview](TEST_KIT_MANUAL.md); detailed current steps are Vietnamese-primary |
+| Automation Tester | [Automation](TEST_AUTOMATION_V1.md) |
+| Execution / QA lead | [Execution, Findings, Defects, Retest](TEST_EXECUTION_VNEXT.md) |
+| Maintainer | [Release](RELEASE.md), [Conformance](SDLC_SUITE_CONTRACT.md), [Packaging](../../tooling/PACKAGING.md) |
 
-## Installation
+## Understand the framework
 
-- [Installation / Doctor / uninstall](INSTALLATION.md)
+- [Architecture and lifecycle](ARCHITECTURE.md)
+- [Readiness and authority states](READINESS_STATES.md)
+- [Project Foundation](PROJECT_FOUNDATION.md)
+- [Shared SDLC contracts](SHARED_SDLC_CONTRACTS_V1.md)
 
-## Reference
+## Reference / maintainer material
 
-- [Architecture](ARCHITECTURE.md)
-- [Design foundations, standards, and lineage](FOUNDATIONS.md)
-- [Kit contract](KIT_CONTRACT.md)
+- [Public Cross-Kit Conformance](SDLC_SUITE_CONTRACT.md)
 - [Release status](RELEASE.md)
-- [Provenance and licensing](PROVENANCE.md)
+- [Provenance](PROVENANCE.md)
+- [Legacy, compatibility, history, deferred material](../LEGACY_AND_HISTORY.md)
 
-## Suggested navigation
+## Language coverage
 
-~~~text
-Need to know whether BA Kit supports your task?
-→ BA_KIT_CAPABILITIES.md
+English covers the public onboarding path, Dev, Foundation, Automation, Execution, Conformance, Release, Readiness, and troubleshooting. Detailed Manual Test operation remains Vietnamese-primary where the English page explicitly routes there.
 
-Want to start now?
-→ BA_KIT_QUICKSTART.md
-
-Have a specific scenario?
-→ BA_KIT_USAGE_GUIDE.md
-
-Need Word/templates?
-→ SRS_DOCX_GUIDE.md
-
-Need flowcharts/Figma/prototypes?
-→ DIAGRAMS_PROTOTYPES.md
-
-Need gates/source-of-truth rules?
-→ BA_KIT_WORKFLOW.md
-~~~
-
----
-
-Tiếng Việt: [Danh mục tài liệu](../vi/README.md)
+Vietnamese documentation: [docs/vi](../vi/README.md).

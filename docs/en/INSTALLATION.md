@@ -1,20 +1,28 @@
 # Installation
 
-Clone the repository, then run the installer while your shell is in the project where BA Kit should be available. Project scope is the usual choice when each project needs isolated skills.
+Select the exact committed revision authorized by the applicable review or release evidence. For an Internal/Pilot RC or later release, use its exact tag or the SHA bound by that evidence. Use `main` only when `main` is intentionally selected for development. Record the checkout SHA and run installation from that same checkout; do not use a temporary working branch as the release source. See [Release status](RELEASE.md).
 
 ~~~powershell
-git clone --branch main https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+Set-Location C:\tools\agent-skills
+git checkout "<approved-ref>"
+git rev-parse HEAD
 Set-Location C:\path\to\your-project
 & 'C:\tools\agent-skills\tooling\install.ps1' ba --agent codex --scope project
 & 'C:\tools\agent-skills\tooling\doctor.ps1' ba --agent codex --scope project
 ~~~
 
 ~~~bash
-git clone --branch main https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+git clone https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+cd ~/src/agent-skills
+git checkout "<approved-ref>"
+git rev-parse HEAD
 cd /path/to/your-project
 ~/src/agent-skills/tooling/install.sh ba --agent codex --scope project
 ~/src/agent-skills/tooling/doctor.sh ba --agent codex --scope project
 ~~~
+
+Replace `<approved-ref>` with the exact authorized tag or commit SHA. Keep the printed SHA with the installation evidence and use this checkout for installation and Doctor. For development from `main`, select `main` intentionally and record the resolved SHA the same way.
 
 ## Supported targets
 
@@ -97,7 +105,7 @@ Doctor is **not an external dependency manager** and does not prove Human approv
 
 An installation may be READY while lacking tools needed for Word export, Draw.io export, or browser rendering.
 
-Phase 4 completion also requires the Tier 3 fresh-install acceptance: install to a clean target, run Doctor, then execute the VNext lifecycle and exact handoff revalidation with imports isolated from the source checkout.
+For maintainers, the BA installed acceptance runs the VNext lifecycle and exact Handoff revalidation with imports isolated from the source checkout. This is package evidence, not a Human approval gate; see Release status.
 
 ## Runtime prerequisites by capability
 
@@ -105,7 +113,7 @@ Phase 4 completion also requires the Tier 3 fresh-install acceptance: install to
 
 Requires:
 
-- Python 3.8+ for installer/validators;
+- Python 3.10+ as the supported BA/Test baseline;
 - an agent runtime with access to the project/artifacts being reviewed.
 
 The installer does not require Skills Manager, an agent profile, or global agent configuration changes.
@@ -205,3 +213,22 @@ This is package evidence, not full runtime BA acceptance. See [Release status](R
 ---
 
 Tiếng Việt: [Cài đặt](../vi/INSTALLATION.md)
+
+## Suite Kit map and Windows checkout policy
+
+The suite installs by capability; there is no single installer that installs all Kits.
+
+| Capability | Install path | Verify |
+|---|---|---|
+| BA | tooling/install.ps1 ba --agent codex --scope project (or install.sh) | tooling/doctor.ps1 ba --agent codex --scope project |
+| Dev VNext and Shared runtime | python -I tooling/install_dev_kit.py --source-root <checkout> --install-home <install-home> | Add <install-home>/bin to PATH; run `devkit doctor` |
+| Test Manual + Automation + Execution | tooling/install.ps1 test --agent codex --scope project (or install.sh) | tooling/doctor.ps1 test --agent codex --scope project |
+| Project Foundation | Shared runtime installed above; follow the [Foundation guide](PROJECT_FOUNDATION.md) | Run Foundation doctor through the installed workflow/host |
+
+BA and Test use Python 3.10+ as the documented support baseline. The Dev installer uses the selected Python to create an isolated runtime. For the least-surprising full-toolkit setup, use Python 3.10+ unless a newer requirement is stated by the selected Dev candidate. Use the exact committed framework checkout selected for the work.
+
+Normal supported Windows checkouts use repository .gitattributes to preserve package-source bytes. core.autocrlf=false is not a required operator setting. Do not edit package authority hashes.
+
+## Upgrade and version verification
+
+Read the [suite manifest](../../tooling/sdlc-suite.json) and individual Kit manifests before upgrading. Record the source commit with git rev-parse HEAD, rerun that Kit installer from the selected revision, then run its Doctor. Reinstall preserves modified managed files and reports drift; review local edits before restoring a managed file. For safe mismatch recovery, see [Troubleshooting](TROUBLESHOOTING.md).

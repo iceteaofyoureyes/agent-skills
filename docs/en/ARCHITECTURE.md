@@ -1,123 +1,69 @@
-# Architecture
+# Current architecture and lifecycle
 
-## Goal
+This is the canonical explanation of the integrated lifecycle. Role guides link here rather than defining competing flows. Executable contracts remain authoritative: [suite manifest](../../tooling/sdlc-suite.json), [acceptance contract](../../tooling/sdlc-suite-acceptance.yaml).
 
-BA Kit composes atomic skills into a BA workflow while keeping the Human as business authority.
+## Authority and ownership
 
-~~~text
-BA Kit = WHAT
-Engineering Impact = WHERE / WHO OWNS
-Dev Kit + repo-local Spec Kit = HOW
-Test Kit + TEA = HOW DO WE PROVE IT
+Authority precedence is: (1) Human-approved decisions, (2) Shared SDLC invariants, (3) project policy/instructions, (4) Kit or atomic-skill mechanics, (5) runtime defaults.
+
+| Role | Owns |
+|---|---|
+| BA | WHAT: approved business behavior |
+| Engineering / Dev | WHERE, WHO OWNS, HOW: repository scope, impact, technical decisions, implementation |
+| Test | Evidence that approved behavior was tested |
+| Human | Final semantic authority and approval of exact snapshots |
+
+Artifacts are classified as CANONICAL, DERIVED, RUNTIME, EVIDENCE, or HANDOFF_MANIFEST. A derived output, runtime state, evidence item, or handoff does not become authority by being generated.
+
+## Project Foundation
+
+Project Foundation is a shared SDLC workflow, not a fourth role Kit. Modes are GREENFIELD_BOOTSTRAP, BROWNFIELD_RECOVERY, and FOUNDATION_REFRESH; profiles are MINIMAL, STANDARD, and EXTENDED. Its architecture basis uses arc42 Standard, ISO 42010 concepts, C4, and ADRs.
+
+Brownfield evidence distinguishes CURRENT_SYSTEM, CONFIRMED, INFERRED, and UNKNOWN. Greenfield evidence distinguishes APPROVED_TARGET, PROPOSED, DEFERRED, and UNKNOWN. PROJECT_FOUNDATION_READY proves Foundation readiness only. It does not approve business behavior, prove feature readiness or implementation correctness, establish Tester verification, or authorize release. See the [Foundation operator guide](PROJECT_FOUNDATION.md) and [technical reference](../project-foundation.md).
+
+## Canonical lifecycle
+
+~~~
+Project Foundation
+→ BA
+→ UX / Interaction Contract when required
+→ Engineering Handoff
+→ Engineering / Dev → READY_FOR_TEST
+→ Test Design → Human approval → APPROVED_DESIGN
+→ Testcases → Human approval → APPROVED_TESTWARE
+→ Automation Plan → implementation/review → automation verification → EXECUTION_READY
+→ Execution → Observation
+   ├─ all required tests PASS and no open Finding → Tester VERIFIED
+   └─ Finding → classification
+      ├─ DEFECT → Dev Fix → READY_FOR_RETEST → Tester retest → VERIFIED / REOPENED
+      └─ SPEC_GAP / BUSINESS_DECISION_REQUIRED / TEST_ISSUE / ENVIRONMENT_ISSUE
+         → route to the responsible owner and resolve before verification
+→ separate Human merge / release decision
 ~~~
 
-## Layers
+The Tester can issue VERIFIED directly after a clean initial execution when every required observation passes and no Finding remains open. Retest is required only after a defect/fix path. A Finding is classified as DEFECT, SPEC_GAP, BUSINESS_DECISION_REQUIRED, TEST_ISSUE, or ENVIRONMENT_ISSUE. Only a DEFECT uses the defect handoff to Dev. A command failure alone is not a DEFECT. Dev fixes through FEATURE_DELIVERY, returns READY_FOR_RETEST, and the Tester retests.
 
-Integration contracts now physically live in `shared/sdlc`, with adapters
-preserving BA/Test/Dev callers and current semantics. See the
-[Shared SDLC Core Wave 1 migration map](SHARED_SDLC_CORE_WAVE1.md) for ownership,
-installed payloads, and remaining Wave 2 boundaries.
+## Human gates and boundaries
 
-~~~text
-User intent
-    ↓
-ba-workflow
-    ↓
-state / authority / gate / route
-    ↓
-atomic capabilities
-    ├── discovery
-    ├── requirement review
-    ├── Business Rules
-    ├── SRS
-    ├── DOCX
-    ├── Draw.io
-    └── optional UX/UI/prototype
-~~~
+CONTINUE != APPROVE; ANSWER != APPROVE; validator PASS != APPROVE; generated != APPROVED; Derived != Authority; Runtime != Authority; CURRENT_SYSTEM != confirmed target.
 
-Atomic skills are canonical at repository root. **kits/ba/kit.yaml** is the single source for BA Kit composition.
+READY_FOR_TEST is a Dev handoff, not VERIFIED. A Dev fix does not create Tester verification. APPROVED_TESTWARE is not EXECUTION_READY; EXECUTION_READY is not PASS. The current lifecycle ends at VERIFIED; a separate Human decision governs merge/release. READY_TO_MERGE is not a lifecycle state.
 
-## Semantic, visual, and delivery authority
+## Gate owners
 
-The workflow separates these layers so presentation artifacts do not overwrite business truth:
-
-~~~text
-SEMANTIC
-Confirmed BA Decisions
-+ Approved Business Rules
-+ Canonical SRS
-
-VISUAL
-Approved Figma / screenshot / diagram / prototype
-(confirmed visual/interaction meaning only)
-
-DELIVERY
-Selected Word template
-
-AS-IS
-CURRENT_SYSTEM evidence
-~~~
-
-DOCX, Draw.io, and prototypes are derived artifacts; semantic changes return to semantic authority first.
-
-## Project modes
-
-- brownfield;
-- greenfield;
-- document-only;
-- visual-assisted.
-
-The workflow starts at the earliest safe checkpoint rather than forcing every request through the full pipeline.
-
-## Responsibility flow
-
-| Stage | Question | Status |
+| Gate / output | Owner | What it proves |
 |---|---|---|
-| BA Kit | **WHAT**? | VNext packaging candidate; Tier 3 installed-runtime acceptance required; not stable |
-| Engineering Impact | **WHERE / WHO OWNS**? | Planned |
-| Dev Kit + Spec Kit | **HOW**? | Planned |
-| Test Kit V1 | **HOW DO WE PROVE IT**? | Core/XMind/Excel/Packaging V1 Human accepted; package committed |
+| APPROVED_BASELINE | BA + Human through trusted host | Exact approved WHAT baseline and sources |
+| Engineering Handoff | BA workflow validates approved proof | Business input for Engineering |
+| Technical approval when required | Human / Tech Lead | Exact technical snapshot under risk policy |
+| READY_FOR_TEST | Dev | Engineering work, checks, and handoff are complete |
+| APPROVED_DESIGN, APPROVED_TESTWARE | Human for each Test snapshot | Design coverage / testware is approved |
+| EXECUTION_READY | Automation workflow after review | Automation and execution authority are bound |
+| Finding classification / VERIFIED | Authenticated Tester | Execution observations against the approved oracle; retest when a defect/fix path was used |
+| Merge / release | Human outside this lifecycle | Separate integration or release decision |
 
-~~~text
-Requirement → BA Kit → Approved BA Baseline
-                         ├──→ Engineering Impact → Dev/Spec path (planned)
-                         └──→ Test Kit V1 → Canonical Test Design
-                                        → Human Design Gate
-                                        → Canonical Testcases
-                                        → Human Case Gate → APPROVED_TESTWARE → STOP_V1
-~~~
-
-## Required vs optional
-
-Required BA Kit capabilities include discovery, requirement review, Business Rules, SRS, DOCX, and Draw.io. UX/UI/prototype/browser/accessibility capabilities are optional.
-
-See [BA Kit capabilities](BA_KIT_CAPABILITIES.md).
-
-## Installer architecture
-
-The installer reads dependencies from **kits/ba/kit.yaml**.
-
-- Codex/Claude Code: native Agent Skills directories;
-- generic: explicit target directory;
-- Skills Manager: optional, not a runtime dependency.
-
-## Handoff boundary
-
-Engineering Handoff appears only after explicit BA approval and contains no:
-
-- repository/module owner;
-- FE/BE/service owner;
-- API/event shape;
-- DB schema;
-- architecture choice;
-- locking/transaction strategy.
-
-It becomes input to Engineering Impact.
-
-## Foundations
-
-Claim levels and standards/framework references live in [FOUNDATIONS.md](FOUNDATIONS.md). Exact upstream revisions/licenses live in [PROVENANCE.md](PROVENANCE.md).
+See [BA workflow](BA_KIT_WORKFLOW.md), [Dev operator guide](DEV_KIT_GUIDE.md), [Manual Test](TEST_KIT_MANUAL.md), [Automation](TEST_AUTOMATION_V1.md), and [Execution / Retest](TEST_EXECUTION_VNEXT.md). State ownership and next transitions are in [Readiness states](READINESS_STATES.md); recovery is in [Troubleshooting](TROUBLESHOOTING.md).
 
 ---
 
-Tiếng Việt: [Kiến trúc](../vi/ARCHITECTURE.md)
+Tiếng Việt: [Kiến trúc và lifecycle](../vi/ARCHITECTURE.md)

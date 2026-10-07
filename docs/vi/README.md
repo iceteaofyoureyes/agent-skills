@@ -1,65 +1,39 @@
-# Tài liệu Kits — Tiếng Việt
+# Agent-Assisted SDLC Toolkit — Tài liệu tiếng Việt
 
-Tiếng Việt là tài liệu người dùng chính. Bản tiếng Anh được duy trì tương đương về ngữ nghĩa.
+Dùng trang này như bản đồ. Người mới **không nên** bắt đầu từ schema, audit hay tài liệu lịch sử.
 
-## Nếu mới bắt đầu
+## Bắt đầu ở đây
 
-1. [Hướng dẫn nhanh](BA_KIT_QUICKSTART.md)
-2. [BA Kit làm được gì?](BA_KIT_CAPABILITIES.md)
-3. [Hướng dẫn sử dụng theo tình huống](BA_KIT_USAGE_GUIDE.md)
-4. [Workflow và Human Gates](BA_KIT_WORKFLOW.md)
-5. [Ví dụ CR-001](../../kits/ba/examples/CR-001/README.md)
+1. [Bắt đầu](GETTING_STARTED.md) — chọn Kit, prerequisite, cài đặt và task đầu tiên.
+2. [Ví dụ Full Flow](FULL_FLOW_EXAMPLE.md) — một feature từ requirement tới VERIFIED.
+3. [FAQ](FAQ.md) — các boundary/thuật ngữ thường gây nhầm.
+4. [Cài đặt](INSTALLATION.md) — command chính xác, upgrade và recovery.
+5. [Troubleshooting](TROUBLESHOOTING.md) — xử lý Doctor/workflow/package gate lỗi.
 
-## Test Kit Manual VNext cho tester
+## Theo vai trò
 
-1. [Bắt đầu nhanh](TEST_KIT_QUICKSTART.md)
-2. [Project Customization & Policy](TEST_KIT_CUSTOMIZATION.md)
-3. [Khả năng, canonical artifact và template policy](TEST_KIT_CAPABILITIES.md)
-4. [Hướng dẫn theo tình huống](TEST_KIT_USAGE_GUIDE.md)
-5. [Workflow và Human Gates](TEST_KIT_WORKFLOW.md)
-6. [Ví dụ VNext trung tính](../../kits/test/examples/vnext/neutral/README.md)
+| Vai trò | Hướng dẫn chính |
+|---|---|
+| Project Owner / Tech Lead | [Project Foundation](PROJECT_FOUNDATION.md) |
+| BA | [BA workflow](BA_KIT_WORKFLOW.md) |
+| Developer | [Dev workflow](DEV_KIT_WORKFLOW.md) · [Routing](DEV_KIT_ROUTING.md) |
+| Tester / QA | [Test Quick Start](TEST_KIT_QUICKSTART.md) · [Workflow](TEST_KIT_WORKFLOW.md) |
+| Automation Tester | [Automation](TEST_AUTOMATION_V1.md) |
+| Execution / QA lead | [Execution / Finding / Defect / Retest](TEST_EXECUTION_VNEXT.md) |
+| Maintainer | [Release](RELEASE.md) · [Conformance](SDLC_SUITE_CONTRACT.md) · [Packaging](../../tooling/PACKAGING.md) |
 
-Ví dụ CR-001 Appointment được giữ làm tài liệu V1 `LEGACY_COMPAT`, không phải mặc định.
+## Hiểu framework sâu hơn
 
-## Làm tài liệu và visual
+- [Kiến trúc và lifecycle](ARCHITECTURE.md)
+- [Readiness và authority](READINESS_STATES.md)
+- [Project Foundation](PROJECT_FOUNDATION.md)
+- [Test capabilities](TEST_KIT_CAPABILITIES.md)
 
-- [SRS và DOCX — canonical SRS, Word template, export/review](SRS_DOCX_GUIDE.md)
-- [Draw.io, visual input và prototype](DIAGRAMS_PROTOTYPES.md)
+## Reference / maintainer / history
 
-## Cài đặt
-
-- [Installation / Doctor / uninstall](INSTALLATION.md)
-
-## Reference
-
-- [Kiến trúc](ARCHITECTURE.md)
-- [Nền tảng thiết kế, chuẩn tham chiếu và design lineage](FOUNDATIONS.md)
-- [Kit contract](KIT_CONTRACT.md)
+- [Public Cross-Kit Conformance](SDLC_SUITE_CONTRACT.md)
 - [Release status](RELEASE.md)
-- [Provenance và licensing](PROVENANCE.md)
+- [Provenance](PROVENANCE.md)
+- [Legacy, compatibility, history, deferred material](../LEGACY_AND_HISTORY.md)
 
-## Đường đi gợi ý
-
-~~~text
-Muốn biết Kit có làm được việc của mình không?
-→ BA_KIT_CAPABILITIES.md
-
-Muốn dùng ngay?
-→ BA_KIT_QUICKSTART.md
-
-Có case cụ thể?
-→ BA_KIT_USAGE_GUIDE.md
-
-Cần Word/template?
-→ SRS_DOCX_GUIDE.md
-
-Cần flowchart/Figma/prototype?
-→ DIAGRAMS_PROTOTYPES.md
-
-Cần hiểu gate/source of truth?
-→ BA_KIT_WORKFLOW.md
-~~~
-
----
-
-English: [Documentation index](../en/README.md)
+English documentation: [docs/en](../en/README.md).

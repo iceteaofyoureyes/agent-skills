@@ -1,20 +1,28 @@
 # Cài đặt
 
-Clone repository, sau đó chạy installer khi shell đang ở project muốn dùng Kit. BA và Test cài độc lập hoặc cùng project; mỗi Kit có install record và managed paths riêng. Test Kit Manual VNext hỗ trợ Codex **project scope**.
+Chọn đúng committed revision được review hoặc release evidence tương ứng cho phép. Với Internal/Pilot RC hoặc release sau này, dùng tag chính xác hoặc SHA được evidence bind. Chỉ dùng `main` khi chủ động chọn `main` để phát triển. Ghi lại SHA của checkout và cài đặt từ chính checkout đó; không dùng working branch tạm thời làm nguồn release. Xem [trạng thái phát hành](RELEASE.md).
 
 ~~~powershell
-git clone --branch main https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+git clone https://github.com/iceteaofyoureyes/agent-skills.git C:\tools\agent-skills
+Set-Location C:\tools\agent-skills
+git checkout "<approved-ref>"
+git rev-parse HEAD
 Set-Location C:\path\to\your-project
 & 'C:\tools\agent-skills\tooling\install.ps1' ba --agent codex --scope project
 & 'C:\tools\agent-skills\tooling\doctor.ps1' ba --agent codex --scope project
 ~~~
 
 ~~~bash
-git clone --branch main https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+git clone https://github.com/iceteaofyoureyes/agent-skills.git ~/src/agent-skills
+cd ~/src/agent-skills
+git checkout "<approved-ref>"
+git rev-parse HEAD
 cd /path/to/your-project
 ~/src/agent-skills/tooling/install.sh ba --agent codex --scope project
 ~/src/agent-skills/tooling/doctor.sh ba --agent codex --scope project
 ~~~
+
+Thay `<approved-ref>` bằng tag hoặc commit SHA chính xác đã được cho phép. Lưu SHA được in ra cùng installation evidence và dùng checkout này cho cả installer lẫn Doctor. Khi phát triển từ `main`, hãy chủ động chọn `main` và ghi SHA đã resolve theo cùng cách.
 
 ## Target BA Kit được hỗ trợ
 
@@ -53,9 +61,9 @@ Gỡ cài đặt hoặc Doctor dùng cùng kit/target arguments với **uninstal
 
 Installer giữ nguyên file/skill người dùng đã sửa; không merge/overwrite. Reinstall idempotent. Uninstall chỉ xóa managed asset chưa bị sửa và thuộc Kit đang gỡ.
 
-## Cài Test Kit Manual VNext
+## Cài Test Kit VNext: Manual, Automation và Execution
 
-Test Kit Manual VNext cần Python 3.10+ và Codex CLI. Với Codex project scope, installer tự bootstrap `_bmad/tea/config.yaml` starter khi file còn thiếu và giữ nguyên config project đã có. Chạy trong project muốn tạo testware:
+Test Kit VNext gồm Manual, Automation và Execution; package cần Python 3.10+ và Codex CLI. Với Codex project scope, installer bootstrap starter `_bmad/tea/config.yaml` khi file chưa có và giữ nguyên project config hiện hữu. Chạy trong project muốn tạo testware:
 
 ~~~powershell
 Set-Location C:\path\to\your-project
@@ -149,7 +157,7 @@ Doctor BA Kit **không phải dependency manager cho external tooling**, và kh�
 
 Ví dụ một installation có thể READY nhưng vẫn thiếu tool để export Word/PNG/browser.
 
-Phase 6 yêu cầu Tier 3 fresh installed-runtime acceptance: install vào project sạch, chạy Doctor, hoàn tất hai Human Gate qua runtime cô lập, revalidate Approved Testware manifest, rồi chạy regression theo kits/test/acceptance.yaml.
+Maintainer acceptance cho Test gồm cài vào project sạch, chạy Doctor, hoàn tất hai Human Gate qua runtime cô lập, xác nhận lại Approved Testware manifest và chạy acceptance từ kits/test/acceptance.yaml. Xem trang release.
 
 ## Runtime prerequisite theo capability
 
@@ -157,7 +165,7 @@ Phase 6 yêu cầu Tier 3 fresh installed-runtime acceptance: install vào proje
 
 Cần:
 
-- Python 3.8+ cho installer/validators;
+- Python 3.10+ là baseline được hỗ trợ cho BA/Test;
 - agent runtime có quyền đọc project/artifact cần review.
 
 Installer không yêu cầu Skills Manager, agent profile hay global config change.
@@ -261,3 +269,22 @@ Kiểm tra project frontend + npx/Playwright trước khi yêu cầu render.
 ---
 
 English: [Installation](../en/INSTALLATION.md)
+
+## Bản đồ cài suite và policy Windows
+
+Mỗi capability có cách cài riêng; suite không có một lệnh cài tất cả Kit.
+
+| Capability | Cài đặt | Xác minh |
+|---|---|---|
+| BA | tooling/install.ps1 ba --agent codex --scope project (hoặc install.sh) | tooling/doctor.ps1 ba --agent codex --scope project |
+| Dev VNext và Shared runtime | python -I tooling/install_dev_kit.py --source-root <checkout> --install-home <install-home> | Thêm <install-home>/bin vào PATH; chạy `devkit doctor` |
+| Test Manual + Automation + Execution | tooling/install.ps1 test --agent codex --scope project (hoặc install.sh) | tooling/doctor.ps1 test --agent codex --scope project |
+| Project Foundation | Shared runtime ở trên; theo [Foundation guide](PROJECT_FOUNDATION.md) | Chạy Foundation doctor qua workflow/host đã cài |
+
+BA và Test dùng Python 3.10+ làm baseline hỗ trợ trong tài liệu. Dev installer dùng Python đã chọn để tạo runtime cách ly. Để cấu hình full toolkit ít bất ngờ nhất, dùng Python 3.10+ trừ khi candidate Dev được chọn yêu cầu bản mới hơn. Luôn dùng committed framework checkout đúng revision.
+
+Windows checkout mặc định được hỗ trợ nhờ .gitattributes giữ package-source bytes ổn định. core.autocrlf=false không phải prerequisite. Không sửa hash package authority bằng tay.
+
+## Nâng cấp và xác minh version
+
+Đọc [suite manifest](../../tooling/sdlc-suite.json) và manifest từng Kit trước khi nâng cấp. Ghi commit bằng git rev-parse HEAD, chạy installer của Kit từ revision đã chọn rồi chạy Doctor. Reinstall giữ managed file đã sửa và báo drift; review local edit trước khi khôi phục managed file. Xem [Troubleshooting](TROUBLESHOOTING.md) để xử lý mismatch an toàn.

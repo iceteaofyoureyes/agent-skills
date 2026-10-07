@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "kit_id": "test",
-  "kit_version": "2.0.0-rc.12",
+  "kit_version": "2.0.0-rc.14",
   "manifest_schema_version": 1,
   "managed_files": [
     {
       "path": ".test-kit/README.md",
-      "sha256": "a11ec3a017759e3b3b055b9a7b6e3ed2018648e61ed2b6e26f90003b4c0d66b3",
+      "sha256": "0b3bcadcd3f6092572568beff9a7b1f14128b0d97f78c144498b318c1609434f",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
@@ -41,22 +41,22 @@
     },
     {
       "path": ".test-kit/docs/en/TEST_AUTOMATION_V1.md",
-      "sha256": "b08c70bbb3854cf37648e5f435b5547a208dc5df2ac70395245f51c5558f2316",
+      "sha256": "51dd8a66a5351c3529acb923bce13d9d9b39b5080d5e5dfd16841221194bdee5",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
       "path": ".test-kit/docs/en/TEST_EXECUTION_VNEXT.md",
-      "sha256": "c83bd96e3f0dd92922f7726cbd12a730447fd7f0e73d81b5b315448c7c8f045e",
+      "sha256": "cccea40418a68da56e24f630b7ebc91351f50b2adf4747de781e0a7203fb8750",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
       "path": ".test-kit/docs/vi/TEST_AUTOMATION_V1.md",
-      "sha256": "832688a634411aa97a414279ea0ca397da63618f51b170280885cd6e7b129c53",
+      "sha256": "e3dd9ce66c1a9b1766850853d7881ea5dec29884e1c42e4c8596249bb0e9df17",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
       "path": ".test-kit/docs/vi/TEST_EXECUTION_VNEXT.md",
-      "sha256": "a92e7169b911f5e7370b127de2edeff10e9896f04f0678ee72acb011c3c48a29",
+      "sha256": "f413bdaf6797ae90ebd9e26e5947c32bac7d5e2e383b60c6a13ab49b0219ef01",
       "classification": "OPERATOR_DOCUMENTATION"
     },
     {
@@ -416,7 +416,7 @@
     },
     {
       "path": ".test-kit/tooling/lib/dev_vnext.py",
-      "sha256": "618a7e30c5f09f61d5a62694eafd08b184c1e8f4c7a51372a7decbfcdf12eb65",
+      "sha256": "74388516fd1aee64b367626dfdc00fa8ed90b26e3a67987530a94109133dbe0a",
       "classification": "CORE_RUNTIME"
     },
     {
@@ -977,5 +977,5 @@
   ],
   "managed_file_count": 194,
   "payload_digest_algorithm": "TEST_KIT_PACKAGE_PAYLOAD_V1",
-  "payload_tree_sha256": "4420c9df142f50a9690cca7a6ebe10b978b0867136d43e5b182447643dae6ee6"
+  "payload_tree_sha256": "c39ea2710fcf6ef7babcb3f37015d9cd364553a9fbbde99e622c26ae768bcab6"
 }

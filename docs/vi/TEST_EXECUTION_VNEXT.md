@@ -1,6 +1,6 @@
 # Test Execution / Finding / Defect / Retest VNext
 
-Phase 8 nối tiếp Test Kit Manual VNext và Test Automation V1. Đầu vào duy nhất là handoff Phase 7 `EXECUTION_READY` chính xác và phải được Automation V1 runtime cài đặt revalidate.
+Test Execution VNext nối tiếp Test Kit Manual VNext và Test Automation V1. Đầu vào duy nhất là handoff Automation V1 `EXECUTION_READY` chính xác và phải được Automation V1 runtime cài đặt revalidate.
 
 ## Ràng buộc trước khi chạy
 
@@ -34,12 +34,12 @@ DEFECT cần oracle chính xác đã được phê duyệt, cùng mismatch có t
 
 Khi mọi Testcase automated/manual bắt buộc có Observation PASS, Dev-local evidence còn hiện hành và không còn Finding mở, Tester đã xác thực tạo handoff `VERIFIED` bền vững. PASS ban đầu sạch không cần retest.
 
-Với DEFECT, Phase 8 tạo `DEFECT_READY_FOR_DEV`. Dev dùng flow `FEATURE_DELIVERY` hiện có, `change_id` bằng defect ID ổn định, và Engineering Handoff BA ban đầu làm authority WHAT. Defect artifacts chỉ là context/evidence chỉ đọc. Sau khi Dev VNext canonical validator chấp nhận, repository base bằng SHA lỗi, có thay đổi ở target, repo ngoài target không drift, coverage hợp lệ, review PASS và fresh verification PASS, Phase 8 tạo `READY_FOR_RETEST`.
+Với DEFECT, Test Execution VNext tạo `DEFECT_READY_FOR_DEV`. Dev dùng flow `FEATURE_DELIVERY` hiện có, `change_id` bằng defect ID ổn định, và Engineering Handoff BA ban đầu làm authority WHAT. Defect artifacts chỉ là context/evidence chỉ đọc. Sau khi Dev VNext canonical validator chấp nhận, repository base bằng SHA lỗi, có thay đổi ở target, repo ngoài target không drift, coverage hợp lệ, review PASS và fresh verification PASS, Test Execution VNext tạo `READY_FOR_RETEST`.
 
 Tester chạy lại Approved Testcase đã lỗi ban đầu ở fixed app SHAs chính xác, automation SHA ban đầu và môi trường đã ràng buộc. PASS thành `VERIFIED`; FINDING thành `REOPENED` với cùng defect ID và lineage. Dev không thể tự đóng defect.
 
 ## Ranh giới
 
-Doctor chỉ chẩn đoán package/capability. READY không có nghĩa là `EXECUTION_READY`, PASS, không có Finding, `READY_FOR_RETEST`, `VERIFIED` hay sẵn sàng merge. Delivery Manifest vẫn deferred và không authoritative. Legacy execution chỉ dùng cho compatibility. Phase 8 không merge product code và không tạo `READY_TO_MERGE`.
+Doctor chỉ chẩn đoán package/capability. READY không có nghĩa là `EXECUTION_READY`, PASS, không có Finding, `READY_FOR_RETEST`, `VERIFIED` hay sẵn sàng merge. Delivery Manifest vẫn deferred và không authoritative. Legacy execution chỉ dùng cho compatibility. Test Execution VNext không merge product code và không tạo `READY_TO_MERGE`.
 
 Host xác thực Tester qua trusted callback nhận actor ID, role/action được yêu cầu và artifact hash. Runtime API cung cấp `start`, `execute_automated`, đọc Execution Manifest/artifact, ghi Observation và classification, nhận Dev fix, retest, final verification và revalidate VERIFIED.

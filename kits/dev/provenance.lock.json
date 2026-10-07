@@ -5,7 +5,7 @@
   "packaging": {
     "target": "OpenAI Agent Plugin plus self-contained user-scope Dev VNext runtime",
     "layout": "kits/dev/plugin/{plugin.json,skills/,references/}",
-    "version": "0.4.0-rc.3",
+    "version": "0.4.0-rc.4",
     "runtime": "dev-kit-v2",
     "runtime_root": "~/.devkit/runtime/v2",
     "business_what_authority": "Engineering Handoff VNext backed by exact APPROVED_BASELINE proof",
@@ -197,11 +197,11 @@
       "kits/dev/README.md": "ba4e092a9976f64246989b30c3b6d4e54a461783430a167c5adea8531ec44479",
       "kits/dev/acceptance.yaml": "1dd2c6868f5849e7766648828bcc787ea7ba93e461a557feff818a7bdf4156c8",
       "kits/dev/examples/neutral-vnext.md": "aab02acf01704ed91125215d8d1549949f9e3c25414c44a612a782620dd45fca",
-      "kits/dev/kit.yaml": "04f9140d8daadaff70bafe84add9d84a7776034f9892f65bd65c293df7f23931",
+      "kits/dev/kit.yaml": "2cf7ed8babd44c3b6bd7abfe12125531f398c5aab38ab0c1bb1afdd5f143fcf4",
       "kits/dev/plugin/THIRD_PARTY_NOTICES.md": "2679ffcee20601913115e91ec71c3fd6cd6beb4277735bc620af3aa00a3fc6cd",
       "kits/dev/plugin/licenses/ADDY_AGENT_SKILLS_LICENSE.txt": "6f202f8bd568cd730dbb2b0d1f8e243bc74c2fa1f64dbce9b2c7ea08bd5c9fd7",
       "kits/dev/plugin/licenses/SUPERPOWERS_LICENSE.txt": "a37e0e9697144819e1d965176ac4ae5bc3fa02d11e7812036bbcadf6dafe2400",
-      "kits/dev/plugin/plugin.json": "0b1e4dfc62277dab083bd85ef80f7a7501dc916b0a9aacb809c8bbdcc587b940",
+      "kits/dev/plugin/plugin.json": "351a8072d6c2277e48aa6b6289c5c0c36edf1840d4f1b88135c3d5ff45f79032",
       "kits/dev/plugin/references/definition-of-done.md": "d1c75d2ae65d2c7a9cd01f93fa8de63e00e75f2fe5d08be224d576157054dcee",
       "kits/dev/plugin/references/observability-checklist.md": "25fcd0e854596a5ab6f11b002050d245bf78f5ae0fcbd1df699b89451ae0e1e8",
       "kits/dev/plugin/references/performance-checklist.md": "40f564d1e62341e277c01ba42c42d95264b9ef3b8e5a23249dc6e121a7e70067",
@@ -284,7 +284,7 @@
       "tooling/lib/__init__.py": "a9eec5a13cf304123a48fa71e7069444ea630a7d508437d3c271b569634e6930",
       "tooling/lib/dev_kit.py": "42034a04bf07110e00ebedbed356046b644c25c37864ab501a4e581b672c73c3",
       "tooling/lib/dev_router.py": "9dc4188973f264950bda91ec326a1f19452d5fc23eb74a69747ab171262736f5",
-      "tooling/lib/dev_vnext.py": "618a7e30c5f09f61d5a62694eafd08b184c1e8f4c7a51372a7decbfcdf12eb65",
+      "tooling/lib/dev_vnext.py": "74388516fd1aee64b367626dfdc00fa8ed90b26e3a67987530a94109133dbe0a",
       "tooling/lib/dev_vnext_cli.py": "c1fde30a030197f649c3f2226e841ec62aaea14726ab2372755e659d5ea6ff91",
       "tooling/lib/dev_vnext_doctor.py": "4fbdbfe37f19d940b6120256f91e5db99f5c8d40b6183f78735a83e220224de8",
       "tooling/lib/dev_vnext_runtime.py": "e33ed0a2b60a427c5ad5605723a436fc922b5a068b8f4060c539f92637c977f3",
@@ -292,6 +292,6 @@
       "verification-before-completion/LICENSE": "304cf321f3218c25a45bd6ef41e3bd8ca4a3630d21f4445dbc152842bd5dafea",
       "verification-before-completion/SKILL.md": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3"
     },
-    "sha256": "2590226b677a40a313dc1f9ee3bac33df2658a209b8534006a8c5cd6c1bef411"
+    "sha256": "1dbb71e5cc30d40d59580f4b33eb0c9a4c42b9def0b79b6013e812788847581e"
   }
 }

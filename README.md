@@ -1,143 +1,140 @@
-# Agent Skills Kits
+# Agent-Assisted SDLC Toolkit
 
-**Project Foundation:** capability Shared SDLC cho brownfield, greenfield và refresh.
-Xem [workflow core](docs/project-foundation.md), [semantic producers](docs/foundation-semantic-producers.md)
-và [skill](project-foundation/SKILL.md). Producer artifacts được giữ trong runtime
-review package; C4 và arc42 là derived views.
+**Language:** English · [Tiếng Việt](README.vi.md)
 
-Repository này dành cho **Agent Skills Kits**: các skill nguyên tử có thể tái sử dụng và các Kit kết hợp chúng thành workflow theo vai trò cho từng giai đoạn AI-assisted SDLC.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](docs/en/INSTALLATION.md)
+[![Status](https://img.shields.io/badge/status-internal%20RC-orange.svg)](docs/en/RELEASE.md)
 
-Tiếng Việt là tài liệu chính.
+A practical toolkit for software teams using AI coding agents across requirements, engineering, and testing — while keeping Human approval at the decisions that matter.
 
-## BA Kit là gì?
+The public product name is **Agent-Assisted SDLC Toolkit**. The GitHub repository is \`agent-skills\`; the machine suite ID \`agent-assisted-sdlc-vnext\` is an internal contract identifier.
 
-**BA Kit** hỗ trợ BA làm phần **WHAT — hệ thống cần làm gì**:
+> New here? Start with [Getting Started](docs/en/GETTING_STARTED.md). Vietnamese: [Bắt đầu](docs/vi/GETTING_STARTED.md).
 
-~~~text
-BA input / Requirement / CR
-→ review + current-system discovery khi cần
-→ gap / clarification
-→ Business Rules
-→ canonical SRS
-→ Draw.io / DOCX / optional prototype
-→ Human approval
-→ Engineering Handoff
-~~~
+## What problem does it solve?
 
-Human BA vẫn sở hữu business decision, stakeholder/customer communication và approval.
+AI agents can produce useful work quickly, but teams still need clear ownership, reproducible handoffs, review gates, and evidence that later stages used the right approved inputs.
 
-## BA Kit làm được gì?
+This toolkit separates responsibilities:
 
-| Capability | Trạng thái |
-|---|---|
-| Requirement review / gap / ambiguity / edge-case analysis | Required |
-| Brownfield current-system discovery | Required |
-| Business Rule extraction | Required |
-| Canonical functional SRS create/update | Required |
-| Existing SRS/DOCX review/edit | Required |
-| Word/DOCX delivery + project-provided template | Required |
-| Editable Draw.io business diagrams | Required |
-| Screenshot/image/PDF/visual evidence review | Workflow-supported khi runtime đọc được artifact |
-| Direct Figma access | Phụ thuộc runtime connector/quyền; BA Kit không bundle connector |
-| UX/task/state contract | Optional |
-| Local UI prototype | Optional |
-| Browser/visual/accessibility review | Optional |
-| Engineering Handoff | Required workflow output |
-
-Chi tiết: [Khả năng BA Kit](docs/vi/BA_KIT_CAPABILITIES.md).
-
-## Test Kit Manual VNext
-
-Test Kit nhận **Engineering Handoff VNext** có exact BA Human approval proof và tạo manual testware qua hai Human Gate:
-
-~~~text
-Engineering Handoff VNext → Canonical Test Design → Human Design Gate
-→ APPROVED_DESIGN → Canonical Testcases → Human Case Gate → APPROVED_TESTWARE
-~~~
-
-Trace chuẩn chỉ gồm `BR-*`/`FR-*`; `BAREF:*` chỉ là locator/provenance. `APPROVED_TESTWARE` kết thúc manual lane Phase 6, không đồng nghĩa `EXECUTION_READY`, test PASS, `VERIFIED` hay `READY_TO_MERGE`. Automation/execution bắt đầu từ Phase 7+.
-
-UX chỉ bắt buộc khi VNext authority context ghi rõ `ux_required: true`; từ `field`, `input`, `page` không suy ra UX. UX context được tiêu thụ phải có exact Human approval và source/snapshot hash. Dev Handoff V2 là technical context tùy chọn, không định nghĩa BA WHAT. Project Test Policy và TEA/Katalon không cấp authority. XMind/Excel là projection một chiều. V1 đọc theo `LEGACY_COMPAT`, `vnext_authority=false`; Delivery Manifest không bắt buộc.
-
-Bắt đầu tại [Quick Start VNext](docs/vi/TEST_KIT_QUICKSTART.md), [capabilities](docs/vi/TEST_KIT_CAPABILITIES.md), [usage](docs/vi/TEST_KIT_USAGE_GUIDE.md), [workflow](docs/vi/TEST_KIT_WORKFLOW.md), [customization](docs/vi/TEST_KIT_CUSTOMIZATION.md) và [neutral VNext example](kits/test/examples/vnext/neutral/README.md). Appointment/CR-001 là lịch sử V1, không phải ví dụ mặc định.
-
-## SRS template và DOCX
-
-BA Kit quản lý **canonical functional SRS ở Markdown** và có capability xuất/edit DOCX.
-
-Repository không bundle SRS_TEMPLATE.docx mặc định. Nếu công ty/project có Word template, cung cấp file .docx và chọn nó làm delivery template; template không được override business semantics.
-
-Xem [SRS và DOCX](docs/vi/SRS_DOCX_GUIDE.md).
-
-## Draw.io và visual workflow
-
-BA Kit có thể tạo/edit file .drawio editable cho business process flowchart, swimlane, user/task flow, state/lifecycle và decision tree; có thể xuất PNG/SVG/PDF khi toolchain hỗ trợ.
-
-Visual input như screenshot/Figma export/PDF/HTML prototype được dùng làm evidence và để tìm gap; hidden permission/validation/business rule vẫn cần Human xác nhận.
-
-Xem [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md).
-
-## Các Kit
-
-| Kit | Trạng thái | Phạm vi |
+| Capability | Owns | Use it when |
 |---|---|---|
-| **BA Kit** | **VNext packaging candidate; Tier 3 fresh-install acceptance required; not a stable release** | **WHAT** |
-| **Dev Kit** | Planned | Engineering Impact + **HOW** |
-| **Test Kit Manual + Automation V1** | `2.0.0-rc.7` prerelease candidate; Phase 7 requires fresh installed Automation acceptance and full regression | **HOW DO WE PROVE IT** |
+| **Project Foundation** | Project context | Starting a new project, recovering a brownfield project, or refreshing stale system knowledge |
+| **BA Kit** | **WHAT** the system must do | Requirements, business rules, SRS, ambiguity resolution, approved Engineering Handoff |
+| **Dev Kit** | **WHERE / WHO OWNS / HOW** | Impact analysis, technical decisions, implementation, engineering verification |
+| **Test Kit** | **PROVE IT** | Test Design, Testcases, Automation, Execution, Findings, defects, retest and verification |
 
-## Bắt đầu
+You can use a Kit independently when its required authority inputs already exist, or use the full flow.
 
-1. [Hướng dẫn nhanh](docs/vi/BA_KIT_QUICKSTART.md)
-2. [Khả năng BA Kit](docs/vi/BA_KIT_CAPABILITIES.md)
-3. [Hướng dẫn sử dụng theo tình huống](docs/vi/BA_KIT_USAGE_GUIDE.md)
-4. [Workflow và Human Gates](docs/vi/BA_KIT_WORKFLOW.md)
-5. [Ví dụ CR-001](kits/ba/examples/CR-001/README.md)
+## How the full flow works
 
-## Cài BA Kit
-
-~~~powershell
-& 'C:\tools\agent-skills\tooling\install.ps1' ba --agent codex --scope project
-& 'C:\tools\agent-skills\tooling\doctor.ps1' ba --agent codex --scope project
+~~~text
+Requirement / Change
+        │
+        ▼
+Project Foundation ── when project context must be created or recovered
+        │
+        ▼
+BA Kit ── defines WHAT
+        │
+        │ Human approves the exact business baseline
+        ▼
+Dev Kit ── designs and implements HOW
+        │
+        ▼
+READY_FOR_TEST
+        │
+        ▼
+Test Kit
+   │
+   ├─ all required tests PASS, no open Finding
+   │      └─ Tester → VERIFIED
+   │
+   └─ Finding
+          ├─ DEFECT → Dev Fix → READY_FOR_RETEST → Tester Retest
+          │              ├─ PASS → VERIFIED
+          │              └─ FINDING → REOPENED
+          └─ SPEC_GAP / BUSINESS_DECISION_REQUIRED /
+             TEST_ISSUE / ENVIRONMENT_ISSUE
+             → route to the responsible owner
 ~~~
 
-~~~bash
-/path/to/agent-skills/tooling/install.sh ba --agent codex --scope project
-/path/to/agent-skills/tooling/doctor.sh ba --agent codex --scope project
+\`VERIFIED\` ends the framework's product-verification lifecycle. Merge and release remain separate Human decisions.
+
+## Start in five minutes
+
+1. Read [Getting Started](docs/en/GETTING_STARTED.md) or [Bắt đầu](docs/vi/GETTING_STARTED.md).
+2. Choose the Kit for your role; you do **not** need to install every Kit.
+3. Install from an exact committed ref and run the matching Doctor.
+4. Try the [small end-to-end example](docs/en/FULL_FLOW_EXAMPLE.md).
+5. Use [FAQ](docs/en/FAQ.md) if a term or boundary is unclear.
+
+For complete commands, supported targets, upgrades, and recovery, see [Installation](docs/en/INSTALLATION.md).
+
+## Human control is intentional
+
+The toolkit never treats an agent-generated file, validator result, or Doctor result as Human approval.
+
+~~~text
+CONTINUE != APPROVE
+ANSWER != APPROVE
+validator PASS != APPROVE
+generated != APPROVED
+READY_FOR_TEST != VERIFIED
+APPROVED_TESTWARE != EXECUTION_READY
+EXECUTION_READY != PASS
 ~~~
 
-Xem [Cài đặt](docs/vi/INSTALLATION.md).
+Human approval is bound to exact reviewed artifacts where the workflow requires it.
 
-## Cài Test Kit Manual VNext
+## Supported path
 
-Chạy từ project Codex với Python 3.10+:
+- **Primary verified end-to-end path:** Codex-based workflow with the repository's current Spec Kit integration.
+- **BA Kit:** also exposes Claude Code and generic installation targets where documented.
+- **Python:** use Python **3.10+** for the documented BA/Test support baseline and the simplest full-toolkit setup.
+- **Windows/Linux:** supported repository checkout behavior is controlled by \`.gitattributes\`; no hidden \`core.autocrlf=false\` prerequisite.
+- **XMind / Excel projections:** optional; missing projections do not make the Test core unusable.
 
-~~~powershell
-& 'C:\tools\agent-skills\tooling\install.ps1' test --agent codex --scope project
-& 'C:\tools\agent-skills\tooling\doctor.ps1' test --agent codex --scope project
-~~~
+See [Installation](docs/en/INSTALLATION.md) for exact capability-specific requirements.
 
-Doctor `READY` chỉ xác nhận package/core capability; không có nghĩa BA/Design/Case approval hoặc execution readiness. `DEGRADED` chỉ capability tùy chọn thiếu; `FAIL` là package/core integrity lỗi. BA Kit và Test Kit có thể cùng cài. Xem [Installation](docs/vi/INSTALLATION.md).
+## Documentation
 
-## Tài liệu chuyên sâu
+### I just want to use the toolkit
 
-- [SRS và DOCX](docs/vi/SRS_DOCX_GUIDE.md)
-- [Draw.io, visual input và prototype](docs/vi/DIAGRAMS_PROTOTYPES.md)
-- [Kiến trúc](docs/vi/ARCHITECTURE.md)
-- [Nền tảng thiết kế & chuẩn tham chiếu](docs/vi/FOUNDATIONS.md)
-- [Kit contract](docs/vi/KIT_CONTRACT.md)
-- [Release status](docs/vi/RELEASE.md)
-- [Provenance & licensing](docs/vi/PROVENANCE.md)
+- [Getting Started](docs/en/GETTING_STARTED.md) · [Bắt đầu](docs/vi/GETTING_STARTED.md)
+- [Full Flow Example](docs/en/FULL_FLOW_EXAMPLE.md) · [Ví dụ full flow](docs/vi/FULL_FLOW_EXAMPLE.md)
+- [FAQ](docs/en/FAQ.md) · [Câu hỏi thường gặp](docs/vi/FAQ.md)
+- [Installation](docs/en/INSTALLATION.md) · [Cài đặt](docs/vi/INSTALLATION.md)
+- [Troubleshooting](docs/en/TROUBLESHOOTING.md) · [Khắc phục sự cố](docs/vi/TROUBLESHOOTING.md)
 
-## Trạng thái hiện tại
+### I use one role/Kit
 
-BA Kit đang ở trạng thái packaging candidate, không phải stable release. Phase 4 completion yêu cầu Tier 3 fresh-install acceptance với runtime import được cách ly khỏi source checkout. Doctor READY chỉ xác nhận package capability; approval vẫn do trusted host xác thực theo đúng BA candidate.
+- BA: [BA workflow](docs/en/BA_KIT_WORKFLOW.md) · [Tiếng Việt](docs/vi/BA_KIT_WORKFLOW.md)
+- Developer: [Dev guide](docs/en/DEV_KIT_GUIDE.md) · [Tiếng Việt](docs/vi/DEV_KIT_WORKFLOW.md)
+- Tester: [Manual Test overview](docs/en/TEST_KIT_MANUAL.md) · [Tiếng Việt](docs/vi/TEST_KIT_QUICKSTART.md)
+- Automation / Execution: [Automation](docs/en/TEST_AUTOMATION_V1.md) · [Execution & Retest](docs/en/TEST_EXECUTION_VNEXT.md)
+- Project Owner / Tech Lead: [Project Foundation](docs/en/PROJECT_FOUNDATION.md)
 
+### I need the contracts/reference
 
+- [Architecture and lifecycle](docs/en/ARCHITECTURE.md)
+- [Readiness states](docs/en/READINESS_STATES.md)
+- [Public Cross-Kit Conformance](docs/en/SDLC_SUITE_CONTRACT.md)
+- [Packaging](tooling/PACKAGING.md)
+- [Legacy and history](docs/LEGACY_AND_HISTORY.md)
 
-## English documentation
+The detailed contracts are intentionally separate from the newcomer path.
 
-[BA Kit documentation — English](docs/en/README.md)
+## Current release status
 
-[Test Kit Manual VNext overview — English](docs/en/TEST_KIT_README.md)
+This repository is still an **internal prerelease candidate**, not a stable public release. Machine-readable manifests own the exact versions:
 
-Framework/package readiness không tự phê duyệt Test Design/Testcases của project. Mỗi gate cần trusted Human receipt cho đúng snapshot và input refs. Xem [Release status](docs/vi/RELEASE.md).
+| Component | Current candidate |
+|---|---|
+| Suite | \`agent-assisted-sdlc-vnext 1.0.0-rc.4\` |
+| BA Kit | \`2.0.0-rc.6\` |
+| Dev Kit | \`0.4.0-rc.4\` |
+| Test Kit | \`2.0.0-rc.14\` |
+
+See [Release status](docs/en/RELEASE.md). Conformance PASS is evidence for Human review; it does not authorize merge, tag, or release.

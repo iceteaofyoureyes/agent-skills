@@ -1,6 +1,6 @@
-# Test Kit Manual VNext
+# Test Kit VNext: Manual, Automation, and Execution
 
-Test Kit turns an exact, Human-approved BA Engineering Handoff VNext into Human-reviewed manual testware.
+In the integrated suite, Test starts after Dev publishes READY_FOR_TEST. Test uses the exact BA Engineering Handoff VNext as business authority; the Dev Handoff adds technical context and cannot redefine WHAT.
 
 ```text
 Engineering Handoff VNext
@@ -8,7 +8,7 @@ Engineering Handoff VNext
 → Canonical Testcases → Human Case Gate → APPROVED_TESTWARE
 ```
 
-Canonical business trace contains `BR-*` and `FR-*`; `BAREF:*` is locator/provenance only. `APPROVED_TESTWARE` is the Phase 6 manual terminal, not `EXECUTION_READY`, execution PASS, `VERIFIED`, or `READY_TO_MERGE`.
+Canonical business trace contains `BR-*` and `FR-*`; `BAREF:*` is locator/provenance only. `APPROVED_TESTWARE` is the Manual lane terminal, not `EXECUTION_READY`, execution PASS, `VERIFIED`, or `READY_TO_MERGE`.
 
 Start with the [neutral VNext example](../../kits/test/examples/vnext/neutral/README.md), then follow the Vietnamese [Quick Start](../vi/TEST_KIT_QUICKSTART.md), [capabilities](../vi/TEST_KIT_CAPABILITIES.md), [usage guide](../vi/TEST_KIT_USAGE_GUIDE.md), [workflow](../vi/TEST_KIT_WORKFLOW.md), and [customization guide](../vi/TEST_KIT_CUSTOMIZATION.md). Appointment/CR-001 material is historical V1 `LEGACY_COMPAT`, not the default.
 
@@ -34,4 +34,4 @@ Doctor `READY` means package/capability readiness only. It does not evaluate BA 
 - V1 is readable only as `LEGACY_COMPAT` with `vnext_authority=false`.
 - Delivery Manifest is `DEFERRED_NON_AUTHORITATIVE` and not required for Test VNext.
 
-Test Automation V1 adds the Phase 7 technical flow from exact `APPROVED_TESTWARE` to `EXECUTION_READY`. Test Execution VNext continues with exact-revision product execution, Tester Finding classification, Dev VNext fix acceptance, retest, and Tester-owned `VERIFIED`. See the [Automation V1 guide](TEST_AUTOMATION_V1.md), [Execution VNext guide](TEST_EXECUTION_VNEXT.md), [neutral execution example](../../kits/test/examples/vnext/neutral/execution-defect-retest/README.md), and [release status](RELEASE.md).
+Test Automation V1 takes exact `APPROVED_TESTWARE` to `EXECUTION_READY`. Test Execution VNext continues with exact-revision product execution, Tester Finding classification, Dev VNext fix acceptance, retest, and Tester-owned `VERIFIED`. See the [Automation V1 guide](TEST_AUTOMATION_V1.md), [Execution VNext guide](TEST_EXECUTION_VNEXT.md), [neutral execution example](../../kits/test/examples/vnext/neutral/execution-defect-retest/README.md), and [release status](RELEASE.md).

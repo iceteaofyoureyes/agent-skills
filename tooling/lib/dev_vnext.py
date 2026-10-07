@@ -53,6 +53,8 @@ DECISION_CATEGORIES = tuple(dict.fromkeys((*GATE_CATEGORIES,*FOUNDATION_CATEGORI
 CHECK_CATEGORIES = ('BUILD','STATIC','LINT','TYPECHECK','UNIT','COMPONENT','MODULE_LOCAL_INTEGRATION')
 PLANNING_NAMES = ('dev-plan.md','dev-tasks.md')
 REVIEW_LIMITS = {'full_reviews':1,'blocking_fix_waves':1,'scoped_rereviews':1}
+# ponytail: bound positive exact-ref proofs at 512; clear on overflow, use LRU only if long-lived hosts exceed the working set.
+_GIT_REF_CACHE = set()
 
 
 def enum(values):
@@ -185,6 +187,9 @@ def _git_has_ref_at_revision(ref, root, repository_revisions, repositories):
             return False
         repo_root = (root/owner['path']).resolve()
         if not repo_root.is_relative_to(root): return False
+        repository_path = relative.relative_to(PurePosixPath(owner['path'])).as_posix()
+        cache_key = (str(repo_root), revision, repository_path, ref['sha256'])
+        if cache_key in _GIT_REF_CACHE: return True
         git_root = subprocess.run(['git','-C',str(repo_root),'rev-parse','--show-toplevel'],
             capture_output=True,text=True,check=False)
         if git_root.returncode or Path(git_root.stdout.strip()).resolve() != repo_root:
@@ -192,7 +197,6 @@ def _git_has_ref_at_revision(ref, root, repository_revisions, repositories):
         object_type = subprocess.run(['git','-C',str(repo_root),'cat-file','-t',revision],
             capture_output=True,text=True,check=False)
         if object_type.returncode or object_type.stdout.strip() != 'commit': return False
-        repository_path = relative.relative_to(PurePosixPath(owner['path'])).as_posix()
         tree_entry = subprocess.run(['git','-C',str(repo_root),'ls-tree','-z',revision,'--',repository_path],
             capture_output=True,check=False)
         entries = [row for row in tree_entry.stdout.split(b'\0') if row]
@@ -203,8 +207,12 @@ def _git_has_ref_at_revision(ref, root, repository_revisions, repositories):
             return False
         content = subprocess.run(['git','-C',str(repo_root),'cat-file','blob',f'{revision}:{repository_path}'],
             capture_output=True,check=False)
-        return (content.returncode == 0
+        valid = (content.returncode == 0
                 and hashlib.sha256(content.stdout).hexdigest() == ref['sha256'])
+        if valid:
+            if len(_GIT_REF_CACHE) >= 512: _GIT_REF_CACHE.clear()
+            _GIT_REF_CACHE.add(cache_key)
+        return valid
     except FileNotFoundError:
         return None
     except (OSError,ValueError,KeyError,TypeError,IndexError):

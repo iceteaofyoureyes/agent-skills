@@ -2,9 +2,9 @@
 
 Test Kit Manual VNext source pins and license locations are indexed in [Vietnamese Test Kit provenance](../vi/PROVENANCE.md), [Test Kit licenses](../../kits/test/licenses/README.md), and [third-party notices](../../THIRD_PARTY_NOTICES.md). Exact TEA and Katalon revisions live in their pin files; optional XMind and Excel dependencies use committed lock/hash data. V1 runtime/artifacts remain readable only as `LEGACY_COMPAT`.
 
-## BA Kit RC1
+## Historical BA Kit RC1 provenance audit (pre-A0 snapshot)
 
-## Audit basis
+### Historical audit basis — BA Kit RC1; not current candidate status
 
 - Candidate source history: BA Kit RC1 originated on `feature/ba-kit-rc1-packaging` at HEAD 31dd25333fdcd9d3763ebba7b60ee6c37d42c8e1. Public installation clones repository `main`. The original worktree contained localization, provenance, and license changes; no original change was discarded.
 - The benchmark was inspected read-only at benchmark/agent-skills-v1-vi, commit b7d8d63c80c8fb2156b5267804f4081e60b51f76. Its pre-existing untracked benchmark/input/templates/SRS_TEMPLATE.docx was left untouched.

@@ -233,7 +233,7 @@ class DeliveryTests(unittest.TestCase):
 
     def test_distributed_ba_dev_test_validate_canonical_receipt(self):
         source = Path(__file__).resolve().parents[2]
-        versions = {"ba": "2.0.0-rc.4", "dev": "0.4.0-rc.3", "test": "2.0.0-rc.12"}
+        versions = {"ba": "2.0.0-rc.6", "dev": "0.4.0-rc.4", "test": "2.0.0-rc.14"}
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
             feature = root / "feature"

@@ -21,6 +21,8 @@ Các loại phù hợp:
 
 ## 2. Ví dụ flowchart từ Business Rules
 
+> Ví dụ Appointment bên dưới là minh họa tổng hợp, không phải domain mặc định. Ví dụ BA VNext trung tính: [Resource Request Submission](../../kits/ba/examples/CR-001/README.md).
+
 Giả sử baseline confirmed:
 
 ~~~text

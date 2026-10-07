@@ -1,4 +1,6 @@
-# Delivery Manifest V2: immutable UX approval
+# Delivery Manifest V2: historical and deferred technical design
+
+> **DEFERRED_NON_AUTHORITATIVE — not current VNext authority.** This is a historical/deferred technical design. It is not current business authority, is not required for the current Foundation → BA → Dev → Test flow, and the suite machine manifest marks it DEFERRED_NON_AUTHORITATIVE. Current operators should follow the [current lifecycle](en/ARCHITECTURE.md), [Kit contracts](../kits/README.md), and role/task guides. The material below is retained for implementation history and compatibility reference; it does not reactivate Delivery Manifest.
 
 V2 replaces the V1 inline `revision:` / `status: APPROVED` UX gate. It accepts immutable UX semantic source bytes together with an external Human approval receipt as approved UX authority. V1 manifests are rejected explicitly; migration requires a V2 manifest and a receipt from the Human approval workflow. Do not modify frozen Golden evidence to migrate it.
 

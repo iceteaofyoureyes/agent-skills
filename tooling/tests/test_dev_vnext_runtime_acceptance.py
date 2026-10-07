@@ -219,6 +219,35 @@ class RuntimeAcceptanceTests(unittest.TestCase):
         self.assertEqual(list((self.root/'.devkit').rglob('spec.md')), [])
         contracts.validate_handoff(handoff, self.root, ba_authenticator=self.ba_auth)
 
+    def test_positive_repository_ref_proof_is_cached_only_for_exact_revision(self):
+        topology = {'schema_version':1, 'project':{'id':'neutral-project'}, 'repositories':[
+            {'id':'core', 'path':'repositories/core', 'repository':'example/core', 'role':'application'}]}
+        (self.root/'.sdlc').mkdir(exist_ok=True)
+        (self.root/'.sdlc/project-topology.yml').write_text(json.dumps(topology), encoding='utf-8')
+        ref = self.ba.ref('repositories/core/src/module.py')
+        pinned = self.repositories[0]['base_revision']
+        (Path(self.repository_roots['core'])/'README.md').write_text('unrelated commit\n', encoding='utf-8')
+        self.git('core', 'add', 'README.md')
+        self.git('core', 'commit', '--quiet', '-m', 'Unrelated commit')
+        later = self.git('core', 'rev-parse', 'HEAD')
+
+        with patch.object(contracts.subprocess, 'run', wraps=subprocess.run) as run:
+            self.assertTrue(contracts._git_has_ref_at_revision(ref, self.root, {'core':pinned}, self.repositories))
+            first_proof_calls = run.call_count
+            self.assertGreater(first_proof_calls, 0)
+            self.assertTrue(contracts._git_has_ref_at_revision(ref, self.root, {'core':pinned}, self.repositories))
+            self.assertEqual(run.call_count, first_proof_calls)
+
+            self.assertTrue(contracts._git_has_ref_at_revision(ref, self.root, {'core':later}, self.repositories))
+            later_proof_calls = run.call_count
+            self.assertGreater(later_proof_calls, first_proof_calls)
+
+            wrong_digest = {**ref, 'sha256':'f' * 64}
+            self.assertFalse(contracts._git_has_ref_at_revision(wrong_digest, self.root, {'core':pinned}, self.repositories))
+            failed_proof_calls = run.call_count
+            self.assertFalse(contracts._git_has_ref_at_revision(wrong_digest, self.root, {'core':pinned}, self.repositories))
+            self.assertGreater(run.call_count, failed_proof_calls)
+
     def test_handoff_revalidates_repository_refs_at_its_exact_committed_revision(self):
         self.planned()
         self.runtime.implementation_ready()

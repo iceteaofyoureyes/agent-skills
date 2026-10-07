@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "suite_id": "agent-assisted-sdlc-vnext",
-  "suite_version": "1.0.0-rc.2",
+  "suite_version": "1.0.0-rc.4",
   "release_status": "INTERNAL_RC_CANDIDATE",
   "components": {
-    "ba": {"version": "2.0.0-rc.4"},
-    "dev": {"version": "0.4.0-rc.3"},
-    "test": {"version": "2.0.0-rc.12"}
+    "ba": {"version": "2.0.0-rc.6"},
+    "dev": {"version": "0.4.0-rc.4"},
+    "test": {"version": "2.0.0-rc.14"}
   },
   "contracts": {
     "project_foundation": {"version": 1, "source": "shared/sdlc/schema.py"},

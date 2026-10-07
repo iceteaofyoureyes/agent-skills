@@ -1,29 +1,44 @@
-# Public SDLC VNext Conformance
+# Public Cross-Kit Conformance
 
-Suite `agent-assisted-sdlc-vnext` version `1.0.0-rc.2` is an `INTERNAL_RC_CANDIDATE`. Its manifest is [tooling/sdlc-suite.json](../../tooling/sdlc-suite.json), and its required acceptance tiers are [tooling/sdlc-suite-acceptance.yaml](../../tooling/sdlc-suite-acceptance.yaml).
+Đây là hướng dẫn vận hành hiện hành cho gate của suite candidate. Identity và acceptance lấy từ [suite manifest](../../tooling/sdlc-suite.json) và [acceptance contract](../../tooling/sdlc-suite-acceptance.yaml).
 
-The suite checks Project Foundation V1, BA Engineering Handoff V2, Dev Handoff V2, Approved Testware V1, Execution Ready V1, Finding Classification V1, Defect Handoff V1, Ready For Retest V1, and Verified Handoff V1. Component versions come from the kit manifests; public schema versions come from their executable or schema sources. Delivery Manifest stays `DEFERRED_NON_AUTHORITATIVE` and is not a VNext flow prerequisite.
+## Điều kiện và lệnh chạy
 
-## Run Phase 9 conformance
+Cần candidate đã commit, working tree sạch, Python có pytest để unittest discovery chạy đủ, và Spec Kit CLI v1.0.11. Output phải nằm ngoài source checkout.
 
-Commit the candidate and leave the checkout clean. The runner accepts `main`, any candidate branch, or detached `HEAD`; it binds to the exact commit and tree without switching branches. Then run from the repository:
+~~~powershell
+python -m tooling.public_conformance --repo . --output C:\path\outside\repo\conformance-report.json --spec-kit-cli C:\path\to\specify.exe
+~~~
 
-```powershell
-python -m tooling.public_conformance --repo . --output C:\path\outside\repo\phase9-report.json --spec-kit-cli C:\path\to\specify.exe
-```
+Runner bind commit/tree, clone mới đúng SHA, dùng installed runtime cách ly và external working directory, giữ PYTHONPATH không được đặt, rồi ghi evidence ngoài source tree. Windows checkout được hỗ trợ theo .gitattributes; không yêu cầu core.autocrlf=false.
 
-Use Spec Kit `v1.0.11` and pass its executable explicitly. The runner creates a local fresh clone at the exact candidate SHA, runs from an external working directory with isolated Python and temporary user configuration, and writes the report outside the source tree. It does not need network access. `tooling.readiness_acceptance` remains a compatibility alias for this same runner.
+## Journey bắt buộc
 
-The runner performs the component regressions, Suite Doctor checks, installed public cross-kit flow, fresh-clone check, and full tooling unittest discovery. The public flow exercises the synthetic multi-repository path from Foundation approval through BA, Dev, manual Test, Automation, execution, defect/fix/retest, and a separate straight-pass execution. The fixture's Human receipts are explicitly `TEST_ONLY` and are accepted only through trusted host callbacks.
+~~~
+Project Foundation
+→ BA
+→ Dev
+→ Test Manual
+→ Automation
+→ Execution
+→ Finding → DEFECT → Dev Fix → READY_FOR_RETEST → Tester VERIFIED
+~~~
 
-Full tooling unittest discovery requires `pytest` in the invoking Python user site because several test modules import it during discovery. The runner verifies and reports that version, passes its site path explicitly to the isolated child after the fresh-clone path, and keeps `PYTHONPATH` absent.
+Có thêm straight-pass execution path. Negative probes phải bác bỏ: validator PASS được xem là approval; generated là approved; TEST_ONLY không có trusted test-only host; Dev tự claim VERIFIED; APPROVED_TESTWARE được xem là EXECUTION_READY; EXECUTION_READY được xem là PASS; Delivery Manifest là authority bắt buộc; READY_TO_MERGE là lifecycle state; command failure tự động thành DEFECT.
 
-Suite Doctor requires BA, Dev, and Test core readiness, current package and contract compatibility, Foundation runtime availability, public routers, runtime-ignore rules, and the Test package authority. Missing optional XMind or Excel projection dependencies may produce `DEGRADED` while core Test readiness passes. Any required runtime, package, integrity, or contract failure fails the Doctor.
+Synthetic Human receipts mang TEST_ONLY và not_for_production. Chỉ trusted test-only host path mới chấp nhận chúng. Chúng không phải ví dụ production approval.
 
-The report has evidence class `PUBLIC_CROSS_KIT_CONFORMANCE` and status `PASS` or `FAIL`. It binds the framework commit/tree, suite manifest and lock hashes, component and contract versions, Doctor results, scenario and trace checks, revision reproduction, fresh-clone status, and test totals. The report is evidence, not project or business authority.
+## Phân biệt kết quả
 
-## Candidate boundary
+- Kit Doctor DEGRADED nghĩa là capability tùy chọn như XMind/Excel chưa dùng được.
+- Conformance OPTIONAL_DEGRADED ghi riêng việc setup projection tùy chọn không thành công. Nó không đồng nghĩa Kit Doctor DEGRADED và không phải suite result.
+- Suite Doctor xác minh package/core compatibility; lỗi package hoặc contract bắt buộc là blocker.
+- Suite cuối cùng là PASS hoặc FAIL. Optional projection gap được phép có thể đi cùng PASS; hãy báo cả hai field.
 
-The candidate is internal only. Do not tag it or publish a GitHub Release in Phase 9. A passing report does not authorize merge; merge requires independent remote review. If source changes after the run, the lock and report are stale and the full public conformance run must be repeated.
+Report bind SHA/tree, phiên bản suite/Kits, authority/provenance package, Doctor results, test totals, trace, fresh clone và source immutability. Nếu source hoặc docs thay đổi, chạy lại toàn gate trên SHA sạch mới.
 
-The bootstrap specification `PHASE_9_PUBLIC_CROSS_KIT_CONFORMANCE_SPEC.md` is temporary input and is removed from the implementation branch before its candidate commit. Full repository documentation staleness review follows Phase 9 as a separate required lane.
+PASS là evidence cho Human review. PASS không cho phép merge, tag, GitHub Release hay stable publication. Xem [release status](RELEASE.md).
+
+---
+
+English: [Public Cross-Kit Conformance](../en/SDLC_SUITE_CONTRACT.md)
