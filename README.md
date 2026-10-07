@@ -2,6 +2,10 @@
 
 **Language:** English · [Tiếng Việt](README.vi.md)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](docs/en/INSTALLATION.md)
+[![Status](https://img.shields.io/badge/status-internal%20RC-orange.svg)](docs/en/RELEASE.md)
+
 A practical toolkit for software teams using AI coding agents across requirements, engineering, and testing — while keeping Human approval at the decisions that matter.
 
 The public product name is **Agent-Assisted SDLC Toolkit**. The GitHub repository is \`agent-skills\`; the machine suite ID \`agent-assisted-sdlc-vnext\` is an internal contract identifier.
