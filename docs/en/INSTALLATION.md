@@ -113,7 +113,7 @@ For maintainers, the BA installed acceptance runs the VNext lifecycle and exact 
 
 Requires:
 
-- Python 3.8+ for installer/validators;
+- Python 3.10+ as the supported BA/Test baseline;
 - an agent runtime with access to the project/artifacts being reviewed.
 
 The installer does not require Skills Manager, an agent profile, or global agent configuration changes.
@@ -225,7 +225,7 @@ The suite installs by capability; there is no single installer that installs all
 | Test Manual + Automation + Execution | tooling/install.ps1 test --agent codex --scope project (or install.sh) | tooling/doctor.ps1 test --agent codex --scope project |
 | Project Foundation | Shared runtime installed above; follow the [Foundation guide](PROJECT_FOUNDATION.md) | Run Foundation doctor through the installed workflow/host |
 
-BA and Test require Python 3.10+. Dev installer uses the selected Python to create an isolated runtime. Use the exact committed framework checkout selected for the work.
+BA and Test use Python 3.10+ as the documented support baseline. The Dev installer uses the selected Python to create an isolated runtime. For the least-surprising full-toolkit setup, use Python 3.10+ unless a newer requirement is stated by the selected Dev candidate. Use the exact committed framework checkout selected for the work.
 
 Normal supported Windows checkouts use repository .gitattributes to preserve package-source bytes. core.autocrlf=false is not a required operator setting. Do not edit package authority hashes.
 

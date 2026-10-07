@@ -38,7 +38,7 @@ Project Foundation
 → quyết định Human riêng cho merge / release
 ~~~
 
-Tester phân loại Finding thành DEFECT, SPEC_GAP, BUSINESS_DECISION_REQUIRED, TEST_ISSUE, hoặc ENVIRONMENT_ISSUE. Chỉ DEFECT đi qua defect handoff tới Dev. Command failure tự nó chưa phải DEFECT. Dev sửa bằng FEATURE_DELIVERY, trả READY_FOR_RETEST, rồi Tester retest.
+Tester có thể tạo VERIFIED trực tiếp sau lần execution đầu tiên sạch khi mọi Observation bắt buộc đều PASS và không còn Finding mở. Retest chỉ bắt buộc sau đường DEFECT → Dev Fix. Finding được phân loại thành DEFECT, SPEC_GAP, BUSINESS_DECISION_REQUIRED, TEST_ISSUE hoặc ENVIRONMENT_ISSUE. Chỉ DEFECT đi qua defect handoff tới Dev. Command failure tự nó chưa phải DEFECT. Dev sửa bằng FEATURE_DELIVERY, trả READY_FOR_RETEST, rồi Tester retest.
 
 ## Human Gates và giới hạn
 

@@ -32,13 +32,16 @@ Project Foundation
 → Test Design → Human approval → APPROVED_DESIGN
 → Testcases → Human approval → APPROVED_TESTWARE
 → Automation Plan → implementation/review → automation verification → EXECUTION_READY
-→ Execution → Observation → Finding classification
-→ Dev Fix when applicable → READY_FOR_RETEST
-→ Tester retest → VERIFIED / REOPENED
+→ Execution → Observation
+   ├─ all required tests PASS and no open Finding → Tester VERIFIED
+   └─ Finding → classification
+      ├─ DEFECT → Dev Fix → READY_FOR_RETEST → Tester retest → VERIFIED / REOPENED
+      └─ SPEC_GAP / BUSINESS_DECISION_REQUIRED / TEST_ISSUE / ENVIRONMENT_ISSUE
+         → route to the responsible owner and resolve before verification
 → separate Human merge / release decision
 ~~~
 
-The Tester classifies a Finding as DEFECT, SPEC_GAP, BUSINESS_DECISION_REQUIRED, TEST_ISSUE, or ENVIRONMENT_ISSUE. Only a DEFECT uses the defect handoff to Dev. A command failure alone is not a DEFECT. Dev fixes through FEATURE_DELIVERY, returns READY_FOR_RETEST, and the Tester retests.
+The Tester can issue VERIFIED directly after a clean initial execution when every required observation passes and no Finding remains open. Retest is required only after a defect/fix path. A Finding is classified as DEFECT, SPEC_GAP, BUSINESS_DECISION_REQUIRED, TEST_ISSUE, or ENVIRONMENT_ISSUE. Only a DEFECT uses the defect handoff to Dev. A command failure alone is not a DEFECT. Dev fixes through FEATURE_DELIVERY, returns READY_FOR_RETEST, and the Tester retests.
 
 ## Human gates and boundaries
 
@@ -56,7 +59,7 @@ READY_FOR_TEST is a Dev handoff, not VERIFIED. A Dev fix does not create Tester 
 | READY_FOR_TEST | Dev | Engineering work, checks, and handoff are complete |
 | APPROVED_DESIGN, APPROVED_TESTWARE | Human for each Test snapshot | Design coverage / testware is approved |
 | EXECUTION_READY | Automation workflow after review | Automation and execution authority are bound |
-| Finding classification / VERIFIED | Authenticated Tester | Observations and retest against the approved oracle |
+| Finding classification / VERIFIED | Authenticated Tester | Execution observations against the approved oracle; retest when a defect/fix path was used |
 | Merge / release | Human outside this lifecycle | Separate integration or release decision |
 
 See [BA workflow](BA_KIT_WORKFLOW.md), [Dev operator guide](DEV_KIT_GUIDE.md), [Manual Test](TEST_KIT_MANUAL.md), [Automation](TEST_AUTOMATION_V1.md), and [Execution / Retest](TEST_EXECUTION_VNEXT.md). State ownership and next transitions are in [Readiness states](READINESS_STATES.md); recovery is in [Troubleshooting](TROUBLESHOOTING.md).

@@ -1,60 +1,134 @@
-# Agent-Assisted SDLC Framework
+# Agent-Assisted SDLC Toolkit
 
-An agent-assisted workflow for teams that need traceable requirements, bounded engineering work, approved testware, execution evidence, and Human-owned decisions. It serves Project Owners, Tech Leads, BAs, Developers, Testers, Automation Testers, and maintainers.
+A practical toolkit for software teams using AI coding agents across requirements, engineering, and testing — while keeping Human approval at the decisions that matter.
 
-## Current candidate
+The public product name is **Agent-Assisted SDLC Toolkit**. The GitHub repository is \`agent-skills\`; the machine suite ID \`agent-assisted-sdlc-vnext\` is an internal contract identifier.
 
-Machine-readable manifests own suite identity and package versions: [suite manifest](tooling/sdlc-suite.json) and [acceptance contract](tooling/sdlc-suite-acceptance.yaml).
+> New here? Start with [Getting Started](docs/en/GETTING_STARTED.md). Vietnamese: [Bắt đầu](docs/vi/GETTING_STARTED.md).
 
-| Component | Current identity | Responsibility |
+## What problem does it solve?
+
+AI agents can produce useful work quickly, but teams still need clear ownership, reproducible handoffs, review gates, and evidence that later stages used the right approved inputs.
+
+This toolkit separates responsibilities:
+
+| Capability | Owns | Use it when |
 |---|---|---|
-| Suite | agent-assisted-sdlc-vnext 1.0.0-rc.4 · INTERNAL_RC_CANDIDATE | Integrated contracts and cross-Kit compatibility |
-| Project Foundation | Shared SDLC capability | Bounded project context, recovery, bootstrap, and refresh |
-| BA Kit | 2.0.0-rc.6 | Business WHAT and approved Engineering Handoff |
-| Dev Kit VNext | 0.4.0-rc.4 | Engineering impact, ownership, technical decisions, implementation HOW |
-| Test Kit VNext | 2.0.0-rc.14 | Manual testware, automation readiness, execution, Findings, and retest evidence |
+| **Project Foundation** | Project context | Starting a new project, recovering a brownfield project, or refreshing stale system knowledge |
+| **BA Kit** | **WHAT** the system must do | Requirements, business rules, SRS, ambiguity resolution, approved Engineering Handoff |
+| **Dev Kit** | **WHERE / WHO OWNS / HOW** | Impact analysis, technical decisions, implementation, engineering verification |
+| **Test Kit** | **PROVE IT** | Test Design, Testcases, Automation, Execution, Findings, defects, retest and verification |
 
-These are internal prerelease candidates, not a stable release.
+You can use a Kit independently when its required authority inputs already exist, or use the full flow.
 
-## Lifecycle
+## How the full flow works
 
+~~~text
+Requirement / Change
+        │
+        ▼
+Project Foundation ── when project context must be created or recovered
+        │
+        ▼
+BA Kit ── defines WHAT
+        │
+        │ Human approves the exact business baseline
+        ▼
+Dev Kit ── designs and implements HOW
+        │
+        ▼
+READY_FOR_TEST
+        │
+        ▼
+Test Kit
+   │
+   ├─ all required tests PASS, no open Finding
+   │      └─ Tester → VERIFIED
+   │
+   └─ Finding
+          ├─ DEFECT → Dev Fix → READY_FOR_RETEST → Tester Retest
+          │              ├─ PASS → VERIFIED
+          │              └─ FINDING → REOPENED
+          └─ SPEC_GAP / BUSINESS_DECISION_REQUIRED /
+             TEST_ISSUE / ENVIRONMENT_ISSUE
+             → route to the responsible owner
 ~~~
-Project Foundation
-→ BA
-→ UX / Interaction Contract when required
-→ Engineering Handoff
-→ Engineering / Dev → READY_FOR_TEST
-→ Test Design → APPROVED_DESIGN
-→ Testcases → APPROVED_TESTWARE
-→ Automation Plan → implementation/review → EXECUTION_READY
-→ Execution → Observation → Finding classification
-→ Dev Fix where applicable → READY_FOR_RETEST
-→ Tester retest → VERIFIED or REOPENED
-→ separate Human merge / release decision
+
+\`VERIFIED\` ends the framework's product-verification lifecycle. Merge and release remain separate Human decisions.
+
+## Start in five minutes
+
+1. Read [Getting Started](docs/en/GETTING_STARTED.md) or [Bắt đầu](docs/vi/GETTING_STARTED.md).
+2. Choose the Kit for your role; you do **not** need to install every Kit.
+3. Install from an exact committed ref and run the matching Doctor.
+4. Try the [small end-to-end example](docs/en/FULL_FLOW_EXAMPLE.md).
+5. Use [FAQ](docs/en/FAQ.md) if a term or boundary is unclear.
+
+For complete commands, supported targets, upgrades, and recovery, see [Installation](docs/en/INSTALLATION.md).
+
+## Human control is intentional
+
+The toolkit never treats an agent-generated file, validator result, or Doctor result as Human approval.
+
+~~~text
+CONTINUE != APPROVE
+ANSWER != APPROVE
+validator PASS != APPROVE
+generated != APPROVED
+READY_FOR_TEST != VERIFIED
+APPROVED_TESTWARE != EXECUTION_READY
+EXECUTION_READY != PASS
 ~~~
 
-Project Foundation supplies project context; it is not a fourth role Kit or business approval. BA owns WHAT. Engineering owns WHERE, WHO OWNS, and HOW. Test proves approved behavior. The Human retains final semantic authority.
+Human approval is bound to exact reviewed artifacts where the workflow requires it.
 
-CONTINUE, ANSWER, validator PASS, generation, and Doctor readiness never mean approval. READY_FOR_TEST is a Dev handoff. APPROVED_TESTWARE is not execution readiness. EXECUTION_READY is not a passing run. Only the Tester can issue VERIFIED after required evidence and retest.
+## Supported path
 
-## Choose a starting point
+- **Primary verified end-to-end path:** Codex-based workflow with the repository's current Spec Kit integration.
+- **BA Kit:** also exposes Claude Code and generic installation targets where documented.
+- **Python:** use Python **3.10+** for the documented BA/Test support baseline and the simplest full-toolkit setup.
+- **Windows/Linux:** supported repository checkout behavior is controlled by \`.gitattributes\`; no hidden \`core.autocrlf=false\` prerequisite.
+- **XMind / Excel projections:** optional; missing projections do not make the Test core unusable.
 
-- New team member: [Vietnamese suite index](docs/vi/README.md) · [English suite index](docs/en/README.md)
-- Project Owner / Tech Lead: [Project Foundation](docs/project-foundation.md) · [architecture and lifecycle](docs/en/ARCHITECTURE.md) · [readiness terms](docs/en/READINESS_STATES.md)
-- BA: [BA Kit workflow](docs/vi/BA_KIT_WORKFLOW.md) · [English guide](docs/en/BA_KIT_WORKFLOW.md)
-- Developer: [Dev Kit VNext](kits/dev/README.md) · [Vietnamese operator guides](docs/vi/DEV_KIT_WORKFLOW.md) · [English Dev guide](docs/en/DEV_KIT_GUIDE.md)
-- Tester / QA: [Manual Test](docs/vi/TEST_KIT_QUICKSTART.md) · [English overview](docs/en/TEST_KIT_MANUAL.md)
-- Automation Tester: [Automation](docs/en/TEST_AUTOMATION_V1.md) · [Vietnamese guide](docs/vi/TEST_AUTOMATION_V1.md)
-- Maintainer: [Installation](docs/en/INSTALLATION.md) · [Troubleshooting](docs/en/TROUBLESHOOTING.md) · [Packaging reference](tooling/PACKAGING.md) · [Release status](docs/en/RELEASE.md)
+See [Installation](docs/en/INSTALLATION.md) for exact capability-specific requirements.
 
-The [Kit catalog](kits/README.md) lists current roles and entry points. Installation differs by capability; start at [English Installation](docs/en/INSTALLATION.md) or [Cài đặt](docs/vi/INSTALLATION.md).
+## Documentation
 
-## Public Cross-Kit Conformance
+### I just want to use the toolkit
 
-Every internal candidate must pass [Public Cross-Kit Conformance](docs/en/SDLC_SUITE_CONTRACT.md) on its exact clean commit from a fresh clone. It exercises Foundation through verification, including defect/retest and straight-pass paths. PASS is evidence for review; it does not authorize merge or release.
+- [Getting Started](docs/en/GETTING_STARTED.md) · [Bắt đầu](docs/vi/GETTING_STARTED.md)
+- [Full Flow Example](docs/en/FULL_FLOW_EXAMPLE.md) · [Ví dụ full flow](docs/vi/FULL_FLOW_EXAMPLE.md)
+- [FAQ](docs/en/FAQ.md) · [Câu hỏi thường gặp](docs/vi/FAQ.md)
+- [Installation](docs/en/INSTALLATION.md) · [Cài đặt](docs/vi/INSTALLATION.md)
+- [Troubleshooting](docs/en/TROUBLESHOOTING.md) · [Khắc phục sự cố](docs/vi/TROUBLESHOOTING.md)
 
-## Current, compatible, and historical material
+### I use one role/Kit
 
-Current operator guidance is indexed above. LEGACY_COMPAT material supports explicit read-only compatibility. HISTORICAL material records prior decisions or experiments. Delivery Manifest V2 is DEFERRED_NON_AUTHORITATIVE and is not required by the current lifecycle. See [Legacy and history](docs/LEGACY_AND_HISTORY.md).
+- BA: [BA workflow](docs/en/BA_KIT_WORKFLOW.md) · [Tiếng Việt](docs/vi/BA_KIT_WORKFLOW.md)
+- Developer: [Dev guide](docs/en/DEV_KIT_GUIDE.md) · [Tiếng Việt](docs/vi/DEV_KIT_WORKFLOW.md)
+- Tester: [Manual Test overview](docs/en/TEST_KIT_MANUAL.md) · [Tiếng Việt](docs/vi/TEST_KIT_QUICKSTART.md)
+- Automation / Execution: [Automation](docs/en/TEST_AUTOMATION_V1.md) · [Execution & Retest](docs/en/TEST_EXECUTION_VNEXT.md)
+- Project Owner / Tech Lead: [Project Foundation](docs/en/PROJECT_FOUNDATION.md)
 
-Human review is the next gate for this internal RC candidate. A conformance PASS does not authorize merge, tag, GitHub Release, or stable release.
+### I need the contracts/reference
+
+- [Architecture and lifecycle](docs/en/ARCHITECTURE.md)
+- [Readiness states](docs/en/READINESS_STATES.md)
+- [Public Cross-Kit Conformance](docs/en/SDLC_SUITE_CONTRACT.md)
+- [Packaging](tooling/PACKAGING.md)
+- [Legacy and history](docs/LEGACY_AND_HISTORY.md)
+
+The detailed contracts are intentionally separate from the newcomer path.
+
+## Current release status
+
+This repository is still an **internal prerelease candidate**, not a stable public release. Machine-readable manifests own the exact versions:
+
+| Component | Current candidate |
+|---|---|
+| Suite | \`agent-assisted-sdlc-vnext 1.0.0-rc.4\` |
+| BA Kit | \`2.0.0-rc.6\` |
+| Dev Kit | \`0.4.0-rc.4\` |
+| Test Kit | \`2.0.0-rc.14\` |
+
+See [Release status](docs/en/RELEASE.md). Conformance PASS is evidence for Human review; it does not authorize merge, tag, or release.

@@ -165,7 +165,7 @@ Maintainer acceptance cho Test gồm cài vào project sạch, chạy Doctor, ho
 
 Cần:
 
-- Python 3.8+ cho installer/validators;
+- Python 3.10+ là baseline được hỗ trợ cho BA/Test;
 - agent runtime có quyền đọc project/artifact cần review.
 
 Installer không yêu cầu Skills Manager, agent profile hay global config change.
@@ -281,7 +281,7 @@ Mỗi capability có cách cài riêng; suite không có một lệnh cài tất
 | Test Manual + Automation + Execution | tooling/install.ps1 test --agent codex --scope project (hoặc install.sh) | tooling/doctor.ps1 test --agent codex --scope project |
 | Project Foundation | Shared runtime ở trên; theo [Foundation guide](PROJECT_FOUNDATION.md) | Chạy Foundation doctor qua workflow/host đã cài |
 
-BA và Test cần Python 3.10+. Dev installer dùng Python đã chọn để tạo runtime cách ly. Dùng committed framework checkout đúng revision.
+BA và Test dùng Python 3.10+ làm baseline hỗ trợ trong tài liệu. Dev installer dùng Python đã chọn để tạo runtime cách ly. Để cấu hình full toolkit ít bất ngờ nhất, dùng Python 3.10+ trừ khi candidate Dev được chọn yêu cầu bản mới hơn. Luôn dùng committed framework checkout đúng revision.
 
 Windows checkout mặc định được hỗ trợ nhờ .gitattributes giữ package-source bytes ổn định. core.autocrlf=false không phải prerequisite. Không sửa hash package authority bằng tay.
 
