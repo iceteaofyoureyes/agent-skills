@@ -54,7 +54,7 @@ PowerShell:
 & 'C:\path\to\agent-skills\tooling\doctor.ps1' ba --agent codex --scope project
 ~~~
 
-Linux/macOS-style shell:
+Linux shell:
 
 ~~~bash
 /path/to/agent-skills/tooling/install.sh ba --agent codex --scope project

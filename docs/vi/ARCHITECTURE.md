@@ -32,9 +32,12 @@ Project Foundation
 → Test Design → Human approval → APPROVED_DESIGN
 → Testcases → Human approval → APPROVED_TESTWARE
 → Automation Plan → implementation/review → automation verification → EXECUTION_READY
-→ Execution → Observation → Finding classification
-→ Dev Fix khi áp dụng → READY_FOR_RETEST
-→ Tester retest → VERIFIED / REOPENED
+→ Execution → Observation
+   ├─ mọi test bắt buộc PASS và không còn Finding mở → Tester VERIFIED
+   └─ Finding → classification
+      ├─ DEFECT → Dev Fix → READY_FOR_RETEST → Tester retest → VERIFIED / REOPENED
+      └─ SPEC_GAP / BUSINESS_DECISION_REQUIRED / TEST_ISSUE / ENVIRONMENT_ISSUE
+         → route tới owner phù hợp và xử lý trước verification
 → quyết định Human riêng cho merge / release
 ~~~
 
