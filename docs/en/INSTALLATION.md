@@ -221,7 +221,7 @@ The suite installs by capability; there is no single installer that installs all
 | Capability | Install path | Verify |
 |---|---|---|
 | BA | tooling/install.ps1 ba --agent codex --scope project (or install.sh) | tooling/doctor.ps1 ba --agent codex --scope project |
-| Dev VNext and Shared runtime | python -I tooling/install_dev_kit.py --source-root <checkout> --install-home <install-home> | Add <install-home>/bin to PATH; run devkit doctor |
+| Dev VNext and Shared runtime | python -I tooling/install_dev_kit.py --source-root <checkout> --install-home <install-home> | Add <install-home>/bin to PATH; run `devkit doctor` |
 | Test Manual + Automation + Execution | tooling/install.ps1 test --agent codex --scope project (or install.sh) | tooling/doctor.ps1 test --agent codex --scope project |
 | Project Foundation | Shared runtime installed above; follow the [Foundation guide](PROJECT_FOUNDATION.md) | Run Foundation doctor through the installed workflow/host |
 

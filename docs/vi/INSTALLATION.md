@@ -277,7 +277,7 @@ Mỗi capability có cách cài riêng; suite không có một lệnh cài tất
 | Capability | Cài đặt | Xác minh |
 |---|---|---|
 | BA | tooling/install.ps1 ba --agent codex --scope project (hoặc install.sh) | tooling/doctor.ps1 ba --agent codex --scope project |
-| Dev VNext và Shared runtime | python -I tooling/install_dev_kit.py --source-root <checkout> --install-home <install-home> | Thêm <install-home>/bin vào PATH; chạy devkit doctor |
+| Dev VNext và Shared runtime | python -I tooling/install_dev_kit.py --source-root <checkout> --install-home <install-home> | Thêm <install-home>/bin vào PATH; chạy `devkit doctor` |
 | Test Manual + Automation + Execution | tooling/install.ps1 test --agent codex --scope project (hoặc install.sh) | tooling/doctor.ps1 test --agent codex --scope project |
 | Project Foundation | Shared runtime ở trên; theo [Foundation guide](PROJECT_FOUNDATION.md) | Chạy Foundation doctor qua workflow/host đã cài |
 

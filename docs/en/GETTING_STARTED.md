@@ -41,6 +41,8 @@ git checkout "<approved-ref>"
 git rev-parse HEAD
 ~~~
 
+Replace `<approved-ref>` with the tag or commit SHA supplied by the maintainer/release evidence. If you are intentionally evaluating the current development branch, use `main` and still record the resolved SHA.
+
 Keep the resolved SHA with your installation/review evidence.
 
 ## 4. Install only the Kit you need
@@ -72,9 +74,25 @@ Linux shell:
 
 ~~~powershell
 python -I C:\path\to\agent-skills\tooling\install_dev_kit.py --source-root C:\path\to\agent-skills --install-home C:\agent-runtime
+$env:Path = "C:\agent-runtime\bin;$env:Path"
+devkit doctor
 ~~~
 
-Then use the installed Dev runtime/Doctor described in [Installation](INSTALLATION.md) and [Dev Kit README](../../kits/dev/README.md).
+Linux:
+
+~~~bash
+python -I /path/to/agent-skills/tooling/install_dev_kit.py --source-root /path/to/agent-skills --install-home ~/.devkit
+export PATH="$HOME/.devkit/bin:$PATH"
+devkit doctor
+~~~
+
+See [Dev Kit README](../../kits/dev/README.md) for the feature-delivery workflow.
+
+### Project Foundation
+
+Project Foundation uses the same Shared runtime installed by the Dev installer. You do not install a separate fourth Kit. After the Shared runtime is installed, follow the [Project Foundation guide](PROJECT_FOUNDATION.md) to establish the project topology/policy and run the Foundation inventory/recovery workflow.
+
+The installed Foundation script lives under `<install-home>/runtime/v2/project-foundation/`.
 
 A Doctor result proves package/capability readiness only. It is not Human approval and not product verification.
 

@@ -16,8 +16,8 @@ Foundation ghi nhận:
 
 - screen/service hiện tại nằm ở đâu;
 - điều gì đã xác nhận về current system;
-- điều gì mới là inference;
-- điều gì vẫn UNKNOWN;
+- điều gì mới chỉ là suy luận, chưa được xác nhận;
+- điều gì vẫn chưa biết;
 - repository boundary liên quan.
 
 Foundation **không** quyết định behavior search mới.
@@ -55,7 +55,7 @@ Dev nhận Engineering Handoff đã approved rồi xác định:
 - engineering decision quan trọng;
 - build/static/unit/integration checks.
 
-Nếu Dev phát hiện business rule chưa rõ, Dev route \`UPSTREAM_GAP\`, không tự đoán WHAT.
+Nếu Dev phát hiện business rule chưa rõ, Dev dừng và báo upstream requirement gap (\`UPSTREAM_GAP\`), không tự đoán WHAT.
 
 Sau implementation và engineering verification:
 
@@ -112,7 +112,7 @@ Tester ghi Observation và classify Finding. Nếu đó là product defect:
 ~~~text
 Finding
 → DEFECT
-→ DEFECT_READY_FOR_DEV
+→ defect handoff cho Dev (DEFECT_READY_FOR_DEV)
 → Dev Fix
 → fresh engineering verification
 → READY_FOR_RETEST

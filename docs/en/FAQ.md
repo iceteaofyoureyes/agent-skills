@@ -24,6 +24,14 @@ Yes. Brownfield recovery is a first-class use case. Current code/behavior is evi
 
 Yes. Foundation can bootstrap target project context, while BA/Human approval still owns business behavior.
 
+## Where does the toolkit install?
+
+BA/Test project-scope installs use the agent's project skill directory (for Codex, `.agents/skills`). Dev/Shared runtime is installed into the explicit `--install-home` you choose. Project-owned outputs remain in the project/workflow locations defined by each Kit. See [Installation](INSTALLATION.md) before installing into an existing project.
+
+## Can I evaluate the toolkit without installing every Kit?
+
+Yes. Read Getting Started and the Full Flow Example first, then install only the Kit you want to try. The integrated lifecycle does not require every role to be installed on every machine.
+
 ## Does the agent approve decisions automatically?
 
 No. \`CONTINUE\`, \`ANSWER\`, validator PASS, Doctor READY, and generated artifacts are not approval.

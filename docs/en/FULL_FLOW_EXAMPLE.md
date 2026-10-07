@@ -16,7 +16,7 @@ Foundation records:
 
 - where the current screen/service lives;
 - what is confirmed about the current system;
-- what is inferred;
+- what is inferred rather than confirmed;
 - what is still unknown;
 - the relevant repository boundaries.
 
@@ -55,7 +55,7 @@ Dev consumes the approved Engineering Handoff and determines:
 - material engineering decisions;
 - build/static/unit/integration checks.
 
-If Dev discovers an unclear business rule, it routes \`UPSTREAM_GAP\`; it does not invent WHAT.
+If Dev discovers an unclear business rule, it stops and reports an upstream requirement gap (\`UPSTREAM_GAP\`); it does not invent WHAT.
 
 After implementation and engineering verification:
 
@@ -112,7 +112,7 @@ The Tester records the Observation and classifies the Finding. If it is a produc
 ~~~text
 Finding
 → DEFECT
-→ DEFECT_READY_FOR_DEV
+→ defect handoff to Dev (DEFECT_READY_FOR_DEV)
 → Dev Fix
 → fresh engineering verification
 → READY_FOR_RETEST

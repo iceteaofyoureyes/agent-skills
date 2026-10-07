@@ -24,6 +24,14 @@ Không. Đây là shared workflow/capability để bootstrap hoặc recover proj
 
 Được. Foundation có thể bootstrap target project context; business behavior vẫn thuộc BA/Human approval.
 
+## Toolkit cài file vào đâu?
+
+BA/Test ở project scope cài vào skill directory của agent (với Codex là `.agents/skills`). Dev/Shared runtime cài vào `--install-home` mà người dùng chọn. Output thuộc project vẫn nằm ở các workflow path do từng Kit định nghĩa. Nên đọc [Cài đặt](INSTALLATION.md) trước khi cài vào project đang dùng.
+
+## Tôi có thể xem thử mà không cài cả bộ không?
+
+Có. Đọc Bắt đầu và Ví dụ Full Flow trước, sau đó chỉ cài Kit muốn thử. Full lifecycle không yêu cầu mọi role phải được cài trên cùng một máy.
+
 ## Agent có tự approve không?
 
 Không. \`CONTINUE\`, \`ANSWER\`, validator PASS, Doctor READY và generated artifact đều không phải approval.

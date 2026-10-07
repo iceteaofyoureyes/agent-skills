@@ -41,6 +41,8 @@ git checkout "<approved-ref>"
 git rev-parse HEAD
 ~~~
 
+Thay `<approved-ref>` bằng tag hoặc commit SHA do maintainer/release evidence cung cấp. Nếu chủ động đánh giá development branch hiện tại, có thể dùng `main` nhưng vẫn phải ghi lại SHA đã resolve.
+
 Lưu SHA đã resolve cùng evidence cài đặt/review.
 
 ## 4. Chỉ cài Kit cần dùng
@@ -63,9 +65,25 @@ Lưu SHA đã resolve cùng evidence cài đặt/review.
 
 ~~~powershell
 python -I C:\path\to\agent-skills\tooling\install_dev_kit.py --source-root C:\path\to\agent-skills --install-home C:\agent-runtime
+$env:Path = "C:\agent-runtime\bin;$env:Path"
+devkit doctor
 ~~~
 
-Sau đó dùng Dev runtime/Doctor theo [Cài đặt](INSTALLATION.md) và [Dev Kit README](../../kits/dev/README.md).
+Linux:
+
+~~~bash
+python -I /path/to/agent-skills/tooling/install_dev_kit.py --source-root /path/to/agent-skills --install-home ~/.devkit
+export PATH="$HOME/.devkit/bin:$PATH"
+devkit doctor
+~~~
+
+Xem [Dev Kit README](../../kits/dev/README.md) cho feature-delivery workflow.
+
+### Project Foundation
+
+Project Foundation dùng cùng Shared runtime do Dev installer cài; không có Kit thứ tư cần cài riêng. Sau khi có Shared runtime, theo [Project Foundation guide](PROJECT_FOUNDATION.md) để thiết lập project topology/policy rồi chạy inventory/recovery.
+
+Foundation script đã cài nằm dưới `<install-home>/runtime/v2/project-foundation/`.
 
 Doctor chỉ chứng minh package/capability sẵn sàng. Doctor không phải Human approval và không phải product verification.
 
