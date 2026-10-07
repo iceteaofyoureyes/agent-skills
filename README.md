@@ -1,50 +1,42 @@
 # Agent-Assisted SDLC Toolkit
 
-> **Tiếng Việt là ngôn ngữ tài liệu chính.**  
-> English readers: start at [English Getting Started](docs/en/GETTING_STARTED.md) or [English documentation](docs/en/README.md).
+**Language:** English · [Tiếng Việt](README.vi.md)
 
-Bộ toolkit thực tế dành cho team phát triển phần mềm sử dụng AI coding agents xuyên suốt requirement, engineering và testing — nhưng vẫn giữ **Human authority** tại những quyết định quan trọng.
+A practical toolkit for software teams using AI coding agents across requirements, engineering, and testing — while keeping Human approval at the decisions that matter.
 
-**Agent-Assisted SDLC Toolkit** là tên sản phẩm public-facing. \`agent-skills\` là tên repository; \`agent-assisted-sdlc-vnext\` là machine suite ID dùng cho contract nội bộ.
+The public product name is **Agent-Assisted SDLC Toolkit**. The GitHub repository is \`agent-skills\`; the machine suite ID \`agent-assisted-sdlc-vnext\` is an internal contract identifier.
 
-> Mới bắt đầu? Đọc [Bắt đầu](docs/vi/GETTING_STARTED.md).  
-> New here? Read [Getting Started](docs/en/GETTING_STARTED.md).
+> New here? Start with [Getting Started](docs/en/GETTING_STARTED.md). Vietnamese: [Bắt đầu](docs/vi/GETTING_STARTED.md).
 
-## Bộ này giải quyết vấn đề gì?
+## What problem does it solve?
 
-AI agent có thể làm việc rất nhanh, nhưng team vẫn cần:
+AI agents can produce useful work quickly, but teams still need clear ownership, reproducible handoffs, review gates, and evidence that later stages used the right approved inputs.
 
-- phân định rõ ai sở hữu WHAT / HOW / verification;
-- handoff có trace và bind đúng input đã được duyệt;
-- Human Gate ở các quyết định cần authority;
-- evidence để biết stage sau đang dùng đúng requirement / implementation / testcase;
-- fail-closed khi context, approval hoặc revision không còn hợp lệ.
+This toolkit separates responsibilities:
 
-Toolkit tách trách nhiệm thành bốn capability chính:
-
-| Capability | Sở hữu | Dùng khi |
+| Capability | Owns | Use it when |
 |---|---|---|
-| **Project Foundation** | Project context | Project mới, brownfield recovery hoặc cần refresh context hệ thống |
-| **BA Kit** | **WHAT** hệ thống cần làm | Requirement, Business Rules, SRS, clarification, Engineering Handoff |
+| **Project Foundation** | Project context | Starting a new project, recovering a brownfield project, or refreshing stale system knowledge |
+| **BA Kit** | **WHAT** the system must do | Requirements, business rules, SRS, ambiguity resolution, approved Engineering Handoff |
 | **Dev Kit** | **WHERE / WHO OWNS / HOW** | Impact analysis, technical decisions, implementation, engineering verification |
-| **Test Kit** | **PROVE IT** | Test Design, Testcases, Automation, Execution, Finding, defect, retest, verification |
+| **Test Kit** | **PROVE IT** | Test Design, Testcases, Automation, Execution, Findings, defects, retest and verification |
 
-Không bắt buộc phải dùng cả ba Kit. Có thể dùng từng Kit độc lập nếu authority input bắt buộc đã tồn tại.
+You can use a Kit independently when its required authority inputs already exist, or use the full flow.
 
-## Full flow hoạt động như nào?
+## How the full flow works
 
 ~~~text
 Requirement / Change
         │
         ▼
-Project Foundation ── khi cần tạo hoặc khôi phục project context
+Project Foundation ── when project context must be created or recovered
         │
         ▼
-BA Kit ── chốt WHAT
+BA Kit ── defines WHAT
         │
-        │ Human approve exact business baseline
+        │ Human approves the exact business baseline
         ▼
-Dev Kit ── thiết kế và implement HOW
+Dev Kit ── designs and implements HOW
         │
         ▼
 READY_FOR_TEST
@@ -52,7 +44,7 @@ READY_FOR_TEST
         ▼
 Test Kit
    │
-   ├─ mọi required test PASS, không còn Finding
+   ├─ all required tests PASS, no open Finding
    │      └─ Tester → VERIFIED
    │
    └─ Finding
@@ -61,26 +53,24 @@ Test Kit
           │              └─ FINDING → REOPENED
           └─ SPEC_GAP / BUSINESS_DECISION_REQUIRED /
              TEST_ISSUE / ENVIRONMENT_ISSUE
-             → route tới owner phù hợp
+             → route to the responsible owner
 ~~~
 
-\`VERIFIED\` kết thúc product-verification lifecycle của framework. **Merge/release vẫn là quyết định Human riêng.**
+\`VERIFIED\` ends the framework's product-verification lifecycle. Merge and release remain separate Human decisions.
 
-## Bắt đầu trong 5 phút
+## Start in five minutes
 
-1. Đọc [Bắt đầu](docs/vi/GETTING_STARTED.md).
-2. Chọn đúng Kit cho vai trò; **không cần cài tất cả**.
-3. Cài từ exact committed ref và chạy Doctor tương ứng.
-4. Xem [Ví dụ Full Flow](docs/vi/FULL_FLOW_EXAMPLE.md).
-5. Nếu còn thuật ngữ chưa rõ, đọc [FAQ](docs/vi/FAQ.md).
+1. Read [Getting Started](docs/en/GETTING_STARTED.md) or [Bắt đầu](docs/vi/GETTING_STARTED.md).
+2. Choose the Kit for your role; you do **not** need to install every Kit.
+3. Install from an exact committed ref and run the matching Doctor.
+4. Try the [small end-to-end example](docs/en/FULL_FLOW_EXAMPLE.md).
+5. Use [FAQ](docs/en/FAQ.md) if a term or boundary is unclear.
 
-Command cài đặt, supported targets, upgrade và recovery: [Cài đặt](docs/vi/INSTALLATION.md).
+For complete commands, supported targets, upgrades, and recovery, see [Installation](docs/en/INSTALLATION.md).
 
-English: [Getting Started](docs/en/GETTING_STARTED.md) · [Installation](docs/en/INSTALLATION.md)
+## Human control is intentional
 
-## Human vẫn giữ quyền quyết định
-
-Toolkit không xem output do agent sinh ra, validator PASS hay Doctor READY là approval.
+The toolkit never treats an agent-generated file, validator result, or Doctor result as Human approval.
 
 ~~~text
 CONTINUE != APPROVE
@@ -92,49 +82,49 @@ APPROVED_TESTWARE != EXECUTION_READY
 EXECUTION_READY != PASS
 ~~~
 
-Khi workflow yêu cầu Human Gate, approval được bind với đúng artifact/revision đã review.
+Human approval is bound to exact reviewed artifacts where the workflow requires it.
 
-## Supported path hiện tại
+## Supported path
 
-- **Primary verified end-to-end path:** Codex + integration hiện tại của toolkit.
-- **BA Kit:** có thêm Claude Code và generic installation targets ở những nơi tài liệu ghi rõ.
-- **Python:** dùng Python **3.10+** cho documented BA/Test baseline và cấu hình full-toolkit ít bất ngờ nhất.
-- **Windows/Linux:** checkout behavior được kiểm soát bằng \`.gitattributes\`; không có hidden prerequisite \`core.autocrlf=false\`.
-- **XMind / Excel projection:** optional; thiếu projection không làm Test core unusable.
+- **Primary verified end-to-end path:** Codex-based workflow with the repository's current Spec Kit integration.
+- **BA Kit:** also exposes Claude Code and generic installation targets where documented.
+- **Python:** use Python **3.10+** for the documented BA/Test support baseline and the simplest full-toolkit setup.
+- **Windows/Linux:** supported repository checkout behavior is controlled by \`.gitattributes\`; no hidden \`core.autocrlf=false\` prerequisite.
+- **XMind / Excel projections:** optional; missing projections do not make the Test core unusable.
 
-Chi tiết: [Cài đặt](docs/vi/INSTALLATION.md).
+See [Installation](docs/en/INSTALLATION.md) for exact capability-specific requirements.
 
-## Tài liệu
+## Documentation
 
-### Tôi chỉ muốn dùng Toolkit
+### I just want to use the toolkit
 
-- [Bắt đầu](docs/vi/GETTING_STARTED.md) · [Getting Started](docs/en/GETTING_STARTED.md)
-- [Ví dụ Full Flow](docs/vi/FULL_FLOW_EXAMPLE.md) · [Full Flow Example](docs/en/FULL_FLOW_EXAMPLE.md)
-- [FAQ](docs/vi/FAQ.md) · [English FAQ](docs/en/FAQ.md)
-- [Cài đặt](docs/vi/INSTALLATION.md) · [Installation](docs/en/INSTALLATION.md)
-- [Troubleshooting](docs/vi/TROUBLESHOOTING.md) · [English](docs/en/TROUBLESHOOTING.md)
+- [Getting Started](docs/en/GETTING_STARTED.md) · [Bắt đầu](docs/vi/GETTING_STARTED.md)
+- [Full Flow Example](docs/en/FULL_FLOW_EXAMPLE.md) · [Ví dụ full flow](docs/vi/FULL_FLOW_EXAMPLE.md)
+- [FAQ](docs/en/FAQ.md) · [Câu hỏi thường gặp](docs/vi/FAQ.md)
+- [Installation](docs/en/INSTALLATION.md) · [Cài đặt](docs/vi/INSTALLATION.md)
+- [Troubleshooting](docs/en/TROUBLESHOOTING.md) · [Khắc phục sự cố](docs/vi/TROUBLESHOOTING.md)
 
-### Tôi dùng một role/Kit cụ thể
+### I use one role/Kit
 
-- BA: [BA workflow](docs/vi/BA_KIT_WORKFLOW.md) · [English](docs/en/BA_KIT_WORKFLOW.md)
-- Developer: [Dev workflow](docs/vi/DEV_KIT_WORKFLOW.md) · [English guide](docs/en/DEV_KIT_GUIDE.md)
-- Tester: [Test Quick Start](docs/vi/TEST_KIT_QUICKSTART.md) · [English overview](docs/en/TEST_KIT_MANUAL.md)
-- Automation / Execution: [Automation](docs/vi/TEST_AUTOMATION_V1.md) · [Execution & Retest](docs/vi/TEST_EXECUTION_VNEXT.md)
-- Project Owner / Tech Lead: [Project Foundation](docs/vi/PROJECT_FOUNDATION.md)
+- BA: [BA workflow](docs/en/BA_KIT_WORKFLOW.md) · [Tiếng Việt](docs/vi/BA_KIT_WORKFLOW.md)
+- Developer: [Dev guide](docs/en/DEV_KIT_GUIDE.md) · [Tiếng Việt](docs/vi/DEV_KIT_WORKFLOW.md)
+- Tester: [Manual Test overview](docs/en/TEST_KIT_MANUAL.md) · [Tiếng Việt](docs/vi/TEST_KIT_QUICKSTART.md)
+- Automation / Execution: [Automation](docs/en/TEST_AUTOMATION_V1.md) · [Execution & Retest](docs/en/TEST_EXECUTION_VNEXT.md)
+- Project Owner / Tech Lead: [Project Foundation](docs/en/PROJECT_FOUNDATION.md)
 
-### Tôi cần đọc contract/reference sâu hơn
+### I need the contracts/reference
 
-- [Kiến trúc và lifecycle](docs/vi/ARCHITECTURE.md)
-- [Readiness states](docs/vi/READINESS_STATES.md)
-- [Public Cross-Kit Conformance](docs/vi/SDLC_SUITE_CONTRACT.md)
+- [Architecture and lifecycle](docs/en/ARCHITECTURE.md)
+- [Readiness states](docs/en/READINESS_STATES.md)
+- [Public Cross-Kit Conformance](docs/en/SDLC_SUITE_CONTRACT.md)
 - [Packaging](tooling/PACKAGING.md)
-- [Legacy và history](docs/LEGACY_AND_HISTORY.md)
+- [Legacy and history](docs/LEGACY_AND_HISTORY.md)
 
-Các contract chi tiết được tách khỏi newcomer path có chủ đích để người mới không phải học vocabulary nội bộ trước khi dùng Kit.
+The detailed contracts are intentionally separate from the newcomer path.
 
-## Trạng thái release hiện tại
+## Current release status
 
-Repository vẫn là **internal prerelease candidate**, chưa phải stable public release. Machine-readable manifests là authority cho version chính xác:
+This repository is still an **internal prerelease candidate**, not a stable public release. Machine-readable manifests own the exact versions:
 
 | Component | Current candidate |
 |---|---|
@@ -143,4 +133,4 @@ Repository vẫn là **internal prerelease candidate**, chưa phải stable publ
 | Dev Kit | \`0.4.0-rc.4\` |
 | Test Kit | \`2.0.0-rc.14\` |
 
-Xem [Release status](docs/vi/RELEASE.md). Conformance PASS là evidence cho Human review; nó không tự authorize merge, tag hoặc release.
+See [Release status](docs/en/RELEASE.md). Conformance PASS is evidence for Human review; it does not authorize merge, tag, or release.
